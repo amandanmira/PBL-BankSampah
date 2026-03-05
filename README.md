@@ -18,8 +18,11 @@ composer install
 7. nyalakan docker / buka app docker desktop
 8. docker compose up -d --build
 9. buat .env trus copy .env.example
-10. docker exec -it ABS_app php artisan key:generate
-11. docker exec -it ABS_app php artisan migrate
+```
+cp .env.example .env
+```
+11. docker exec -it ABS_app php artisan key:generate
+12. docker exec -it ABS_app php artisan migrate
 
 yg mau pakai laragon
 
