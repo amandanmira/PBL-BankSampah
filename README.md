@@ -3,14 +3,23 @@
 Yg mau pakai docker
 
 1. clone dulu
-2. cd PBL-BankSampah
-3. cd ABS_Backend
-4. composer install
-5. nyalakan docker / buka app docker desktop
-6. docker compose up -d --build
-7. docker exec -it ABS_app php artisan key:generate
-8. buat .env trus copy .env.example
-9. docker exec -it ABS_app php artisan migrate
+2. pindah sampai directory ABS_Backend
+```
+cd PBL-BankSampah
+```
+3. pindah sampai directory ABS_Backend
+```
+cd ABS_Backend
+```
+5. Install Composer
+```
+composer install
+```
+7. nyalakan docker / buka app docker desktop
+8. docker compose up -d --build
+9. docker exec -it ABS_app php artisan key:generate
+10. buat .env trus copy .env.example
+11. docker exec -it ABS_app php artisan migrate
 
 yg mau pakai laragon
 
