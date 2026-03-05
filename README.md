@@ -18,9 +18,9 @@ composer install
 7. nyalakan docker / buka app docker desktop
 8. docker compose up -d --build
 9. buat .env trus copy .env.example
-```
-cp .env.example .env
-```
+
+10. copy .env.example .env
+
 11. docker exec -it ABS_app bash
 12. php artisan key:generate
 13. php artisan migrate
