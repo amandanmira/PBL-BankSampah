@@ -21,8 +21,9 @@ composer install
 ```
 cp .env.example .env
 ```
-11. docker exec -it ABS_app php artisan key:generate
-12. docker exec -it ABS_app php artisan migrate
+11. docker exec -it ABS_app bash
+12. php artisan key:generate
+13. php artisan migrate
 
 yg mau pakai laragon
 
