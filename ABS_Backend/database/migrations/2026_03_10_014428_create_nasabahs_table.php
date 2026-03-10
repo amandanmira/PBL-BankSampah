@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id('nasabah_id');
             $table->string('username', 20)->unique();
             $table->string('email', 50)->unique();
-            $table->string('password', 32);
+            $table->string('password');
             $table->string('nama_nasabah', 50);
             $table->text('alamat')->nullable();
             $table->text('gmap')->nullable();

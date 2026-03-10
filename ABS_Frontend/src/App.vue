@@ -20,6 +20,8 @@
       <p style="color: red;" v-if="errorMessage">{{ errorMessage }}</p>
     </form>
   </div>
+
+  <router-view></router-view>
 </template>
 
 <script setup>
