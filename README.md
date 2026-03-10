@@ -1,70 +1,97 @@
 # PBL-BankSampah
 
-Yg mau pakai docker
+## A. Clone Repoitori
 
-1. clone dulu
-2. pindah sampai directory ABS_Backend
+1. clone repositori
+```
+git clone https://github.com/amandanmira/PBL-BankSampah.git
+```
+2. Pindah ke direktori `PBL-BankSampah`
 ```
 cd PBL-BankSampah
 ```
-3. pindah sampai directory ABS_Backend
+
+## B. Setup Backend
+
+### - Setup Memakai Docker
+
+1. Pindah ke direktori `ABS_Backend`
 ```
 cd ABS_Backend
 ```
-5. Install Composer
+2. Install dependensi laravel dengan composer
 ```
 composer install
 ```
-7. nyalakan docker / buka app docker desktop
-8. docker compose up -d --build
-9. buat .env trus copy .env.example
+3. Nyalakan docker / buka app docker desktop
+4. Build container docker
+```
+docker compose up -d --build
+```
+5. Buat file `.env` lalu copy isi file `.env.example` ke `.env`
+```
+cp .env.example .env
+```
+6. Buka bash container laravel
+```
+docker exec -it ABS_app bash
+```
+7. Generate key laravel
+```
+php artisan key:generate
+```
+8. Migrate database
+```
+php artisan migrate
+```
 
-10. copy .env.example .env
+### - Setup Memakai Laragon
 
-11. docker exec -it ABS_app bash
-12. php artisan key:generate
-13. php artisan migrate
+1. Pindah ke direktori `ABS_Backend`
+```
+cd ABS_Backend
+```
+2. Install dependensi laravel dengan composer
+```
+composer install
+```
+3. Buat file `.env` lalu copy isi file `.env.example` ke `.env`
+```
+cp .env.example .env
+```
+4. Generate key laravel
+```
+php artisan key:generate
+```
+5. Migrate database
+```
+php artisan migrate
+```
 
-yg mau pakai laragon
+## C. Setup Frontend
 
-1. clone dulu
-2. cd PBL-BankSampah
-3. cd ABS_Backend
-4. composer install
-5. php artisan key:generate
-6. buat .env trus copy .env.example
-7.
-DB_CONNECTION=mysql
-DB_HOST=127.0.0.1
-DB_PORT=3306
-DB_DATABASE=ABS
-DB_USERNAME=root
-DB_PASSWORD=
-9. php artisan migrate
-
-Cara sambungkan frontEnd
-
-1. Pull
-2. cd ke ABS_Frontend
-3. ketik wsl di terminal
-4. ketik
+1. Pindah ke direktori `ABS_Frontend`
+```
+cd ABS_Frontend
+```
+2. Ketik `wsl` di terminal
+3. Ketik
 ```
 docker compose --rm app npm install
 ```
-5. exit dari wsl ketik exit
-6. cd .. lalu cd ke ABS_Backend
-7. ubah .env lama ke env baru yg ada di .env.example
-8. terminal ketik
+4. Exit dari wsl ketik `exit`
+5. Ketik `cd ../ABS_Backend`
+6. Ubah `.env` lama ke env baru yg ada di `.env.example`
+7. Terminal ketik
 ```
 composer intall
 ```
-
-9. ketik
+8. Ketik
 ```
 docker exec -it ABS_app php artisan tinker
 ````
-10. ketik ini buat uji coba login sederhana
+9. Ketik ini buat uji coba login sederhana
 ```
 User::create(['name' => 'Admin', 'email' => 'admin@mail.com', 'password' => bcrypt('password123')]);
 ```
-11. di chrome ketik localhost:5173 
+10. Di chrome ketik `localhost:5173`
