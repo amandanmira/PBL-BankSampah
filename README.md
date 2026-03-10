@@ -67,3 +67,4 @@ docker exec -it ABS_app php artisan tinker
 ```
 User::create(['name' => 'Admin', 'email' => 'admin@mail.com', 'password' => bcrypt('password123')]);
 ```
+11. di chrome ketik localhost:5173 
