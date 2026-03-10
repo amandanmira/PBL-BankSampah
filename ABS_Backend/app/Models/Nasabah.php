@@ -21,4 +21,24 @@ class Nasabah extends Model
         'no_rekening',
         'nama_bank'
     ];
+
+    public function penjemputan()
+    {
+        return $this->hasMany(Penjemputan::class,'nasabah_id','nasabah_id');
+    }
+
+    public function penarikan()
+    {
+        return $this->hasMany(Penarikan::class,'nasabah_id','nasabah_id');
+    }
+
+    public function penimbangan()
+    {
+        return $this->hasMany(Penimbangan::class,'nasabah_id','nasabah_id');
+    }
+
+    public function transaksiNasabah()
+    {
+        return $this->hasMany(TransaksiNasabah::class,'nasabah_id','nasabah_id');
+    }
 }

@@ -17,4 +17,14 @@ class TransaksiNasabah extends Model
         'ket_status',
         'nasabah_id'
     ];
+
+    public function penimbangan()
+    {
+        return $this->hasMany(Penimbangan::class,'transaksi_id','transaksi_id');
+    }
+
+    public function nasabah()
+    {
+        return $this->belongsTo(Nasabah::class,'nasabah_id','nasabah_id');
+    }
 }

@@ -14,4 +14,9 @@ class Penarikan extends Model
         'ket_status',
         'nasabah_id'
     ];
+
+    public function nasabah()
+    {
+        return $this->belongsTo(Nasabah::class,'nasabah_id','nasabah_id');
+    }
 }

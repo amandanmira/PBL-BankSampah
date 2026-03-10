@@ -19,4 +19,9 @@ class Pengepul extends Model
         'status',
         'ket_status'
     ];
+
+    public function transaksiPengepul()
+    {
+        return $this->hasMany(TransaksiPengepul::class,'pengepul_id','pengepul_id');
+    }
 }

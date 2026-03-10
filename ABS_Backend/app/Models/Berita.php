@@ -15,4 +15,9 @@ class Berita extends Model
         'tanggal',
         'petugas_id'
     ];
+
+    public function petugas()
+    {
+        return $this->belongsTo(Petugas::class,'petugas_id','petugas_id');
+    }
 }

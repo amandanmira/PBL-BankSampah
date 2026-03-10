@@ -19,4 +19,19 @@ class Penjemputan extends Model
         'nasabah_id',
         'petugas_id'
     ];
+
+    public function nasabah()
+    {
+        return $this->belongsTo(Nasabah::class,'nasabah_id','nasabah_id');
+    }
+
+    public function tukang()
+    {
+        return $this->belongsTo(Tukang::class,'tukang_id','tukang_id');
+    }
+
+    public function petugas()
+    {
+        return $this->belongsTo(Petugas::class,'petugas_id','petugas_id');
+    }
 }

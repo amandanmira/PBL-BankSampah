@@ -13,4 +13,19 @@ class Petugas extends Model
         'email',
         'password'
     ];
+
+    public function penjemputan()
+    {
+        return $this->hasMany(Penjemputan::class,'petugas_id','petugas_id');
+    }
+
+    public function transaksiNasabah()
+    {
+        return $this->hasMany(TransaksiNasabah::class,'petugas_id','petugas_id');
+    }
+
+    public function berita()
+    {
+        return $this->hasMany(Berita::class,'petugas_id','petugas_id');
+    }
 }

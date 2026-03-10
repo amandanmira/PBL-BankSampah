@@ -16,4 +16,14 @@ class KategoriSampah extends Model
         'diskon',
         'stok'
     ];
+
+    public function penimbangan()
+    {
+        return $this->hasMany(Penimbangan::class,'sampah_id','sampah_id');
+    }
+
+    public function detailTransaksi()
+    {
+        return $this->hasMany(DetailTransaksi::class,'sampah_id','sampah_id');
+    }
 }

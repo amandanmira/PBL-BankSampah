@@ -16,4 +16,14 @@ class TransaksiPengepul extends Model
         'berat_total',
         'pengepul_id'
     ];
+
+    public function detailTransaksi()
+    {
+        return $this->hasMany(DetailTransaksi::class,'transaksi_id','transaksi_id');
+    }
+
+    public function pengepul()
+    {
+        return $this->belongsTo(Pengepul::class,'pengepul_id','pengepul_id');
+    }
 }

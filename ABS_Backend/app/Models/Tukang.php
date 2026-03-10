@@ -12,4 +12,14 @@ class Tukang extends Model
         'nama',
         'no_telp'
     ];
+
+    public function penjemputan()
+    {
+        return $this->hasMany(Penjemputan::class,'tukang_id','tukang_id');
+    }
+
+    public function penimbangan()
+    {
+        return $this->hasMany(Penimbangan::class,'tukang_id','tukang_id');
+    }
 }

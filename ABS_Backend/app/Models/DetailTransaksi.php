@@ -14,4 +14,14 @@ class DetailTransaksi extends Model
         'kategori_id',
         'transaksi_id'
     ];
+
+    public function sampah()
+    {
+        return $this->belongsTo(KategoriSampah::class,'sampah_id','sampah_id');
+    }
+
+    public function transaksiPengepul()
+    {
+        return $this->belongsTo(TransaksiPengepul::class,'transaksi_id','transaksi_id');
+    }
 }
