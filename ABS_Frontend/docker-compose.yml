@@ -1,0 +1,10 @@
+services:
+  app:
+    image: node:20
+    container_name: ABS_Frontend
+    working_dir: /app
+    volumes:
+      - .:/app
+    ports:
+      - "5173:5173"
+    command: npm run dev
