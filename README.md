@@ -42,5 +42,28 @@ DB_USERNAME=root
 DB_PASSWORD=
 9. php artisan migrate
 
+Cara sambungkan frontEnd
 
+1. Pull
+2. cd ke ABS_Frontend
+3. ketik wsl di terminal
+4. ketik
+```
+docker compose --rm app npm install
+```
+5. exit dari wsl ketik exit
+6. cd .. lalu cd ke ABS_Backend
+7. ubah .env lama ke env baru yg ada di .env.example
+8. terminal ketik
+```
+composer intall
+```
+
+9. ketik
+```
+docker exec -it ABS_app php artisan tinker
+````
+10. ketik ini buat uji coba login sederhana
+```
 User::create(['name' => 'Admin', 'email' => 'admin@mail.com', 'password' => bcrypt('password123')]);
+```
