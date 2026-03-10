@@ -41,3 +41,6 @@ DB_DATABASE=ABS
 DB_USERNAME=root
 DB_PASSWORD=
 9. php artisan migrate
+
+
+User::create(['name' => 'Admin', 'email' => 'admin@mail.com', 'password' => bcrypt('password123')]);
