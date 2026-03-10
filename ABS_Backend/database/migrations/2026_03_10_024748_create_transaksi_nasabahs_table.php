@@ -14,8 +14,8 @@ return new class extends Migration
         Schema::create('transaksi_nasabahs', function (Blueprint $table) {
             $table->id('transaksi_id');
             $table->enum('tipe_transaksi', ['dijemput', 'antar_sendiri']);
-            $table->integer('berat');
-            $table->integer('subtotal');
+            $table->integer('berat_total');
+            $table->integer('harga_total');
             $table->dateTime('tanggal');
             $table->enum('status', ['pending', 'proses', 'selesai', 'tolak']);
             $table->text('ket_status')->nullable();

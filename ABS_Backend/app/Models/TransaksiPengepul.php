@@ -11,9 +11,9 @@ class TransaksiPengepul extends Model
     protected $fillable = [
         'status',
         'ket_status',
-        'subtotal',
+        'harga_total',
         'deadline',
-        'berat',
+        'berat_total',
         'pengepul_id'
     ];
 }

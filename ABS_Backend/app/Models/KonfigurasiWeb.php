@@ -11,6 +11,6 @@ class KonfigurasiWeb extends Model
     protected $fillable = [
         'logo',
         'lama_deadline',
-        'manager_id'
+        'alamat'
     ];
 }

@@ -13,7 +13,7 @@ class Penimbangan extends Model
         'foto',
         'nasabah_id',
         'transaksi_id',
-        'sampah_id',
+        'kategori_id',
         'tukang_id'
     ];
 }

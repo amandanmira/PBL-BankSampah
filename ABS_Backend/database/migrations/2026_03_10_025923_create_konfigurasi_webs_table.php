@@ -15,11 +15,7 @@ return new class extends Migration
             $table->id('config_id');
             $table->text('logo');
             $table->integer('lama_deadline');
-
-            $table->foreignId('manager_id')
-                ->constrained('managers','manager_id')
-                ->cascadeOnDelete();
-
+            $table->text('alamat');
             $table->timestamps();
         });
     }
