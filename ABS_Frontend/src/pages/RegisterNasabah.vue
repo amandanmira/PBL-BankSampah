@@ -11,7 +11,7 @@ const register = async () => {
     try {
         await axios.get('/sanctum/csrf-cookie');
         
-        const res = await axios.post('/register', {
+        const res = await axios.post('/api/register-nasabah', {
             username: username.value,
             email: email.value,
             password: password.value,

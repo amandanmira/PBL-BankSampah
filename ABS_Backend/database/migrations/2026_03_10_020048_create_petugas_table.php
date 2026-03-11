@@ -14,8 +14,9 @@ return new class extends Migration
         Schema::create('petugas', function (Blueprint $table) {
             $table->id('petugas_id');
             $table->string('nama', 50);
+            $table->string('username', 20)->unique();
             $table->string('email', 50)->unique();
-            $table->string('password', 32);
+            $table->string('password');
             $table->timestamps();
         });
     }

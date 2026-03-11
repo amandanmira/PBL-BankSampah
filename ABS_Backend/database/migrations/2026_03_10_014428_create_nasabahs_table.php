@@ -16,7 +16,7 @@ return new class extends Migration
             $table->string('username', 20)->unique();
             $table->string('email', 50)->unique();
             $table->string('password');
-            $table->string('nama_nasabah', 50);
+            $table->string('nama', 50);
             $table->text('alamat')->nullable();
             $table->text('gmap')->nullable();
             $table->string('no_telp', 16)->nullable();

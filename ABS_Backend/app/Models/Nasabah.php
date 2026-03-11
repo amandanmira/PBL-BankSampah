@@ -12,7 +12,7 @@ class Nasabah extends Model
         'username',
         'email',
         'password',
-        'nama_nasabah',
+        'nama',
         'alamat',
         'gmap',
         'no_telp',

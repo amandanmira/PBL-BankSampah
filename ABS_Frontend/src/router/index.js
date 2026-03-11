@@ -1,12 +1,20 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import Register from "../components/RegisterNasabah.vue"
+
+// Auth
+import Register from "@/pages/RegisterNasabah.vue"
+import Login from '@/pages/Login.vue'
 
 const routes = [
   {
-    path: "/register",
-    name: "register",
-    component: Register
-  }
+    path: '/register-nasabah',
+    name: 'register-nasabah',
+    component: Register,
+  },
+  {
+    path: '/login',
+    name: 'login',
+    component: Login,
+  },
 ]
 
 const router = createRouter({
