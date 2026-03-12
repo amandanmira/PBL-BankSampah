@@ -3,9 +3,12 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Laravel\Sanctum\HasApiTokens;
 
 class Pengepul extends Model
 {
+    use HasApiTokens;
+
     protected $primaryKey = 'pengepul_id';
 
     protected $fillable = [

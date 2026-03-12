@@ -79,46 +79,70 @@ class AuthController extends Controller
 
         $admin = Admin::where('email', $email)->first();
         if ($admin && Hash::check($password, $admin->password)) {
+            $token = $admin->createToken('api-token')->plainTextToken;
+
             return response()->json([
                 'role' => 'admin',
-                'user' => $admin
+                'user' => $admin,
+                'token' => $token
             ]);
         }
 
         $manager = Manager::where('email', $email)->first();
         if ($manager && Hash::check($password, $manager->password)) {
+            $token = $manager->createToken('api-token')->plainTextToken;
+
             return response()->json([
                 'role' => 'manager',
-                'user' => $manager
+                'user' => $manager,
+                'token' => $token
             ]);
         }
 
         $petugas = Petugas::where('email', $email)->first();
         if ($petugas && Hash::check($password, $petugas->password)) {
+            $token = $petugas->createToken('api-token')->plainTextToken;
+
             return response()->json([
                 'role' => 'petugas',
-                'user' => $petugas
+                'user' => $petugas,
+                'token' => $token
             ]);
         }
 
         $pengepul = Pengepul::where('email', $email)->first();
         if ($pengepul && Hash::check($password, $pengepul->password)) {
+            $token = $pengepul->createToken('api-token')->plainTextToken;
+
             return response()->json([
                 'role' => 'pengepul',
-                'user' => $pengepul
+                'user' => $pengepul,
+                'token' => $token
             ]);
         }
 
         $nasabah = Nasabah::where('email', $email)->first();
         if ($nasabah && Hash::check($password, $nasabah->password)) {
+            $token = $nasabah->createToken('api-token')->plainTextToken;
+
             return response()->json([
                 'role' => 'nasabah',
-                'user' => $nasabah
+                'user' => $nasabah,
+                'token' => $token
             ]);
         }
 
         return response()->json([
             'message' => 'Email atau password salah'
         ], 401);
+    }
+
+    public function logout(Request $request)
+    {
+        $request->user()->currentAccessToken()->delete();
+
+        return response()->json([
+            'message' => 'Logout berhasil'
+        ]);
     }
 }

@@ -2,7 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 
-// Use controller
+// Use Controller
 // use App\Http\Controllers\nasabahLoginController;
 use App\Http\Controllers\Api\AuthController;
 

@@ -3,9 +3,12 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Laravel\Sanctum\HasApiTokens;
 
 class Nasabah extends Model
 {
+    use HasApiTokens;
+
     protected $primaryKey = 'nasabah_id';
 
     protected $fillable = [

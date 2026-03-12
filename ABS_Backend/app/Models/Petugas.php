@@ -3,9 +3,12 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Laravel\Sanctum\HasApiTokens;
 
 class Petugas extends Model
 {
+    use HasApiTokens;
+
     protected $primaryKey = 'petugas_id';
 
     protected $fillable = [

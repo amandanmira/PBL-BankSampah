@@ -41,11 +41,12 @@ const handleLogin = async () => {
     const response = await axios.post('/api/login', form.value)
 
     console.log(response.data)
-    const user = response.data.user
+
     const role = response.data.role
 
-    sessionStorage.setItem("user", JSON.stringify(user))
+    sessionStorage.setItem("user", JSON.stringify(response.data.user))
     sessionStorage.setItem("role", role)
+    sessionStorage.setItem("token", response.data.token)
 
     // Redirect berdasarkan role
     switch (role) {
