@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Hash;
 
 // Models
 use App\Models\Nasabah;
+use App\Models\Pengepul;
 use App\Models\Admin;
 use App\Models\Petugas;
 use App\Models\Manager;
@@ -20,23 +21,49 @@ class AuthController extends Controller
             'username' => 'required|max:20|unique:nasabahs',
             'email' => 'required|email|max:50|unique:nasabahs',
             'password' => 'required|min:8',
-            'nama_nasabah' => 'required|max:50'
+            'nama' => 'required|max:50'
         ]);
 
         $nasabah = Nasabah::create([
             'username' => $request->username,
             'email' => $request->email,
             'password' => Hash::make($request->password),
-            'nama_nasabah' => $request->nama_nasabah,
-            'alamat' => $request->alamat,
-            'gmap' => $request->gmap,
-            'no_telp' => $request->no_telp,
+            'nama' => $request->nama,
             'status' => 'aktif'
         ]);
 
         return response()->json([
             'message' => 'Registrasi berhasil',
             'data' => $nasabah
+        ]);
+    }
+
+    public function registerPengepul(Request $request)
+    {
+        $request->validate([
+            'username' => 'required|max:20|unique:nasabahs',
+            'email' => 'required|email|max:50|unique:nasabahs',
+            'password' => 'required|min:8',
+            'nama' => 'required|max:50',
+            'no_telp' => 'required|max:16',
+            'nama_lembaga' => 'required|max:50',
+            'alamat' => 'required',
+        ]);
+
+        $pengepul = Pengepul::create([
+            'username' => $request->username,
+            'email' => $request->email,
+            'password' => Hash::make($request->password),
+            'nama' => $request->nama,
+            'no_telp' => $request->no_telp,
+            'nama_lembaga' => $request->nama_lembaga,
+            'alamat' => $request->alamat,
+            'status' => 'aktif'
+        ]);
+
+        return response()->json([
+            'message' => 'Registrasi berhasil',
+            'data' => $pengepul
         ]);
     }
 
@@ -71,6 +98,14 @@ class AuthController extends Controller
             return response()->json([
                 'role' => 'petugas',
                 'user' => $petugas
+            ]);
+        }
+
+        $pengepul = Pengepul::where('email', $email)->first();
+        if ($pengepul && Hash::check($password, $pengepul->password)) {
+            return response()->json([
+                'role' => 'pengepul',
+                'user' => $pengepul
             ]);
         }
 

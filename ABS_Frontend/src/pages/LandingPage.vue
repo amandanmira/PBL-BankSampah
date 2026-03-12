@@ -11,9 +11,15 @@
   </div>
 
   <RouterLink to="/login">Login</RouterLink>
+  <br />
+
+  <RouterLink to="/register-nasabah">Register Nasabah</RouterLink>
+  <br />
+
+  <RouterLink to="/register-pengepul">Register Pengepul</RouterLink>
 </template>
 
 <script setup>
 const role = sessionStorage.getItem('role')
-const user = sessionStorage.getItem('user')
+const user = JSON.parse(sessionStorage.getItem('user'))
 </script>

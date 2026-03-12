@@ -48,17 +48,22 @@ const handleLogin = async () => {
     sessionStorage.setItem("role", role)
 
     // Redirect berdasarkan role
-    if (role === "admin") {
-      router.push("/dashboard-admin")
-    }
-    else if (role === "manager") {
-      router.push("/dashboard-mananger")
-    }
-    else if (role === "petugas") {
-      router.push("/dashboard-petugas")
-    }
-    else if (role === "nasabah") {
-      router.push("/dashboard-nasabah")
+    switch (role) {
+      case "admin":
+        router.push("/dashboard-admin")
+        break;
+      case "manager":
+        router.push("/dashboard-manager")
+        break;
+      case "petugas":
+        router.push("/dashboard-petugas")
+        break;
+      case "pengepul":
+        router.push("/dashboard-pengepul")
+        break;
+      case "nasabah":
+        router.push("/dashboard-nasabah")
+        break;
     }
   } catch (error) {
     errorMessage.value = error.response?.data?.message || error

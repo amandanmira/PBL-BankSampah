@@ -3,13 +3,15 @@ import { createRouter, createWebHistory } from 'vue-router'
 import LandingPage from '@/pages/LandingPage.vue'
 
 // Auth
-import Register from "@/pages/RegisterNasabah.vue"
-import Login from '@/pages/Login.vue'
+import RegisterNasabah from '@/pages/auth/RegisterNasabah.vue'
+import RegisterPengepul from '@/pages/auth/RegisterPengepul.vue'
+import Login from '@/pages/auth/Login.vue'
 
 // Dashboards
 import DashboardAdmin from '@/pages/dashboards/admin/DashboardAdmin.vue'
 import DashboardManager from '@/pages/dashboards/manager/DashboardManager.vue'
 import DashboardPetugas from '@/pages/dashboards/petugas/DashboardPetugas.vue'
+import DashboardPengepul from '@/pages/dashboards/pengepul/DashboardPengepul.vue'
 import DashboardNasabah from '@/pages/dashboards/nasabah/DashboardNasabah.vue'
 
 const routes = [
@@ -21,7 +23,11 @@ const routes = [
   // Auth Routes
   {
     path: '/register-nasabah',
-    component: Register,
+    component: RegisterNasabah,
+  },
+  {
+    path: '/register-pengepul',
+    component: RegisterPengepul,
   },
   {
     path: '/login',
@@ -40,6 +46,10 @@ const routes = [
   {
     path: '/dashboard-petugas',
     component: DashboardPetugas,
+  },
+  {
+    path: '/dashboard-pengepul',
+    component: DashboardPengepul,
   },
   {
     path: '/dashboard-nasabah',

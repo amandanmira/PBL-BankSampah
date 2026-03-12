@@ -6,7 +6,7 @@ export function checkRole(approvedRole) {
 
   console.log(role)
 
-  if (role === null && role !== approvedRole) {
+  if (role === null || role !== approvedRole) {
     alert('akses ditolak!')
     router.back()
   }
