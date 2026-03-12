@@ -21,7 +21,9 @@
 
 <script setup>
 import axios from 'axios'
-import api from '@/api'
+import { useRouter } from "vue-router";
+
+const router = useRouter()
 
 const role = sessionStorage.getItem('role')
 const user = JSON.parse(sessionStorage.getItem('user'))
@@ -31,9 +33,7 @@ const logout = async () => {
     const token = sessionStorage.getItem("token")
     const headers = { 'Authorization': `Bearer ${token}` }
 
-    console.log(token)
-  
-    const res = await api.post("/logout")
+    const res = await axios.post("/api/logout", {}, {headers})
     sessionStorage.clear()
     router.push("/login")
   } catch (error) {

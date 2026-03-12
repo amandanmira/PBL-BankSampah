@@ -41,8 +41,8 @@ class AuthController extends Controller
     public function registerPengepul(Request $request)
     {
         $request->validate([
-            'username' => 'required|max:20|unique:nasabahs',
-            'email' => 'required|email|max:50|unique:nasabahs',
+            'username' => 'required|max:20|unique:pengepuls',
+            'email' => 'required|email|max:50|unique:pengepuls',
             'password' => 'required|min:8',
             'nama' => 'required|max:50',
             'no_telp' => 'required|max:16',

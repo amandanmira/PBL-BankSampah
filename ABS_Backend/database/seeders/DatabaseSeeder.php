@@ -42,7 +42,7 @@ class DatabaseSeeder extends Seeder
             'nama' => 'Pengepul',
             'username' => 'pengepul',
             'email' => 'pengepul@abs.com',
-            'password' => Hash::make('nasabah123'),
+            'password' => Hash::make('pengepul123'),
             'no_telp' => '081234567890',
             'nama_lembaga' => 'CV.Penegpul',
             'alamat' => 'Surakarta',
