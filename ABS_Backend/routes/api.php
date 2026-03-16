@@ -3,17 +3,22 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
-// Use Controller
+// Gunakan Controller yang benar
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\Admin\KelolaAkunController;
 
-// Route::get('/user', function (Request $request) {
-//     return $request->user();
-// })->middleware('auth:sanctum');
 
-// Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-//     return $request->user();
-// });
+Route::post('/login', [AuthController::class, 'login']);
+Route::post('/register-nasabah', [AuthController::class, 'registerNasabah']);
+Route::post('/register-pengepul', [AuthController::class, 'registerPengepul']);
+
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
+});
+
+// Route Admin
+Route::prefix('admin')->middleware(['auth:sanctum', 'role:admin'])->group(function () {
+    Route::get('petugas', [KelolaAkunController::class, 'indexPetugas']);
+    Route::get('petugas/{petuga}', [KelolaAkunController::class, 'showPetugas']);
 });

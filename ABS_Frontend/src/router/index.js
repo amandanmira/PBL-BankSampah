@@ -14,6 +14,9 @@ import DashboardPetugas from '@/pages/dashboards/petugas/DashboardPetugas.vue'
 import DashboardPengepul from '@/pages/dashboards/pengepul/DashboardPengepul.vue'
 import DashboardNasabah from '@/pages/dashboards/nasabah/DashboardNasabah.vue'
 
+// Import komponen baru
+import KelolaPetugas from '@/pages/dashboards/admin/KelolaPetugas.vue'
+
 const routes = [
   {
     path: '/',
@@ -38,6 +41,11 @@ const routes = [
   {
     path: '/dashboard-admin',
     component: DashboardAdmin,
+  },
+  // Tambahkan rute baru untuk kelola petugas
+  {
+    path: '/dashboard-admin/kelola-petugas',
+    component: KelolaPetugas,
   },
   {
     path: '/dashboard-manager',
