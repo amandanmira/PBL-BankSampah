@@ -8,10 +8,6 @@ use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\Admin\KelolaAkunController;
 
 
-Route::post('/login', [AuthController::class, 'login']);
-Route::post('/register-nasabah', [AuthController::class, 'registerNasabah']);
-Route::post('/register-pengepul', [AuthController::class, 'registerPengepul']);
-
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
