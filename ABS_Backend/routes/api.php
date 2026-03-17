@@ -17,4 +17,10 @@ Route::middleware('auth:sanctum')->group(function () {
 Route::prefix('admin')->middleware(['auth:sanctum', 'role:admin'])->group(function () {
     Route::get('petugas', [KelolaAkunController::class, 'indexPetugas']);
     Route::get('petugas/{petuga}', [KelolaAkunController::class, 'showPetugas']);
+    Route::get('pengepul', [KelolaAkunController::class, 'indexPengepul']);
+    Route::get('pengepul/{pengepul}', [KelolaAkunController::class, 'showPengepul']);
+    Route::get('nasabah', [KelolaAkunController::class, 'indexNasabah']);
+    Route::get('tukang', [KelolaAkunController::class, 'indexTukang']);
+    Route::get('admin', [KelolaAkunController::class, 'indexAdmin']);
+    Route::get('manager', [KelolaAkunController::class, 'indexManager']);
 });
