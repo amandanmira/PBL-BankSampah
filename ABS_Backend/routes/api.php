@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\Admin\BuatPetugasController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -15,6 +16,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
 // Route Admin
 Route::prefix('admin')->middleware(['auth:sanctum', 'role:admin'])->group(function () {
+    Route::post('/buatPetugas', [BuatPetugasController::class, 'buatPetugas']);
     Route::get('petugas', [KelolaAkunController::class, 'indexPetugas']);
     Route::get('petugas/{petuga}', [KelolaAkunController::class, 'showPetugas']);
     Route::get('pengepul', [KelolaAkunController::class, 'indexPengepul']);

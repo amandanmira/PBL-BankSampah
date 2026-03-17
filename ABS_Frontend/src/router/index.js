@@ -5,6 +5,7 @@ import LandingPage from '@/pages/LandingPage.vue'
 // Auth
 import RegisterNasabah from '@/pages/auth/RegisterNasabah.vue'
 import RegisterPengepul from '@/pages/auth/RegisterPengepul.vue'
+import BuatPetugas from '@/pages/dashboards/admin/BuatPetugas.vue'
 import Login from '@/pages/auth/Login.vue'
 
 // Dashboards
@@ -31,6 +32,10 @@ const routes = [
   {
     path: '/register-pengepul',
     component: RegisterPengepul,
+  },
+  {
+    path: '/dashboard-admin/buat-petugas',
+    component: BuatPetugas,
   },
   {
     path: '/login',
