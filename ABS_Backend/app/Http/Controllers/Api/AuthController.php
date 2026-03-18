@@ -101,6 +101,13 @@ class AuthController extends Controller
 
         $petugas = Petugas::where('email', $email)->first();
         if ($petugas && Hash::check($password, $petugas->password)) {
+            // Tambahkan pengecekan ini
+            if (!$petugas->active) {
+                return response()->json([
+                    'message' => 'Akun Anda tidak aktif. Silakan hubungi admin.'
+                ], 403); // 403 Forbidden
+            }
+
             $token = $petugas->createToken('api-token')->plainTextToken;
 
             return response()->json([
