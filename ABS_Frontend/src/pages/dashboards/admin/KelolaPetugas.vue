@@ -32,6 +32,7 @@
           <th>Username</th>
           <th>Email</th>
           <th>Role</th>
+          <th>Aksi</th>
         </tr>
       </thead>
       <tbody>
@@ -41,6 +42,13 @@
           <td>{{ akun.username }}</td>
           <td>{{ akun.email }}</td>
           <td>{{ akun.role }}</td>
+          <td>
+            <div v-if="akun.role === 'Petugas'">
+              <button @click="togglePetugasStatus(akun)">
+                {{ akun.active ? "Nonaktifkan" : "Aktifkan" }}
+              </button>
+            </div>
+          </td>
         </tr>
       </tbody>
     </table>
@@ -70,6 +78,29 @@ const filteredAccounts = computed(() => {
   }
   return allAccounts.value.filter((akun) => akun.role === selectedRole.value);
 });
+
+const togglePetugasStatus = async (petugas) => {
+  try {
+    const token = sessionStorage.getItem("token");
+    if (!token) {
+      throw new Error("Otentikasi diperlukan.");
+    }
+
+    const headers = { Authorization: `Bearer ${token}` };
+    const action = petugas.active ? "deactivate" : "activate";
+
+    await axios.put(`http://localhost:8000/api/admin/petugas/${petugas.id}/${action}`, {}, { headers });
+
+    // Update status di frontend secara langsung
+    const index = allAccounts.value.findIndex((p) => p.id === petugas.id && p.role === "Petugas");
+    if (index !== -1) {
+      allAccounts.value[index].active = !allAccounts.value[index].active;
+    }
+  } catch (err) {
+    error.value = "Gagal mengubah status petugas. " + (err.response ? err.response.data.message : err.message);
+    console.error(err);
+  }
+};
 
 onMounted(async () => {
   try {
