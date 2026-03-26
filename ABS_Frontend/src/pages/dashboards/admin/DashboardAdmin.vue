@@ -1,5 +1,10 @@
 <template>
   <h1>Dashboard Admin</h1>
+
+  <RouterLink to="/dashboard-admin/buat-petugas">Buat Petugas</RouterLink>
+  <br />
+  
+  <RouterLink to="/dashboard-admin/kelola-petugas">Kelola Petugas</RouterLink>
 </template>
 
 <script setup>
