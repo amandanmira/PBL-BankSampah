@@ -9,6 +9,8 @@
   
   <RouterLink to="/dashboard-admin/kelola-gudang">Kelola Gudang</RouterLink>
   <br />
+  
+  <RouterLink to="/dashboard-admin/kelola-petugas">Kelola Petugas</RouterLink>
 </template>
 
 <script setup>
