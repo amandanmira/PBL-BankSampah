@@ -57,9 +57,9 @@ const filteredTrash = computed(() => {
       </div>
 
       <!-- Trash Grid -->
-      <div class="flex flex-wrap justify-center items-stretch gap-6 xl:gap-8 mb-16">
+      <div class="flex flex-wrap justify-center items-stretch gap-6 xl:gap-8 mb-16 gsap-stagger-parent">
         <div v-for="item in filteredTrash" :key="item.id"
-          class="w-full sm:w-[calc(50%-12px)] lg:w-[calc(25%-18px)] xl:w-[calc(25%-24px)] bg-white flex flex-col items-center text-center shadow-sm hover:shadow-md transition-shadow duration-300">
+          class="gsap-stagger-item w-full sm:w-[calc(50%-12px)] lg:w-[calc(25%-18px)] xl:w-[calc(25%-24px)] bg-white flex flex-col items-center text-center shadow-sm hover:shadow-md transition-shadow duration-300">
           <!-- Image Section (Grey Background) -->
           <div class="bg-[#DDDDDD] w-full aspect-[4/5] flex justify-center items-center overflow-hidden p-0 m-0">
              <img src="/test-trash.jpeg" :alt="item.name"

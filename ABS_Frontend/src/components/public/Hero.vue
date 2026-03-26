@@ -1,7 +1,8 @@
 <script setup></script>
 
 <template>
-  <section class="bg-[#4A7043] text-[#FFFFFF] py-16 md:py-24 lg:py-32 px-6 md:px-12 lg:px-20 overflow-hidden relative">
+  <section
+    class="bg-[#4A7043] text-[#F5F5F0] py-16 [@media(min-width:375px)_and_(max-width:768px)]:py-25 md:py-24 lg:py-32 px-6 md:px-12 lg:px-20 overflow-hidden relative">
     <div class="max-w-screen-2xl mx-auto flex flex-col lg:flex-row items-center justify-between gap-12 lg:gap-8">
 
       <!-- Text Content -->
@@ -19,14 +20,14 @@
 
         <div
           class="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4 lg:gap-5 mt-4 text-[15px] font-bold tracking-wide">
-          <a href="#"
-            class="w-full sm:w-auto bg-[#FFFFFF] text-[#4A7043] px-8 py-3.5 rounded-full hover:bg-gray-50 hover:scale-105 active:scale-95 transition-all shadow-md flex justify-center items-center">
+          <RouterLink to="/register-nasabah"
+            class="w-full sm:w-auto bg-[#F5F5F0] text-[#4A7043] px-8 py-3.5 rounded-full hover:bg-gray-50 hover:scale-105 active:scale-95 transition-all shadow-md flex justify-center items-center">
             Jadi Nasabah
-          </a>
-          <a href="#"
-            class="w-full sm:w-auto bg-transparent border border-[#FFFFFF] text-[#FFFFFF] px-8 py-3.5 rounded-full hover:bg-white/10 hover:scale-105 active:scale-95 transition-all flex justify-center items-center">
+          </RouterLink>
+          <RouterLink to="/register-pengepul"
+            class="w-full sm:w-auto bg-transparent border border-[#F5F5F0] text-[#F5F5F0] px-8 py-3.5 rounded-full hover:bg-white/10 hover:scale-105 active:scale-95 transition-all flex justify-center items-center">
             Jadi Pengepul
-          </a>
+          </RouterLink>
         </div>
       </div>
 

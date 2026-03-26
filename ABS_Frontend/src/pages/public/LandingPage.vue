@@ -1,12 +1,10 @@
 <script setup>
 import About from '@/components/public/About.vue';
+import Blog from '@/components/public/Blog.vue';
 import CallToAction from '@/components/public/CallToAction.vue';
 import Feature from '@/components/public/Feature.vue';
-import Footer from '@/components/public/Footer.vue';
 import Hero from '@/components/public/Hero.vue';
 import HowItWorks from '@/components/public/HowItWorks.vue';
-import Navbar from '@/components/public/Navbar.vue';
-import News from '@/components/public/News.vue';
 import TrashPrice from '@/components/public/TrashPrice.vue';
 import axios from 'axios'
 import { useRouter } from "vue-router";
@@ -32,17 +30,23 @@ const logout = async () => {
 
 
 <template>
-  <Navbar />
   <Hero />
   <About />
-  <Feature />
-  <TrashPrice />
-  <HowItWorks />
-  <News />
-  <CallToAction />
-  <Footer />
 
-  <h1>Landing Page</h1>
+  <div id="layanan">
+    <Feature />
+  </div>
+
+  <TrashPrice />
+
+  <div id="cara-kerja">
+    <HowItWorks />
+  </div>
+
+  <Blog />
+  <CallToAction />
+
+  <!-- <h1>Landing Page</h1>
 
   <div v-if="user">
     <p>Welcome {{ user.nama }}</p>
@@ -59,5 +63,5 @@ const logout = async () => {
     <br />
 
     <RouterLink to="/register-pengepul">Register Pengepul</RouterLink>
-  </div>
+  </div> -->
 </template>

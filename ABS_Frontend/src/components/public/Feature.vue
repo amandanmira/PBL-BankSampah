@@ -13,7 +13,7 @@
       <div class="flex flex-col gap-10 md:gap-14 lg:gap-16">
         
         <!-- Card 1 -->
-        <div class="bg-[#925733] w-full md:w-[95%] mr-auto rounded-none rounded-r-[40px] md:rounded-r-[150px] lg:rounded-r-[200px] flex flex-col md:flex-row items-center gap-8 py-10 px-8 md:py-14 md:pl-12 lg:pl-16 md:pr-24 shadow-md">
+        <div class="gsap-fade-up bg-[#925733] w-full md:w-[95%] mr-auto rounded-none rounded-r-[40px] md:rounded-r-[150px] lg:rounded-r-[200px] flex flex-col md:flex-row items-center gap-8 py-10 px-8 md:py-14 md:pl-12 lg:pl-16 md:pr-24 shadow-md">
           <div class="flex-1 text-center md:text-left">
             <h3 class="text-xl md:text-[22px] lg:text-2xl font-bold text-white mb-4 leading-snug">Konversi Timbangan ke Saldo Digital</h3>
             <p class="text-white/90 text-[15px] md:text-base leading-relaxed">
@@ -26,7 +26,7 @@
         </div>
 
         <!-- Card 2 -->
-        <div class="bg-[#4A7043] w-full md:w-[95%] ml-auto rounded-none rounded-l-[40px] md:rounded-l-[150px] lg:rounded-l-[200px] flex flex-col-reverse md:flex-row items-center gap-8 py-10 px-8 md:py-14 md:pr-12 lg:pr-16 md:pl-24 shadow-md">
+        <div class="gsap-fade-up bg-[#4A7043] w-full md:w-[95%] ml-auto rounded-none rounded-l-[40px] md:rounded-l-[150px] lg:rounded-l-[200px] flex flex-col-reverse md:flex-row items-center gap-8 py-10 px-8 md:py-14 md:pr-12 lg:pr-16 md:pl-24 shadow-md">
           <div class="flex-1 flex justify-center w-full">
             <img src="/hero.svg" alt="Ilustrasi Fitur 2" class="w-full max-w-[200px] md:max-w-[260px] lg:max-w-[300px] object-contain drop-shadow-xl hover:scale-105 transition-transform duration-500" />
           </div>
@@ -39,7 +39,7 @@
         </div>
 
         <!-- Card 3 -->
-        <div class="bg-[#777777] w-full md:w-[95%] mr-auto rounded-none rounded-r-[40px] md:rounded-r-[150px] lg:rounded-r-[200px] flex flex-col md:flex-row items-center gap-8 py-10 px-8 md:py-14 md:pl-12 lg:pl-16 md:pr-24 shadow-md">
+        <div class="gsap-fade-up bg-[#777777] w-full md:w-[95%] mr-auto rounded-none rounded-r-[40px] md:rounded-r-[150px] lg:rounded-r-[200px] flex flex-col md:flex-row items-center gap-8 py-10 px-8 md:py-14 md:pl-12 lg:pl-16 md:pr-24 shadow-md">
           <div class="flex-1 text-center md:text-left">
             <h3 class="text-xl md:text-[22px] lg:text-2xl font-bold text-white mb-4 leading-snug">Notifikasi Real-time</h3>
             <p class="text-white/90 text-[15px] md:text-base leading-relaxed">
@@ -52,7 +52,7 @@
         </div>
 
         <!-- Card 4 -->
-        <div class="bg-[#4A9D9D] w-full md:w-[95%] ml-auto rounded-none rounded-l-[40px] md:rounded-l-[150px] lg:rounded-l-[200px] flex flex-col-reverse md:flex-row items-center gap-8 py-10 px-8 md:py-14 md:pr-12 lg:pr-16 md:pl-24 shadow-md">
+        <div class="gsap-fade-up bg-[#4A9D9D] w-full md:w-[95%] ml-auto rounded-none rounded-l-[40px] md:rounded-l-[150px] lg:rounded-l-[200px] flex flex-col-reverse md:flex-row items-center gap-8 py-10 px-8 md:py-14 md:pr-12 lg:pr-16 md:pl-24 shadow-md">
           <div class="flex-1 flex justify-center w-full">
             <img src="/hero.svg" alt="Ilustrasi Fitur 4" class="w-full max-w-[200px] md:max-w-[260px] lg:max-w-[300px] object-contain drop-shadow-xl hover:scale-105 transition-transform duration-500" />
           </div>

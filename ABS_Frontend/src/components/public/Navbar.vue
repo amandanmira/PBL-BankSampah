@@ -9,7 +9,9 @@ const toggleMenu = () => {
 </script>
 
 <template>
-  <nav class="bg-[#4A7043] text-white py-4 px-6 md:px-12 lg:px-20 relative z-50 border-b border-[#73A36B]">
+  <!-- Menambahkan fitur Sticky dari atas agar navigasi mengikut ke bawah -->
+  <nav
+    class="bg-[#4A7043] text-white py-4 px-6 md:px-12 lg:px-20 sticky top-0 z-[100] border-b border-[#73A36B] shadow-sm">
     <div class="max-w-screen-2xl mx-auto flex justify-between items-center">
 
       <!-- Left Section: Hamburger & Logo -->
@@ -28,44 +30,53 @@ const toggleMenu = () => {
         </button>
 
         <!-- Logo -->
-        <a href="#" class="text-3xl md:text-4xl font-bold tracking-wide">
+        <RouterLink to="/" class="text-3xl md:text-4xl font-bold tracking-wide">
           ABS
-        </a>
+        </RouterLink>
       </div>
 
       <!-- Desktop Navigation Links -->
       <div class="hidden lg:flex items-center gap-6 lg:gap-10">
-        <a href="#" class="text-[15px] font-semibold tracking-wide hover:text-white/80 transition-colors">Tentang</a>
-        <a href="#" class="text-[15px] font-semibold tracking-wide hover:text-white/80 transition-colors">Layanan</a>
-        <a href="#" class="text-[15px] font-semibold tracking-wide hover:text-white/80 transition-colors">Cara Kerja</a>
-        <a href="#" class="text-[15px] font-semibold tracking-wide hover:text-white/80 transition-colors">FAQ</a>
+        <RouterLink to="/about" class="text-[15px] font-semibold tracking-wide hover:text-white/80 transition-colors">
+          Tentang</RouterLink>
+        <RouterLink :to="{ path: '/', hash: '#layanan' }"
+          class="text-[15px] font-semibold tracking-wide hover:text-white/80 transition-colors">Layanan</RouterLink>
+        <RouterLink :to="{ path: '/', hash: '#cara-kerja' }"
+          class="text-[15px] font-semibold tracking-wide hover:text-white/80 transition-colors">Cara Kerja</RouterLink>
+        <RouterLink to="/faq" class="text-[15px] font-semibold tracking-wide hover:text-white/80 transition-colors">FAQ
+        </RouterLink>
       </div>
 
       <!-- Right Section: Auth Action -->
       <div class="flex items-center gap-6">
-        <a href="#"
-          class="hidden lg:block text-[15px] font-bold tracking-wide hover:text-white/80 transition-colors">Daftar</a>
-        <a href="#"
+        <RouterLink to="/choose-role"
+          class="hidden lg:block text-[15px] font-bold tracking-wide hover:text-white/80 transition-colors">Daftar
+        </RouterLink>
+        <RouterLink to="/login"
           class="bg-white text-[#4A7043] text-[15px] font-bold tracking-wide px-7 py-2.5 rounded-full hover:bg-gray-50 hover:scale-105 active:scale-95 transition-all shadow-sm">
           Masuk
-        </a>
+        </RouterLink>
       </div>
     </div>
 
     <!-- Mobile Menu Dropdown -->
     <div v-show="isMenuOpen"
       class="lg:hidden absolute top-full left-0 w-full bg-[#4A7043] shadow-lg flex flex-col px-6 py-5 gap-4 border-t border-white/10">
-      <a href="#" class="text-base font-semibold tracking-wide hover:text-white/80 transition-colors py-1">Tentang</a>
-      <a href="#" class="text-base font-semibold tracking-wide hover:text-white/80 transition-colors py-1">Layanan</a>
-      <a href="#" class="text-base font-semibold tracking-wide hover:text-white/80 transition-colors py-1">Cara
-        Kerja</a>
-      <a href="#" class="text-base font-semibold tracking-wide hover:text-white/80 transition-colors py-1">FAQ</a>
+      <RouterLink to="/about" @click="isMenuOpen = false"
+        class="text-base font-semibold tracking-wide hover:text-white/80 transition-colors py-1">Tentang</RouterLink>
+      <RouterLink :to="{ path: '/', hash: '#layanan' }" @click="isMenuOpen = false"
+        class="text-base font-semibold tracking-wide hover:text-white/80 transition-colors py-1">Layanan</RouterLink>
+      <RouterLink :to="{ path: '/', hash: '#cara-kerja' }" @click="isMenuOpen = false"
+        class="text-base font-semibold tracking-wide hover:text-white/80 transition-colors py-1">Cara Kerja</RouterLink>
+      <RouterLink to="/faq" @click="isMenuOpen = false"
+        class="text-base font-semibold tracking-wide hover:text-white/80 transition-colors py-1">FAQ</RouterLink>
 
       <hr class="border-white/20 my-2" />
 
       <div class="flex flex-col gap-3">
-        <a href="#"
-          class="text-base font-bold tracking-wide text-center hover:text-white/80 transition-colors py-2">Daftar</a>
+        <RouterLink to="/choose-role"
+          class="text-base font-bold tracking-wide text-center hover:text-white/80 transition-colors py-2">Daftar
+        </RouterLink>
       </div>
     </div>
   </nav>
