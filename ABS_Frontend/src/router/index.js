@@ -18,6 +18,13 @@ import DashboardNasabah from '@/pages/dashboards/nasabah/DashboardNasabah.vue'
 // Import komponen baru
 import KelolaPetugas from '@/pages/dashboards/admin/KelolaPetugas.vue'
 
+// Halaman Kelola
+// Gudang
+import GudangIndex from '@/pages/dashboards/admin/managePages/gudang/GudangIndex.vue'
+import GudangCreate from '@/pages/dashboards/admin/managePages/gudang/GudangCreate.vue'
+import GudangEdit from '@/pages/dashboards/admin/managePages/gudang/GudangEdit.vue'
+import GudangShow from '@/pages/dashboards/admin/managePages/gudang/GudangShow.vue'
+
 const routes = [
   {
     path: '/',
@@ -33,25 +40,51 @@ const routes = [
     path: '/register-pengepul',
     component: RegisterPengepul,
   },
-  {
-    path: '/dashboard-admin/buat-petugas',
-    component: BuatPetugas,
-  },
+
   {
     path: '/login',
     component: Login,
   },
 
   // Dashboard pages
+  // Admin
   {
     path: '/dashboard-admin',
     component: DashboardAdmin,
   },
+
   // Tambahkan rute baru untuk kelola petugas
+  {
+    path: '/dashboard-admin/buat-petugas',
+    component: BuatPetugas,
+  },
+
+  // Halaman Kelola
+  // Akun
   {
     path: '/dashboard-admin/kelola-petugas',
     component: KelolaPetugas,
   },
+
+  // Gudang
+  {
+    path: '/dashboard-admin/kelola-gudang',
+    component: GudangIndex,
+  },
+  {
+    path: '/dashboard-admin/kelola-gudang/create',
+    component: GudangCreate,
+  },
+  {
+    path: '/dashboard-admin/kelola-gudang/:id/edit',
+    component: GudangEdit,
+  },
+  {
+    path: '/dashboard-admin/kelola-gudang/:id',
+    component: GudangShow,
+  },
+
+  // Manager
   {
     path: '/dashboard-manager',
     component: DashboardManager,

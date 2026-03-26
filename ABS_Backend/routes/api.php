@@ -8,8 +8,7 @@ use Illuminate\Support\Facades\Route;
 // Gunakan Controller yang benar
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\Admin\KelolaAkunController;
-
-
+use App\Http\Controllers\Api\Admin\GudangController;
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
@@ -28,4 +27,7 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'role:admin'])->group(functi
     Route::get('tukang', [KelolaAkunController::class, 'indexTukang']);
     Route::get('admin', [KelolaAkunController::class, 'indexAdmin']);
     Route::get('manager', [KelolaAkunController::class, 'indexManager']);
+
+    // API Kelola
+    Route::apiResource('gudang', GudangController::class);
 });
