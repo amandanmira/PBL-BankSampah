@@ -1,6 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
-
-import LandingPage from '@/pages/LandingPage.vue'
+import '../style.css';
+import LandingPage from '@/pages/public/LandingPage.vue'
 
 // Auth
 import RegisterNasabah from '@/pages/auth/RegisterNasabah.vue'
