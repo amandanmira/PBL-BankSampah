@@ -20,8 +20,8 @@ return new class extends Migration
             $table->enum('status', ['pending', 'proses', 'selesai', 'tolak']);
             $table->text('ket_status')->nullable();
 
-            $table->foreignId('nasabah_id')
-                ->constrained('nasabahs','nasabah_id')
+            $table->foreignId('petugas_id')
+                ->constrained('petugas','petugas_id')
                 ->cascadeOnDelete();
 
             $table->timestamps();

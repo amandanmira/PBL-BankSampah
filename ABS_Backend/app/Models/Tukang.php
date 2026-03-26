@@ -10,7 +10,8 @@ class Tukang extends Model
 
     protected $fillable = [
         'nama',
-        'no_telp'
+        'no_telp',
+        'gudang_id',
     ];
 
     public function penjemputan()
@@ -21,5 +22,10 @@ class Tukang extends Model
     public function penimbangan()
     {
         return $this->hasMany(Penimbangan::class,'tukang_id','tukang_id');
+    }
+
+    public function gudang()
+    {
+        return $this->belongsTo(Gudang::class,'gudang_id','gudang_id');
     }
 }

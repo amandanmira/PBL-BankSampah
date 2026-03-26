@@ -12,7 +12,8 @@ class Penarikan extends Model
         'jumlah',
         'status',
         'ket_status',
-        'nasabah_id'
+        'nasabah_id',
+        'bukti_tf'
     ];
 
     public function nasabah()

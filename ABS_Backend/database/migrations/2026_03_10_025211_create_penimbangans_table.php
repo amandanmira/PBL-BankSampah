@@ -32,6 +32,10 @@ return new class extends Migration
                 ->constrained('tukangs','tukang_id')
                 ->cascadeOnDelete();
 
+            $table->foreignId('penjemputan_id')
+                ->constrained('penjemputans','penjemputan_id')
+                ->cascadeOnDelete();
+
             $table->timestamps();
         });
     }
