@@ -38,17 +38,17 @@ const form = ref({
 
 const errors = ref({})
 const loading = ref(true)
+const token = sessionStorage.getItem('token')
+
+if (!token) {
+  throw new Error('Otentikasi diperlukan.')
+}
+
+const headers = { 'Authorization': `Bearer ${token}` }
 
 // ambil data awal
 const fetchGudang = async () => {
   try {
-		const token = sessionStorage.getItem('token')
-
-    if (!token) {
-      throw new Error('Otentikasi diperlukan.')
-    }
-
-    const headers = { 'Authorization': `Bearer ${token}` }
     const id = route.params.id
     const res = await axios.get(`/api/admin/gudang/${id}`, {headers})
     form.value.alamat = res.data.alamat
@@ -68,13 +68,6 @@ const submitForm = async () => {
   errors.value = {}
 
   try {
-		const token = sessionStorage.getItem('token')
-
-    if (!token) {
-      throw new Error('Otentikasi diperlukan.')
-    }
-
-    const headers = { 'Authorization': `Bearer ${token}` }
     const id = route.params.id
     await axios.put(`/api/admin/gudang/${id}`, form.value, {headers})
     router.push('/dashboard-admin/kelola-gudang')

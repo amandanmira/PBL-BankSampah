@@ -10,7 +10,7 @@
   <RouterLink to="/dashboard-admin/kelola-gudang">Kelola Gudang</RouterLink>
   <br />
   
-  <RouterLink to="/dashboard-admin/kelola-petugas">Kelola Petugas</RouterLink>
+  <RouterLink to="/dashboard-admin/kelola-sampah">Kelola Sampah</RouterLink>
 </template>
 
 <script setup>

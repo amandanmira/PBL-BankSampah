@@ -15,15 +15,21 @@ import DashboardPetugas from '@/pages/dashboards/petugas/DashboardPetugas.vue'
 import DashboardPengepul from '@/pages/dashboards/pengepul/DashboardPengepul.vue'
 import DashboardNasabah from '@/pages/dashboards/nasabah/DashboardNasabah.vue'
 
-// Import komponen baru
+// Halaman Kelola
+// Akun
 import KelolaPetugas from '@/pages/dashboards/admin/KelolaPetugas.vue'
 
-// Halaman Kelola
 // Gudang
 import GudangIndex from '@/pages/dashboards/admin/managePages/gudang/GudangIndex.vue'
 import GudangCreate from '@/pages/dashboards/admin/managePages/gudang/GudangCreate.vue'
 import GudangEdit from '@/pages/dashboards/admin/managePages/gudang/GudangEdit.vue'
 import GudangShow from '@/pages/dashboards/admin/managePages/gudang/GudangShow.vue'
+
+// Sampah
+import SampahIndex from '@/pages/dashboards/admin/managePages/sampah/SampahIndex.vue'
+import SampahCreate from '@/pages/dashboards/admin/managePages/sampah/SampahCreate.vue'
+import SampahEdit from '@/pages/dashboards/admin/managePages/sampah/SampahEdit.vue'
+import SampahShow from '@/pages/dashboards/admin/managePages/sampah/SampahShow.vue'
 
 const routes = [
   {
@@ -82,6 +88,24 @@ const routes = [
   {
     path: '/dashboard-admin/kelola-gudang/:id',
     component: GudangShow,
+  },
+
+  // Sampah
+  {
+    path: '/dashboard-admin/kelola-sampah',
+    component: SampahIndex,
+  },
+  {
+    path: '/dashboard-admin/kelola-sampah/create',
+    component: SampahCreate,
+  },
+  {
+    path: '/dashboard-admin/kelola-sampah/:id/edit',
+    component: SampahEdit,
+  },
+  {
+    path: '/dashboard-admin/kelola-sampah/:id',
+    component: SampahShow,
   },
 
   // Manager
