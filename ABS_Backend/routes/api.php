@@ -24,6 +24,8 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'role:admin'])->group(functi
     Route::put('petugas/{petuga}/activate', [AksiAdminController::class, 'activatePetugas']);
     Route::get('pengepul', [KelolaAkunController::class, 'indexPengepul']);
     Route::get('pengepul/{pengepul}', [KelolaAkunController::class, 'showPengepul']);
+    Route::put('pengepul/{pengepul}/terima', [AksiAdminController::class, 'terimaPengepul']);
+    Route::delete('pengepul/{pengepul}/tolak', [AksiAdminController::class, 'tolakPengepul']);
     Route::get('nasabah', [KelolaAkunController::class, 'indexNasabah']);
     Route::get('tukang', [KelolaAkunController::class, 'indexTukang']);
     Route::get('admin', [KelolaAkunController::class, 'indexAdmin']);

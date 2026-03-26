@@ -58,7 +58,7 @@ class AuthController extends Controller
             'no_telp' => $request->no_telp,
             'nama_lembaga' => $request->nama_lembaga,
             'alamat' => $request->alamat,
-            'status' => 'aktif'
+            'status' => 'pending'
         ]);
 
         return response()->json([
@@ -119,6 +119,13 @@ class AuthController extends Controller
 
         $pengepul = Pengepul::where('email', $email)->first();
         if ($pengepul && Hash::check($password, $pengepul->password)) {
+
+            if($pengepul->status !== 'aktif'){
+                return response()->json([
+                    'message' => 'Akun Anda belum aktif atau sedang dinonaktifkan. Silakan hubungi admin.'
+                ], 403);
+            }
+
             $token = $pengepul->createToken('api-token')->plainTextToken;
 
             return response()->json([

@@ -1,78 +1,83 @@
-import { createRouter, createWebHistory } from 'vue-router'
+import { createRouter, createWebHistory } from "vue-router";
 
-import LandingPage from '@/pages/LandingPage.vue'
+import LandingPage from "@/pages/LandingPage.vue";
 
 // Auth
-import RegisterNasabah from '@/pages/auth/RegisterNasabah.vue'
-import RegisterPengepul from '@/pages/auth/RegisterPengepul.vue'
-import BuatPetugas from '@/pages/dashboards/admin/BuatPetugas.vue'
-import Login from '@/pages/auth/Login.vue'
+import RegisterNasabah from "@/pages/auth/RegisterNasabah.vue";
+import RegisterPengepul from "@/pages/auth/RegisterPengepul.vue";
+import BuatPetugas from "@/pages/dashboards/admin/BuatPetugas.vue";
+import Login from "@/pages/auth/Login.vue";
 
 // Dashboards
-import DashboardAdmin from '@/pages/dashboards/admin/DashboardAdmin.vue'
-import DashboardManager from '@/pages/dashboards/manager/DashboardManager.vue'
-import DashboardPetugas from '@/pages/dashboards/petugas/DashboardPetugas.vue'
-import DashboardPengepul from '@/pages/dashboards/pengepul/DashboardPengepul.vue'
-import DashboardNasabah from '@/pages/dashboards/nasabah/DashboardNasabah.vue'
+import DashboardAdmin from "@/pages/dashboards/admin/DashboardAdmin.vue";
+import DashboardManager from "@/pages/dashboards/manager/DashboardManager.vue";
+import DashboardPetugas from "@/pages/dashboards/petugas/DashboardPetugas.vue";
+import DashboardPengepul from "@/pages/dashboards/pengepul/DashboardPengepul.vue";
+import DashboardNasabah from "@/pages/dashboards/nasabah/DashboardNasabah.vue";
 
 // Import komponen baru
-import KelolaPetugas from '@/pages/dashboards/admin/KelolaPetugas.vue'
+import KelolaPetugas from "@/pages/dashboards/admin/KelolaPetugas.vue";
+import VerifikasiPengepul from "@/pages/dashboards/admin/VerifikasiPengepul.vue";
 
 const routes = [
   {
-    path: '/',
+    path: "/",
     component: LandingPage,
   },
 
   // Auth Routes
   {
-    path: '/register-nasabah',
+    path: "/register-nasabah",
     component: RegisterNasabah,
   },
   {
-    path: '/register-pengepul',
+    path: "/register-pengepul",
     component: RegisterPengepul,
   },
   {
-    path: '/dashboard-admin/buat-petugas',
+    path: "/dashboard-admin/buat-petugas",
     component: BuatPetugas,
   },
   {
-    path: '/login',
+    path: "/login",
     component: Login,
   },
 
   // Dashboard pages
   {
-    path: '/dashboard-admin',
+    path: "/dashboard-admin",
     component: DashboardAdmin,
   },
   // Tambahkan rute baru untuk kelola petugas
   {
-    path: '/dashboard-admin/kelola-petugas',
+    path: "/dashboard-admin/kelola-petugas",
     component: KelolaPetugas,
   },
   {
-    path: '/dashboard-manager',
+    path: "/dashboard-admin/verifikasi-pengepul",
+    component: VerifikasiPengepul,
+  },
+  {
+    path: "/dashboard-manager",
     component: DashboardManager,
   },
   {
-    path: '/dashboard-petugas',
+    path: "/dashboard-petugas",
     component: DashboardPetugas,
   },
   {
-    path: '/dashboard-pengepul',
+    path: "/dashboard-pengepul",
     component: DashboardPengepul,
   },
   {
-    path: '/dashboard-nasabah',
+    path: "/dashboard-nasabah",
     component: DashboardNasabah,
   },
-]
+];
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: routes,
-})
+});
 
-export default router
+export default router;
