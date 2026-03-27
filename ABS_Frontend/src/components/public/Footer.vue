@@ -23,21 +23,37 @@ import { RouterLink } from 'vue-router';
             Jawa Tengah
           </p>
         </div>
+        <div class="pt-4 space-y-2">
+          <p class="font-bold text-[14px]">Kontak:</p>
+          <div class="flex items-center gap-2 text-[14px]">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/>
+            </svg>
+            <p>085679340192</p>
+          </div>
+          <div class="flex items-center gap-2 text-[14px]">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/>
+            </svg>
+            <p>abs@gmail.com</p>
+          </div>
+        </div>
       </div>
 
       <!-- Column 2: Navigasi -->
       <div class="lg:pl-8">
         <h3 class="font-bold text-[17px] mb-6 tracking-wide">Navigasi</h3>
-        <ul class="space-y-4 text-[15px] font-medium">
+        <ul class="space-y-4 text-[15px] font-medium text-[#BBBBBB]">
           <li>
             <RouterLink to="/" class="hover:text-white hover:underline transition-colors">Beranda</RouterLink>
           </li>
           <li>
-            <RouterLink to="/about" class="hover:text-white hover:underline transition-colors">Tentang</RouterLink>
-          </li>
-          <li>
             <RouterLink :to="{ path: '/', hash: '#layanan' }"
               class="hover:text-white hover:underline transition-colors">Layanan</RouterLink>
+          </li>
+          <li>
+            <RouterLink :to="{ path: '/', hash: '#cara-kerja' }"
+              class="hover:text-white hover:underline transition-colors">Cara Kerja</RouterLink>
           </li>
           <li>
             <RouterLink to="/blog" class="hover:text-white hover:underline transition-colors">Blog</RouterLink>
@@ -48,7 +64,7 @@ import { RouterLink } from 'vue-router';
       <!-- Column 3: Tentang Kami -->
       <div>
         <h3 class="font-bold text-[17px] mb-6 tracking-wide">Tentang Kami</h3>
-        <ul class="space-y-4 text-[15px] font-medium">
+        <ul class="space-y-4 text-[15px] font-medium text-[#BBBBBB]">
           <li>
             <RouterLink to="/about" class="hover:text-white hover:underline transition-colors">Tentang</RouterLink>
           </li>
@@ -75,21 +91,21 @@ import { RouterLink } from 'vue-router';
             </svg>
           </a>
 
-          <!-- Twitter (Bird) -->
+          <!-- Instagram -->
           <a href="#"
             class="w-10 h-10 rounded-full bg-[#F5F5F0] text-[#4A7043] flex items-center justify-center hover:scale-110 hover:bg-white transition-all shadow-sm">
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
               <path
-                d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z" />
+                d="M7.8,2H16.2C19.4,2 22,4.6 22,7.8V16.2A5.8,5.8 0 0,1 16.2,22H7.8C4.6,22 2,19.4 2,16.2V7.8A5.8,5.8 0 0,1 7.8,2M7.6,4A3.6,3.6 0 0,0 4,7.6V16.4C4,18.39 5.61,20 7.6,20H16.4A3.6,3.6 0 0,0 20,16.4V7.6C20,5.61 18.39,4 16.4,4H7.6M17.25,5.5A1.25,1.25 0 0,1 18.5,6.75A1.25,1.25 0 0,1 17.25,8A1.25,1.25 0 0,1 16,6.75A1.25,1.25 0 0,1 17.25,5.5M12,7A5,5 0 0,1 17,12A5,5 0 0,1 12,17A5,5 0 0,1 7,12A5,5 0 0,1 12,7M12,9A3,3 0 0,0 9,12A3,3 0 0,0 12,15A3,3 0 0,0 15,12A3,3 0 0,0 12,9Z" />
             </svg>
           </a>
 
-          <!-- X Logo -->
+          <!-- LinkedIn -->
           <a href="#"
             class="w-10 h-10 rounded-full bg-[#F5F5F0] text-[#4A7043] flex items-center justify-center hover:scale-110 hover:bg-white transition-all shadow-sm">
-            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
               <path
-                d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+                d="M19 3A2 2 0 0 1 21 5V19A2 2 0 0 1 19 21H5A2 2 0 0 1 3 19V5A2 2 0 0 1 5 3H19M18.5 18.5V13.2A3.26 3.26 0 0 0 15.24 9.94C14 9.94 13.4 10.61 13.06 11.14V10.12H10.66V18.5H13.06V13.83C13.06 12.58 13.3 11.96 14.17 11.96C15 11.96 15.17 12.72 15.17 13.92V18.5H18.5M6.88 8.56A1.68 1.68 0 0 0 8.56 6.88C8.56 5.95 7.81 5.19 6.88 5.19A1.69 1.69 0 0 0 5.19 6.88C5.19 7.81 5.95 8.56 6.88 8.56M8.1 18.5V10.12H5.66V18.5H8.1Z" />
             </svg>
           </a>
 
