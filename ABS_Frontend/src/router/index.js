@@ -3,6 +3,7 @@ import '../style.css';
 import LandingPage from '@/pages/public/LandingPage.vue'
 
 // Auth
+import ChooseRole from '@/pages/auth/ChooseRole.vue'
 import RegisterNasabah from '@/pages/auth/RegisterNasabah.vue'
 import RegisterPengepul from '@/pages/auth/RegisterPengepul.vue'
 import BuatPetugas from '@/pages/dashboards/admin/BuatPetugas.vue'
@@ -28,29 +29,29 @@ const routes = [
   {
     path: '/',
     component: LandingPageLayout,
-    children:[
+    children: [
       {
-        path:'/',
+        path: '/',
         component: LandingPage
       },
       {
-        path:'/faq',
+        path: '/faq',
         component: FAQ
       },
       {
-        path:'/about',
+        path: '/about',
         component: AboutFull
       },
       {
-        path:'/terms-and-privacy',
+        path: '/terms-and-privacy',
         component: TermsAndPrivacy
       },
       {
-        path:'/blog',
+        path: '/blog',
         component: Blog
       },
       {
-        path:'/blog/:slug',
+        path: '/blog/:slug',
         name: 'SingleBlog',
         component: OneBlog
       },
@@ -58,6 +59,10 @@ const routes = [
   },
 
   // Auth Routes
+  {
+    path: '/choose-role',
+    component: ChooseRole,
+  },
   {
     path: '/register-nasabah',
     component: RegisterNasabah,
@@ -111,7 +116,7 @@ const router = createRouter({
     if (savedPosition) {
       return savedPosition;
     }
-    
+
     // 2. Jika tujuan kita adalah sebuah section (hashtag)
     if (to.hash) {
       return new Promise((resolve) => {
@@ -126,7 +131,7 @@ const router = createRouter({
         }, 300);
       });
     }
-    
+
     // 3. Pindah halaman standar, kembalikan posisi layar ke pucuk secara halus
     return { top: 0, behavior: 'smooth' };
   }
