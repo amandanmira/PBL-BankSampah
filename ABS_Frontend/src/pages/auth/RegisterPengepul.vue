@@ -56,7 +56,8 @@
 
           <div class="flex flex-col gap-2">
             <label class="text-[#73A36B] text-[15px] font-bold tracking-wide">Email</label>
-            <input v-model="form.email" type="email" placeholder="Masukkan email" required class="w-full h-[50px] px-4 bg-[#eff1ef] rounded-xl text-[15px] outline-none focus:ring-2 focus:ring-[#4A7043]/30 transition-all text-[#5E6460] placeholder-[#a9b0aa]" />
+            <input v-model="form.email" @blur="checkEmail" type="email" placeholder="Masukkan email" required class="w-full h-[50px] px-4 bg-[#eff1ef] rounded-xl text-[15px] outline-none focus:ring-2 focus:ring-[#4A7043]/30 transition-all text-[#5E6460] placeholder-[#a9b0aa]" />
+            <p v-if="emailError" class="text-red-500 text-[13px] mt-1">{{ emailError }}</p>
           </div>
 
           <div class="flex flex-col gap-2">
@@ -85,7 +86,7 @@
           <p v-if="errorMessage" class="text-red-500 text-[13px] text-center font-medium">{{ errorMessage }}</p>
           <p v-if="successMessage" class="text-[#4A7043] text-[13px] text-center font-medium">{{ successMessage }}</p>
 
-          <button type="submit" :disabled="isLoading || passwordMismatch" class="w-full h-[52px] bg-[#4A7043] hover:bg-[#3d5e37] active:scale-[0.99] disabled:opacity-60 text-white font-bold text-[17px] rounded-xl transition-all mt-4 shadow-sm">
+          <button type="submit" :disabled="isLoading || passwordMismatch || !!emailError" class="w-full h-[52px] bg-[#4A7043] hover:bg-[#3d5e37] active:scale-[0.99] disabled:opacity-60 text-white font-bold text-[17px] rounded-xl transition-all mt-4 shadow-sm">
             {{ isLoading ? 'Mendaftar...' : 'Daftar' }}
           </button>
 
@@ -121,13 +122,35 @@ const showConfirm = ref(false)
 const isLoading = ref(false)
 const errorMessage = ref('')
 const successMessage = ref('')
+const emailError = ref('')
 
 const passwordMismatch = computed(() => {
   return form.value.password && form.value.confirmPassword && form.value.password !== form.value.confirmPassword;
 })
 
+const checkEmail = async () => {
+    if (!form.value.email) {
+        emailError.value = '';
+        return;
+    }
+    
+    try {
+        const res = await axios.post('/api/check-email', {
+            email: form.value.email
+        });
+        
+        if (res.data.used) {
+            emailError.value = 'Email sudah terpakai';
+        } else {
+            emailError.value = '';
+        }
+    } catch (err) {
+        console.error('Error checking email', err);
+    }
+}
+
 const register = async () => {
-    if (passwordMismatch.value) return;
+    if (passwordMismatch.value || emailError.value) return;
     
     errorMessage.value = '';
     successMessage.value = '';

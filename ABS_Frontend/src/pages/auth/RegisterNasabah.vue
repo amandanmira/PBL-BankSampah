@@ -36,7 +36,8 @@
 
           <div class="flex flex-col gap-2">
             <label class="text-[#73A36B] text-[15px] font-bold tracking-wide">Email</label>
-            <input v-model="form.email" type="email" placeholder="Masukkan email" required class="w-full h-[50px] px-4 bg-[#eff1ef] rounded-xl text-[15px] outline-none focus:ring-2 focus:ring-[#4A7043]/30 transition-all text-[#5E6460] placeholder-[#a9b0aa]" />
+            <input v-model="form.email" @blur="checkEmail" type="email" placeholder="Masukkan email" required class="w-full h-[50px] px-4 bg-[#eff1ef] rounded-xl text-[15px] outline-none focus:ring-2 focus:ring-[#4A7043]/30 transition-all text-[#5E6460] placeholder-[#a9b0aa]" />
+            <p v-if="emailError" class="text-red-500 text-[13px] mt-1">{{ emailError }}</p>
           </div>
 
           <div class="flex flex-col gap-2">
@@ -63,7 +64,7 @@
             <p v-if="serverError" class="text-red-500 text-[13px] mt-1">{{ serverError }}</p>
           </div>
 
-          <button type="submit" :disabled="isLoading || passwordMismatch" class="w-full h-[52px] bg-[#4A7043] hover:bg-[#3d5e37] active:scale-[0.99] disabled:opacity-60 text-white font-bold text-[17px] rounded-xl transition-all mt-6 shadow-sm">
+          <button type="submit" :disabled="isLoading || passwordMismatch || !!emailError" class="w-full h-[52px] bg-[#4A7043] hover:bg-[#3d5e37] active:scale-[0.99] disabled:opacity-60 text-white font-bold text-[17px] rounded-xl transition-all mt-6 shadow-sm">
             {{ isLoading ? 'Memproses...' : 'Daftar' }}
           </button>
 
@@ -95,13 +96,35 @@ const showPassword = ref(false)
 const showConfirm = ref(false)
 const isLoading = ref(false)
 const serverError = ref('')
+const emailError = ref('')
 
 const passwordMismatch = computed(() => {
   return form.value.password && form.value.confirmPassword && form.value.password !== form.value.confirmPassword;
 })
 
+const checkEmail = async () => {
+    if (!form.value.email) {
+        emailError.value = '';
+        return;
+    }
+    
+    try {
+        const res = await axios.post('/api/check-email', {
+            email: form.value.email
+        });
+        
+        if (res.data.used) {
+            emailError.value = 'Email sudah terpakai';
+        } else {
+            emailError.value = '';
+        }
+    } catch (err) {
+        console.error('Error checking email', err);
+    }
+}
+
 const register = async () => {
-    if (passwordMismatch.value) return;
+    if (passwordMismatch.value || emailError.value) return;
     
     isLoading.value = true;
     serverError.value = '';
@@ -120,7 +143,16 @@ const register = async () => {
         alert("Registrasi berhasil, silakan login.")
         router.push('/login')
     } catch (err) {
-        serverError.value = err.response?.data?.message || 'Terjadi kesalahan saat mendaftar.';
+        if (err.response && err.response.data && err.response.data.message) {
+            serverError.value = err.response.data.message;
+            if (err.response.data.errors) {
+                const errors = err.response.data.errors;
+                const firstError = Object.values(errors)[0][0];
+                serverError.value = firstError;
+            }
+        } else {
+            serverError.value = 'Terjadi kesalahan saat mendaftar.';
+        }
         console.log(err.response?.data)
     } finally {
         isLoading.value = false;
