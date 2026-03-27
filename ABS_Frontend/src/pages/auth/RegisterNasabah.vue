@@ -1,19 +1,47 @@
 <template>
   <!-- Fixed Navbar top bar to mimic absolute header in the screenshot -->
-  <div class="fixed top-0 left-0 w-full h-[60px] bg-[#4A7043] flex items-center px-12 z-50">
-    <RouterLink to="/" class="text-white text-3xl font-bold tracking-wide">
-      ABS
-    </RouterLink>
+<div class="fixed top-0 left-0 w-full bg-[#4A7043] z-50 border-b border-[#73A36B] shadow-sm">
+  
+  <div class="max-w-screen-2xl mx-auto px-6 md:px-12 lg:px-20 py-4">
+    
+    <div class="flex items-center justify-between">
+      
+      <!-- Left -->
+      <div class="flex items-center gap-4">
+        <RouterLink to="/" class="text-3xl md:text-4xl font-bold tracking-wide text-white">
+          ABS
+        </RouterLink>
+      </div>
+
+      <!-- Right -->
+      <div class="hidden sm:flex items-center gap-6">
+        <span class="text-white/90 text-[15px]">
+          Butuh pasokan sampah daur ulang?
+        </span>
+        <RouterLink
+          to="/register-pengepul"
+          class="text-white text-[15px] font-bold hover:text-white/80 transition-colors"
+        >
+          Buat Akun Pengepul
+        </RouterLink>
+      </div>
+    </div>
   </div>
+</div>
 
   <div class="min-h-screen w-full bg-[#f6f7f6] font-['Inter'] relative pt-[80px] pb-12">
     <!-- Back Header -->
-    <div class="px-8 lg:px-20 mb-[60px]">
-      <router-link to="/choose-role" class="text-[#8ba783] hover:text-[#4A7043] flex items-center gap-2 text-[15px] font-medium transition-colors w-fit">
-        <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" viewBox="0 0 24 24" class="w-4 h-4"><path d="M19 12H5M12 19l-7-7 7-7"></path></svg>
-        Kembali ke Beranda
-      </router-link>
-    </div>
+  <div class="max-w-screen-2xl mx-auto px-6 md:px-12 lg:px-20 pt-3">
+    <router-link 
+      to="/choose-role" 
+      class="text-[#8ba783] hover:text-[#4A7043] flex items-center gap-2 text-sm font-medium transition-colors w-fit"
+    >
+      <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" class="w-4 h-4">
+        <path d="M19 12H5M12 19l-7-7 7-7"></path>
+      </svg>
+      Kembali
+    </router-link>
+  </div>
 
     <!-- Form Container -->
     <main class="flex flex-col items-center max-w-[560px] mx-auto px-4">
@@ -75,9 +103,11 @@
       </div>
     </main>
   </div>
+  <Footer />
 </template>
 
 <script setup>
+import Footer from '@/components/public/Footer.vue'
 import { ref, computed, inject } from 'vue'
 import { useRouter } from "vue-router";
 

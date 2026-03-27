@@ -1,9 +1,21 @@
 <template>
+  <Navbar2/>
   <div class="min-h-screen w-full bg-[#f6f7f6] font-['Inter'] relative pt-6 pb-12">
-    <!-- Navbar placeholder (like the Back button) -->
-    <div class="px-8 lg:px-20 mb-[80px]">
-      <router-link to="/" class="text-[#8ba783] hover:text-[#4A7043] flex items-center gap-2 text-[15px] font-medium transition-colors w-fit">
-        <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" viewBox="0 0 24 24" class="w-4 h-4"><path d="M19 12H5M12 19l-7-7 7-7"></path></svg>
+    <!-- Back Header -->
+    <div class="max-w-screen-2xl mx-auto px-6 md:px-12 lg:px-20 pt-1.5">
+      <router-link
+        to="/"
+        class="text-[#8ba783] hover:text-[#4A7043] flex items-center gap-2 text-sm font-medium transition-colors w-fit"
+      >
+        <svg
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2.5"
+          viewBox="0 0 24 24"
+          class="w-4 h-4"
+        >
+          <path d="M19 12H5M12 19l-7-7 7-7"></path>
+        </svg>
         Kembali ke Beranda
       </router-link>
     </div>
@@ -82,9 +94,12 @@
       </div>
     </main>
   </div>
+  <Footer />
 </template>
 
 <script setup>
+import Navbar2 from '@/components/public/Navbar2.vue'
+import Footer from '@/components/public/Footer.vue'
 import { ref } from 'vue'
 
 const selectedRole = ref('nasabah') // Default state as shown in image

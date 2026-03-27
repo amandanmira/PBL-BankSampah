@@ -1,12 +1,28 @@
 <template>
   <Navbar />
-  <div class="min-h-screen w-full bg-stone-100 font-['Inter'] relative">
-    <!-- Login Container -->
-    <main class="flex justify-center items-center min-h-[calc(100vh-80px)] py-16 px-4">
+<div class="min-h-screen w-full bg-stone-100 font-['Inter']">
+
+  <!-- Back button (align sama container utama) -->
+  <div class="max-w-screen-2xl mx-auto px-6 md:px-12 lg:px-20 pt-3">
+    <router-link 
+      to="/" 
+      class="text-[#8ba783] hover:text-[#4A7043] flex items-center gap-2 text-sm font-medium transition-colors w-fit"
+    >
+      <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" class="w-4 h-4">
+        <path d="M19 12H5M12 19l-7-7 7-7"></path>
+      </svg>
+      Kembali
+    </router-link>
+  </div>
+
+  <!-- Login Container -->
+  <main class="flex items-center justify-center min-h-[calc(100vh-120px)] px-4">
+    
+    <!-- Login Card Wrapper (biar center beneran) -->
+    <div class="w-full max-w-md">
+      
       <!-- Login Card -->
-      <div
-        class="w-full max-w-[500px] bg-white rounded-3xl shadow-[0_8px_30px_rgba(0,0,0,0.08)] px-12 py-11"
-      >
+      <div class="bg-stone-50 rounded-3xl shadow-[0_8px_30px_rgba(0,0,0,0.08)] px-10 py-10">
         <div class="flex flex-col items-center gap-11">
           <!-- Header -->
           <div class="flex flex-col items-center gap-[5px]">
@@ -128,6 +144,7 @@
             </p>
           </form>
         </div>
+      </div>
       </div>
     </main>
   </div>
