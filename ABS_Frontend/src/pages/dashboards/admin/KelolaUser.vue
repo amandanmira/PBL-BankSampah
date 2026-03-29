@@ -48,6 +48,21 @@
                 {{ akun.active ? "Nonaktifkan" : "Aktifkan" }}
               </button>
             </div>
+            <div v-else-if="akun.role === 'Pengepul'">
+              <button @click="togglePengepulStatus(akun)">
+                {{ akun.status === "aktif" ? "Nonaktifkan" : "Aktifkan" }}
+              </button>
+            </div>
+            <div v-else-if="akun.role === 'Nasabah'">
+              <button @click="toggleNasabahStatus(akun)">
+                {{ akun.status === "aktif" ? "Nonaktifkan" : "Aktifkan" }}
+              </button>
+            </div>
+            <div v-else>
+              <button disabled>
+                N/A
+              </button>
+            </div>
           </td>
         </tr>
       </tbody>
@@ -98,6 +113,52 @@ const togglePetugasStatus = async (petugas) => {
     }
   } catch (err) {
     error.value = "Gagal mengubah status petugas. " + (err.response ? err.response.data.message : err.message);
+    console.error(err);
+  }
+};
+
+const togglePengepulStatus = async (pengepul) => {
+  try {
+    const token = sessionStorage.getItem("token");
+    if (!token) {
+      throw new Error("Otentikasi diperlukan.");
+    }
+
+    const headers = { Authorization: `Bearer ${token}` };
+    const action = pengepul.status === "aktif" ? "deactivate" : "activate";
+
+    await axios.put(`http://localhost:8000/api/admin/pengepul/${pengepul.id}/${action}`, {}, { headers });
+
+    // Update status di frontend secara langsung
+    const index = allAccounts.value.findIndex((p) => p.id === pengepul.id && p.role === "Pengepul");
+    if (index !== -1) {
+      allAccounts.value[index].status = allAccounts.value[index].status === "aktif" ? "nonaktif" : "aktif";
+    }
+  } catch (err) {
+    error.value = "Gagal mengubah status pengepul. " + (err.response ? err.response.data.message : err.message);
+    console.error(err);
+  }
+};
+
+const toggleNasabahStatus = async (nasabah) => {
+  try {
+    const token = sessionStorage.getItem("token");
+    if (!token) {
+      throw new Error("Otentikasi diperlukan.");
+    }
+
+    const headers = { Authorization: `Bearer ${token}` };
+    const action = nasabah.status === "aktif" ? "deactivate" : "activate";
+
+    await axios.put(`http://localhost:8000/api/admin/nasabah/${nasabah.id}/${action}`, {}, { headers });
+
+    // Update status di frontend secara langsung
+    const index = allAccounts.value.findIndex((n) => n.id === nasabah.id && n.role === "Nasabah");
+    if (index !== -1) {
+      allAccounts.value[index].status = allAccounts.value[index].status === "aktif" ? "nonaktif" : "aktif";
+    }
+  } catch (err) {
+    error.value = "Gagal mengubah status nasabah. " + (err.response ? err.response.data.message : err.message);
     console.error(err);
   }
 };

@@ -16,7 +16,7 @@ import DashboardPengepul from "@/pages/dashboards/pengepul/DashboardPengepul.vue
 import DashboardNasabah from "@/pages/dashboards/nasabah/DashboardNasabah.vue";
 
 // Import komponen baru
-import KelolaPetugas from "@/pages/dashboards/admin/KelolaPetugas.vue";
+import KelolaPetugas from "@/pages/dashboards/admin/KelolaUser.vue";
 import VerifikasiPengepul from "@/pages/dashboards/admin/VerifikasiPengepul.vue";
 
 const routes = [
@@ -50,7 +50,7 @@ const routes = [
   },
   // Tambahkan rute baru untuk kelola petugas
   {
-    path: "/dashboard-admin/kelola-petugas",
+    path: "/dashboard-admin/kelola-users",
     component: KelolaPetugas,
   },
   {
