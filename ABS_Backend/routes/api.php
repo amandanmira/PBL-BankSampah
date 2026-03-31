@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Route;
 
 // Gunakan Controller yang benar
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\Admin\ProfileController;
 use App\Http\Controllers\Api\Admin\KelolaAkunController;
 use App\Http\Controllers\Api\Admin\GudangController;
 use App\Http\Controllers\Api\Admin\SampahController;
@@ -15,17 +16,27 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
 });
 
+Route::prefix('nasabah')->middleware(['auth:sanctum', 'role:nasabah'])->group(function () {
+    Route::put('/edit-profile/{id}', [ProfileController::class, 'updateNasabah']);
+    Route::get('/profile/{id}', [ProfileController::class, 'showNasabah']);
+});
+
+Route::prefix('pengepul')->middleware(['auth:sanctum', 'role:pengepul'])->group(function () {
+    Route::put('/edit-profile/{id}', [ProfileController::class, 'updatePengepul']);
+    Route::get('/profile/{id}', [ProfileController::class, 'showPengepul']);
+});
+
 // Route Admin
 Route::prefix('admin')->middleware(['auth:sanctum', 'role:admin'])->group(function () {
     // API Kelola
-    //Petugas
+    // Petugas
     Route::post('/buatPetugas', [BuatPetugasController::class, 'buatPetugas']);
     Route::get('petugas', [KelolaAkunController::class, 'indexPetugas']);
     Route::get('petugas/{petuga}', [KelolaAkunController::class, 'showPetugas']);
     Route::put('petugas/{petuga}/deactivate', [AksiAdminController::class, 'deactivatePetugas']);
     Route::put('petugas/{petuga}/activate', [AksiAdminController::class, 'activatePetugas']);
 
-    //pengepul
+    // Pengepul
     Route::get('pengepul', [KelolaAkunController::class, 'indexPengepul']);
     Route::get('pengepul/{pengepul}', [KelolaAkunController::class, 'showPengepul']);
     Route::put('pengepul/{pengepul}/terima', [AksiAdminController::class, 'terimaPengepul']);

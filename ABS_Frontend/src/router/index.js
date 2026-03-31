@@ -31,6 +31,10 @@ import SampahCreate from '@/pages/dashboards/admin/managePages/sampah/SampahCrea
 import SampahEdit from '@/pages/dashboards/admin/managePages/sampah/SampahEdit.vue'
 import SampahShow from '@/pages/dashboards/admin/managePages/sampah/SampahShow.vue'
 
+// Profile
+import EditProfilePengepul from "@/pages/dashboards/pengepul/EditProfilePengepul.vue";
+import EditProfileNasabah from "@/pages/dashboards/nasabah/EditProfileNasabah.vue";
+
 const routes = [
   {
     path: "/",
@@ -107,26 +111,41 @@ const routes = [
     component: SampahShow,
   },
 
-  // Manager
   {
     path: "/dashboard-admin/verifikasi-pengepul",
     component: VerifikasiPengepul,
   },
+
+  // Manager
   {
     path: "/dashboard-manager",
     component: DashboardManager,
   },
+
+  // Petugas
   {
     path: "/dashboard-petugas",
     component: DashboardPetugas,
   },
+
+  // Pengepul
   {
     path: "/dashboard-pengepul",
     component: DashboardPengepul,
   },
   {
+    path: "/dashboard-pengepul/edit-profile",
+    component: EditProfilePengepul,
+  },
+
+  // Nasabah
+  {
     path: "/dashboard-nasabah",
     component: DashboardNasabah,
+  },
+  {
+    path: "/dashboard-nasabah/edit-profile",
+    component: EditProfileNasabah,
   },
 ];
 
