@@ -7,10 +7,12 @@ use Illuminate\Support\Facades\Route;
 
 // Gunakan Controller yang benar
 use App\Http\Controllers\Api\AuthController;
-use App\Http\Controllers\Api\Admin\ProfileController;
+use App\Http\Controllers\Api\ProfileController;
+
 use App\Http\Controllers\Api\Admin\KelolaAkunController;
 use App\Http\Controllers\Api\Admin\GudangController;
 use App\Http\Controllers\Api\Admin\SampahController;
+use App\Http\Controllers\Api\Admin\WebController;
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
@@ -64,4 +66,8 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'role:admin'])->group(functi
 
     // Kategori
     Route::delete('/kategori-sampah/{id}', [SampahController::class, 'destroyKategori']);
+
+    // Konfigurasi Web
+    Route::get('/web-config', [WebController::class, 'show']);
+    Route::put('/web-config', [WebController::class, 'update']);
 });

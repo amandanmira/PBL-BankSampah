@@ -18,6 +18,7 @@ import DashboardNasabah from "@/pages/dashboards/nasabah/DashboardNasabah.vue";
 // Import komponen baru
 import KelolaPetugas from "@/pages/dashboards/admin/KelolaUser.vue";
 import VerifikasiPengepul from "@/pages/dashboards/admin/VerifikasiPengepul.vue";
+import ConfigWeb from "@/pages/dashboards/admin/managePages/ConfigWeb.vue";
 
 // Gudang
 import GudangIndex from '@/pages/dashboards/admin/managePages/gudang/GudangIndex.vue'
@@ -111,9 +112,14 @@ const routes = [
     component: SampahShow,
   },
 
+  // Other
   {
     path: "/dashboard-admin/verifikasi-pengepul",
     component: VerifikasiPengepul,
+  },
+  {
+    path: "/dashboard-admin/konfigurasi-web",
+    component: ConfigWeb,
   },
 
   // Manager

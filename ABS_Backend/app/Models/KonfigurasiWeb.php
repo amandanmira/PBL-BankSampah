@@ -10,7 +10,15 @@ class KonfigurasiWeb extends Model
 
     protected $fillable = [
         'logo',
+        'quote',
+        'instagram',
+        'facebook',
+        'linkedin',
+        'youtube',
+        'no_telp',
+        'email',
         'lama_deadline',
-        'alamat'
+        'alamat',
+        'tentang',
     ];
 }

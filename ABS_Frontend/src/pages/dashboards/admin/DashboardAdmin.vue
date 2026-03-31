@@ -4,13 +4,16 @@
   <RouterLink to="/dashboard-admin/buat-petugas">Buat Petugas</RouterLink>
   <br />
 
-  <RouterLink to="/dashboard-admin/kelola-petugas">Kelola Petugas</RouterLink>
+  <RouterLink to="/dashboard-admin/kelola-users">Kelola User</RouterLink>
   <br />
   
   <RouterLink to="/dashboard-admin/kelola-gudang">Kelola Gudang</RouterLink>
   <br />
   
   <RouterLink to="/dashboard-admin/kelola-sampah">Kelola Sampah</RouterLink>
+  <br />
+
+  <RouterLink to="/dashboard-admin/konfigurasi-web">Konfigurasi Web</RouterLink>
 </template>
 
 <script setup>
