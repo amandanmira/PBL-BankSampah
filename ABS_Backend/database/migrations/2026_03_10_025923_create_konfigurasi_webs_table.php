@@ -14,6 +14,13 @@ return new class extends Migration
         Schema::create('konfigurasi_webs', function (Blueprint $table) {
             $table->id('config_id');
             $table->text('logo');
+            $table->text('quote');
+            $table->text('instagram');
+            $table->text('facebook');
+            $table->text('linkedin');
+            $table->text('youtube');
+            $table->string('no_telp', 16);
+            $table->string('email', 50);
             $table->integer('lama_deadline');
             $table->text('alamat');
             $table->timestamps();
