@@ -16,21 +16,23 @@ return new class extends Migration
             $table->text('deskripsi')->nullable();
             $table->text('alamat');
             $table->text('foto')->nullable();
-            $table->dateTime('jadwal');
+            $table->dateTime('jadwal')->nullable();
             $table->enum('status', ['pending', 'proses', 'selesai', 'tolak']);
             $table->text('ket_status')->nullable();
 
             $table->foreignId('tukang_id')
+                ->nullable()
                 ->constrained('tukangs','tukang_id')
-                ->cascadeOnDelete();
+                ->nullOnDelete();
 
             $table->foreignId('nasabah_id')
                 ->constrained('nasabahs','nasabah_id')
                 ->cascadeOnDelete();
 
             $table->foreignId('petugas_id')
+                ->nullable()
                 ->constrained('petugas','petugas_id')
-                ->cascadeOnDelete();
+                ->nullOnDelete();
 
             $table->timestamps();
         });

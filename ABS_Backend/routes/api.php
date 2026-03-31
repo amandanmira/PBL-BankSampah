@@ -14,6 +14,9 @@ use App\Http\Controllers\Api\Admin\GudangController;
 use App\Http\Controllers\Api\Admin\SampahController;
 use App\Http\Controllers\Api\Admin\WebController;
 
+// Nasabah
+use App\Http\Controllers\Api\Nasabah\RequestPenjemputanController;
+
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
 });
@@ -21,6 +24,8 @@ Route::middleware('auth:sanctum')->group(function () {
 Route::prefix('nasabah')->middleware(['auth:sanctum', 'role:nasabah'])->group(function () {
     Route::put('/edit-profile/{id}', [ProfileController::class, 'updateNasabah']);
     Route::get('/profile/{id}', [ProfileController::class, 'showNasabah']);
+
+    Route::post('/request-penjemputan', [RequestPenjemputanController::class, 'store']);
 });
 
 Route::prefix('pengepul')->middleware(['auth:sanctum', 'role:pengepul'])->group(function () {

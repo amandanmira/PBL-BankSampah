@@ -162,8 +162,6 @@ const updateData = async () => {
 
 		const res = await axios.post("/api/admin/web-config?_method=PUT", formData, { headers });
 
-		console.log(res)
-
 		alert("Berhasil update");
 	} catch (err) {
 		console.error(err);

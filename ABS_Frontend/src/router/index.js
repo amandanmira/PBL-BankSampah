@@ -36,6 +36,9 @@ import SampahShow from '@/pages/dashboards/admin/managePages/sampah/SampahShow.v
 import EditProfilePengepul from "@/pages/dashboards/pengepul/EditProfilePengepul.vue";
 import EditProfileNasabah from "@/pages/dashboards/nasabah/EditProfileNasabah.vue";
 
+// Nasabah
+import RequestPenjemputan from "@/pages/dashboards/nasabah/RequestPenjemputan.vue";
+
 const routes = [
   {
     path: "/",
@@ -152,6 +155,10 @@ const routes = [
   {
     path: "/dashboard-nasabah/edit-profile",
     component: EditProfileNasabah,
+  },
+  {
+    path: "/dashboard-nasabah/request-penjemputan",
+    component: RequestPenjemputan,
   },
 ];
 

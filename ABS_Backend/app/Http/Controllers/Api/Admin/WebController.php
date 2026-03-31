@@ -51,7 +51,6 @@ class WebController extends Controller
 
         return response()->json([
             'message' => 'Konfigurasi berhasil diperbarui',
-            'tes' => $request->all(),
             'data' => $config
         ], 200);
     }
