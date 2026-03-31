@@ -87,26 +87,48 @@ const fetchData = async () => {
 
 // Fungsi untuk menangani aksi terima atau tolak
 const handleAction = async (id, action) => {
-  const confirmationMessage = action === "terima" ? "Apakah Anda yakin ingin menerima pendaftar ini?" : "Apakah Anda yakin ingin menolak dan menghapus pendaftar ini?";
+  if (action === "terima") {
+    if (!confirm("Apakah Anda yakin ingin menerima pendaftar ini?")) {
+      return;
+    }
+  } else if (action === "tolak") {
+    const alasan = prompt("Masukkan alasan penolakan:");
+    if (!alasan) {
+      alert("Aksi dibatalkan. Alasan penolakan harus diisi.");
+      return;
+    }
 
-  if (!confirm(confirmationMessage)) {
-    return;
+    if (!confirm(`Apakah Anda yakin ingin menolak pendaftar ini dengan alasan: "${alasan}"?`)) {
+      return;
+    }
+
+    try {
+      const token = sessionStorage.getItem("token");
+      const headers = { Authorization: `Bearer ${token}` };
+      const data = { ket_status: alasan };
+
+      await axios.put(`http://localhost:8000/api/admin/pengepul/${id}/tolak`, data, { headers });
+
+      // Hapus item dari list di frontend untuk update UI secara instan
+      allPengepuls.value = allPengepuls.value.filter((p) => p.pengepul_id !== id);
+    } catch (err) {
+      error.value = `Gagal menolak pendaftar. ` + (err.response ? err.response.data.message : err.message);
+      console.error(err);
+    }
+    return; // Hentikan eksekusi setelah menangani 'tolak'
   }
 
+  // Bagian ini hanya untuk 'terima'
   try {
     const token = sessionStorage.getItem("token");
     const headers = { Authorization: `Bearer ${token}` };
 
-    if (action === "terima") {
-      await axios.put(`http://localhost:8000/api/admin/pengepul/${id}/terima`, {}, { headers });
-    } else if (action === "tolak") {
-      await axios.delete(`http://localhost:8000/api/admin/pengepul/${id}/tolak`, { headers });
-    }
+    await axios.put(`http://localhost:8000/api/admin/pengepul/${id}/terima`, {}, { headers });
 
     // Hapus item dari list di frontend untuk update UI secara instan
     allPengepuls.value = allPengepuls.value.filter((p) => p.pengepul_id !== id);
   } catch (err) {
-    error.value = `Gagal ${action} pendaftar. ` + (err.response ? err.response.data.message : err.message);
+    error.value = `Gagal menerima pendaftar. ` + (err.response ? err.response.data.message : err.message);
     console.error(err);
   }
 };

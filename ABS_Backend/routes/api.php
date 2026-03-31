@@ -29,7 +29,7 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'role:admin'])->group(functi
     Route::get('pengepul', [KelolaAkunController::class, 'indexPengepul']);
     Route::get('pengepul/{pengepul}', [KelolaAkunController::class, 'showPengepul']);
     Route::put('pengepul/{pengepul}/terima', [AksiAdminController::class, 'terimaPengepul']);
-    Route::delete('pengepul/{pengepul}/tolak', [AksiAdminController::class, 'tolakPengepul']);
+    Route::put('pengepul/{pengepul}/tolak', [AksiAdminController::class, 'tolakPengepul']);
     Route::put('pengepul/{pengepul}/deactivate', [AksiAdminController::class, 'deactivatePengepul']);
     Route::put('pengepul/{pengepul}/activate', [AksiAdminController::class, 'activatePengepul']);
 

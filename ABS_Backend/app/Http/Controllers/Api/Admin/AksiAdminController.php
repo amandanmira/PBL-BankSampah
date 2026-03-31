@@ -81,19 +81,21 @@ class AksiAdminController extends Controller
     /**
      * Menolak registrasi pengepul.
      */
-    public function tolakPengepul(Pengepul $pengepul)
+    public function tolakPengepul(Request $request, Pengepul $pengepul)
     {
-        // 1. Simpan data yang dibutuhkan untuk email SEBELUM dihapus
-        $emailPengepul = $pengepul->email;
-        $namaPengepul = $pengepul->nama;
+        // 1. Validasi request untuk memastikan alasan diisi
+        $request->validate([
+            'ket_status' => 'required|string|max:255',
+        ]);
 
-        // 2. Hapus data pengepul
+        // 2. Simpan alasan dan ubah status
         $pengepul->status = 'nonaktif';
+        $pengepul->ket_status = $request->ket_status;
         $pengepul->save();
 
-        // 3. Kirim Email Ditolak menggunakan data yang sudah disimpan
-        Mail::to($emailPengepul)->send(new PengepulDitolak($namaPengepul));
+        // 3. Kirim Email Ditolak dengan menyertakan alasan
+        Mail::to($pengepul->email)->send(new PengepulDitolak($pengepul->nama, $pengepul->ket_status));
 
-        return response()->json(['message' => 'Registrasi pengepul ditolak, dan notifikasi email terkirim'], 200);
+        return response()->json(['message' => 'Registrasi pengepul ditolak, status diubah menjadi nonaktif, dan notifikasi email terkirim'], 200);
     }
 }
