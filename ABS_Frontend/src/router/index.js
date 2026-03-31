@@ -38,6 +38,7 @@ import EditProfileNasabah from "@/pages/dashboards/nasabah/EditProfileNasabah.vu
 
 // Nasabah
 import RequestPenjemputan from "@/pages/dashboards/nasabah/RequestPenjemputan.vue";
+import RequestPenarikan from "@/pages/dashboards/nasabah/RequestPenarikan.vue";
 
 const routes = [
   {
@@ -159,6 +160,10 @@ const routes = [
   {
     path: "/dashboard-nasabah/request-penjemputan",
     component: RequestPenjemputan,
+  },
+  {
+    path: "/dashboard-nasabah/request-penarikan",
+    component: RequestPenarikan,
   },
 ];
 
