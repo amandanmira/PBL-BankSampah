@@ -22,6 +22,9 @@ class AuthController extends Controller
             'email' => 'required|email|max:50|unique:nasabahs',
             'password' => 'required|min:8',
             'nama' => 'required|max:50'
+        ], [
+            'email.unique' => 'Email sudah terpakai',
+            'username.unique' => 'Username sudah terpakai'
         ]);
 
         $nasabah = Nasabah::create([
@@ -48,6 +51,9 @@ class AuthController extends Controller
             'no_telp' => 'required|max:16',
             'nama_lembaga' => 'required|max:50',
             'alamat' => 'required',
+        ], [
+            'email.unique' => 'Email sudah terpakai',
+            'username.unique' => 'Username sudah terpakai'
         ]);
 
         $pengepul = Pengepul::create([
@@ -149,6 +155,23 @@ class AuthController extends Controller
         return response()->json([
             'message' => 'Email atau password salah'
         ], 401);
+    }
+
+    public function checkEmail(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|email|max:50',
+        ]);
+
+        $email = $request->email;
+
+        $exists = Nasabah::where('email', $email)->exists() ||
+            Pengepul::where('email', $email)->exists() ||
+            Admin::where('email', $email)->exists() ||
+            Petugas::where('email', $email)->exists() ||
+            Manager::where('email', $email)->exists();
+
+        return response()->json(['used' => $exists]);
     }
 
     public function logout(Request $request)
