@@ -88,11 +88,12 @@ class AksiAdminController extends Controller
         $namaPengepul = $pengepul->nama;
 
         // 2. Hapus data pengepul
-        $pengepul->delete();
+        $pengepul->status = 'nonaktif';
+        $pengepul->save();
 
         // 3. Kirim Email Ditolak menggunakan data yang sudah disimpan
         Mail::to($emailPengepul)->send(new PengepulDitolak($namaPengepul));
 
-        return response()->json(['message' => 'Registrasi pengepul ditolak, data dihapus, dan notifikasi email terkirim'], 200);
+        return response()->json(['message' => 'Registrasi pengepul ditolak, dan notifikasi email terkirim'], 200);
     }
 }
