@@ -8,33 +8,33 @@ const team = ref([
   },
   {
     name: "Amanda Namira T.",
-    roles: ["Project Manager"],
+    roles: ["Project Manager", "UI/UX"],
     image: "/people.jpg",
-    github: "https://github.com/amanda"
+    github: "https://github.com/amandanmira"
   },
   {
     name: "Raditya Hafid D.",
     roles: ["Backend Dev"],
     image: "/people.jpg",
-    github: "https://github.com/raditya"
+    github: "https://github.com/raditya-hafid"
   },
   {
     name: "Hafiz Ahmad H.",
     roles: ["Backend Dev"],
     image: "/people.jpg",
-    github: "https://github.com/hafiz"
+    github: "https://github.com/sirius-leaf"
   },
   {
     name: "Gilang Abdian A.",
     roles: ["Frontend Dev", "UI/UX"],
     image: "/people.jpg",
-    github: "https://github.com/gilang"
+    github: "https://github.com/gilangages"
   },
   {
     name: "Satrio Aji P.",
     roles: ["Frontend Dev", "UI/UX"],
     image: "/people.jpg",
-    github: "https://github.com/satrio"
+    github: "https://github.com/Saji6787"
   },
 ]);
 </script>
