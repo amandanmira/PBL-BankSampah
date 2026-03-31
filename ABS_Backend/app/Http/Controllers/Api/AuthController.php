@@ -143,6 +143,13 @@ class AuthController extends Controller
 
         $nasabah = Nasabah::where('email', $email)->first();
         if ($nasabah && Hash::check($password, $nasabah->password)) {
+
+            if($nasabah->status !== 'aktif'){
+                return response()->json([
+                    'message' => 'Akun Anda belum aktif atau sedang dinonaktifkan. Silakan hubungi admin.'
+                ], 403);
+            }
+
             $token = $nasabah->createToken('api-token')->plainTextToken;
 
             return response()->json([

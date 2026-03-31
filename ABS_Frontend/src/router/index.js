@@ -17,7 +17,6 @@ import DashboardPengepul from "@/pages/dashboards/pengepul/DashboardPengepul.vue
 import DashboardNasabah from "@/pages/dashboards/nasabah/DashboardNasabah.vue";
 
 // Import komponen baru
-import KelolaPetugas from '@/pages/dashboards/admin/KelolaPetugas.vue';
 import VerifikasiPengepul from "@/pages/dashboards/admin/VerifikasiPengepul.vue";
 import LandingPageLayout from '@/layouts/LandingPageLayout.vue';
 import FAQ from '@/pages/public/FAQ.vue';
@@ -25,6 +24,7 @@ import TermsAndPrivacy from '@/pages/public/TermsAndPrivacy.vue';
 import AboutFull from '@/pages/public/AboutFull.vue';
 import Blog from '@/pages/public/Blog.vue';
 import OneBlog from '@/pages/public/OneBlog.vue';
+import KelolaUser from '@/pages/dashboards/admin/KelolaUser.vue';
 
 const routes = [
   {
@@ -89,7 +89,7 @@ const routes = [
   // Tambahkan rute baru untuk kelola petugas
   {
     path: "/dashboard-admin/kelola-users",
-    component: KelolaPetugas,
+    component: KelolaUser,
   },
   {
     path: "/dashboard-admin/verifikasi-pengepul",
