@@ -9,7 +9,8 @@ class Gudang extends Model
     protected $primaryKey = 'gudang_id';
 
     protected $fillable = [
-        'alamat'
+        'alamat',
+        'kapasitas',
     ];
 
     public function penjemputan()

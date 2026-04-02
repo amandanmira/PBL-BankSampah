@@ -5,6 +5,7 @@
     <div v-if="gudang">
       <p><strong>ID:</strong> {{ gudang.gudang_id }}</p>
       <p><strong>Alamat:</strong> {{ gudang.alamat }}</p>
+      <p><strong>Kapasitas:</strong> {{ gudang.kapasitas }}</p>
     </div>
 
     <div v-else>

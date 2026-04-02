@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('gudangs', function (Blueprint $table) {
             $table->id("gudang_id");
             $table->text('alamat');
+            $table->integer('kapasitas')->default(0);
             $table->timestamps();
         });
 
