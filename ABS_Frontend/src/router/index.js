@@ -27,6 +27,22 @@ import Blog from "@/pages/public/Blog.vue";
 import OneBlog from "@/pages/public/OneBlog.vue";
 import KelolaUser from "@/pages/dashboards/admin/KelolaUser.vue";
 
+// Gudang
+import GudangIndex from '@/pages/dashboards/admin/managePages/gudang/GudangIndex.vue'
+import GudangCreate from '@/pages/dashboards/admin/managePages/gudang/GudangCreate.vue'
+import GudangEdit from '@/pages/dashboards/admin/managePages/gudang/GudangEdit.vue'
+import GudangShow from '@/pages/dashboards/admin/managePages/gudang/GudangShow.vue'
+
+// Sampah
+import SampahIndex from '@/pages/dashboards/admin/managePages/sampah/SampahIndex.vue'
+import SampahCreate from '@/pages/dashboards/admin/managePages/sampah/SampahCreate.vue'
+import SampahEdit from '@/pages/dashboards/admin/managePages/sampah/SampahEdit.vue'
+import SampahShow from '@/pages/dashboards/admin/managePages/sampah/SampahShow.vue'
+
+// Profile
+import EditProfilePengepul from "@/pages/dashboards/pengepul/EditProfilePengepul.vue";
+import EditProfileNasabah from "@/pages/dashboards/nasabah/EditProfileNasabah.vue";
+
 const routes = [
   {
     path: "/",
@@ -74,10 +90,6 @@ const routes = [
     component: RegisterPengepul,
   },
   {
-    path: "/dashboard-admin/buat-petugas",
-    component: BuatPetugas,
-  },
-  {
     path: "/login",
     component: Login,
   },
@@ -88,19 +100,67 @@ const routes = [
   },
 
   // Dashboard pages
+  // Admin
   {
     path: "/dashboard-admin",
     component: DashboardAdmin,
   },
+
   // Tambahkan rute baru untuk kelola petugas
+  {
+    path: '/dashboard-admin/buat-petugas',
+    component: BuatPetugas,
+  },
+
+  // Halaman Kelola
+  // Akun
   {
     path: "/dashboard-admin/kelola-users",
     component: KelolaUser,
   },
+
+  // Gudang
+  {
+    path: '/dashboard-admin/kelola-gudang',
+    component: GudangIndex,
+  },
+  {
+    path: '/dashboard-admin/kelola-gudang/create',
+    component: GudangCreate,
+  },
+  {
+    path: '/dashboard-admin/kelola-gudang/:id/edit',
+    component: GudangEdit,
+  },
+  {
+    path: '/dashboard-admin/kelola-gudang/:id',
+    component: GudangShow,
+  },
+
+  // Sampah
+  {
+    path: '/dashboard-admin/kelola-sampah',
+    component: SampahIndex,
+  },
+  {
+    path: '/dashboard-admin/kelola-sampah/create',
+    component: SampahCreate,
+  },
+  {
+    path: '/dashboard-admin/kelola-sampah/:id/edit',
+    component: SampahEdit,
+  },
+  {
+    path: '/dashboard-admin/kelola-sampah/:id',
+    component: SampahShow,
+  },
+
   {
     path: "/dashboard-admin/verifikasi-pengepul",
     component: VerifikasiPengepul,
   },
+
+  // Manager
   {
     path: "/dashboard-admin/verifikasi-email",
     component: VerifikasiEmail,
@@ -109,17 +169,31 @@ const routes = [
     path: "/dashboard-manager",
     component: DashboardManager,
   },
+
+  // Petugas
   {
     path: "/dashboard-petugas",
     component: DashboardPetugas,
   },
+
+  // Pengepul
   {
     path: "/dashboard-pengepul",
     component: DashboardPengepul,
   },
   {
+    path: "/dashboard-pengepul/edit-profile",
+    component: EditProfilePengepul,
+  },
+
+  // Nasabah
+  {
     path: "/dashboard-nasabah",
     component: DashboardNasabah,
+  },
+  {
+    path: "/dashboard-nasabah/edit-profile",
+    component: EditProfileNasabah,
   },
 ];
 

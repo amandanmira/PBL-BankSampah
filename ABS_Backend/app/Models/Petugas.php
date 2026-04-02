@@ -17,7 +17,8 @@ class Petugas extends Authenticatable
         'nama',
         'username',
         'email',
-        'password'
+        'password',
+        'gudang_id',
     ];
 
     public function penjemputan()
@@ -33,5 +34,10 @@ class Petugas extends Authenticatable
     public function berita()
     {
         return $this->hasMany(Berita::class,'petugas_id','petugas_id');
+    }
+
+    public function gudang()
+    {
+        return $this->belongsTo(Gudang::class,'gudang_id','gudang_id');
     }
 }

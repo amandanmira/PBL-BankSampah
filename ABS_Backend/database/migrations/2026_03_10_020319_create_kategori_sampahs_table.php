@@ -14,7 +14,6 @@ return new class extends Migration
         Schema::create('kategori_sampahs', function (Blueprint $table) {
             $table->id('kategori_id');
             $table->string('nama', 50);
-            $table->enum('satuan_berat', ['ton', 'kg', 'gram']);
             $table->integer('harga_beli')->default(0);
             $table->integer('harga_jual')->default(0);
             $table->decimal('diskon', 4, 4)->default(0);

@@ -15,7 +15,7 @@ class TransaksiNasabah extends Model
         'tanggal',
         'status',
         'ket_status',
-        'nasabah_id'
+        'petugas_id',
     ];
 
     public function penimbangan()
@@ -23,8 +23,8 @@ class TransaksiNasabah extends Model
         return $this->hasMany(Penimbangan::class,'transaksi_id','transaksi_id');
     }
 
-    public function nasabah()
+    public function petugas()
     {
-        return $this->belongsTo(Nasabah::class,'nasabah_id','nasabah_id');
+        return $this->belongsTo(Petugas::class,'petugas_id','petugas_id');
     }
 }

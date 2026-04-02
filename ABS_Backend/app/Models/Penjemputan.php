@@ -17,7 +17,8 @@ class Penjemputan extends Model
         'ket_status',
         'tukang_id',
         'nasabah_id',
-        'petugas_id'
+        'petugas_id',
+        'gudang_id',
     ];
 
     public function nasabah()
@@ -33,5 +34,15 @@ class Penjemputan extends Model
     public function petugas()
     {
         return $this->belongsTo(Petugas::class,'petugas_id','petugas_id');
+    }
+
+    public function gudang()
+    {
+        return $this->belongsTo(Gudang::class,'gudang_id','gudang_id');
+    }
+
+    public function penimbangan()
+    {
+        return $this->hasMany(Penimbangan::class,'penjemputan_id','penjemputan_id');
     }
 }

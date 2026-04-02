@@ -10,20 +10,20 @@ class KategoriSampah extends Model
 
     protected $fillable = [
         'nama',
-        'satuan_berat',
         'harga_beli',
         'harga_jual',
         'diskon',
-        'stok'
+        'stok',
+        'jenis_id',
     ];
 
-    public function penimbangan()
+    public function sampah()
     {
-        return $this->hasMany(Penimbangan::class,'sampah_id','sampah_id');
+        return $this->hasMany(Sampah::class,'kategori_id','kategori_id');
     }
 
-    public function detailTransaksi()
+    public function jenisSampah()
     {
-        return $this->hasMany(DetailTransaksi::class,'sampah_id','sampah_id');
+        return $this->belongsTo(JenisSampah::class,'jenis_id','jenis_id');
     }
 }

@@ -1,0 +1,36 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+
+class Sampah extends Model
+{
+    protected $primaryKey = 'sampah_id';
+
+    protected $fillable = [
+        'stok',
+        'kategori_id',
+        'gudang_id',
+    ];
+
+    public function kategori()
+    {
+        return $this->belongsTo(KategoriSampah::class,'kategori_id','kategori_id');
+    }
+
+    public function gudang()
+    {
+        return $this->belongsTo(Gudang::class,'gudang_id','gudang_id');
+    }
+
+    public function penimbangan()
+    {
+        return $this->hasMany(Penimbangan::class,'sampah_id','sampah_id');
+    }
+
+    public function detailTransaksi()
+    {
+        return $this->hasMany(DetailTransaksi::class,'sampah_id','sampah_id');
+    }
+}

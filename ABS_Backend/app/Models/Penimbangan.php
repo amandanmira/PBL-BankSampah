@@ -13,8 +13,9 @@ class Penimbangan extends Model
         'foto',
         'nasabah_id',
         'transaksi_id',
-        'kategori_id',
-        'tukang_id'
+        'sampah_id',
+        'tukang_id',
+        'penjemputan_id',
     ];
 
     public function nasabah()
@@ -29,11 +30,16 @@ class Penimbangan extends Model
 
     public function sampah()
     {
-        return $this->belongsTo(KategoriSampah::class,'sampah_id','sampah_id');
+        return $this->belongsTo(Sampah::class,'sampah_id','sampah_id');
     }
 
     public function tukang()
     {
         return $this->belongsTo(Tukang::class,'tukang_id','tukang_id');
+    }
+
+    public function penjemputan()
+    {
+        return $this->belongsTo(Penjemputan::class,'penjemputan_id','penjemputan_id');
     }
 }

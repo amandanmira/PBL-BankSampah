@@ -11,13 +11,13 @@ class DetailTransaksi extends Model
     protected $fillable = [
         'harga',
         'berat',
-        'kategori_id',
+        'sampah_id',
         'transaksi_id'
     ];
 
     public function sampah()
     {
-        return $this->belongsTo(KategoriSampah::class,'sampah_id','sampah_id');
+        return $this->belongsTo(Sampah::class,'sampah_id','sampah_id');
     }
 
     public function transaksiPengepul()

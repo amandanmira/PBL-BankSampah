@@ -42,9 +42,4 @@ class Nasabah extends Authenticatable
     {
         return $this->hasMany(Penimbangan::class,'nasabah_id','nasabah_id');
     }
-
-    public function transaksiNasabah()
-    {
-        return $this->hasMany(TransaksiNasabah::class,'nasabah_id','nasabah_id');
-    }
 }

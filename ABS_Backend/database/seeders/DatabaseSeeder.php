@@ -8,6 +8,7 @@ use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 
 // Models
 use App\Models\User;
+use App\Models\Gudang;
 use App\Models\Nasabah;
 use App\Models\Pengepul;
 use App\Models\Petugas;
@@ -29,6 +30,10 @@ class DatabaseSeeder extends Seeder
         //     'name' => 'Test User',
         //     'email' => 'test@example.com',
         // ]);
+
+        Gudang::create([
+            'alamat' => 'Surakarta',
+        ]);
 
         Nasabah::create([
             'nama' => 'Nasabah',
@@ -54,6 +59,7 @@ class DatabaseSeeder extends Seeder
             'username' => 'petugas',
             'email' => 'petugas@abs.com',
             'password' => Hash::make('petugas123'),
+            'gudang_id' => '1',
         ]);
 
         Manager::create([
