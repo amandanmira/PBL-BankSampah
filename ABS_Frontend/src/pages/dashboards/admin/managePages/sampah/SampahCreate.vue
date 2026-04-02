@@ -23,6 +23,16 @@
       style="border:1px solid #ccc; padding:10px; margin-top:10px;"
     >
       <div>
+        <label>Foto</label>
+        <input type="file" @change="handleFile($event, index)" />
+
+        <!-- preview -->
+        <div>
+          <img v-if="k.foto" :src="previewFile(k.foto)" width="120" />
+        </div>
+      </div>
+
+      <div>
         <label>Nama</label><br />
         <input v-model="k.nama" type="text" />
       </div>
@@ -77,6 +87,8 @@ const form = ref({
 
 const loading = ref(false);
 const error = ref(null);
+const fotoFile = ref(null);
+const preview = ref(null);
 
 // token
 const token = sessionStorage.getItem("token");
@@ -88,6 +100,7 @@ if (!token) {
 // tambah kategori
 const addKategori = () => {
   form.value.kategori.push({
+    foto: null,
     nama: "",
     harga_beli: 0,
     harga_jual: 0,
@@ -100,15 +113,44 @@ const removeKategori = (index) => {
   form.value.kategori.splice(index, 1);
 };
 
+const handleFile = (e, index) => {
+  const file = e.target.files[0];
+  form.value.kategori[index].foto = file;
+};
+
+const previewFile = (file) => {
+  return URL.createObjectURL(file);
+};
+
 // submit
 const submit = async () => {
   loading.value = true;
   error.value = null;
 
-  try {
-    const headers = { 'Authorization': `Bearer ${token}` }
+  const formData = new FormData();
+  formData.append("nama", form.value.nama);
 
-    await axios.post("/api/admin/jenis-sampah", form.value, {headers});
+  let i = 0;
+  for (const k of form.value.kategori) {
+    formData.append(`kategori[${i}][nama]`, k.nama);
+    formData.append(`kategori[${i}][harga_beli]`, k.harga_beli);
+    formData.append(`kategori[${i}][harga_jual]`, k.harga_jual);
+    formData.append(`kategori[${i}][diskon]`, k.diskon);
+
+    if (k.foto) {
+      formData.append(`kategori[${i}][foto]`, k.foto);
+    }
+
+    i++;
+  }
+
+  try {
+    const headers = {
+      'Authorization': `Bearer ${token}`,
+      "Content-Type": "multipart/form-data"
+    }
+
+    await axios.post("/api/admin/jenis-sampah", formData, { headers });
     router.push("/dashboard-admin/kelola-sampah");
   } catch (err) {
     error.value = err.response?.data || err.message;

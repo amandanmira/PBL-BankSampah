@@ -14,6 +14,7 @@ class KategoriSampah extends Model
         'harga_jual',
         'diskon',
         'jenis_id',
+        'foto',
     ];
 
     public function sampah()
