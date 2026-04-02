@@ -10,8 +10,6 @@ class TransaksiNasabah extends Model
 
     protected $fillable = [
         'tipe_transaksi',
-        'berat_total',
-        'harga_total',
         'tanggal',
         'status',
         'ket_status',

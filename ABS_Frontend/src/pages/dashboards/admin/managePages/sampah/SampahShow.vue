@@ -8,7 +8,6 @@
     <div v-if="data">
       <p><strong>ID:</strong> {{ data.jenis_id }}</p>
       <p><strong>Nama:</strong> {{ data.nama }}</p>
-      <p><strong>Stok:</strong> {{ data.stok_jenis }}</p>
 
       <hr />
 
@@ -31,7 +30,6 @@
             <th>Harga Beli</th>
             <th>Harga Jual</th>
             <th>Diskon</th>
-            <th>Stok</th>
           </tr>
         </thead>
 
@@ -42,7 +40,6 @@
             <td>{{ k.harga_beli }}</td>
             <td>{{ k.harga_jual }}</td>
             <td>{{ k.diskon }}</td>
-            <td>{{ k.stok }}</td>
           </tr>
         </tbody>
       </table>

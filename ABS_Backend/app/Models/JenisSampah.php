@@ -10,7 +10,6 @@ class JenisSampah extends Model
 
     protected $fillable = [
         'nama',
-        'stok_jenis'
     ];
 
     public function kategoriSampah()

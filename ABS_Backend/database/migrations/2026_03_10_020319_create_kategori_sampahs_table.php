@@ -17,7 +17,6 @@ return new class extends Migration
             $table->integer('harga_beli')->default(0);
             $table->integer('harga_jual')->default(0);
             $table->decimal('diskon', 4, 4)->default(0);
-            $table->integer('stok')->default(0);
             $table->timestamps();
         });
     }

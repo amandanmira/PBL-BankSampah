@@ -15,8 +15,6 @@ return new class extends Migration
             $table->id('transaksi_id');
             $table->enum('status', ['pending', 'proses', 'selesai', 'tolak']);
             $table->text('ket_status')->nullable();
-            $table->integer('harga_total');
-            $table->integer('berat_total');
             $table->date('deadline');
 
             $table->foreignId('pengepul_id')

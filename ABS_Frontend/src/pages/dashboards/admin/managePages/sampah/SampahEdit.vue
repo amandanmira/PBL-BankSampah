@@ -11,11 +11,6 @@
       <input v-model="form.nama" type="text" />
     </div>
 
-    <div>
-      <label>Stok Jenis</label><br />
-      <input v-model="form.stok_jenis" type="number" />
-    </div>
-
     <hr />
 
     <!-- KATEGORI -->
@@ -46,11 +41,6 @@
       <div>
         <label>Diskon</label><br />
         <input v-model="k.diskon" type="number" step="0.01" />
-      </div>
-
-      <div>
-        <label>Stok</label><br />
-        <input v-model="k.stok" type="number" />
       </div>
 
       <button @click="removeKategori(index)">
@@ -85,7 +75,6 @@ const id = route.params.id;
 
 const form = ref({
   nama: "",
-  stok_jenis: 0,
   kategori_sampah: []
 });
 
@@ -120,7 +109,6 @@ const addKategori = () => {
     harga_beli: 0,
     harga_jual: 0,
     diskon: 0,
-    stok: 0
   });
 };
 

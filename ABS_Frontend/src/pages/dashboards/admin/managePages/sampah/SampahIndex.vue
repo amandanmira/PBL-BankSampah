@@ -14,7 +14,6 @@
         <tr>
           <th>ID</th>
           <th>Nama</th>
-          <th>Stok</th>
           <th>Kategori</th>
           <th>Aksi</th>
         </tr>
@@ -24,13 +23,12 @@
         <tr v-for="item in jenisList" :key="item.jenis_id">
           <td>{{ item.jenis_id }}</td>
           <td>{{ item.nama }}</td>
-          <td>{{ item.stok_jenis }}</td>
 
           <!-- tampilkan kategori -->
           <td>
             <ul>
               <li v-for="k in item.kategori_sampah" :key="k.kategori_id">
-                {{ k.nama }} (stok: {{ k.stok }})
+                {{ k.nama }}
               </li>
             </ul>
           </td>

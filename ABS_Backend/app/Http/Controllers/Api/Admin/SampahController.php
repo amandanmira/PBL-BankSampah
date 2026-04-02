@@ -22,7 +22,6 @@ class SampahController extends Controller
     {
         $request->validate([
             'nama' => 'required|string|max:50',
-            'stok_jenis' => 'integer',
             'kategori' => 'array'
         ]);
 
@@ -39,7 +38,6 @@ class SampahController extends Controller
                     'harga_beli' => $k['harga_beli'] ?? 0,
                     'harga_jual' => $k['harga_jual'] ?? 0,
                     'diskon' => $k['diskon'] ?? 0,
-                    'stok' => $k['stok'] ?? 0,
                 ]);
             }
         }
@@ -61,7 +59,6 @@ class SampahController extends Controller
 
         $jenis->update([
             'nama' => $request->nama ?? $jenis->nama,
-            'stok_jenis' => $request->stok_jenis ?? $jenis->stok_jenis,
         ]);
 
         // update kategori jika dikirim
@@ -77,7 +74,6 @@ class SampahController extends Controller
                             'harga_beli' => $k['harga_beli'],
                             'harga_jual' => $k['harga_jual'],
                             'diskon' => $k['diskon'],
-                            'stok' => $k['stok'],
                         ]);
                     }
                 }

@@ -13,7 +13,6 @@ class KategoriSampah extends Model
         'harga_beli',
         'harga_jual',
         'diskon',
-        'stok',
         'jenis_id',
     ];
 
