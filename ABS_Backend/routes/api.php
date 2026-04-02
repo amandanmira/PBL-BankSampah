@@ -11,6 +11,8 @@ use App\Http\Controllers\Api\Admin\KelolaAkunController;
 
 
 
+Route::get('verify-nasabah/{token}', [AuthController::class, 'verifyEmail']);
+
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
 });

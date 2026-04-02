@@ -1,13 +1,14 @@
-import { createRouter, createWebHistory } from 'vue-router'
-import '../style.css';
-import LandingPage from '@/pages/public/LandingPage.vue'
+import { createRouter, createWebHistory } from "vue-router";
+import "../style.css";
+import LandingPage from "@/pages/public/LandingPage.vue";
 
 // Auth
-import ChooseRole from '@/pages/auth/ChooseRole.vue'
-import RegisterNasabah from '@/pages/auth/RegisterNasabah.vue'
-import RegisterPengepul from '@/pages/auth/RegisterPengepul.vue'
-import BuatPetugas from '@/pages/dashboards/admin/BuatPetugas.vue'
-import Login from '@/pages/auth/Login.vue'
+import ChooseRole from "@/pages/auth/ChooseRole.vue";
+import RegisterNasabah from "@/pages/auth/RegisterNasabah.vue";
+import RegisterPengepul from "@/pages/auth/RegisterPengepul.vue";
+import BuatPetugas from "@/pages/dashboards/admin/BuatPetugas.vue";
+import Login from "@/pages/auth/Login.vue";
+import VerifikasiEmail from "@/pages/dashboards/nasabah/VerifikasiEmail.vue";
 
 // Dashboards
 import DashboardAdmin from "@/pages/dashboards/admin/DashboardAdmin.vue";
@@ -18,54 +19,54 @@ import DashboardNasabah from "@/pages/dashboards/nasabah/DashboardNasabah.vue";
 
 // Import komponen baru
 import VerifikasiPengepul from "@/pages/dashboards/admin/VerifikasiPengepul.vue";
-import LandingPageLayout from '@/layouts/LandingPageLayout.vue';
-import FAQ from '@/pages/public/FAQ.vue';
-import TermsAndPrivacy from '@/pages/public/TermsAndPrivacy.vue';
-import AboutFull from '@/pages/public/AboutFull.vue';
-import Blog from '@/pages/public/Blog.vue';
-import OneBlog from '@/pages/public/OneBlog.vue';
-import KelolaUser from '@/pages/dashboards/admin/KelolaUser.vue';
+import LandingPageLayout from "@/layouts/LandingPageLayout.vue";
+import FAQ from "@/pages/public/FAQ.vue";
+import TermsAndPrivacy from "@/pages/public/TermsAndPrivacy.vue";
+import AboutFull from "@/pages/public/AboutFull.vue";
+import Blog from "@/pages/public/Blog.vue";
+import OneBlog from "@/pages/public/OneBlog.vue";
+import KelolaUser from "@/pages/dashboards/admin/KelolaUser.vue";
 
 const routes = [
   {
-    path: '/',
+    path: "/",
     component: LandingPageLayout,
     children: [
       {
-        path: '/',
-        component: LandingPage
+        path: "/",
+        component: LandingPage,
       },
       {
-        path: '/faq',
-        component: FAQ
+        path: "/faq",
+        component: FAQ,
       },
       {
-        path: '/about',
-        component: AboutFull
+        path: "/about",
+        component: AboutFull,
       },
       {
-        path: '/terms-and-privacy',
-        component: TermsAndPrivacy
+        path: "/terms-and-privacy",
+        component: TermsAndPrivacy,
       },
       {
-        path: '/blog',
-        component: Blog
+        path: "/blog",
+        component: Blog,
       },
       {
-        path: '/blog/:slug',
-        name: 'SingleBlog',
-        component: OneBlog
+        path: "/blog/:slug",
+        name: "SingleBlog",
+        component: OneBlog,
       },
-    ]
+    ],
   },
 
   // Auth Routes
   {
-    path: '/choose-role',
+    path: "/choose-role",
     component: ChooseRole,
   },
   {
-    path: '/register-nasabah',
+    path: "/register-nasabah",
     component: RegisterNasabah,
   },
   {
@@ -79,6 +80,11 @@ const routes = [
   {
     path: "/login",
     component: Login,
+  },
+  {
+    path: "/verify-email/:token",
+    name: "VerifyEmail",
+    component: VerifikasiEmail,
   },
 
   // Dashboard pages
@@ -94,6 +100,10 @@ const routes = [
   {
     path: "/dashboard-admin/verifikasi-pengepul",
     component: VerifikasiPengepul,
+  },
+  {
+    path: "/dashboard-admin/verifikasi-email",
+    component: VerifikasiEmail,
   },
   {
     path: "/dashboard-manager",
@@ -129,7 +139,7 @@ const router = createRouter({
         setTimeout(() => {
           resolve({
             el: to.hash,
-            behavior: 'smooth',
+            behavior: "smooth",
             // Kita kasih jarak sedikit dari atas karena Navbar-nya sekarang Sticky (menempel)
             // Namun Vue Router 'el' offset biasanya menggunakan scroll-margin-top di CSS
           });
@@ -138,8 +148,8 @@ const router = createRouter({
     }
 
     // 3. Pindah halaman standar, kembalikan posisi layar ke pucuk secara halus
-    return { top: 0, behavior: 'smooth' };
-  }
-})
+    return { top: 0, behavior: "smooth" };
+  },
+});
 
 export default router;

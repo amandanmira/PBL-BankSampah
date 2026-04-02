@@ -21,6 +21,7 @@ class Nasabah extends Authenticatable
         'alamat',
         'gmap',
         'no_telp',
+        'verification_token',
         'status',
         'ket_status',
         'no_rekening',
