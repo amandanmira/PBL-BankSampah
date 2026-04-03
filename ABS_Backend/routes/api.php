@@ -11,6 +11,7 @@ use App\Http\Controllers\Api\Admin\ProfileController;
 use App\Http\Controllers\Api\Admin\KelolaAkunController;
 use App\Http\Controllers\Api\Admin\GudangController;
 use App\Http\Controllers\Api\Admin\SampahController;
+use App\Http\Controllers\Api\Petugas\BeritaController;
 
 Route::get('verify-nasabah/{token}', [AuthController::class, 'verifyEmail']);
 
@@ -26,6 +27,18 @@ Route::prefix('nasabah')->middleware(['auth:sanctum', 'role:nasabah'])->group(fu
 Route::prefix('pengepul')->middleware(['auth:sanctum', 'role:pengepul'])->group(function () {
     Route::put('/edit-profile/{id}', [ProfileController::class, 'updatePengepul']);
     Route::get('/profile/{id}', [ProfileController::class, 'showPengepul']);
+});
+
+// Route Petugas
+Route::prefix('petugas')->middleware(['auth:sanctum', 'role:petugas'])->group(function () {
+    // CRUD Berita
+    Route::get('/berita', [BeritaController::class, 'index']);
+    Route::post('/berita', [BeritaController::class, 'store']);
+    Route::get('/berita/{id}', [BeritaController::class, 'show']);
+    Route::put('/berita/{id}', [BeritaController::class, 'update']);
+    Route::delete('/berita/{id}', [BeritaController::class, 'destroy']);
+    // Rute tambahan untuk handle update dengan file upload (thumbnail)
+    Route::post('berita/{id}', [BeritaController::class, 'update']);
 });
 
 // Route Admin

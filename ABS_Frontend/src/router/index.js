@@ -27,17 +27,23 @@ import Blog from "@/pages/public/Blog.vue";
 import OneBlog from "@/pages/public/OneBlog.vue";
 import KelolaUser from "@/pages/dashboards/admin/KelolaUser.vue";
 
+// Berita
+import BeritaIndex from "@/pages/dashboards/petugas/berita/index.vue";
+import BeritaCreate from "@/pages/dashboards/petugas/berita/Create.vue";
+import BeritaEdit from "@/pages/dashboards/petugas/berita/Edit.vue";
+import BeritaShow from "@/pages/dashboards/petugas/berita/show.vue";
+
 // Gudang
-import GudangIndex from '@/pages/dashboards/admin/managePages/gudang/GudangIndex.vue'
-import GudangCreate from '@/pages/dashboards/admin/managePages/gudang/GudangCreate.vue'
-import GudangEdit from '@/pages/dashboards/admin/managePages/gudang/GudangEdit.vue'
-import GudangShow from '@/pages/dashboards/admin/managePages/gudang/GudangShow.vue'
+import GudangIndex from "@/pages/dashboards/admin/managePages/gudang/GudangIndex.vue";
+import GudangCreate from "@/pages/dashboards/admin/managePages/gudang/GudangCreate.vue";
+import GudangEdit from "@/pages/dashboards/admin/managePages/gudang/GudangEdit.vue";
+import GudangShow from "@/pages/dashboards/admin/managePages/gudang/GudangShow.vue";
 
 // Sampah
-import SampahIndex from '@/pages/dashboards/admin/managePages/sampah/SampahIndex.vue'
-import SampahCreate from '@/pages/dashboards/admin/managePages/sampah/SampahCreate.vue'
-import SampahEdit from '@/pages/dashboards/admin/managePages/sampah/SampahEdit.vue'
-import SampahShow from '@/pages/dashboards/admin/managePages/sampah/SampahShow.vue'
+import SampahIndex from "@/pages/dashboards/admin/managePages/sampah/SampahIndex.vue";
+import SampahCreate from "@/pages/dashboards/admin/managePages/sampah/SampahCreate.vue";
+import SampahEdit from "@/pages/dashboards/admin/managePages/sampah/SampahEdit.vue";
+import SampahShow from "@/pages/dashboards/admin/managePages/sampah/SampahShow.vue";
 
 // Profile
 import EditProfilePengepul from "@/pages/dashboards/pengepul/EditProfilePengepul.vue";
@@ -108,7 +114,7 @@ const routes = [
 
   // Tambahkan rute baru untuk kelola petugas
   {
-    path: '/dashboard-admin/buat-petugas',
+    path: "/dashboard-admin/buat-petugas",
     component: BuatPetugas,
   },
 
@@ -121,37 +127,37 @@ const routes = [
 
   // Gudang
   {
-    path: '/dashboard-admin/kelola-gudang',
+    path: "/dashboard-admin/kelola-gudang",
     component: GudangIndex,
   },
   {
-    path: '/dashboard-admin/kelola-gudang/create',
+    path: "/dashboard-admin/kelola-gudang/create",
     component: GudangCreate,
   },
   {
-    path: '/dashboard-admin/kelola-gudang/:id/edit',
+    path: "/dashboard-admin/kelola-gudang/:id/edit",
     component: GudangEdit,
   },
   {
-    path: '/dashboard-admin/kelola-gudang/:id',
+    path: "/dashboard-admin/kelola-gudang/:id",
     component: GudangShow,
   },
 
   // Sampah
   {
-    path: '/dashboard-admin/kelola-sampah',
+    path: "/dashboard-admin/kelola-sampah",
     component: SampahIndex,
   },
   {
-    path: '/dashboard-admin/kelola-sampah/create',
+    path: "/dashboard-admin/kelola-sampah/create",
     component: SampahCreate,
   },
   {
-    path: '/dashboard-admin/kelola-sampah/:id/edit',
+    path: "/dashboard-admin/kelola-sampah/:id/edit",
     component: SampahEdit,
   },
   {
-    path: '/dashboard-admin/kelola-sampah/:id',
+    path: "/dashboard-admin/kelola-sampah/:id",
     component: SampahShow,
   },
 
@@ -174,6 +180,26 @@ const routes = [
   {
     path: "/dashboard-petugas",
     component: DashboardPetugas,
+  },
+  {
+    path: "/dashboard-petugas/kelola-berita",
+    component: BeritaIndex,
+  },
+
+  {
+    path: "/dashboard-petugas/kelola-berita/create",
+    component: BeritaCreate,
+  },
+
+  {
+    path: "/dashboard-petugas/kelola-berita/:id/edit",
+    name: "berita.edit",
+    component: BeritaEdit,
+  },
+  {
+    path: "/dashboard-petugas/berita/:id",
+    name: "berita.show",
+    component: BeritaShow,
   },
 
   // Pengepul
