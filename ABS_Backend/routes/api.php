@@ -20,6 +20,7 @@ use App\Http\Controllers\Api\Admin\WebController;
 // Nasabah
 use App\Http\Controllers\Api\Nasabah\RequestPenjemputanController;
 use App\Http\Controllers\Api\Nasabah\RequestPenarikanController;
+use App\Http\Controllers\Api\Petugas\KonfirmasiPenjemputanController;
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
@@ -48,6 +49,9 @@ Route::prefix('petugas')->middleware(['auth:sanctum', 'role:petugas'])->group(fu
     Route::delete('/berita/{id}', [BeritaController::class, 'destroy']);
     // Rute tambahan untuk handle update dengan file upload (thumbnail)
     Route::post('berita/{id}', [BeritaController::class, 'update']);
+    Route::get('/penjemputan', [KonfirmasiPenjemputanController::class, 'penjemputan']);
+    Route::put('/penjemputan/{penjemputan}/terima', [KonfirmasiPenjemputanController::class, 'terima']);
+    Route::put('/penjemputan/{penjemputan}/tolak', [KonfirmasiPenjemputanController::class, 'tolak']);
 });
 
 // Route Admin
