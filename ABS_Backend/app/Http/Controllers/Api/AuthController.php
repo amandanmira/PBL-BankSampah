@@ -5,6 +5,9 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\VerifikasiEmailNasabah;
 
 // Models
 use App\Models\Nasabah;
@@ -22,6 +25,9 @@ class AuthController extends Controller
             'email' => 'required|email|max:50|unique:nasabahs',
             'password' => 'required|min:8',
             'nama' => 'required|max:50'
+        ], [
+            'email.unique' => 'Email sudah terpakai',
+            'username.unique' => 'Username sudah terpakai'
         ]);
 
         $nasabah = Nasabah::create([
@@ -29,11 +35,19 @@ class AuthController extends Controller
             'email' => $request->email,
             'password' => Hash::make($request->password),
             'nama' => $request->nama,
-            'status' => 'aktif'
+            'status' => 'pending'
         ]);
 
+        // Buat dan simpan token verifikasi
+        $token = Str::random(60);
+        $nasabah->verification_token = $token;
+        $nasabah->save();
+
+        // Kirim email verifikasi
+        Mail::to($nasabah->email)->send(new VerifikasiEmailNasabah($nasabah, $token));
+
         return response()->json([
-            'message' => 'Registrasi berhasil',
+            'message' => 'Registrasi berhasil. Silakan cek email Anda untuk verifikasi.',
             'data' => $nasabah
         ]);
     }
@@ -48,6 +62,9 @@ class AuthController extends Controller
             'no_telp' => 'required|max:16',
             'nama_lembaga' => 'required|max:50',
             'alamat' => 'required',
+        ], [
+            'email.unique' => 'Email sudah terpakai',
+            'username.unique' => 'Username sudah terpakai'
         ]);
 
         $pengepul = Pengepul::create([
@@ -120,7 +137,7 @@ class AuthController extends Controller
         $pengepul = Pengepul::where('email', $email)->first();
         if ($pengepul && Hash::check($password, $pengepul->password)) {
 
-            if($pengepul->status !== 'aktif'){
+            if ($pengepul->status !== 'aktif') {
                 return response()->json([
                     'message' => 'Akun Anda belum aktif atau sedang dinonaktifkan. Silakan hubungi admin.'
                 ], 403);
@@ -137,6 +154,13 @@ class AuthController extends Controller
 
         $nasabah = Nasabah::where('email', $email)->first();
         if ($nasabah && Hash::check($password, $nasabah->password)) {
+
+            if ($nasabah->status !== 'aktif') {
+                return response()->json([
+                    'message' => 'Akun Anda belum aktif atau sedang dinonaktifkan. Silakan hubungi admin.'
+                ], 403);
+            }
+
             $token = $nasabah->createToken('api-token')->plainTextToken;
 
             return response()->json([
@@ -151,6 +175,23 @@ class AuthController extends Controller
         ], 401);
     }
 
+    public function checkEmail(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|email|max:50',
+        ]);
+
+        $email = $request->email;
+
+        $exists = Nasabah::where('email', $email)->exists() ||
+            Pengepul::where('email', $email)->exists() ||
+            Admin::where('email', $email)->exists() ||
+            Petugas::where('email', $email)->exists() ||
+            Manager::where('email', $email)->exists();
+
+        return response()->json(['used' => $exists]);
+    }
+
     public function logout(Request $request)
     {
         $request->user()->currentAccessToken()->delete();
@@ -158,5 +199,20 @@ class AuthController extends Controller
         return response()->json([
             'message' => 'Logout berhasil'
         ]);
+    }
+
+    public function verifyEmail($token)
+    {
+        $nasabah = Nasabah::where('verification_token', $token)->first();
+
+        if (!$nasabah) {
+            return response()->json(['message' => 'Token verifikasi tidak valid.'], 404);
+        }
+
+        $nasabah->status = 'aktif';
+        $nasabah->verification_token = null; // Hapus token setelah verifikasi
+        $nasabah->save();
+
+        return response()->json(['message' => 'Email berhasil diverifikasi. Akun Anda sekarang aktif.']);
     }
 }

@@ -10,14 +10,15 @@ class Berita extends Model
 
     protected $fillable = [
         'judul',
-        'thumbnail',
+        'kategori',
         'isi',
+        'thumbnail',
         'tanggal',
-        'petugas_id'
+        'petugas_id',
     ];
 
     public function petugas()
     {
-        return $this->belongsTo(Petugas::class,'petugas_id','petugas_id');
+        return $this->belongsTo(Petugas::class, 'petugas_id', 'petugas_id');
     }
 }

@@ -12,6 +12,9 @@ use App\Http\Controllers\Api\ProfileController;
 use App\Http\Controllers\Api\Admin\KelolaAkunController;
 use App\Http\Controllers\Api\Admin\GudangController;
 use App\Http\Controllers\Api\Admin\SampahController;
+use App\Http\Controllers\Api\Petugas\BeritaController;
+
+Route::get('verify-nasabah/{token}', [AuthController::class, 'verifyEmail']);
 use App\Http\Controllers\Api\Admin\WebController;
 
 // Nasabah
@@ -35,6 +38,18 @@ Route::prefix('pengepul')->middleware(['auth:sanctum', 'role:pengepul'])->group(
     Route::get('/profile/{id}', [ProfileController::class, 'showPengepul']);
 });
 
+// Route Petugas
+Route::prefix('petugas')->middleware(['auth:sanctum', 'role:petugas'])->group(function () {
+    // CRUD Berita
+    Route::get('/berita', [BeritaController::class, 'index']);
+    Route::post('/berita', [BeritaController::class, 'store']);
+    Route::get('/berita/{id}', [BeritaController::class, 'show']);
+    Route::put('/berita/{id}', [BeritaController::class, 'update']);
+    Route::delete('/berita/{id}', [BeritaController::class, 'destroy']);
+    // Rute tambahan untuk handle update dengan file upload (thumbnail)
+    Route::post('berita/{id}', [BeritaController::class, 'update']);
+});
+
 // Route Admin
 Route::prefix('admin')->middleware(['auth:sanctum', 'role:admin'])->group(function () {
     // API Kelola
@@ -49,7 +64,7 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'role:admin'])->group(functi
     Route::get('pengepul', [KelolaAkunController::class, 'indexPengepul']);
     Route::get('pengepul/{pengepul}', [KelolaAkunController::class, 'showPengepul']);
     Route::put('pengepul/{pengepul}/terima', [AksiAdminController::class, 'terimaPengepul']);
-    Route::delete('pengepul/{pengepul}/tolak', [AksiAdminController::class, 'tolakPengepul']);
+    Route::put('pengepul/{pengepul}/tolak', [AksiAdminController::class, 'tolakPengepul']);
     Route::put('pengepul/{pengepul}/deactivate', [AksiAdminController::class, 'deactivatePengepul']);
     Route::put('pengepul/{pengepul}/activate', [AksiAdminController::class, 'activatePengepul']);
 

@@ -20,7 +20,8 @@ return new class extends Migration
             $table->text('alamat')->nullable();
             $table->text('gmap')->nullable();
             $table->string('no_telp', 16)->nullable();
-            $table->enum('status', ['aktif', 'nonaktif']);
+            $table->enum('status', ['aktif', 'nonaktif','pending']);
+            $table->string('verification_token')->nullable();
             $table->text('ket_status')->nullable();
             $table->string('no_rekening', 20)->nullable();
             $table->string('nama_bank', 50)->nullable();

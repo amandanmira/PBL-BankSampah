@@ -14,12 +14,13 @@ return new class extends Migration
         Schema::create('beritas', function (Blueprint $table) {
             $table->id('berita_id');
             $table->string('judul', 100);
+            $table->enum('kategori', ['Berita', 'Artikel', 'Event']);
             $table->text('thumbnail')->nullable();
             $table->text('isi');
             $table->date('tanggal');
 
             $table->foreignId('petugas_id')
-                ->constrained('petugas','petugas_id')
+                ->constrained('petugas', 'petugas_id')
                 ->cascadeOnDelete();
 
             $table->timestamps();
