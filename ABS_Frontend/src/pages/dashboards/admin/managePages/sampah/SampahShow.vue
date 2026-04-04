@@ -6,14 +6,14 @@
     <div v-if="error">{{ error }}</div>
 
     <div v-if="data">
-      <p><strong>ID:</strong> {{ data.jenis_id }}</p>
+      <p><strong>ID:</strong> {{ data.kategori_id }}</p>
       <p><strong>Nama:</strong> {{ data.nama }}</p>
 
       <hr />
 
       <h3>Kategori</h3>
 
-      <div v-if="data.kategori_sampah.length === 0">
+      <div v-if="data.item_sampah.length === 0">
         Tidak ada kategori
       </div>
 
@@ -35,8 +35,8 @@
         </thead>
 
         <tbody>
-          <tr v-for="k in data.kategori_sampah" :key="k.kategori_id">
-            <td>{{ k.kategori_id }}</td>
+          <tr v-for="k in data.item_sampah" :key="k.item_id">
+            <td>{{ k.item_id }}</td>
             <td>
               <img v-if="k.foto" :src="getFoto(k.foto)" width="100" />
               <span v-else>-</span>
@@ -51,7 +51,7 @@
 
       <br />
 
-      <button @click="router.push(`/dashboard-admin/kelola-sampah/${data.jenis_id}/edit`)">
+      <button @click="router.push(`/dashboard-admin/kelola-sampah/${data.kategori_id}/edit`)">
         Edit
       </button>
 
@@ -94,7 +94,7 @@ const getFoto = (path) => {
 const fetchData = async () => {
   loading.value = true;
   try {
-    const res = await axios.get(`/api/admin/jenis-sampah/${id}`, {headers});
+    const res = await axios.get(`/api/admin/kategori-sampah/${id}`, { headers });
     data.value = res.data;
   } catch (err) {
     error.value = err.response?.data || err.message;

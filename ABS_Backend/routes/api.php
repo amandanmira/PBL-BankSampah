@@ -65,14 +65,14 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'role:admin'])->group(functi
     Route::apiResource('gudang', GudangController::class);
 
     // Sampah
-    Route::get('/jenis-sampah', [SampahController::class, 'index']);
-    Route::post('/jenis-sampah', [SampahController::class, 'store']);
-    Route::get('/jenis-sampah/{id}', [SampahController::class, 'show']);
-    Route::put('/jenis-sampah/{id}', [SampahController::class, 'update']);
-    Route::delete('/jenis-sampah/{id}', [SampahController::class, 'destroy']);
+    Route::get('/kategori-sampah', [SampahController::class, 'index']);
+    Route::post('/kategori-sampah', [SampahController::class, 'store']);
+    Route::get('/kategori-sampah/{id}', [SampahController::class, 'show']);
+    Route::put('/kategori-sampah/{id}', [SampahController::class, 'update']);
+    Route::delete('/kategori-sampah/{id}', [SampahController::class, 'destroy']);
 
     // Kategori
-    Route::delete('/kategori-sampah/{id}', [SampahController::class, 'destroyKategori']);
+    Route::delete('/item-sampah/{id}', [SampahController::class, 'destroyItem']);
 
     // Konfigurasi Web
     Route::get('/web-config', [WebController::class, 'show']);

@@ -24,10 +24,6 @@ return new class extends Migration
                 ->constrained('transaksi_nasabahs','transaksi_id')
                 ->cascadeOnDelete();
 
-            $table->foreignId('kategori_id')
-                ->constrained('kategori_sampahs','kategori_id')
-                ->cascadeOnDelete();
-
             $table->foreignId('tukang_id')
                 ->constrained('tukangs','tukang_id')
                 ->cascadeOnDelete();

@@ -14,9 +14,9 @@ class Sampah extends Model
         'gudang_id',
     ];
 
-    public function kategori()
+    public function itemSampah()
     {
-        return $this->belongsTo(KategoriSampah::class,'kategori_id','kategori_id');
+        return $this->belongsTo(ItemSampah::class,'item_id','item_id');
     }
 
     public function gudang()
