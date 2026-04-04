@@ -17,6 +17,13 @@ class SampahController extends Controller
         );
     }
 
+    public function indexItem()
+    {
+        return response()->json(
+            ItemSampah::all()
+        );
+    }
+
     public function store(Request $request)
     {
         $request->validate([

@@ -12,17 +12,17 @@ class SampahGudangController extends Controller
     {
         foreach ($request->sampah as $s) {
             if (isset($s['sampah_id'])) {
-                $sampah = Sampah::find($k['sampah_id']);
+                $sampah = Sampah::find($s['sampah_id']);
                 if ($sampah) {
                     $sampah->update([
-                        'kategori_id' => $s['kategori_id'],
+                        'item_id' => $s['item_id'],
                         'stok' => $s['stok'],
                     ]);
                 }
             }
             else {
                 Sampah::create([
-                    'kategori_id' => $s['kategori_id'],
+                    'item_id' => $s['item_id'],
                     'stok' => $s['stok'],
                     'gudang_id' => $id,
                 ]);
@@ -33,5 +33,13 @@ class SampahGudangController extends Controller
         return response()->json([
             'message' => 'Update Sampah Berhasil!'
         ]);
+    }
+
+    public function destroy($id)
+    {
+        $sampah = Sampah::findOrFail($id);
+        $sampah->delete();
+
+        return response()->json(['message' => 'Deleted']);
     }
 }

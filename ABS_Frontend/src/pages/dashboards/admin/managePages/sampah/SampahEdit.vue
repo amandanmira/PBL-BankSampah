@@ -185,8 +185,6 @@ const submit = async () => {
     i++;
   };
 
-  console.log(formData);
-
   try {
     await axios.post(`/api/admin/kategori-sampah/${id}?_method=PUT`, formData, { headers });
     router.push("/dashboard-admin/kelola-sampah");

@@ -11,6 +11,7 @@ use App\Http\Controllers\Api\ProfileController;
 
 use App\Http\Controllers\Api\Admin\KelolaAkunController;
 use App\Http\Controllers\Api\Admin\GudangController;
+use App\Http\Controllers\Api\Admin\SampahGudangController;
 use App\Http\Controllers\Api\Admin\SampahController;
 use App\Http\Controllers\Api\Petugas\BeritaController;
 
@@ -79,6 +80,9 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'role:admin'])->group(functi
     // Gudang
     Route::apiResource('gudang', GudangController::class);
 
+    Route::put('gudang/sampah/{id}', [SampahGudangController::class, 'update']);
+    Route::delete('gudang/sampah/{id}', [SampahGudangController::class, 'destroy']);
+
     // Sampah
     Route::get('/kategori-sampah', [SampahController::class, 'index']);
     Route::post('/kategori-sampah', [SampahController::class, 'store']);
@@ -86,7 +90,8 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'role:admin'])->group(functi
     Route::put('/kategori-sampah/{id}', [SampahController::class, 'update']);
     Route::delete('/kategori-sampah/{id}', [SampahController::class, 'destroy']);
 
-    // Kategori
+    // Item Sampah
+    Route::get('/item-sampah', [SampahController::class, 'indexItem']);
     Route::delete('/item-sampah/{id}', [SampahController::class, 'destroyItem']);
 
     // Konfigurasi Web
