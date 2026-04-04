@@ -24,6 +24,7 @@ class GudangController extends Controller
     {
         $validated = $request->validate([
             'alamat' => 'required|string',
+            'kapasitas' => 'required|integer',
         ]);
 
         $gudang = Gudang::create($validated);
@@ -50,6 +51,7 @@ class GudangController extends Controller
 
         $validated = $request->validate([
             'alamat' => 'sometimes|required|string',
+            'kapasitas' => 'sometimes|required|integer',
         ]);
 
         $gudang->update($validated);

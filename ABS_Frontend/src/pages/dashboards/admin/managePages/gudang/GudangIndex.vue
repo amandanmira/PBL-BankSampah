@@ -10,6 +10,7 @@
         <tr>
           <th>ID</th>
           <th>Alamat</th>
+          <th>Kapasitas</th>
           <th>Action</th>
         </tr>
       </thead>
@@ -17,6 +18,7 @@
         <tr v-for="gudang in gudangList" :key="gudang.gudang_id">
           <td>{{ gudang.gudang_id }}</td>
           <td>{{ gudang.alamat }}</td>
+          <td>{{ gudang.kapasitas }}</td>
           <td>
             <button @click="showGudang(gudang.gudang_id)">Show</button>
             <button @click="editGudang(gudang.gudang_id)">Edit</button>

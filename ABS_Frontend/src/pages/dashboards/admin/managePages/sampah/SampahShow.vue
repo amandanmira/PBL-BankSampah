@@ -8,7 +8,6 @@
     <div v-if="data">
       <p><strong>ID:</strong> {{ data.jenis_id }}</p>
       <p><strong>Nama:</strong> {{ data.nama }}</p>
-      <p><strong>Stok:</strong> {{ data.stok_jenis }}</p>
 
       <hr />
 
@@ -27,22 +26,25 @@
         <thead>
           <tr>
             <th>ID</th>
+            <th>Foto</th>
             <th>Nama</th>
             <th>Harga Beli</th>
             <th>Harga Jual</th>
             <th>Diskon</th>
-            <th>Stok</th>
           </tr>
         </thead>
 
         <tbody>
           <tr v-for="k in data.kategori_sampah" :key="k.kategori_id">
             <td>{{ k.kategori_id }}</td>
+            <td>
+              <img v-if="k.foto" :src="getFoto(k.foto)" width="100" />
+              <span v-else>-</span>
+            </td>
             <td>{{ k.nama }}</td>
             <td>{{ k.harga_beli }}</td>
             <td>{{ k.harga_jual }}</td>
             <td>{{ k.diskon }}</td>
-            <td>{{ k.stok }}</td>
           </tr>
         </tbody>
       </table>
@@ -84,6 +86,10 @@ if (!token) {
 }
 
 const headers = { 'Authorization': `Bearer ${token}` }
+
+const getFoto = (path) => {
+  return `http://localhost:8000/storage/${path}`;
+};
 
 const fetchData = async () => {
   loading.value = true;

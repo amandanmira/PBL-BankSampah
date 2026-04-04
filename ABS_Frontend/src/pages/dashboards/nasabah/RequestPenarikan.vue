@@ -4,12 +4,8 @@
 
     <form @submit.prevent="submitForm">
       <div>
-        <label>Alamat</label><br />
-        <textarea v-model="form.alamat"></textarea>
-      </div>
-      <div>
-        <label>Kapasitas</label><br />
-        <input type="number" v-model="form.kapasitas"></input>
+        <label>Jumlah</label><br />
+        <input type="number" v-model="form.jumlah"></input>
       </div>
 
       <br />
@@ -26,13 +22,13 @@ import axios from 'axios'
 import { useRouter } from 'vue-router'
 import { checkRole } from '@/utils'
 
-checkRole('admin')
+checkRole('nasabah')
 
 const router = useRouter()
 
 const form = ref({
-  alamat: '',
-  kapasitas: 0,
+  jumlah: '',
+  nasabah_id: '',
 })
 
 const errors = ref({})
@@ -42,16 +38,19 @@ const submitForm = async () => {
   errors.value = {}
 
   try {
-		const token = sessionStorage.getItem('token')
+    const token = sessionStorage.getItem('token')
+    const user = JSON.parse(sessionStorage.getItem('user'))
 
     if (!token) {
       throw new Error('Otentikasi diperlukan.')
     }
 
+    form.value.nasabah_id = user.nasabah_id
+
     const headers = { 'Authorization': `Bearer ${token}` }
 
-    await axios.post('/api/admin/gudang', form.value, {headers})
-    router.push('/dashboard-admin/kelola-gudang')
+    await axios.post('/api/nasabah/request-penarikan', form.value, { headers })
+    router.push('/dashboard-nasabah')
   } catch (err) {
     if (err.response && err.response.status === 422) {
       errors.value = err.response.data.errors
@@ -62,7 +61,7 @@ const submitForm = async () => {
 }
 
 const goBack = () => {
-  router.push('/dashboard-admin/kelola-gudang')
+  router.push('/dashboard-nasabah')
 }
 </script>
 

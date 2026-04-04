@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\Admin;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use App\Models\JenisSampah;
 use App\Models\KategoriSampah;
 
@@ -22,7 +23,6 @@ class SampahController extends Controller
     {
         $request->validate([
             'nama' => 'required|string|max:50',
-            'stok_jenis' => 'integer',
             'kategori' => 'array'
         ]);
 
@@ -33,13 +33,23 @@ class SampahController extends Controller
 
         // simpan kategori jika ada
         if ($request->has('kategori')) {
-            foreach ($request->kategori as $k) {
+            foreach ($request->kategori as $index => $k) {
+                $foto = null;
+
+                // ambil file berdasarkan index array
+                if ($request->hasFile("kategori.$index.foto")) {
+                    $path = $request->file("kategori.$index.foto")
+                                    ->store('foto-kategori', 'public');
+
+                    $foto = $path;
+                }
+
                 $jenis->kategoriSampah()->create([
                     'nama' => $k['nama'],
                     'harga_beli' => $k['harga_beli'] ?? 0,
                     'harga_jual' => $k['harga_jual'] ?? 0,
                     'diskon' => $k['diskon'] ?? 0,
-                    'stok' => $k['stok'] ?? 0,
+                    'foto' => $foto,
                 ]);
             }
         }
@@ -61,34 +71,53 @@ class SampahController extends Controller
 
         $jenis->update([
             'nama' => $request->nama ?? $jenis->nama,
-            'stok_jenis' => $request->stok_jenis ?? $jenis->stok_jenis,
         ]);
 
         // update kategori jika dikirim
-        if ($request->has('kategori_sampah')) {
-            foreach ($request->kategori_sampah as $k) {
+        if ($request->has('kategori')) {
+            foreach ($request->kategori as $index => $k) {
+                $kategori = null;
 
-                // kalau ada kategori_id → update
                 if (isset($k['kategori_id'])) {
                     $kategori = KategoriSampah::find($k['kategori_id']);
-                    if ($kategori) {
-                        $kategori->update([
-                            'nama' => $k['nama'],
-                            'harga_beli' => $k['harga_beli'],
-                            'harga_jual' => $k['harga_jual'],
-                            'diskon' => $k['diskon'],
-                            'stok' => $k['stok'],
-                        ]);
-                    }
                 }
-                // kalau tidak ada → create baru
-                else {
-                    $jenis->kategoriSampah()->create($k);
+
+                $data = [
+                    'nama' => $k['nama'],
+                    'harga_beli' => $k['harga_beli'],
+                    'harga_jual' => $k['harga_jual'],
+                    'diskon' => $k['diskon'],
+                ];
+
+                // kalau ada file baru
+                if ($request->hasFile("kategori.$index.foto")) {
+
+                    // hapus file lama kalau ada
+                    if ($kategori && $kategori->foto && Storage::disk('public')->exists($kategori->foto)) {
+                        Storage::disk('public')->delete($kategori->foto);
+                    }
+
+                    // simpan file baru
+                    $path = $request->file("kategori.$index.foto")
+                                    ->store('foto-kategori', 'public');
+
+                    $data['foto'] = $path;
+                }
+
+                if ($kategori) {
+                    // update
+                    $kategori->update($data);
+                } else {
+                    // create baru
+                    $jenis->kategoriSampah()->create($data);
                 }
             }
         }
 
-        return response()->json($jenis->load('kategoriSampah'));
+        return response()->json([
+            'tes' => $request->all(),
+            'data' => $jenis->load('kategoriSampah')
+        ]);
     }
 
     // DELETE jenis (kategori ikut kehapus karena cascade)

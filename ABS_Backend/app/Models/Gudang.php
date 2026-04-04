@@ -9,7 +9,8 @@ class Gudang extends Model
     protected $primaryKey = 'gudang_id';
 
     protected $fillable = [
-        'alamat'
+        'alamat',
+        'kapasitas',
     ];
 
     public function penjemputan()
@@ -30,5 +31,10 @@ class Gudang extends Model
     public function petugas()
     {
         return $this->hasMany(Petugas::class,'gudang_id','gudang_id');
+    }
+
+    public function penimbangan()
+    {
+        return $this->hasMany(Penimbangan::class,'gudang_id','gudang_id');
     }
 }

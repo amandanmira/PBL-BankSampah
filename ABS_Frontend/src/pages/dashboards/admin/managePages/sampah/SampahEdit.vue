@@ -11,11 +11,6 @@
       <input v-model="form.nama" type="text" />
     </div>
 
-    <div>
-      <label>Stok Jenis</label><br />
-      <input v-model="form.stok_jenis" type="number" />
-    </div>
-
     <hr />
 
     <!-- KATEGORI -->
@@ -28,6 +23,16 @@
       :key="k.kategori_id || index"
       style="border:1px solid #ccc; padding:10px; margin-top:10px;"
     >
+      <div>
+        <label>Foto</label>
+        <input type="file" @change="handleFile($event, index)" />
+
+        <!-- preview -->
+        <div>
+          <img v-if="k.foto || k.foto_baru" :src="previewFile(k)" width="120" />
+        </div>
+      </div>
+
       <div>
         <label>Nama</label><br />
         <input v-model="k.nama" type="text" />
@@ -46,11 +51,6 @@
       <div>
         <label>Diskon</label><br />
         <input v-model="k.diskon" type="number" step="0.01" />
-      </div>
-
-      <div>
-        <label>Stok</label><br />
-        <input v-model="k.stok" type="number" />
       </div>
 
       <button @click="removeKategori(index)">
@@ -85,7 +85,6 @@ const id = route.params.id;
 
 const form = ref({
   nama: "",
-  stok_jenis: 0,
   kategori_sampah: []
 });
 
@@ -98,7 +97,10 @@ if (!token) {
   throw new Error('Otentikasi diperlukan.');
 }
 
-const headers = { 'Authorization': `Bearer ${token}` }
+const headers = {
+  'Authorization': `Bearer ${token}`,
+  "Content-Type": "multipart/form-data"
+}
 
 // ambil data existing
 const fetchData = async () => {
@@ -116,12 +118,25 @@ const fetchData = async () => {
 // tambah kategori baru
 const addKategori = () => {
   form.value.kategori_sampah.push({
+    foto: null,
+    foto_baru: null,
     nama: "",
     harga_beli: 0,
     harga_jual: 0,
     diskon: 0,
-    stok: 0
   });
+};
+
+const handleFile = (e, index) => {
+  const file = e.target.files[0];
+  form.value.kategori_sampah[index].foto_baru = file;
+};
+
+const previewFile = (k) => {
+  if (k.foto_baru) {
+    return URL.createObjectURL(k.foto_baru);
+  }
+  return `http://localhost:8000/storage/${k.foto}`;
 };
 
 // hapus kategori
@@ -148,8 +163,33 @@ const submit = async () => {
   loading.value = true;
   error.value = null;
 
+  const formData = new FormData();
+
+  formData.append("nama", form.value.nama);
+
+  let i = 0;
+  for (const k of form.value.kategori_sampah) {
+    if (k.kategori_id) {
+      formData.append(`kategori[${i}][kategori_id]`, k.kategori_id);
+    }
+
+    formData.append(`kategori[${i}][nama]`, k.nama);
+    formData.append(`kategori[${i}][harga_beli]`, k.harga_beli);
+    formData.append(`kategori[${i}][harga_jual]`, k.harga_jual);
+    formData.append(`kategori[${i}][diskon]`, k.diskon);
+
+    // hanya kirim kalau ada file baru
+    if (k.foto_baru) {
+      formData.append(`kategori[${i}][foto]`, k.foto_baru);
+    }
+
+    i++;
+  };
+
+  console.log(formData);
+
   try {
-    await axios.put(`/api/admin/jenis-sampah/${id}`, form.value, {headers});
+    await axios.post(`/api/admin/jenis-sampah/${id}?_method=PUT`, formData, { headers });
     router.push("/dashboard-admin/kelola-sampah");
   } catch (err) {
     error.value = err.response?.data || err.message;

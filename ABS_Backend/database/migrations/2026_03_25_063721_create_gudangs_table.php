@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('gudangs', function (Blueprint $table) {
             $table->id("gudang_id");
             $table->text('alamat');
+            $table->integer('kapasitas')->default(0);
             $table->timestamps();
         });
 
@@ -25,11 +26,18 @@ return new class extends Migration
 
         Schema::table('penjemputans', function (Blueprint $table) {
             $table->foreignId('gudang_id')
+                ->nullable()
+                ->constrained('gudangs','gudang_id')
+                ->nullOnDelete();
+        });
+
+        Schema::table('petugas', function (Blueprint $table) {
+            $table->foreignId('gudang_id')
                 ->constrained('gudangs','gudang_id')
                 ->cascadeOnDelete();
         });
 
-        Schema::table('petugas', function (Blueprint $table) {
+        Schema::table('penimbangans', function (Blueprint $table) {
             $table->foreignId('gudang_id')
                 ->constrained('gudangs','gudang_id')
                 ->cascadeOnDelete();
@@ -41,6 +49,11 @@ return new class extends Migration
      */
     public function down(): void
     {
+        Schema::table('penimbangans', function (Blueprint $table) {
+            $table->dropForeign(['gudang_id']);
+            $table->dropColumn('gudang_id');
+        });
+
         Schema::table('petugas', function (Blueprint $table) {
             $table->dropForeign(['gudang_id']);
             $table->dropColumn('gudang_id');

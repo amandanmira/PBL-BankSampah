@@ -8,9 +8,10 @@
       <div>
         <label>Alamat</label><br />
         <textarea v-model="form.alamat"></textarea>
-        <div v-if="errors.alamat" class="error">
-          {{ errors.alamat[0] }}
-        </div>
+      </div>
+      <div>
+        <label>Kapasitas</label><br />
+        <input type="number" v-model="form.kapasitas"></input>
       </div>
 
       <br />
@@ -34,6 +35,7 @@ const router = useRouter()
 
 const form = ref({
   alamat: '',
+  kapasitas: 0,
 })
 
 const errors = ref({})
@@ -51,7 +53,7 @@ const fetchGudang = async () => {
   try {
     const id = route.params.id
     const res = await axios.get(`/api/admin/gudang/${id}`, {headers})
-    form.value.alamat = res.data.alamat
+    form.value = res.data
   } catch (err) {
     console.error(err)
   } finally {

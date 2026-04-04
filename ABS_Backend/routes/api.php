@@ -7,13 +7,19 @@ use Illuminate\Support\Facades\Route;
 
 // Gunakan Controller yang benar
 use App\Http\Controllers\Api\AuthController;
-use App\Http\Controllers\Api\Admin\ProfileController;
+use App\Http\Controllers\Api\ProfileController;
+
 use App\Http\Controllers\Api\Admin\KelolaAkunController;
 use App\Http\Controllers\Api\Admin\GudangController;
 use App\Http\Controllers\Api\Admin\SampahController;
 use App\Http\Controllers\Api\Petugas\BeritaController;
 
 Route::get('verify-nasabah/{token}', [AuthController::class, 'verifyEmail']);
+use App\Http\Controllers\Api\Admin\WebController;
+
+// Nasabah
+use App\Http\Controllers\Api\Nasabah\RequestPenjemputanController;
+use App\Http\Controllers\Api\Nasabah\RequestPenarikanController;
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
@@ -22,6 +28,9 @@ Route::middleware('auth:sanctum')->group(function () {
 Route::prefix('nasabah')->middleware(['auth:sanctum', 'role:nasabah'])->group(function () {
     Route::put('/edit-profile/{id}', [ProfileController::class, 'updateNasabah']);
     Route::get('/profile/{id}', [ProfileController::class, 'showNasabah']);
+
+    Route::post('/request-penjemputan', [RequestPenjemputanController::class, 'store']);
+    Route::post('/request-penarikan', [RequestPenarikanController::class, 'store']);
 });
 
 Route::prefix('pengepul')->middleware(['auth:sanctum', 'role:pengepul'])->group(function () {
@@ -79,4 +88,8 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'role:admin'])->group(functi
 
     // Kategori
     Route::delete('/kategori-sampah/{id}', [SampahController::class, 'destroyKategori']);
+
+    // Konfigurasi Web
+    Route::get('/web-config', [WebController::class, 'show']);
+    Route::put('/web-config', [WebController::class, 'update']);
 });

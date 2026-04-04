@@ -13,8 +13,8 @@ class KategoriSampah extends Model
         'harga_beli',
         'harga_jual',
         'diskon',
-        'stok',
         'jenis_id',
+        'foto',
     ];
 
     public function sampah()

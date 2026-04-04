@@ -32,6 +32,7 @@ import BeritaIndex from "@/pages/dashboards/petugas/berita/index.vue";
 import BeritaCreate from "@/pages/dashboards/petugas/berita/Create.vue";
 import BeritaEdit from "@/pages/dashboards/petugas/berita/Edit.vue";
 import BeritaShow from "@/pages/dashboards/petugas/berita/show.vue";
+import ConfigWeb from "@/pages/dashboards/admin/managePages/ConfigWeb.vue";
 
 // Gudang
 import GudangIndex from "@/pages/dashboards/admin/managePages/gudang/GudangIndex.vue";
@@ -48,6 +49,10 @@ import SampahShow from "@/pages/dashboards/admin/managePages/sampah/SampahShow.v
 // Profile
 import EditProfilePengepul from "@/pages/dashboards/pengepul/EditProfilePengepul.vue";
 import EditProfileNasabah from "@/pages/dashboards/nasabah/EditProfileNasabah.vue";
+
+// Nasabah
+import RequestPenjemputan from "@/pages/dashboards/nasabah/RequestPenjemputan.vue";
+import RequestPenarikan from "@/pages/dashboards/nasabah/RequestPenarikan.vue";
 
 const routes = [
   {
@@ -161,9 +166,14 @@ const routes = [
     component: SampahShow,
   },
 
+  // Other
   {
     path: "/dashboard-admin/verifikasi-pengepul",
     component: VerifikasiPengepul,
+  },
+  {
+    path: "/dashboard-admin/konfigurasi-web",
+    component: ConfigWeb,
   },
 
   // Manager
@@ -220,6 +230,14 @@ const routes = [
   {
     path: "/dashboard-nasabah/edit-profile",
     component: EditProfileNasabah,
+  },
+  {
+    path: "/dashboard-nasabah/request-penjemputan",
+    component: RequestPenjemputan,
+  },
+  {
+    path: "/dashboard-nasabah/request-penarikan",
+    component: RequestPenarikan,
   },
 ];
 

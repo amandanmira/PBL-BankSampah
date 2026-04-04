@@ -16,7 +16,7 @@ return new class extends Migration
             $table->integer('jumlah');
             $table->enum('status', ['pending', 'proses', 'selesai', 'tolak']);
             $table->text('ket_status')->nullable();
-            $table->text('bukti_tf');
+            $table->text('bukti_tf')->nullable();
 
             $table->foreignId('nasabah_id')
                 ->constrained('nasabahs','nasabah_id')
