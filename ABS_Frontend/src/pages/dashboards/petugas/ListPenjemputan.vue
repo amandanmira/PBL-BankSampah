@@ -27,8 +27,11 @@
           <td>{{ penjemputan.penjemputan_id }}</td>
           <td>{{ penjemputan.deskripsi }}</td>
           <td>{{ penjemputan.alamat }}</td>
-          <td>foto</td>
-          
+          <td>
+            <img v-if="penjemputan.foto" :src="`http://localhost:8000/storage/${penjemputan.foto}`" alt="Foto Penjemputan" style="width: 100px; height: auto; object-fit: cover; border-radius: 4px;" />
+            <span v-else>Tidak ada foto</span>
+          </td>
+
           <td>
             <span class="status-pending">{{ penjemputan.status }}</span>
           </td>
