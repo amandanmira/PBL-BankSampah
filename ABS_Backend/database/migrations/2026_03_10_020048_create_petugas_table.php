@@ -17,6 +17,7 @@ return new class extends Migration
             $table->string('username', 20)->unique();
             $table->string('email', 50)->unique();
             $table->string('password');
+            $table->string('no_telp', 16)->nullable();
             $table->boolean('active')->default(true);
             $table->timestamps();
         });
