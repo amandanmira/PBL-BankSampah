@@ -48,6 +48,11 @@
                 {{ akun.active ? "Nonaktifkan" : "Aktifkan" }}
               </button>
             </div>
+            <div v-else-if="akun.role === 'Manager'">
+              <button @click="toggleManagerStatus(akun)">
+                {{ akun.status === "aktif" ? "Nonaktifkan" : "Aktifkan" }}
+              </button>
+            </div>
             <div v-else-if="akun.role === 'Pengepul'">
               <button @click="togglePengepulStatus(akun)">
                 {{ akun.status === "aktif" ? "Nonaktifkan" : "Aktifkan" }}
@@ -93,6 +98,29 @@ const filteredAccounts = computed(() => {
   }
   return allAccounts.value.filter((akun) => akun.role === selectedRole.value);
 });
+
+const toggleManagerStatus = async (manager) => {
+  try {
+    const token = sessionStorage.getItem("token");
+    if (!token) {
+      throw new Error("Otentikasi diperlukan.");
+    }
+
+    const headers = { Authorization: `Bearer ${token}` };
+    const action = manager.status === "aktif" ? "deactivate" : "activate";
+
+    await axios.put(`http://localhost:8000/api/admin/manager/${manager.id}/${action}`, {}, { headers });
+
+    // Update status di frontend secara langsung
+    const index = allAccounts.value.findIndex((m) => m.id === manager.id && m.role === "Manager");
+    if (index !== -1) {
+      allAccounts.value[index].status = allAccounts.value[index].status === "aktif" ? "nonaktif" : "aktif";
+    }
+  } catch (err) {
+    error.value = "Gagal mengubah status manager. " + (err.response ? err.response.data.message : err.message);
+    console.error(err);
+  }
+};
 
 const togglePetugasStatus = async (petugas) => {
   try {

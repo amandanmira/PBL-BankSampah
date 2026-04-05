@@ -15,6 +15,7 @@ use App\Http\Controllers\Api\Admin\SampahController;
 use App\Http\Controllers\Api\Petugas\BeritaController;
 
 Route::get('verify-nasabah/{token}', [AuthController::class, 'verifyEmail']);
+
 use App\Http\Controllers\Api\Admin\WebController;
 
 // Nasabah
@@ -63,6 +64,10 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'role:admin'])->group(functi
     Route::get('petugas/{petuga}', [KelolaAkunController::class, 'showPetugas']);
     Route::put('petugas/{petuga}/deactivate', [AksiAdminController::class, 'deactivatePetugas']);
     Route::put('petugas/{petuga}/activate', [AksiAdminController::class, 'activatePetugas']);
+
+    // Manager
+    Route::put('manager/{manager}/deactivate', [AksiAdminController::class, 'deactivateManager']);
+    Route::put('manager/{manager}/activate', [AksiAdminController::class, 'activateManager']);
 
     // Pengepul
     Route::get('pengepul', [KelolaAkunController::class, 'indexPengepul']);

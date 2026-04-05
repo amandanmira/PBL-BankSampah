@@ -14,6 +14,7 @@ use App\Models\Pengepul;
 use App\Models\Petugas;
 use App\Models\Manager;
 use App\Models\Admin;
+use App\Models\Penjemputan;
 
 class DatabaseSeeder extends Seeder
 {

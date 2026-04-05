@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Pengepul;
 use App\Models\Petugas;
 use App\Models\Nasabah;
+use App\Models\Manager;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail; // Tambahkan ini
 use App\Mail\PengepulDiterima;       // Tambahkan ini
@@ -33,6 +34,28 @@ class AksiAdminController extends Controller
         $petuga->save();
 
         return response()->json(['message' => 'Petugas berhasil diaktifkan'], 200);
+    }
+
+    /**
+     * Menonaktifkan manager.
+     */
+    public function deactivateManager(Manager $manager)
+    {
+        $manager->status = 'nonaktif';
+        $manager->save();
+
+        return response()->json(['message' => 'Manager berhasil dinonaktifkan'], 200);
+    }
+
+    /**
+     * Mengaktifkan manager.
+     */
+    public function activateManager(Manager $manager)
+    {
+        $manager->status = 'aktif';
+        $manager->save();
+
+        return response()->json(['message' => 'Manager berhasil diaktifkan'], 200);
     }
 
     public function deactivatePengepul(Pengepul $pengepul)
