@@ -7,6 +7,7 @@ import ChooseRole from "@/pages/auth/ChooseRole.vue";
 import RegisterNasabah from "@/pages/auth/RegisterNasabah.vue";
 import RegisterPengepul from "@/pages/auth/RegisterPengepul.vue";
 import BuatPetugas from "@/pages/dashboards/admin/BuatPetugas.vue";
+import BuatManager from "@/pages/dashboards/admin/BuatManager.vue";
 import Login from "@/pages/auth/Login.vue";
 import VerifikasiEmail from "@/pages/dashboards/nasabah/VerifikasiEmail.vue";
 
@@ -124,6 +125,10 @@ const routes = [
   {
     path: "/dashboard-admin/buat-petugas",
     component: BuatPetugas,
+  },
+  {
+    path: "/dashboard-admin/buat-manager",
+    component: BuatManager,
   },
 
   // Halaman Kelola
