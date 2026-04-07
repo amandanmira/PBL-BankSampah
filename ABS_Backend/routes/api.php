@@ -22,6 +22,9 @@ use App\Http\Controllers\Api\Admin\WebController;
 use App\Http\Controllers\Api\Nasabah\RequestPenjemputanController;
 use App\Http\Controllers\Api\Nasabah\RequestPenarikanController;
 
+// Pengepul
+use App\Http\Controllers\Api\Pengepul\RequestPembelianController;
+
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
 });
@@ -37,6 +40,9 @@ Route::prefix('nasabah')->middleware(['auth:sanctum', 'role:nasabah'])->group(fu
 Route::prefix('pengepul')->middleware(['auth:sanctum', 'role:pengepul'])->group(function () {
     Route::put('/edit-profile/{id}', [ProfileController::class, 'updatePengepul']);
     Route::get('/profile/{id}', [ProfileController::class, 'showPengepul']);
+
+    Route::get('/daftar-sampah', [RequestPembelianController::class, 'indexSampah']);
+    Route::post('/request-pembelian', [RequestPembelianController::class, 'store']);
 });
 
 // Route Petugas

@@ -74,7 +74,7 @@ class SampahController extends Controller
         $kategori = KategoriSampah::findOrFail($id);
 
         $kategori->update([
-            'nama' => $request->nama ?? $jenis->nama,
+            'nama' => $request->nama ?? $kategori->nama,
         ]);
 
         // update kategori jika dikirim

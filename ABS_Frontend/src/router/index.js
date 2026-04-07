@@ -54,6 +54,9 @@ import EditProfileNasabah from "@/pages/dashboards/nasabah/EditProfileNasabah.vu
 import RequestPenjemputan from "@/pages/dashboards/nasabah/RequestPenjemputan.vue";
 import RequestPenarikan from "@/pages/dashboards/nasabah/RequestPenarikan.vue";
 
+//Pengepul
+import RequestPembelian from "@/pages/dashboards/pengepul/RequestPembelian.vue";
+
 const routes = [
   {
     path: "/",
@@ -220,6 +223,10 @@ const routes = [
   {
     path: "/dashboard-pengepul/edit-profile",
     component: EditProfilePengepul,
+  },
+  {
+    path: "/dashboard-pengepul/request-pembelian",
+    component: RequestPembelian,
   },
 
   // Nasabah
