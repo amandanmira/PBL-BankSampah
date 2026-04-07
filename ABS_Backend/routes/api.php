@@ -18,10 +18,10 @@ use Illuminate\Support\Facades\Route;
 
 use App\Http\Controllers\Api\Admin\SampahGudangController;
 
-Route::get('verify-nasabah/{token}', [AuthController::class, 'verifyEmail']);
-
 // Pengepul
 use App\Http\Controllers\Api\Pengepul\RequestPembelianController;
+
+Route::get('verify-nasabah/{token}', [AuthController::class, 'verifyEmail']);
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
@@ -41,6 +41,9 @@ Route::prefix('pengepul')->middleware(['auth:sanctum', 'role:pengepul'])->group(
     Route::get('/profile/{id}', [ProfileController::class, 'showPengepul']);
 
     Route::get('/daftar-sampah', [RequestPembelianController::class, 'indexSampah']);
+    Route::get('/request-pembelian/{pengepul_id}', [RequestPembelianController::class, 'index']);
+    Route::get('/request-pembelian/show/{id}', [RequestPembelianController::class, 'show']);
+    Route::put('/request-pembelian/{id}', [RequestPembelianController::class, 'update']);
     Route::post('/request-pembelian', [RequestPembelianController::class, 'store']);
 });
 

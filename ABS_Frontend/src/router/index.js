@@ -59,7 +59,9 @@ import RequestPenjemputan from "@/pages/dashboards/nasabah/RequestPenjemputan.vu
 import RequestPenarikan from "@/pages/dashboards/nasabah/RequestPenarikan.vue";
 
 //Pengepul
-import RequestPembelian from "@/pages/dashboards/pengepul/RequestPembelian.vue";
+import RequestPembelianCreate from "@/pages/dashboards/pengepul/requestPembelian/RequestPembelianCreate.vue";
+import RequestPembelianIndex from "@/pages/dashboards/pengepul/requestPembelian/RequestPembelianIndex.vue";
+import RequestPembelianEdit from "@/pages/dashboards/pengepul/requestPembelian/RequestPembelianEdit.vue";
 
 const routes = [
   {
@@ -238,7 +240,15 @@ const routes = [
   },
   {
     path: "/dashboard-pengepul/request-pembelian",
-    component: RequestPembelian,
+    component: RequestPembelianIndex,
+  },
+  {
+    path: "/dashboard-pengepul/request-pembelian/:id",
+    component: RequestPembelianEdit,
+  },
+  {
+    path: "/dashboard-pengepul/request-pembelian/create",
+    component: RequestPembelianCreate,
   },
 
   // Nasabah

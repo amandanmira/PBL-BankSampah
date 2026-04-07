@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\Pengepul;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use App\Models\TransaksiPengepul;
 use App\Models\ItemSampah;
 use App\Models\Sampah;
@@ -14,6 +15,40 @@ class RequestPembelianController extends Controller
         return response()->json(
             ItemSampah::with('sampah.gudang')->get()
         );
+    }
+
+    public function index($pengepul_id) {
+        TransaksiPengepul::where('pengepul_id', $pengepul_id)
+            ->where('status', 'proses')
+            ->where('deadline', '<', now())
+            ->where(function ($query) {
+                $query->whereNull('bukti_transfer')
+                    ->orWhere('bukti_transfer', '');
+            })
+            ->update([
+                'status' => 'tolak'
+            ]);
+
+        return response()->json(
+            TransaksiPengepul::with('detailTransaksi.sampah.itemSampah')->where('pengepul_id', $pengepul_id)->get()
+        );
+    }
+
+    public function show(string $id)
+    {
+        $transaksi = TransaksiPengepul::with('detailTransaksi')->findOrFail($id);
+
+        $transaksi->where('status', 'proses')
+            ->where('deadline', '<', now())
+            ->where(function ($query) {
+                $query->whereNull('bukti_transfer')
+                    ->orWhere('bukti_transfer', '');
+            })
+            ->update([
+                'status' => 'tolak'
+            ]);
+
+        return response()->json($transaksi);
     }
 
     public function store(Request $request)
@@ -50,5 +85,30 @@ class RequestPembelianController extends Controller
         }
 
         return response()->json($transaksi->load('detailTransaksi'), 201);
+    }
+
+    public function update(Request $request, $id)
+    {
+        $transaksi = TransaksiPengepul::findOrFail($id);
+
+        $validated = $request->validate([
+            'bukti_transfer' => 'required|image|mimes:jpg,jpeg,png,webp|max:4096',
+        ]);
+
+        if ($request->hasFile('bukti_transfer')) {
+            if ($transaksi->bukti_transfer && Storage::disk('public')->exists($transaksi->bukti_transfer)) {
+                Storage::disk('public')->delete($transaksi->bukti_transfer);
+            }
+
+            $path = $request->file('bukti_transfer')->store('foto-bukti-transfer', 'public');
+
+            $validated['bukti_transfer'] = $path;
+        }
+
+        $transaksi->update($validated);
+
+        return response()->json([
+            'data' => $transaksi
+        ]);
     }
 }
