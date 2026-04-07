@@ -31,6 +31,7 @@ Route::prefix('nasabah')->middleware(['auth:sanctum', 'role:nasabah'])->group(fu
     Route::put('/edit-profile/{id}', [ProfileController::class, 'updateNasabah']);
     Route::get('/profile/{id}', [ProfileController::class, 'showNasabah']);
 
+    Route::get('/list-gudang', [GudangController::class, 'index']);
     Route::post('/request-penjemputan', [RequestPenjemputanController::class, 'store']);
     Route::post('/request-penarikan', [RequestPenarikanController::class, 'store']);
 });
