@@ -17,7 +17,8 @@ return new class extends Migration
             $table->string('username', 20)->unique();
             $table->string('email', 50)->unique();
             $table->string('password');
-            $table->boolean('active')->default(true);
+            $table->enum('status', ['pending', 'aktif', 'nonaktif']);
+            $table->string('ket_status')->nullable();
             $table->timestamps();
         });
     }

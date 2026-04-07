@@ -1,26 +1,24 @@
 <?php
 
 use App\Http\Controllers\Api\Admin\AksiAdminController;
+use App\Http\Controllers\Api\Admin\BuatManagerController;
 use App\Http\Controllers\Api\Admin\BuatPetugasController;
+use App\Http\Controllers\Api\Admin\GudangController;
+use App\Http\Controllers\Api\Admin\KelolaAkunController;
+use App\Http\Controllers\Api\Admin\SampahController;
+use App\Http\Controllers\Api\Admin\WebController;
+use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\Nasabah\RequestPenarikanController;
+use App\Http\Controllers\Api\Nasabah\RequestPenjemputanController;
+use App\Http\Controllers\Api\Petugas\BeritaController;
+use App\Http\Controllers\Api\Petugas\KonfirmasiPenjemputanController;
+use App\Http\Controllers\Api\ProfileController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
-// Gunakan Controller yang benar
-use App\Http\Controllers\Api\AuthController;
-use App\Http\Controllers\Api\ProfileController;
-
-use App\Http\Controllers\Api\Admin\KelolaAkunController;
-use App\Http\Controllers\Api\Admin\GudangController;
 use App\Http\Controllers\Api\Admin\SampahGudangController;
-use App\Http\Controllers\Api\Admin\SampahController;
-use App\Http\Controllers\Api\Petugas\BeritaController;
 
 Route::get('verify-nasabah/{token}', [AuthController::class, 'verifyEmail']);
-use App\Http\Controllers\Api\Admin\WebController;
-
-// Nasabah
-use App\Http\Controllers\Api\Nasabah\RequestPenjemputanController;
-use App\Http\Controllers\Api\Nasabah\RequestPenarikanController;
 
 // Pengepul
 use App\Http\Controllers\Api\Pengepul\RequestPembelianController;
@@ -55,6 +53,9 @@ Route::prefix('petugas')->middleware(['auth:sanctum', 'role:petugas'])->group(fu
     Route::delete('/berita/{id}', [BeritaController::class, 'destroy']);
     // Rute tambahan untuk handle update dengan file upload (thumbnail)
     Route::post('berita/{id}', [BeritaController::class, 'update']);
+    Route::get('/penjemputan', [KonfirmasiPenjemputanController::class, 'penjemputan']);
+    Route::put('/penjemputan/{penjemputan}/terima', [KonfirmasiPenjemputanController::class, 'terima']);
+    Route::put('/penjemputan/{penjemputan}/tolak', [KonfirmasiPenjemputanController::class, 'tolak']);
 });
 
 // Route Admin
@@ -66,6 +67,11 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'role:admin'])->group(functi
     Route::get('petugas/{petuga}', [KelolaAkunController::class, 'showPetugas']);
     Route::put('petugas/{petuga}/deactivate', [AksiAdminController::class, 'deactivatePetugas']);
     Route::put('petugas/{petuga}/activate', [AksiAdminController::class, 'activatePetugas']);
+
+    // Manager
+    Route::post('/buatManager', [BuatManagerController::class,  'buatManager']);
+    Route::put('manager/{manager}/deactivate', [AksiAdminController::class, 'deactivateManager']);
+    Route::put('manager/{manager}/activate', [AksiAdminController::class, 'activateManager']);
 
     // Pengepul
     Route::get('pengepul', [KelolaAkunController::class, 'indexPengepul']);

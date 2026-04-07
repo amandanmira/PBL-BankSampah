@@ -7,6 +7,7 @@ import ChooseRole from "@/pages/auth/ChooseRole.vue";
 import RegisterNasabah from "@/pages/auth/RegisterNasabah.vue";
 import RegisterPengepul from "@/pages/auth/RegisterPengepul.vue";
 import BuatPetugas from "@/pages/dashboards/admin/BuatPetugas.vue";
+import BuatManager from "@/pages/dashboards/admin/BuatManager.vue";
 import Login from "@/pages/auth/Login.vue";
 import VerifikasiEmail from "@/pages/dashboards/nasabah/VerifikasiEmail.vue";
 
@@ -33,6 +34,9 @@ import BeritaCreate from "@/pages/dashboards/petugas/berita/Create.vue";
 import BeritaEdit from "@/pages/dashboards/petugas/berita/Edit.vue";
 import BeritaShow from "@/pages/dashboards/petugas/berita/show.vue";
 import ConfigWeb from "@/pages/dashboards/admin/managePages/ConfigWeb.vue";
+
+//Penjmeputan
+import ListPenjemputan from "@/pages/dashboards/petugas/ListPenjemputan.vue";
 
 // Gudang
 import GudangIndex from "@/pages/dashboards/admin/managePages/gudang/GudangIndex.vue";
@@ -125,6 +129,10 @@ const routes = [
     path: "/dashboard-admin/buat-petugas",
     component: BuatPetugas,
   },
+  {
+    path: "/dashboard-admin/buat-manager",
+    component: BuatManager,
+  },
 
   // Halaman Kelola
   // Akun
@@ -213,6 +221,10 @@ const routes = [
     path: "/dashboard-petugas/berita/:id",
     name: "berita.show",
     component: BeritaShow,
+  },
+  {
+    path: "/dashboard-petugas/listpenjemputan",
+    component: ListPenjemputan,
   },
 
   // Pengepul
