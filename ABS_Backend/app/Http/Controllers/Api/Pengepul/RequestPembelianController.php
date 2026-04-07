@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\TransaksiPengepul;
 use App\Models\ItemSampah;
+use App\Models\Sampah;
 
 class RequestPembelianController extends Controller
 {
@@ -19,23 +20,33 @@ class RequestPembelianController extends Controller
     {
         $request->validate([
             'pengepul_id' => 'required',
-            'detail' => 'array'
+            'detail' => 'required|array'
         ]);
+
+        // simpan item jika ada
+        foreach ($request->detail as $d) {
+            $sampah = Sampah::lockForUpdate()->findOrFail($d['sampah_id']);
+
+            if ($sampah->stok >= $d['berat']){
+                $sampah->update([
+                    'stok' => $sampah->stok - $d['berat'],
+                ]);
+            } else {
+                throw new \Exception('Stok tidak cukup');
+            }
+        }
 
         $transaksi = TransaksiPengepul::create([
             'status' => 'pending',
             'pengepul_id' => $request->pengepul_id,
         ]);
 
-        // simpan item jika ada
-        if ($request->has('detail')) {
-            foreach ($request->detail as $d) {
-                $transaksi->detailTransaksi()->create([
-                    'sampah_id' => $d['sampah_id'],
-                    'berat' => $d['berat'] ?? 0,
-                    'harga' => $d['harga'] ?? 0,
-                ]);
-            }
+        foreach ($request->detail as $d) {
+            $transaksi->detailTransaksi()->create([
+                'sampah_id' => $d['sampah_id'],
+                'berat' => $d['berat'] ?? 0,
+                'harga' => $d['harga'] ?? 0,
+            ]);
         }
 
         return response()->json($transaksi->load('detailTransaksi'), 201);
