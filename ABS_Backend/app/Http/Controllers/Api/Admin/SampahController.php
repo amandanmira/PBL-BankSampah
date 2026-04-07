@@ -5,46 +5,50 @@ namespace App\Http\Controllers\Api\Admin;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
-use App\Models\JenisSampah;
+use App\Models\ItemSampah;
 use App\Models\KategoriSampah;
 
 class SampahController extends Controller
 {
-    // GET semua data + relasi
     public function index()
     {
         return response()->json(
-            JenisSampah::with('kategoriSampah')->get()
+            KategoriSampah::with('itemSampah')->get()
         );
     }
 
-    // STORE jenis + kategori (opsional)
+    public function indexItem()
+    {
+        return response()->json(
+            ItemSampah::all()
+        );
+    }
+
     public function store(Request $request)
     {
         $request->validate([
             'nama' => 'required|string|max:50',
-            'kategori' => 'array'
+            'item' => 'array'
         ]);
 
-        $jenis = JenisSampah::create([
+        $kategori = KategoriSampah::create([
             'nama' => $request->nama,
-            'stok_jenis' => $request->stok_jenis ?? 0
         ]);
 
-        // simpan kategori jika ada
-        if ($request->has('kategori')) {
-            foreach ($request->kategori as $index => $k) {
+        // simpan item jika ada
+        if ($request->has('item')) {
+            foreach ($request->item as $index => $k) {
                 $foto = null;
 
                 // ambil file berdasarkan index array
-                if ($request->hasFile("kategori.$index.foto")) {
-                    $path = $request->file("kategori.$index.foto")
-                                    ->store('foto-kategori', 'public');
+                if ($request->hasFile("item.$index.foto")) {
+                    $path = $request->file("item.$index.foto")
+                                    ->store('foto-item-sampah', 'public');
 
                     $foto = $path;
                 }
 
-                $jenis->kategoriSampah()->create([
+                $kategori->itemSampah()->create([
                     'nama' => $k['nama'],
                     'harga_beli' => $k['harga_beli'] ?? 0,
                     'harga_jual' => $k['harga_jual'] ?? 0,
@@ -54,32 +58,32 @@ class SampahController extends Controller
             }
         }
 
-        return response()->json($jenis->load('kategoriSampah'), 201);
+        return response()->json($kategori->load('itemSampah'), 201);
     }
 
     // SHOW detail
     public function show($id)
     {
-        $jenis = JenisSampah::with('kategoriSampah')->findOrFail($id);
-        return response()->json($jenis);
+        $kategori = KategoriSampah::with('itemSampah')->findOrFail($id);
+        return response()->json($kategori);
     }
 
     // UPDATE jenis + kategori
     public function update(Request $request, $id)
     {
-        $jenis = JenisSampah::findOrFail($id);
+        $kategori = KategoriSampah::findOrFail($id);
 
-        $jenis->update([
-            'nama' => $request->nama ?? $jenis->nama,
+        $kategori->update([
+            'nama' => $request->nama ?? $kategori->nama,
         ]);
 
         // update kategori jika dikirim
-        if ($request->has('kategori')) {
-            foreach ($request->kategori as $index => $k) {
-                $kategori = null;
+        if ($request->has('item')) {
+            foreach ($request->item as $index => $k) {
+                $item = null;
 
-                if (isset($k['kategori_id'])) {
-                    $kategori = KategoriSampah::find($k['kategori_id']);
+                if (isset($k['item_id'])) {
+                    $item = itemSampah::find($k['item_id']);
                 }
 
                 $data = [
@@ -90,50 +94,48 @@ class SampahController extends Controller
                 ];
 
                 // kalau ada file baru
-                if ($request->hasFile("kategori.$index.foto")) {
+                if ($request->hasFile("item.$index.foto")) {
 
                     // hapus file lama kalau ada
-                    if ($kategori && $kategori->foto && Storage::disk('public')->exists($kategori->foto)) {
-                        Storage::disk('public')->delete($kategori->foto);
+                    if ($item && $item->foto && Storage::disk('public')->exists($item->foto)) {
+                        Storage::disk('public')->delete($item->foto);
                     }
 
                     // simpan file baru
-                    $path = $request->file("kategori.$index.foto")
-                                    ->store('foto-kategori', 'public');
+                    $path = $request->file("item.$index.foto")
+                                    ->store('foto-item-sampah', 'public');
 
                     $data['foto'] = $path;
                 }
 
-                if ($kategori) {
+                if ($item) {
                     // update
-                    $kategori->update($data);
+                    $item->update($data);
                 } else {
                     // create baru
-                    $jenis->kategoriSampah()->create($data);
+                    $kategori->itemSampah()->create($data);
                 }
             }
         }
 
         return response()->json([
-            'tes' => $request->all(),
-            'data' => $jenis->load('kategoriSampah')
+            'data' => $kategori->load('itemSampah')
         ]);
     }
 
     // DELETE jenis (kategori ikut kehapus karena cascade)
     public function destroy($id)
     {
-        $jenis = JenisSampah::findOrFail($id);
-        $jenis->delete();
+        $kategori = KategoriSampah::findOrFail($id);
+        $kategori->delete();
 
         return response()->json(['message' => 'Deleted']);
     }
 
-    // DELETE kategori saja
-    public function destroyKategori($id)
+    public function destroyItem($id)
     {
-        $kategori = KategoriSampah::findOrFail($id);
-        $kategori->delete();
+        $item = ItemSampah::findOrFail($id);
+        $item->delete();
 
         return response()->json(['message' => 'Kategori deleted']);
     }

@@ -16,10 +16,6 @@ return new class extends Migration
             $table->integer('harga');
             $table->integer('berat');
 
-            $table->foreignId('kategori_id')
-                ->constrained('kategori_sampahs','kategori_id')
-                ->cascadeOnDelete();
-
             $table->foreignId('transaksi_id')
                 ->constrained('transaksi_pengepuls','transaksi_id')
                 ->cascadeOnDelete();

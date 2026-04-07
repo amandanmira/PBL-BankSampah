@@ -12,13 +12,15 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('kategori_sampahs', function (Blueprint $table) {
-            $table->id('kategori_id');
+            $table->id("kategori_id");
             $table->string('nama', 50);
-            $table->integer('harga_beli')->default(0);
-            $table->integer('harga_jual')->default(0);
-            $table->decimal('diskon', 4, 4)->default(0);
-            $table->text('foto')->nullable();
             $table->timestamps();
+        });
+
+        Schema::table('item_sampahs', function (Blueprint $table) {
+            $table->foreignId('kategori_id')
+                ->constrained('kategori_sampahs','kategori_id')
+                ->cascadeOnDelete();
         });
     }
 
@@ -27,6 +29,11 @@ return new class extends Migration
      */
     public function down(): void
     {
+        Schema::table('item_sampahs', function (Blueprint $table) {
+            $table->dropForeign(['kategori_id']);
+            $table->dropColumn('kategori_id');
+        });
+
         Schema::dropIfExists('kategori_sampahs');
     }
 };

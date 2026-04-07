@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id("gudang_id");
             $table->text('alamat');
             $table->integer('kapasitas')->default(0);
+            $table->boolean('active')->default(true);
             $table->timestamps();
         });
 

@@ -16,6 +16,13 @@ use App\Http\Controllers\Api\ProfileController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
+use App\Http\Controllers\Api\Admin\SampahGudangController;
+
+Route::get('verify-nasabah/{token}', [AuthController::class, 'verifyEmail']);
+
+// Pengepul
+use App\Http\Controllers\Api\Pengepul\RequestPembelianController;
+
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
 });
@@ -31,6 +38,9 @@ Route::prefix('nasabah')->middleware(['auth:sanctum', 'role:nasabah'])->group(fu
 Route::prefix('pengepul')->middleware(['auth:sanctum', 'role:pengepul'])->group(function () {
     Route::put('/edit-profile/{id}', [ProfileController::class, 'updatePengepul']);
     Route::get('/profile/{id}', [ProfileController::class, 'showPengepul']);
+
+    Route::get('/daftar-sampah', [RequestPembelianController::class, 'indexSampah']);
+    Route::post('/request-pembelian', [RequestPembelianController::class, 'store']);
 });
 
 // Route Petugas
@@ -82,15 +92,19 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'role:admin'])->group(functi
     // Gudang
     Route::apiResource('gudang', GudangController::class);
 
-    // Sampah
-    Route::get('/jenis-sampah', [SampahController::class, 'index']);
-    Route::post('/jenis-sampah', [SampahController::class, 'store']);
-    Route::get('/jenis-sampah/{id}', [SampahController::class, 'show']);
-    Route::put('/jenis-sampah/{id}', [SampahController::class, 'update']);
-    Route::delete('/jenis-sampah/{id}', [SampahController::class, 'destroy']);
+    Route::put('gudang/sampah/{id}', [SampahGudangController::class, 'update']);
+    Route::delete('gudang/sampah/{id}', [SampahGudangController::class, 'destroy']);
 
-    // Kategori
-    Route::delete('/kategori-sampah/{id}', [SampahController::class, 'destroyKategori']);
+    // Sampah
+    Route::get('/kategori-sampah', [SampahController::class, 'index']);
+    Route::post('/kategori-sampah', [SampahController::class, 'store']);
+    Route::get('/kategori-sampah/{id}', [SampahController::class, 'show']);
+    Route::put('/kategori-sampah/{id}', [SampahController::class, 'update']);
+    Route::delete('/kategori-sampah/{id}', [SampahController::class, 'destroy']);
+
+    // Item Sampah
+    Route::get('/item-sampah', [SampahController::class, 'indexItem']);
+    Route::delete('/item-sampah/{id}', [SampahController::class, 'destroyItem']);
 
     // Konfigurasi Web
     Route::get('/web-config', [WebController::class, 'show']);

@@ -20,29 +20,29 @@
       </thead>
 
       <tbody>
-        <tr v-for="item in jenisList" :key="item.jenis_id">
-          <td>{{ item.jenis_id }}</td>
+        <tr v-for="item in jenisList" :key="item.kategori_id">
+          <td>{{ item.kategori_id }}</td>
           <td>{{ item.nama }}</td>
 
           <!-- tampilkan kategori -->
           <td>
             <ul>
-              <li v-for="k in item.kategori_sampah" :key="k.kategori_id">
+              <li v-for="k in item.item_sampah" :key="k.item_id">
                 {{ k.nama }}
               </li>
             </ul>
           </td>
 
           <td>
-            <button @click="$router.push(`/dashboard-admin/kelola-sampah/${item.jenis_id}`)">
+            <button @click="$router.push(`/dashboard-admin/kelola-sampah/${item.kategori_id}`)">
               Show
             </button>
 
-            <button @click="$router.push(`/dashboard-admin/kelola-sampah/${item.jenis_id}/edit`)">
+            <button @click="$router.push(`/dashboard-admin/kelola-sampah/${item.kategori_id}/edit`)">
               Edit
             </button>
 
-            <button @click="deleteJenis(item.jenis_id)">
+            <button @click="deleteJenis(item.kategori_id)">
               Delete
             </button>
           </td>
@@ -73,7 +73,7 @@ const fetchData = async () => {
   loading.value = true;
   try {
     const headers = { 'Authorization': `Bearer ${token}` }
-    const res = await axios.get("/api/admin/jenis-sampah", {headers});
+    const res = await axios.get("/api/admin/kategori-sampah", { headers });
     jenisList.value = res.data;
   } catch (err) {
     error.value = err.response?.data || err.message;
@@ -89,7 +89,7 @@ const deleteJenis = async (id) => {
   try {
     const headers = { 'Authorization': `Bearer ${token}` }
 
-    await axios.delete(`/api/admin/jenis-sampah/${id}`, {headers});
+    await axios.delete(`/api/admin/kategori-sampah/${id}`, { headers });
     fetchData();
   } catch (err) {
     alert("Gagal hapus");

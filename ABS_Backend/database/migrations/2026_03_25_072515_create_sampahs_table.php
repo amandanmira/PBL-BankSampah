@@ -15,25 +15,24 @@ return new class extends Migration
             $table->id("sampah_id");
             $table->integer('stok')->default(0);
 
-            $table->foreignId('kategori_id')
-                ->constrained('kategori_sampahs','kategori_id')
+            $table->foreignId('item_id')
+                ->constrained('item_sampahs','item_id')
                 ->cascadeOnDelete();
 
             $table->foreignId('gudang_id')
                 ->constrained('gudangs','gudang_id')
                 ->cascadeOnDelete();
 
-            $table->foreignId('detail_id')
-                ->constrained('detail_transaksis','detail_id')
-                ->cascadeOnDelete();
-
             $table->timestamps();
         });
 
         Schema::table('penimbangans', function (Blueprint $table) {
-            $table->dropForeign(['kategori_id']);
-            $table->dropColumn('kategori_id');
+            $table->foreignId('sampah_id')
+                ->constrained('sampahs','sampah_id')
+                ->cascadeOnDelete();
+        });
 
+        Schema::table('detail_transaksis', function (Blueprint $table) {
             $table->foreignId('sampah_id')
                 ->constrained('sampahs','sampah_id')
                 ->cascadeOnDelete();
@@ -45,13 +44,14 @@ return new class extends Migration
      */
     public function down(): void
     {
+        Schema::table('detail_transaksis', function (Blueprint $table) {
+            $table->dropForeign(['sampah_id']);
+            $table->dropColumn('sampah_id');
+        });
+
         Schema::table('penimbangans', function (Blueprint $table) {
             $table->dropForeign(['sampah_id']);
             $table->dropColumn('sampah_id');
-
-            $table->foreignId('kategori_id')
-                ->constrained('kategori_sampahs','kategori_id')
-                ->cascadeOnDelete();
         });
 
         Schema::dropIfExists('sampahs');

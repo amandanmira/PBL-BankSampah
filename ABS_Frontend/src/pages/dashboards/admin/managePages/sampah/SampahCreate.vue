@@ -18,7 +18,7 @@
     <button @click="addKategori">+ Tambah Kategori</button>
 
     <div
-      v-for="(k, index) in form.kategori"
+v-for="(k, index) in form.item"
       :key="index"
       style="border:1px solid #ccc; padding:10px; margin-top:10px;"
     >
@@ -82,7 +82,7 @@ const router = useRouter();
 // state utama
 const form = ref({
   nama: "",
-  kategori: []
+  item: []
 });
 
 const loading = ref(false);
@@ -99,7 +99,7 @@ if (!token) {
 
 // tambah kategori
 const addKategori = () => {
-  form.value.kategori.push({
+  form.value.item.push({
     foto: null,
     nama: "",
     harga_beli: 0,
@@ -110,12 +110,12 @@ const addKategori = () => {
 
 // hapus kategori
 const removeKategori = (index) => {
-  form.value.kategori.splice(index, 1);
+  form.value.item.splice(index, 1);
 };
 
 const handleFile = (e, index) => {
   const file = e.target.files[0];
-  form.value.kategori[index].foto = file;
+  form.value.item[index].foto = file;
 };
 
 const previewFile = (file) => {
@@ -131,14 +131,14 @@ const submit = async () => {
   formData.append("nama", form.value.nama);
 
   let i = 0;
-  for (const k of form.value.kategori) {
-    formData.append(`kategori[${i}][nama]`, k.nama);
-    formData.append(`kategori[${i}][harga_beli]`, k.harga_beli);
-    formData.append(`kategori[${i}][harga_jual]`, k.harga_jual);
-    formData.append(`kategori[${i}][diskon]`, k.diskon);
+  for (const k of form.value.item) {
+    formData.append(`item[${i}][nama]`, k.nama);
+    formData.append(`item[${i}][harga_beli]`, k.harga_beli);
+    formData.append(`item[${i}][harga_jual]`, k.harga_jual);
+    formData.append(`item[${i}][diskon]`, k.diskon);
 
     if (k.foto) {
-      formData.append(`kategori[${i}][foto]`, k.foto);
+      formData.append(`item[${i}][foto]`, k.foto);
     }
 
     i++;
@@ -150,7 +150,7 @@ const submit = async () => {
       "Content-Type": "multipart/form-data"
     }
 
-    await axios.post("/api/admin/jenis-sampah", formData, { headers });
+    await axios.post("/api/admin/kategori-sampah", formData, { headers });
     router.push("/dashboard-admin/kelola-sampah");
   } catch (err) {
     error.value = err.response?.data || err.message;

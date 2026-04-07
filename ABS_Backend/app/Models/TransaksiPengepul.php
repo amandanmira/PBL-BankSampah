@@ -12,6 +12,7 @@ class TransaksiPengepul extends Model
         'status',
         'ket_status',
         'deadline',
+        'bukti_transfer',
         'pengepul_id'
     ];
 

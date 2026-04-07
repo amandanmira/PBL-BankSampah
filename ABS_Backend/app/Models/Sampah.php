@@ -10,13 +10,13 @@ class Sampah extends Model
 
     protected $fillable = [
         'stok',
-        'kategori_id',
+        'item_id',
         'gudang_id',
     ];
 
-    public function kategori()
+    public function itemSampah()
     {
-        return $this->belongsTo(KategoriSampah::class,'kategori_id','kategori_id');
+        return $this->belongsTo(ItemSampah::class,'item_id','item_id');
     }
 
     public function gudang()

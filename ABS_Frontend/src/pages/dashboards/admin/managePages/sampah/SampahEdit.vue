@@ -19,8 +19,7 @@
     <button @click="addKategori">+ Tambah Kategori</button>
 
     <div
-      v-for="(k, index) in form.kategori_sampah"
-      :key="k.kategori_id || index"
+v-for="(k, index) in form.item_sampah" :key="k.item_id || index"
       style="border:1px solid #ccc; padding:10px; margin-top:10px;"
     >
       <div>
@@ -85,7 +84,7 @@ const id = route.params.id;
 
 const form = ref({
   nama: "",
-  kategori_sampah: []
+  item_sampah: []
 });
 
 const loading = ref(false);
@@ -106,7 +105,7 @@ const headers = {
 const fetchData = async () => {
   loading.value = true;
   try {
-    const res = await axios.get(`/api/admin/jenis-sampah/${id}`, {headers});
+    const res = await axios.get(`/api/admin/kategori-sampah/${id}`, { headers });
     form.value = res.data;
   } catch (err) {
     error.value = err.response?.data || err.message;
@@ -117,7 +116,7 @@ const fetchData = async () => {
 
 // tambah kategori baru
 const addKategori = () => {
-  form.value.kategori_sampah.push({
+  form.value.item_sampah.push({
     foto: null,
     foto_baru: null,
     nama: "",
@@ -129,7 +128,7 @@ const addKategori = () => {
 
 const handleFile = (e, index) => {
   const file = e.target.files[0];
-  form.value.kategori_sampah[index].foto_baru = file;
+  form.value.item_sampah[index].foto_baru = file;
 };
 
 const previewFile = (k) => {
@@ -141,21 +140,21 @@ const previewFile = (k) => {
 
 // hapus kategori
 const removeKategori = async (index) => {
-  const k = form.value.kategori_sampah[index];
+  const k = form.value.item_sampah[index];
 
   // kalau sudah ada di database → hit API delete
   if (k.kategori_id) {
     if (!confirm("Hapus kategori ini?")) return;
 
     try {
-      await axios.delete(`/api/admin/kategori-sampah/${k.kategori_id}`, {headers});
+      await axios.delete(`/api/admin/item-sampah/${k.item_id}`, { headers });
     } catch (err) {
       alert("Gagal hapus kategori");
       return;
     }
   }
 
-  form.value.kategori_sampah.splice(index, 1);
+  form.value.item_sampah.splice(index, 1);
 };
 
 // submit update
@@ -168,28 +167,26 @@ const submit = async () => {
   formData.append("nama", form.value.nama);
 
   let i = 0;
-  for (const k of form.value.kategori_sampah) {
+  for (const k of form.value.item_sampah) {
     if (k.kategori_id) {
-      formData.append(`kategori[${i}][kategori_id]`, k.kategori_id);
+      formData.append(`item[${i}][item_id]`, k.item_id);
     }
 
-    formData.append(`kategori[${i}][nama]`, k.nama);
-    formData.append(`kategori[${i}][harga_beli]`, k.harga_beli);
-    formData.append(`kategori[${i}][harga_jual]`, k.harga_jual);
-    formData.append(`kategori[${i}][diskon]`, k.diskon);
+    formData.append(`item[${i}][nama]`, k.nama);
+    formData.append(`item[${i}][harga_beli]`, k.harga_beli);
+    formData.append(`item[${i}][harga_jual]`, k.harga_jual);
+    formData.append(`item[${i}][diskon]`, k.diskon);
 
     // hanya kirim kalau ada file baru
     if (k.foto_baru) {
-      formData.append(`kategori[${i}][foto]`, k.foto_baru);
+      formData.append(`item[${i}][foto]`, k.foto_baru);
     }
 
     i++;
   };
 
-  console.log(formData);
-
   try {
-    await axios.post(`/api/admin/jenis-sampah/${id}?_method=PUT`, formData, { headers });
+    await axios.post(`/api/admin/kategori-sampah/${id}?_method=PUT`, formData, { headers });
     router.push("/dashboard-admin/kelola-sampah");
   } catch (err) {
     error.value = err.response?.data || err.message;
