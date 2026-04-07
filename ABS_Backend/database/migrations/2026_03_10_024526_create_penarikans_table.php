@@ -17,6 +17,9 @@ return new class extends Migration
             $table->enum('status', ['pending', 'proses', 'selesai', 'tolak']);
             $table->text('ket_status')->nullable();
             $table->text('bukti_tf')->nullable();
+            $table->string('no_rekening', 20)->nullable();
+            $table->string('nama_bank', 50)->nullable();
+            $table->string('nama_rek', 50)->nullable();
 
             $table->foreignId('nasabah_id')
                 ->constrained('nasabahs','nasabah_id')

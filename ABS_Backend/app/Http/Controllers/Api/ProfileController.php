@@ -66,6 +66,7 @@ class ProfileController extends Controller
             'gmap' => 'nullable|string',
             'nama_bank' => 'nullable|string|max:50',
             'no_rekening' => 'nullable|string|max:20',
+            'nama_rek' => 'nullable|string|max:50',
         ]);
 
         $nasabah->update($validated);
