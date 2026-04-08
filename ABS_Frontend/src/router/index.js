@@ -53,10 +53,13 @@ import SampahShow from "@/pages/dashboards/admin/managePages/sampah/SampahShow.v
 // Profile
 import EditProfilePengepul from "@/pages/dashboards/pengepul/EditProfilePengepul.vue";
 import EditProfileNasabah from "@/pages/dashboards/nasabah/EditProfileNasabah.vue";
+import EditPetugas from "@/pages/dashboards/admin/EditPetugas.vue";
+import EditManager from "@/pages/dashboards/admin/EditManager.vue";
 
 // Nasabah
 import RequestPenjemputan from "@/pages/dashboards/nasabah/RequestPenjemputan.vue";
 import RequestPenarikan from "@/pages/dashboards/nasabah/RequestPenarikan.vue";
+import RiwayatPenjemputan from "@/pages/dashboards/nasabah/riwayatPenjemputan.vue";
 
 //Pengepul
 import RequestPembelian from "@/pages/dashboards/pengepul/RequestPembelian.vue";
@@ -122,6 +125,14 @@ const routes = [
   {
     path: "/dashboard-admin",
     component: DashboardAdmin,
+  },
+  {
+    path: "/dashboard-admin/edit-petugas/:id",
+    component: EditPetugas,
+  },
+  {
+    path: "/dashboard-admin/edit-manager/:id",
+    component: EditManager,
   },
 
   // Tambahkan rute baru untuk kelola petugas
@@ -245,6 +256,10 @@ const routes = [
   {
     path: "/dashboard-nasabah",
     component: DashboardNasabah,
+  },
+  {
+    path: "/dashboard-nasabah/riwayatpenjemputan",
+    component: RiwayatPenjemputan,
   },
   {
     path: "/dashboard-nasabah/edit-profile",

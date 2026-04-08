@@ -15,6 +15,27 @@ class KonfirmasiPenjemputanController extends Controller
         return response()->json(['data' => $penjemputan], 200);
     }
 
+    public function penjemputanNasabah(Request $request)
+    {
+        // $user di sini sudah berisi row dari tabel 'nasabah'
+        $user = $request->user();
+
+        // Validasi opsional untuk memastikan yang login benar-benar punya nasabah_id
+        if (!$user || !$user->nasabah_id) {
+            return response()->json([
+                'message' => 'Akses ditolak. Pastikan Anda login dengan akun nasabah.'
+            ], 403);
+        }
+
+        // Langsung panggil $user->nasabah_id tanpa relasi tambahan
+        $penjemputan = Penjemputan::with('nasabah')
+            ->where('nasabah_id', $user->nasabah_id)
+            ->latest()
+            ->get();
+
+        return response()->json(['data' => $penjemputan], 200);
+    }
+
     public function terima(Request $request, Penjemputan $penjemputan)
     {
         $penjemputan->status = 'proses';
