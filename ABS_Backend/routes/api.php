@@ -34,6 +34,7 @@ Route::prefix('nasabah')->middleware(['auth:sanctum', 'role:nasabah'])->group(fu
     Route::get('/list-gudang', [GudangController::class, 'index']);
     Route::post('/request-penjemputan', [RequestPenjemputanController::class, 'store']);
     Route::post('/request-penarikan', [RequestPenarikanController::class, 'store']);
+    Route::get('/penjemputan-nasabah', [KonfirmasiPenjemputanController::class, 'penjemputanNasabah']);
 });
 
 Route::prefix('pengepul')->middleware(['auth:sanctum', 'role:pengepul'])->group(function () {
@@ -71,11 +72,15 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'role:admin'])->group(functi
     Route::get('petugas/{petuga}', [KelolaAkunController::class, 'showPetugas']);
     Route::put('petugas/{petuga}/deactivate', [AksiAdminController::class, 'deactivatePetugas']);
     Route::put('petugas/{petuga}/activate', [AksiAdminController::class, 'activatePetugas']);
+    Route::put('/edit-petugas/{id}', [ProfileController::class, 'updatePetugas']);
+
 
     // Manager
     Route::post('/buatManager', [BuatManagerController::class,  'buatManager']);
+    Route::get('manager/{manager}', [KelolaAkunController::class, 'showManager']);
     Route::put('manager/{manager}/deactivate', [AksiAdminController::class, 'deactivateManager']);
     Route::put('manager/{manager}/activate', [AksiAdminController::class, 'activateManager']);
+    Route::put('/edit-manager/{id}', [ProfileController::class, 'updateManager']);
 
     // Pengepul
     Route::get('pengepul', [KelolaAkunController::class, 'indexPengepul']);

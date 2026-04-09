@@ -11,7 +11,7 @@
       {{ error }}
     </div>
 
-    <table v-else-if="pendingPenjemputans.length > 0">
+    <table v-else-if="filteredPenjemputans.length > 0">
       <thead>
         <tr>
           <th>ID</th>
@@ -23,7 +23,7 @@
         </tr>
       </thead>
       <tbody>
-        <tr v-for="penjemputan in pendingPenjemputans" :key="penjemputan.penjemputan_id">
+        <tr v-for="penjemputan in filteredPenjemputans" :key="penjemputan.penjemputan_id">
           <td>{{ penjemputan.penjemputan_id }}</td>
           <td>{{ penjemputan.deskripsi }}</td>
           <td>{{ penjemputan.alamat }}</td>
@@ -33,11 +33,16 @@
           </td>
 
           <td>
-            <span class="status-pending">{{ penjemputan.status }}</span>
+            <span :class="`status-${penjemputan.status}`">{{ penjemputan.status }}</span>
           </td>
           <td class="aksi-buttons">
-            <button @click="handleAction(penjemputan.penjemputan_id, 'terima')" class="button-terima">Terima</button>
-            <button @click="handleAction(penjemputan.penjemputan_id, 'tolak')" class="button-tolak">Tolak</button>
+            <template v-if="penjemputan.status === 'pending'">
+              <button @click="handleAction(penjemputan.penjemputan_id, 'terima')" class="button-terima">Terima</button>
+              <button @click="handleAction(penjemputan.penjemputan_id, 'tolak')" class="button-tolak">Tolak</button>
+            </template>
+            <template v-else-if="penjemputan.status === 'proses'">
+              <button @click="showDetail(penjemputan.penjemputan_id)" class="button-show">Show</button>
+            </template>
           </td>
         </tr>
       </tbody>
@@ -52,17 +57,19 @@
 import { ref, onMounted, computed } from "vue";
 import { checkRole } from "@/utils";
 import axios from "axios";
+import { useRouter } from "vue-router";
 
 // Pastikan hanya admin yang bisa mengakses
 checkRole("petugas");
 
+const router = useRouter();
 const allPenjemputans = ref([]);
 const loading = ref(true);
 const error = ref(null);
 
-// Computed property untuk memfilter pengepul yang statusnya 'pending'
-const pendingPenjemputans = computed(() => {
-  return allPenjemputans.value.filter((p) => p.status === "pending");
+// Computed property untuk memfilter penjemputan yang statusnya 'pending' atau 'proses'
+const filteredPenjemputans = computed(() => {
+  return allPenjemputans.value.filter((p) => p.status === "pending" || p.status === "proses");
 });
 
 // Fungsi untuk mengambil data dari API
@@ -91,6 +98,22 @@ const handleAction = async (id, action) => {
     if (!confirm("Apakah Anda yakin ingin menerima penjemputan ini?")) {
       return;
     }
+    // Bagian ini hanya untuk 'terima'
+    try {
+      const token = sessionStorage.getItem("token");
+      const headers = { Authorization: `Bearer ${token}` };
+
+      await axios.put(`http://localhost:8000/api/petugas/penjemputan/${id}/terima`, {}, { headers });
+
+      // Ubah status di frontend untuk update UI secara instan
+      const index = allPenjemputans.value.findIndex((p) => p.penjemputan_id === id);
+      if (index !== -1) {
+        allPenjemputans.value[index].status = "proses";
+      }
+    } catch (err) {
+      error.value = `Gagal menerima penjemputan. ` + (err.response ? err.response.data.message : err.message);
+      console.error(err);
+    }
   } else if (action === "tolak") {
     const alasan = prompt("Masukkan alasan penolakan:");
     if (!alasan) {
@@ -115,22 +138,13 @@ const handleAction = async (id, action) => {
       error.value = `Gagal menolak penjemputan. ` + (err.response ? err.response.data.message : err.message);
       console.error(err);
     }
-    return; // Hentikan eksekusi setelah menangani 'tolak'
   }
+};
 
-  // Bagian ini hanya untuk 'terima'
-  try {
-    const token = sessionStorage.getItem("token");
-    const headers = { Authorization: `Bearer ${token}` };
-
-    await axios.put(`http://localhost:8000/api/petugas/penjemputan/${id}/terima`, {}, { headers });
-
-    // Hapus item dari list di frontend untuk update UI secara instan
-    allPenjemputans.value = allPenjemputans.value.filter((p) => p.penjemputan_id !== id);
-  } catch (err) {
-    error.value = `Gagal menerima penjemputan. ` + (err.response ? err.response.data.message : err.message);
-    console.error(err);
-  }
+const showDetail = (id) => {
+  // Arahkan ke halaman detail penjemputan. Ganti dengan path yang sesuai.
+  // Misalnya: router.push({ name: 'DetailPenjemputan', params: { id } });
+  alert(`Navigasi ke detail untuk penjemputan ID: ${id}`);
 };
 
 // Ambil data saat komponen dimuat
@@ -177,6 +191,14 @@ th {
   font-size: 0.9em;
   text-transform: capitalize;
 }
+.status-proses {
+  background-color: #3498db;
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.9em;
+  text-transform: capitalize;
+}
 .aksi-buttons {
   display: flex;
   gap: 8px;
@@ -201,5 +223,11 @@ button {
 }
 .button-tolak:hover {
   background-color: #c0392b;
+}
+.button-show {
+  background-color: #3498db;
+}
+.button-show:hover {
+  background-color: #2980b9;
 }
 </style>

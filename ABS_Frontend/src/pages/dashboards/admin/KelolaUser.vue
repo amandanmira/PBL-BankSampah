@@ -38,7 +38,13 @@
       <tbody>
         <tr v-for="akun in filteredAccounts" :key="akun.id">
           <td>{{ akun.id }}</td>
-          <td>{{ akun.nama }}</td>
+          <td v-if="akun.role === 'Petugas'">
+            <RouterLink :to="'/dashboard-admin/edit-petugas/' + akun.id" class="editable-link">{{ akun.nama }}</RouterLink>
+          </td>
+          <td v-else-if="akun.role === 'Manager'">
+            <RouterLink :to="'/dashboard-admin/edit-manager/' + akun.id" class="editable-link">{{ akun.nama }}</RouterLink>
+          </td>
+          <td v-else>{{ akun.nama }}</td>
           <td>{{ akun.username }}</td>
           <td>{{ akun.email }}</td>
           <td>{{ akun.role }}</td>
@@ -261,5 +267,9 @@ th {
 }
 .error {
   color: red;
+}
+.editable-link {
+  color: blue;
+  text-decoration: underline;
 }
 </style>

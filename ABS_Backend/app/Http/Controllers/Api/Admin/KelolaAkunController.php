@@ -81,4 +81,12 @@ class KelolaAkunController extends Controller
         $manager = Manager::latest()->get();
         return response()->json(['data' => $manager], 200);
     }
+
+    /**
+     * Menampilkan detail manager.
+     */
+    public function showManager(Manager $manager)
+    {
+        return response()->json(['data' => $manager], 200);
+    }
 }
