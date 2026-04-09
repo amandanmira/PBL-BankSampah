@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('kategori_sampahs', function (Blueprint $table) {
             $table->id("kategori_id");
             $table->string('nama', 50);
+            $table->boolean('active')->default(true);
             $table->timestamps();
         });
 

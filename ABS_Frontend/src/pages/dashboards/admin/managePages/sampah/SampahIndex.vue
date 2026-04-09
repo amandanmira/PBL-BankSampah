@@ -43,7 +43,7 @@
             </button>
 
             <button @click="deleteJenis(item.kategori_id)">
-              Delete
+              {{ item.active === 0 ? 'aktifkan' : 'Nonaktifkan' }}
             </button>
           </td>
         </tr>
@@ -87,11 +87,26 @@ const deleteJenis = async (id) => {
   if (!confirm("Yakin hapus data ini?")) return;
 
   try {
+    const dataSampah = jenisList.value[id - 1]
+    const statusData = ref({
+      active: !(dataSampah.active === 1) ? 1 : 0,
+      item_sampah: []
+    })
+
+    for (const k of dataSampah.item_sampah) {
+      statusData.value.item_sampah.push({
+        item_id: k.item_id,
+        active: statusData.value.active
+      })
+    }
+
+    console.log(statusData.value.active)
     const headers = { 'Authorization': `Bearer ${token}` }
 
-    await axios.delete(`/api/admin/kategori-sampah/${id}`, { headers });
+    await axios.put(`/api/admin/kategori-sampah/${id}/status`, statusData.value, { headers });
     fetchData();
   } catch (err) {
+    console.error(err)
     alert("Gagal hapus");
   }
 };

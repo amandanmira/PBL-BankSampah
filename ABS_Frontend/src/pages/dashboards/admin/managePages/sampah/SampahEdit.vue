@@ -52,7 +52,11 @@ v-for="(k, index) in form.item_sampah" :key="k.item_id || index"
         <input v-model="k.diskon" type="number" step="0.01" />
       </div>
 
-      <button @click="removeKategori(index)">
+      <div>
+        <input v-model="k.checkBox" type="checkbox" /> Item Aktif
+      </div>
+
+      <button v-if="k.active === null" @click="removeKategori(index)">
         Hapus
       </button>
     </div>
@@ -107,6 +111,11 @@ const fetchData = async () => {
   try {
     const res = await axios.get(`/api/admin/kategori-sampah/${id}`, { headers });
     form.value = res.data;
+
+    console.log(form.value.item_sampah)
+    for (const item of form.value.item_sampah) {
+      item.checkBox = item.active === 1;
+    }
   } catch (err) {
     error.value = err.response?.data || err.message;
   } finally {
@@ -123,6 +132,8 @@ const addKategori = () => {
     harga_beli: 0,
     harga_jual: 0,
     diskon: 0,
+    active: null,
+    checkBox: true
   });
 };
 
@@ -140,20 +151,6 @@ const previewFile = (k) => {
 
 // hapus kategori
 const removeKategori = async (index) => {
-  const k = form.value.item_sampah[index];
-
-  // kalau sudah ada di database → hit API delete
-  if (k.kategori_id) {
-    if (!confirm("Hapus kategori ini?")) return;
-
-    try {
-      await axios.delete(`/api/admin/item-sampah/${k.item_id}`, { headers });
-    } catch (err) {
-      alert("Gagal hapus kategori");
-      return;
-    }
-  }
-
   form.value.item_sampah.splice(index, 1);
 };
 
@@ -176,6 +173,7 @@ const submit = async () => {
     formData.append(`item[${i}][harga_beli]`, k.harga_beli);
     formData.append(`item[${i}][harga_jual]`, k.harga_jual);
     formData.append(`item[${i}][diskon]`, k.diskon);
+    formData.append(`item[${i}][active]`, k.checkBox ? 1 : 0);
 
     // hanya kirim kalau ada file baru
     if (k.foto_baru) {

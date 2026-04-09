@@ -12,6 +12,8 @@ class Tukang extends Model
         'nama',
         'no_telp',
         'gudang_id',
+        'foto',
+        'active',
     ];
 
     public function penjemputan()
