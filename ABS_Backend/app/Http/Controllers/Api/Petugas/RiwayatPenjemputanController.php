@@ -10,7 +10,25 @@ class RiwayatPenjemputanController extends Controller
 {
     public function riwayatPenjemputan()
     {
-        $riwayat = Penjemputan::with('petugas')->latest()->get();
+        $riwayat = Penjemputan::with('nasabah')->latest()->get();
         return response()->json(['data' => $riwayat], 200);
     }
+
+    public function show($id)
+    {
+        $penjemputan = Penjemputan::with('nasabah')->findOrFail($id);
+
+        if ($penjemputan->status === 'selesai') {
+            $penjemputan->load([
+                'penimbangan.sampah.itemSampah',
+                'penimbangan.transaksi' // <--- UBAH MENJADI INI
+            ]);
+        }
+
+        return response()->json([
+            'message' => 'Detail berhasil diambil',
+            'data' => $penjemputan
+        ], 200);
+    }
+
 }

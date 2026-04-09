@@ -61,7 +61,8 @@ Route::prefix('petugas')->middleware(['auth:sanctum', 'role:petugas'])->group(fu
     // Rute tambahan untuk handle update dengan file upload (thumbnail)
     Route::post('berita/{id}', [BeritaController::class, 'update']);
     Route::get('/penjemputan', [KonfirmasiPenjemputanController::class, 'penjemputan']);
-    Route::get('/riwayat-penjemputan', [RiwayatPenjemputanController::class, 'riwayatPenjemputan']);    
+    Route::get('/riwayat-penjemputan', [RiwayatPenjemputanController::class, 'riwayatPenjemputan']);
+    Route::get('/riwayat-penjemputan/{id}', [RiwayatPenjemputanController::class, 'show']);
     Route::put('/penjemputan/{penjemputan}/terima', [KonfirmasiPenjemputanController::class, 'terima']);
     Route::put('/penjemputan/{penjemputan}/tolak', [KonfirmasiPenjemputanController::class, 'tolak']);
     Route::get('/showpenjemputan/{penjemputan}',[KonfirmasiPenjemputanController::class, 'show']);
