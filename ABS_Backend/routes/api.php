@@ -1,5 +1,8 @@
 <?php
 
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Route;
+
 use App\Http\Controllers\Api\Admin\AksiAdminController;
 use App\Http\Controllers\Api\Admin\BuatManagerController;
 use App\Http\Controllers\Api\Admin\BuatPetugasController;
@@ -7,14 +10,13 @@ use App\Http\Controllers\Api\Admin\GudangController;
 use App\Http\Controllers\Api\Admin\KelolaAkunController;
 use App\Http\Controllers\Api\Admin\SampahController;
 use App\Http\Controllers\Api\Admin\WebController;
+use App\Http\Controllers\Api\Admin\TukangController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\Nasabah\RequestPenarikanController;
 use App\Http\Controllers\Api\Nasabah\RequestPenjemputanController;
 use App\Http\Controllers\Api\Petugas\BeritaController;
 use App\Http\Controllers\Api\Petugas\KonfirmasiPenjemputanController;
 use App\Http\Controllers\Api\ProfileController;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Route;
 
 use App\Http\Controllers\Api\Admin\SampahGudangController;
 
@@ -119,4 +121,6 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'role:admin'])->group(functi
     // Konfigurasi Web
     Route::get('/web-config', [WebController::class, 'show']);
     Route::put('/web-config', [WebController::class, 'update']);
+
+    Route::put('/tukang/{gudang_id}', [TukangController::class, 'update']);
 });

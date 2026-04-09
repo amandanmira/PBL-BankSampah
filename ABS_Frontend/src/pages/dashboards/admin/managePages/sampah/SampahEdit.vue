@@ -112,7 +112,6 @@ const fetchData = async () => {
     const res = await axios.get(`/api/admin/kategori-sampah/${id}`, { headers });
     form.value = res.data;
 
-    console.log(form.value.item_sampah)
     for (const item of form.value.item_sampah) {
       item.checkBox = item.active === 1;
     }

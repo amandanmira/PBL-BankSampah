@@ -37,7 +37,7 @@ class GudangController extends Controller
      */
     public function show(string $id)
     {
-        $gudang = Gudang::with('sampah')->findOrFail($id);
+        $gudang = Gudang::with(['sampah', 'tukang'])->findOrFail($id);
 
         return response()->json($gudang);
     }
