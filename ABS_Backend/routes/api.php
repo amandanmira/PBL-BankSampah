@@ -22,6 +22,7 @@ Route::get('verify-nasabah/{token}', [AuthController::class, 'verifyEmail']);
 
 // Pengepul
 use App\Http\Controllers\Api\Pengepul\RequestPembelianController;
+use App\Http\Controllers\Api\Petugas\PenimbanganController;
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
@@ -57,6 +58,10 @@ Route::prefix('petugas')->middleware(['auth:sanctum', 'role:petugas'])->group(fu
     Route::get('/penjemputan', [KonfirmasiPenjemputanController::class, 'penjemputan']);
     Route::put('/penjemputan/{penjemputan}/terima', [KonfirmasiPenjemputanController::class, 'terima']);
     Route::put('/penjemputan/{penjemputan}/tolak', [KonfirmasiPenjemputanController::class, 'tolak']);
+    Route::get('/showpenjemputan/{penjemputan}',[KonfirmasiPenjemputanController::class, 'show']);
+    Route::post('/penimbangan', [PenimbanganController::class, 'penimbangan']);
+    Route::get('/list-sampah', [PenimbanganController::class, 'listSampah']);
+    Route::get('/list-tukang', [PenimbanganController::class, 'listTukang']);
 });
 
 // Route Admin

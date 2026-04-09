@@ -142,9 +142,7 @@ const handleAction = async (id, action) => {
 };
 
 const showDetail = (id) => {
-  // Arahkan ke halaman detail penjemputan. Ganti dengan path yang sesuai.
-  // Misalnya: router.push({ name: 'DetailPenjemputan', params: { id } });
-  alert(`Navigasi ke detail untuk penjemputan ID: ${id}`);
+  router.push(`/dashboard-petugas/penimbangan/${id}`);
 };
 
 // Ambil data saat komponen dimuat

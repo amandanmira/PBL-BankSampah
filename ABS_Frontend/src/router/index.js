@@ -37,6 +37,7 @@ import ConfigWeb from "@/pages/dashboards/admin/managePages/ConfigWeb.vue";
 
 //Penjmeputan
 import ListPenjemputan from "@/pages/dashboards/petugas/ListPenjemputan.vue";
+import Penimbangan from "@/pages/dashboards/petugas/Penimbangan.vue";
 
 // Gudang
 import GudangIndex from "@/pages/dashboards/admin/managePages/gudang/GudangIndex.vue";
@@ -59,7 +60,7 @@ import EditManager from "@/pages/dashboards/admin/EditManager.vue";
 // Nasabah
 import RequestPenjemputan from "@/pages/dashboards/nasabah/RequestPenjemputan.vue";
 import RequestPenarikan from "@/pages/dashboards/nasabah/RequestPenarikan.vue";
-import RiwayatPenjemputan from "@/pages/dashboards/nasabah/riwayatPenjemputan.vue";
+import RiwayatPenjemputan from "@/pages/dashboards/nasabah/RiwayatPenjemputan.vue";
 
 //Pengepul
 import RequestPembelian from "@/pages/dashboards/pengepul/RequestPembelian.vue";
@@ -236,6 +237,10 @@ const routes = [
   {
     path: "/dashboard-petugas/listpenjemputan",
     component: ListPenjemputan,
+  },
+  {
+    path: "/dashboard-petugas/penimbangan/:id",
+    component: Penimbangan,
   },
 
   // Pengepul

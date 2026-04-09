@@ -15,6 +15,7 @@ class KonfirmasiPenjemputanController extends Controller
         return response()->json(['data' => $penjemputan], 200);
     }
 
+    //riwayat buat nasabah
     public function penjemputanNasabah(Request $request)
     {
         // $user di sini sudah berisi row dari tabel 'nasabah'
@@ -67,5 +68,13 @@ class KonfirmasiPenjemputanController extends Controller
 
 
         return response()->json(['message' => 'Registrasi penjemputan$penjemputan ditolak, status diubah menjadi nonaktif, dan notifikasi email terkirim'], 200);
+    }
+
+    public function show(Penjemputan $penjemputan)
+    {
+        // Load relasi yang mungkin Anda perlukan di frontend
+        $penjemputan->load('nasabah', 'petugas');
+
+        return response()->json(['data' => $penjemputan], 200);
     }
 }
