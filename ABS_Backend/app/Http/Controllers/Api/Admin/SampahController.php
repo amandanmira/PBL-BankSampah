@@ -75,6 +75,7 @@ class SampahController extends Controller
 
         $kategori->update([
             'nama' => $request->nama ?? $kategori->nama,
+            'active' => $request->active ?? $kategori->active,
         ]);
 
         // update kategori jika dikirim
@@ -91,6 +92,7 @@ class SampahController extends Controller
                     'harga_beli' => $k['harga_beli'],
                     'harga_jual' => $k['harga_jual'],
                     'diskon' => $k['diskon'],
+                    'active' => $k['active'],
                 ];
 
                 // kalau ada file baru
@@ -115,6 +117,33 @@ class SampahController extends Controller
                     // create baru
                     $kategori->itemSampah()->create($data);
                 }
+            }
+        }
+
+        return response()->json([
+            'data' => $kategori->load('itemSampah')
+        ]);
+    }
+
+    public function updateStatus(Request $request, $id) {
+        $request->validate([
+            'active' => 'required',
+            'item' => 'array'
+        ]);
+
+        $kategori = KategoriSampah::findOrFail($id);
+
+        $kategori->update([
+            'active' => $request->active,
+        ]);
+
+        if ($request->has('item')) {
+            foreach ($request->item as $k) {
+                $item = itemSampah::find($k['item_id']);
+
+                $item->update([
+                    'active' => $k['active'],
+                ]);
             }
         }
 

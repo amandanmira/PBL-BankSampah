@@ -1,6 +1,6 @@
 <template>
 	<div class="container">
-		<h2>Konfigurasi Web</h2>
+		<h2>Request Penjemputan</h2>
 
 		<form @submit.prevent="updateData">
 			<div>
@@ -23,6 +23,16 @@
 				<textarea v-model="form.alamat"></textarea>
 			</div>
 
+			<div>
+				<label>Gudang</label>
+				<select v-model="form.gudang_id">
+					<option value="">Pilih Gudang</option>
+					<option v-for="gudang in gudangList" :key="gudang.gudang_id" :value="gudang.gudang_id">
+						{{ gudang.alamat }}
+					</option>
+				</select>
+			</div>
+
 			<button type="submit">Simpan</button>
 		</form>
 
@@ -33,7 +43,7 @@
 </template>
 
 <script setup>
-import { ref } from "vue";
+import { ref, onMounted } from "vue";
 import axios from "axios";
 import { useRouter } from 'vue-router'
 import { checkRole } from '@/utils'
@@ -47,17 +57,23 @@ const form = ref({
 	deskripsi: "",
 	alamat: "",
 	nasabah_id: "",
+	gudang_id: "",
 });
 
 const logoFile = ref(null);
 const preview = ref(null);
 const loading = ref(false);
+const gudangList = ref([])
 
 const token = sessionStorage.getItem('token')
 const user = JSON.parse(sessionStorage.getItem('user'))
 
 if (!token) {
 	throw new Error('Otentikasi diperlukan.')
+}
+
+if (user.alamat !== null && user.alamat !== '') {
+	form.value.alamat = user.alamat
 }
 
 // handle file input
@@ -69,6 +85,23 @@ const handleFile = (e) => {
 		preview.value = URL.createObjectURL(file);
 	}
 };
+
+const fetchGudang = async () => {
+	try {
+		const headers = {
+			'Authorization': `Bearer ${token}`
+		}
+
+		const res = await axios.get('/api/nasabah/list-gudang', { headers })
+		gudangList.value = res.data.data
+	} catch (err) {
+		console.error(err)
+	}
+}
+
+onMounted(() => {
+	fetchGudang()
+})
 
 // submit update
 const updateData = async () => {

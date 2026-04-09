@@ -30,6 +30,7 @@ class RequestPenjemputanController extends Controller
             'foto' => $validated['foto'],
             'status' => 'pending',
             'nasabah_id' => $request->nasabah_id,
+            'gudang_id' => $request->gudang_id,
         ]);
 
         return response()->json([

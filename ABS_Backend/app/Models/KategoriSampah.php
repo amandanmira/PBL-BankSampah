@@ -10,6 +10,7 @@ class KategoriSampah extends Model
 
     protected $fillable = [
         'nama',
+        'active',
     ];
 
     public function itemSampah()

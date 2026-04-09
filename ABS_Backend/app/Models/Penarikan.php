@@ -13,7 +13,10 @@ class Penarikan extends Model
         'status',
         'ket_status',
         'nasabah_id',
-        'bukti_tf'
+        'bukti_tf',
+        'no_rekening',
+        'nama_bank',
+        'nama_rek',
     ];
 
     public function nasabah()

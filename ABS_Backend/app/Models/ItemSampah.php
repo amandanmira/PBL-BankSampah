@@ -15,6 +15,7 @@ class ItemSampah extends Model
         'diskon',
         'jenis_id',
         'foto',
+        'active',
     ];
 
     public function sampah()

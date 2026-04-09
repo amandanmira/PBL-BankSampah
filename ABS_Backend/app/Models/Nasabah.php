@@ -25,7 +25,8 @@ class Nasabah extends Authenticatable
         'status',
         'ket_status',
         'no_rekening',
-        'nama_bank'
+        'nama_bank',
+        'nama_rek',
     ];
 
     public function penjemputan()

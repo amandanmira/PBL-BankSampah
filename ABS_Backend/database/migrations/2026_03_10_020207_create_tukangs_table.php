@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id('tukang_id');
             $table->string('nama', 50);
             $table->string('no_telp', 16);
+            $table->text('foto');
             $table->boolean('active')->default(true);
             $table->timestamps();
         });

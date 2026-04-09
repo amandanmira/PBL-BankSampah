@@ -7,6 +7,18 @@
         <label>Jumlah</label><br />
         <input type="number" v-model="form.jumlah"></input>
       </div>
+      <div>
+        <label>No Rekening</label><br />
+        <input v-model="form.no_rekening"></input>
+      </div>
+      <div>
+        <label>Nama Bank</label><br />
+        <input v-model="form.nama_bank"></input>
+      </div>
+      <div>
+        <label>Nama Rekening</label><br />
+        <input v-model="form.nama_rek"></input>
+      </div>
 
       <br />
 
@@ -26,9 +38,21 @@ checkRole('nasabah')
 
 const router = useRouter()
 
+const token = sessionStorage.getItem('token')
+const user = JSON.parse(sessionStorage.getItem('user'))
+
+if (!token) {
+  throw new Error('Otentikasi diperlukan.')
+}
+
+const headers = { 'Authorization': `Bearer ${token}` }
+
 const form = ref({
   jumlah: '',
-  nasabah_id: '',
+  nasabah_id: user.nasabah_id,
+  no_rekening: user.no_rekening,
+  nama_bank: user.nama_bank,
+  nama_rek: user.nama_rek,
 })
 
 const errors = ref({})
@@ -38,17 +62,6 @@ const submitForm = async () => {
   errors.value = {}
 
   try {
-    const token = sessionStorage.getItem('token')
-    const user = JSON.parse(sessionStorage.getItem('user'))
-
-    if (!token) {
-      throw new Error('Otentikasi diperlukan.')
-    }
-
-    form.value.nasabah_id = user.nasabah_id
-
-    const headers = { 'Authorization': `Bearer ${token}` }
-
     await axios.post('/api/nasabah/request-penarikan', form.value, { headers })
     router.push('/dashboard-nasabah')
   } catch (err) {

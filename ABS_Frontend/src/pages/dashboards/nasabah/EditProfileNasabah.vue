@@ -44,6 +44,10 @@
         <label>No Rekening</label><br />
         <input v-model="form.no_rekening"></input>
       </div>
+      <div>
+        <label>Nama Rekening</label><br />
+        <input v-model="form.nama_rek"></input>
+      </div>
 
       <br />
 
@@ -73,6 +77,7 @@ const form = ref({
   gmap: '',
   nama_bank: '',
   no_rekening: '',
+  nama_rek: '',
 })
 
 let map;

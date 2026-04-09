@@ -25,6 +25,7 @@ return new class extends Migration
             $table->text('ket_status')->nullable();
             $table->string('no_rekening', 20)->nullable();
             $table->string('nama_bank', 50)->nullable();
+            $table->string('nama_rek', 50)->nullable();
             $table->timestamps();
         });
     }
