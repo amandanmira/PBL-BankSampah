@@ -37,6 +37,7 @@ import ConfigWeb from "@/pages/dashboards/admin/managePages/ConfigWeb.vue";
 
 //Penjmeputan
 import ListPenjemputan from "@/pages/dashboards/petugas/ListPenjemputan.vue";
+import RiwayatPenjemputanPetugas from "@/pages/dashboards/petugas/RiwayatPenjemputan.vue";
 import Penimbangan from "@/pages/dashboards/petugas/Penimbangan.vue";
 
 // Gudang
@@ -239,6 +240,10 @@ const routes = [
   {
     path: "/dashboard-petugas/listpenjemputan",
     component: ListPenjemputan,
+  },
+  {
+    path: "/dashboard-petugas/riwayat-penjemputan",
+    component: RiwayatPenjemputanPetugas,
   },
   {
     path: "/dashboard-petugas/penimbangan/:id",

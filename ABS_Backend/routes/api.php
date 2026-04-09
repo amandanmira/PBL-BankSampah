@@ -21,6 +21,7 @@ use App\Http\Controllers\Api\Admin\SampahGudangController;
 // Pengepul
 use App\Http\Controllers\Api\Pengepul\RequestPembelianController;
 use App\Http\Controllers\Api\Petugas\PenimbanganController;
+use App\Http\Controllers\Api\Petugas\RiwayatPenjemputanController;
 
 Route::get('verify-nasabah/{token}', [AuthController::class, 'verifyEmail']);
 
@@ -60,6 +61,7 @@ Route::prefix('petugas')->middleware(['auth:sanctum', 'role:petugas'])->group(fu
     // Rute tambahan untuk handle update dengan file upload (thumbnail)
     Route::post('berita/{id}', [BeritaController::class, 'update']);
     Route::get('/penjemputan', [KonfirmasiPenjemputanController::class, 'penjemputan']);
+    Route::get('/riwayat-penjemputan', [RiwayatPenjemputanController::class, 'riwayatPenjemputan']);    
     Route::put('/penjemputan/{penjemputan}/terima', [KonfirmasiPenjemputanController::class, 'terima']);
     Route::put('/penjemputan/{penjemputan}/tolak', [KonfirmasiPenjemputanController::class, 'tolak']);
     Route::get('/showpenjemputan/{penjemputan}',[KonfirmasiPenjemputanController::class, 'show']);
