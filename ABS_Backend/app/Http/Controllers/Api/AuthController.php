@@ -62,10 +62,20 @@ class AuthController extends Controller
             'no_telp' => 'required|max:16',
             'nama_lembaga' => 'required|max:50',
             'alamat' => 'required',
+            'ktp' => 'required|image|mimes:jpg,jpeg,png,webp|max:4096',
+            'npwp' => 'required|image|mimes:jpg,jpeg,png,webp|max:4096',
         ], [
             'email.unique' => 'Email sudah terpakai',
             'username.unique' => 'Username sudah terpakai'
         ]);
+
+        $pathKtp = $request->file("ktp")
+                        ->store('foto-ktp', 'public');
+        $pathNpwp = $request->file("npwp")
+                        ->store('foto-npwp', 'public');
+
+        $ktp = $pathKtp;
+        $npwp = $pathNpwp;
 
         $pengepul = Pengepul::create([
             'username' => $request->username,
@@ -75,6 +85,8 @@ class AuthController extends Controller
             'no_telp' => $request->no_telp,
             'nama_lembaga' => $request->nama_lembaga,
             'alamat' => $request->alamat,
+            'ktp' => $ktp,
+            'npwp' => $npwp,
             'status' => 'pending'
         ]);
 

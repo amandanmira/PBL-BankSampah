@@ -225,6 +225,28 @@
             </p>
           </div>
 
+          <div class="flex flex-col gap-2">
+            <label class="text-[#73A36B] text-[15px] font-bold tracking-wide">Foto KTP</label>
+            <input type="file" @change="handleFile($event, index, 'ktp')" required
+              class="w-full h-[50px] px-4 bg-[#eff1ef] rounded-xl text-[15px] outline-none focus:ring-2 focus:ring-[#4A7043]/30 transition-all text-[#5E6460] placeholder-[#a9b0aa]" />
+
+            <!-- preview -->
+            <div>
+              <img v-if="form.ktp" :src="previewFile(form.ktp)" width="120" />
+            </div>
+          </div>
+
+          <div class="flex flex-col gap-2">
+            <label class="text-[#73A36B] text-[15px] font-bold tracking-wide">Foto NPWP</label>
+            <input type="file" @change="handleFile($event, index, 'npwp')" required
+              class="w-full h-[50px] px-4 bg-[#eff1ef] rounded-xl text-[15px] outline-none focus:ring-2 focus:ring-[#4A7043]/30 transition-all text-[#5E6460] placeholder-[#a9b0aa]" />
+
+            <!-- preview -->
+            <div>
+              <img v-if="form.npwp" :src="previewFile(form.npwp)" width="120" />
+            </div>
+          </div>
+
           <p v-if="errorMessage" class="text-red-500 text-[13px] text-center font-medium">
             {{ errorMessage }}
           </p>
@@ -272,6 +294,8 @@ const form = ref({
   email: '',
   password: '',
   confirmPassword: '',
+  ktp: '',
+  npwp: '',
 })
 
 const showPassword = ref(false)
@@ -280,6 +304,17 @@ const isLoading = ref(false)
 const errorMessage = ref('')
 const successMessage = ref('')
 const emailError = ref('')
+
+const handleFile = (e, index, type) => {
+  const file = e.target.files[0];
+
+  if (type === 'ktp') form.value.ktp = file;
+  else if (type === 'npwp') form.value.npwp = file;
+};
+
+const previewFile = (file) => {
+  return URL.createObjectURL(file);
+};
 
 const passwordMismatch = computed(() => {
   return (
@@ -296,6 +331,8 @@ const checkEmail = async () => {
   }
 
   try {
+    await axios.get('/sanctum/csrf-cookie')
+
     const res = await axios.post('/api/check-email', {
       email: form.value.email,
     })
@@ -320,15 +357,19 @@ const register = async () => {
   try {
     await axios.get('/sanctum/csrf-cookie')
 
-    const res = await axios.post('/api/register-pengepul', {
-      username: form.value.username,
-      nama: form.value.nama,
-      email: form.value.email,
-      password: form.value.password,
-      no_telp: form.value.no_telp,
-      nama_lembaga: form.value.nama_lembaga,
-      alamat: form.value.alamat,
-    })
+    const formData = new FormData();
+
+    formData.append("username", form.value.username);
+    formData.append("nama", form.value.nama);
+    formData.append("email", form.value.email);
+    formData.append("password", form.value.password);
+    formData.append("no_telp", form.value.no_telp);
+    formData.append("nama_lembaga", form.value.nama_lembaga);
+    formData.append("alamat", form.value.alamat);
+    formData.append("ktp", form.value.ktp);
+    formData.append("npwp", form.value.npwp);
+
+    const res = await axios.post('/api/register-pengepul', formData)
 
     successMessage.value = 'Registrasi berhasil! Mengalihkan ke halaman login...'
 

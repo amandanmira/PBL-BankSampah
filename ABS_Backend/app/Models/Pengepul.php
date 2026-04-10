@@ -21,6 +21,8 @@ class Pengepul extends Authenticatable
         'no_telp',
         'nama_lembaga',
         'alamat',
+        'ktp',
+        'npwp',
         'status',
         'ket_status'
     ];
