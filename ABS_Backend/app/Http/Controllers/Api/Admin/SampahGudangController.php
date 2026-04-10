@@ -17,6 +17,7 @@ class SampahGudangController extends Controller
                     $sampah->update([
                         'item_id' => $s['item_id'],
                         'stok' => $s['stok'],
+                        'active' => $s['active'],
                     ]);
                 }
             }
@@ -24,6 +25,7 @@ class SampahGudangController extends Controller
                 Sampah::create([
                     'item_id' => $s['item_id'],
                     'stok' => $s['stok'],
+                    'active' => $s['active'],
                     'gudang_id' => $id,
                 ]);
             }

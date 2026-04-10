@@ -14,7 +14,9 @@ use App\Models\Pengepul;
 use App\Models\Petugas;
 use App\Models\Manager;
 use App\Models\Admin;
-use App\Models\Penjemputan;
+use App\Models\KategoriSampah;
+use App\Models\ItemSampah;
+use App\Models\Sampah;
 
 class DatabaseSeeder extends Seeder
 {
@@ -35,6 +37,149 @@ class DatabaseSeeder extends Seeder
         Gudang::create([
             'alamat' => 'Surakarta',
         ]);
+
+        $dataKategori = [
+            ['nama' => 'Plastik'],
+            ['nama' => 'Kertas'],
+            ['nama' => 'Residu'],
+            ['nama' => 'Beling'],
+            ['nama' => 'Logam'],
+            ['nama' => 'Rosok'],
+            ['nama' => 'Elektronik']
+        ];
+
+        foreach ($dataKategori as $item) {
+            KategoriSampah::create($item);
+        }
+
+        $dataItem = [
+            [
+                'nama' => 'Kresek',
+                'kategori_id' => '1',
+            ],
+            [
+                'nama' => 'Putihan',
+                'kategori_id' => '1',
+            ],
+            [
+                'nama' => 'Bening',
+                'kategori_id' => '1',
+            ],
+            [
+                'nama' => 'Multilayer',
+                'kategori_id' => '1',
+            ],
+            [
+                'nama' => 'Duplek',
+                'kategori_id' => '2',
+            ],
+            [
+                'nama' => 'Putihan',
+                'kategori_id' => '2',
+            ],
+            [
+                'nama' => 'Minyak',
+                'kategori_id' => '2',
+            ],
+            [
+                'nama' => 'Sterofom',
+                'kategori_id' => '3',
+            ],
+            [
+                'nama' => 'Tisu',
+                'kategori_id' => '3',
+            ],
+            [
+                'nama' => 'Sapon',
+                'kategori_id' => '3',
+            ],
+            [
+                'nama' => 'Kain',
+                'kategori_id' => '3',
+            ],
+            [
+                'nama' => 'Botol Bening',
+                'kategori_id' => '4',
+            ],
+            [
+                'nama' => 'Botol Gelap',
+                'kategori_id' => '4',
+            ],
+            [
+                'nama' => 'Pecahan Kaca',
+                'kategori_id' => '4',
+            ],
+            [
+                'nama' => 'Aluminium',
+                'kategori_id' => '5',
+            ],
+            [
+                'nama' => 'Kaleng',
+                'kategori_id' => '5',
+            ],
+            [
+                'nama' => 'Besi',
+                'kategori_id' => '5',
+            ],
+            [
+                'nama' => 'Tembaga',
+                'kategori_id' => '5',
+            ],
+            [
+                'nama' => 'Botol Air',
+                'kategori_id' => '6',
+            ],
+            [
+                'nama' => 'Plastik Keras',
+                'kategori_id' => '6',
+            ],
+            [
+                'nama' => 'Handphone',
+                'kategori_id' => '7',
+            ],
+            [
+                'nama' => 'Kabel',
+                'kategori_id' => '7',
+            ],
+            [
+                'nama' => 'Charger',
+                'kategori_id' => '7',
+            ],
+            [
+                'nama' => 'Computer',
+                'kategori_id' => '7',
+            ],
+            [
+                'nama' => 'TV/Radio',
+                'kategori_id' => '7',
+            ],
+        ];
+
+        foreach ($dataItem as $item) {
+            ItemSampah::create([
+                'nama' => $item['nama'],
+                'harga_beli' => '500',
+                'harga_jual' => '1000',
+                'diskon' => '0',
+                'kategori_id' => $item['kategori_id'],
+            ]);
+        }
+
+        $dataSampah = [
+            [ 'item_id' => 1 ],
+            [ 'item_id' => 5 ],
+            [ 'item_id' => 8 ],
+            [ 'item_id' => 12 ],
+            [ 'item_id' => 15, ],
+        ];
+
+        foreach ($dataSampah as $item) {
+            Sampah::create([
+                'stok' => 100,
+                'item_id' => $item['item_id'],
+                'gudang_id' => 1,
+            ]);
+        }
 
         Nasabah::create([
             'nama' => 'Nasabah',

@@ -5,15 +5,16 @@ namespace App\Http\Controllers\Api\Admin;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
-use App\Models\ItemSampah;
 use App\Models\KategoriSampah;
+use App\Models\ItemSampah;
+use App\Models\Sampah;
 
 class SampahController extends Controller
 {
     public function index()
     {
         return response()->json(
-            KategoriSampah::with('itemSampah')->get()
+            KategoriSampah::with('itemSampah.sampah')->get()
         );
     }
 
@@ -127,28 +128,41 @@ class SampahController extends Controller
 
     public function updateStatus(Request $request, $id) {
         $request->validate([
-            'active' => 'required',
-            'item' => 'array'
+            'active' => 'required'
         ]);
 
-        $kategori = KategoriSampah::findOrFail($id);
+        $kategori = KategoriSampah::with('itemSampah')->findOrFail($id);
 
         $kategori->update([
             'active' => $request->active,
         ]);
 
-        if ($request->has('item')) {
-            foreach ($request->item as $k) {
-                $item = itemSampah::find($k['item_id']);
+        foreach ($kategori->itemSampah as $k) {
+            $item = itemSampah::with('sampah')->find($k['item_id']);
 
+            if ($item){
                 $item->update([
-                    'active' => $k['active'],
+                    'active' => $request->active,
                 ]);
+
+                foreach ($item->sampah as $s) {
+                    $sampah = Sampah::with('gudang')
+                    ->whereHas('gudang', function ($q) {
+                        $q->where('active', 1);
+                    })
+                    ->find($s['sampah_id']);
+
+                    if ($sampah) {
+                        $sampah->update([
+                            'active' => $request->active,
+                        ]);
+                    }
+                }
             }
         }
 
         return response()->json([
-            'data' => $kategori->load('itemSampah')
+            'data' => $kategori->load('itemSampah.sampah')
         ]);
     }
 

@@ -7,13 +7,14 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use App\Models\TransaksiPengepul;
 use App\Models\ItemSampah;
+use App\Models\KategoriSampah;
 use App\Models\Sampah;
 
 class RequestPembelianController extends Controller
 {
     public function indexSampah() {
         return response()->json(
-            ItemSampah::with('sampah.gudang')->get()
+            KategoriSampah::with('itemSampah.sampah.gudang')->get()
         );
     }
 

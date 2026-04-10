@@ -6,10 +6,20 @@
 
 		<div v-for="(d, index) in form.detail" :key="index" style="border:1px solid #ccc; padding:10px; margin-top:10px;">
 			<div>
-				<label>Sampah</label><br />
-				<select v-model="d.item_id" @change="d.sampah_id = ''">
+				<label>Kategori Sampah</label><br />
+				<select v-model="d.kategori_id" @change="d.item_id = ''; d.sampah_id = ''">
 					<option value="">Pilih Sampah</option>
-					<option v-for="sampah in sampahList" :key="sampah.item_id" :value="sampah.item_id">
+					<option v-for="sampah in sampahList" :key="sampah.kategori_id" :value="sampah.kategori_id">
+						{{ sampah.nama }}
+					</option>
+				</select>
+			</div>
+
+			<div>
+				<label>Sampah</label><br />
+				<select v-model="d.item_id" :disabled="!d.kategori_id" @change="d.sampah_id = ''">
+					<option value="">Pilih Sampah</option>
+					<option v-for="sampah in getItems(d.kategori_id)" :key="sampah.item_id" :value="sampah.item_id">
 						{{ sampah.nama }}
 					</option>
 				</select>
@@ -17,9 +27,10 @@
 
 			<div>
 				<label>Dari Gudang</label><br />
-				<select v-model="d.sampah_id">
+				<select v-model="d.sampah_id" :disabled="!d.item_id">
 					<option disabled value="">Pilih gudang</option>
-					<option v-for="s in getSampahByKategori(d.item_id)" :key="s.sampah_id" :value="s.sampah_id">
+					<option v-for="s in getSampahByKategori(d.kategori_id, d.item_id)" :key="s.sampah_id"
+						:value="s.sampah_id">
 						{{ s.gudang.alamat }}
 					</option>
 				</select>
@@ -86,6 +97,7 @@ const form = reactive({
 
 const addSampah = () => {
 	form.detail.push({
+		kategori_id: '',
 		item_id: '',
 		sampah_id: '',
 		berat: 0,
@@ -108,8 +120,8 @@ const getSubtotal = (item) => {
 	return subtotal
 }
 
-const getSampahByKategori = (item_id) => {
-	const sampah = sampahList.value.find(s => s.item_id === item_id)
+const getSampahByKategori = (kategori_id, item_id) => {
+	const sampah = getItems(kategori_id).find(s => s.item_id === item_id)
 	return sampah ? sampah.sampah : []
 }
 
@@ -127,6 +139,11 @@ const fetchGudang = async () => {
 	} catch (err) {
 		console.error(err)
 	}
+}
+
+const getItems = (kategori_id) => {
+	const kategori = sampahList.value.find(k => k.kategori_id === kategori_id)
+	return kategori ? kategori.item_sampah : []
 }
 
 // lifecycle

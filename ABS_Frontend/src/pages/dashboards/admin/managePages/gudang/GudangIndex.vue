@@ -20,9 +20,11 @@
           <td>{{ gudang.alamat }}</td>
           <td>{{ gudang.kapasitas }}</td>
           <td>
-            <button @click="showGudang(gudang.gudang_id)">Show</button>
-            <button @click="editGudang(gudang.gudang_id)">Edit</button>
-            <button @click="deleteGudang(gudang.gudang_id)">Delete</button>
+            <button v-if="gudang.active === 1" @click="showGudang(gudang.gudang_id)">Show</button>
+            <button v-if="gudang.active === 1" @click="editGudang(gudang.gudang_id)">Edit</button>
+            <button @click="deleteGudang(gudang.gudang_id)">
+              {{ gudang.active === 0 ? 'Aktifkan' : 'Nonaktifkan' }}
+            </button>
           </td>
         </tr>
       </tbody>
@@ -79,9 +81,12 @@ const editGudang = (id) => {
 
 // delete
 const deleteGudang = async (id) => {
-  if (!confirm('Yakin mau hapus?')) return
-
   try {
+    const dataGudang = gudangList.value[id - 1]
+    const statusData = ref({
+      active: !(dataGudang.active === 1) ? 1 : 0,
+    })
+
 		const token = sessionStorage.getItem('token')
 
     if (!token) {
@@ -90,7 +95,7 @@ const deleteGudang = async (id) => {
 
     const headers = { 'Authorization': `Bearer ${token}` }
 
-    await axios.delete(`/api/admin/gudang/${id}`, {headers})
+    await axios.put(`/api/admin/gudang/${id}/status`, statusData.value, { headers })
     fetchGudang() // refresh
   } catch (err) {
     console.error(err)

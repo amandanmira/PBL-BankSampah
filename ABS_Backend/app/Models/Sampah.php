@@ -10,6 +10,7 @@ class Sampah extends Model
 
     protected $fillable = [
         'stok',
+        'active',
         'item_id',
         'gudang_id',
     ];

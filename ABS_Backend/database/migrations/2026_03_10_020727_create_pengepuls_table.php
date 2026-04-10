@@ -20,6 +20,8 @@ return new class extends Migration
             $table->string('no_telp', 16);
             $table->string('nama_lembaga', 50);
             $table->text('alamat');
+            $table->text('ktp')->nullable();
+            $table->text('npwp')->nullable();
             $table->enum('status', ['pending', 'aktif', 'nonaktif']);
             $table->string('ket_status')->nullable();
             $table->timestamps();

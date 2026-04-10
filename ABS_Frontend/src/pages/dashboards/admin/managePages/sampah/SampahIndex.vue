@@ -34,16 +34,17 @@
           </td>
 
           <td>
-            <button @click="$router.push(`/dashboard-admin/kelola-sampah/${item.kategori_id}`)">
+            <button v-if="item.active == 1" @click="$router.push(`/dashboard-admin/kelola-sampah/${item.kategori_id}`)">
               Show
             </button>
 
-            <button @click="$router.push(`/dashboard-admin/kelola-sampah/${item.kategori_id}/edit`)">
+            <button v-if="item.active == 1"
+              @click="$router.push(`/dashboard-admin/kelola-sampah/${item.kategori_id}/edit`)">
               Edit
             </button>
 
             <button @click="deleteJenis(item.kategori_id)">
-              {{ item.active === 0 ? 'aktifkan' : 'Nonaktifkan' }}
+              {{ item.active === 0 ? 'Aktifkan' : 'Nonaktifkan' }}
             </button>
           </td>
         </tr>
@@ -84,23 +85,12 @@ const fetchData = async () => {
 
 // delete jenis
 const deleteJenis = async (id) => {
-  if (!confirm("Yakin hapus data ini?")) return;
-
   try {
     const dataSampah = jenisList.value[id - 1]
     const statusData = ref({
-      active: !(dataSampah.active === 1) ? 1 : 0,
-      item_sampah: []
+      active: !(dataSampah.active === 1) ? 1 : 0
     })
 
-    for (const k of dataSampah.item_sampah) {
-      statusData.value.item_sampah.push({
-        item_id: k.item_id,
-        active: statusData.value.active
-      })
-    }
-
-    console.log(statusData.value.active)
     const headers = { 'Authorization': `Bearer ${token}` }
 
     await axios.put(`/api/admin/kategori-sampah/${id}/status`, statusData.value, { headers });

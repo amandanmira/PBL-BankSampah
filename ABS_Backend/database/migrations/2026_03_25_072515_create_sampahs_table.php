@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('sampahs', function (Blueprint $table) {
             $table->id("sampah_id");
             $table->integer('stok')->default(0);
+            $table->boolean('active')->default(true);
 
             $table->foreignId('item_id')
                 ->constrained('item_sampahs','item_id')

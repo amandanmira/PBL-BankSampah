@@ -11,6 +11,7 @@ class Gudang extends Model
     protected $fillable = [
         'alamat',
         'kapasitas',
+        'active',
     ];
 
     public function penjemputan()
