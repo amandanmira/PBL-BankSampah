@@ -43,7 +43,7 @@
             </button>
 
             <button @click="deleteJenis(item.kategori_id)">
-              {{ item.active === 0 ? 'aktifkan' : 'Nonaktifkan' }}
+              {{ item.active === 0 ? 'Aktifkan' : 'Nonaktifkan' }}
             </button>
           </td>
         </tr>
@@ -100,7 +100,6 @@ const deleteJenis = async (id) => {
       })
     }
 
-    console.log(statusData.value.active)
     const headers = { 'Authorization': `Bearer ${token}` }
 
     await axios.put(`/api/admin/kategori-sampah/${id}/status`, statusData.value, { headers });

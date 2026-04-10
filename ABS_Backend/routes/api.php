@@ -106,6 +106,8 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'role:admin'])->group(functi
     Route::put('gudang/sampah/{id}', [SampahGudangController::class, 'update']);
     Route::delete('gudang/sampah/{id}', [SampahGudangController::class, 'destroy']);
 
+    Route::put('gudang/{id}/status', [GudangController::class, 'updateStatus']);
+
     // Sampah
     Route::get('/kategori-sampah', [SampahController::class, 'index']);
     Route::post('/kategori-sampah', [SampahController::class, 'store']);

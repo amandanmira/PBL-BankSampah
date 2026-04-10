@@ -55,7 +55,6 @@ const route = useRoute()
 const router = useRouter()
 
 const gudang = ref([])
-const itemSampahList = ref([])
 
 const token = sessionStorage.getItem('token')
 
@@ -89,9 +88,6 @@ const fetchGudang = async () => {
 		for (const item of gudang.value.tukang) {
 			item.checkbox = item.active === 1;
 		}
-
-		const resSampah = await axios.get(`/api/admin/item-sampah`, { headers })
-		itemSampahList.value = resSampah.data
 	} catch (err) {
 		console.error(err)
 	}

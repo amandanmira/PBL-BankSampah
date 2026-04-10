@@ -8,10 +8,19 @@
 			<div v-for="(s, index) in gudang.sampah" :key="s.sampah_id || index"
 				style="border:1px solid #ccc; padding:10px; margin-top:10px;">
 				<div>
+					<label>Kategori Sampah</label><br />
+					<select v-model="s.kategori_id" @change="s.item_id = ''">
+						<option value="">Pilih Kategori</option>
+						<option v-for="sampah in itemSampahList" :key="sampah.kategori_id" :value="sampah.kategori_id">
+							{{ sampah.nama }}
+						</option>
+					</select>
+				</div>
+				<div>
 					<label>Item Sampah</label><br />
-					<select v-model="s.item_id">
+					<select v-model="s.item_id" :disabled="!s.kategori_id">
 						<option value="">Pilih Sampah</option>
-						<option v-for="sampah in itemSampahList" :key="sampah.item_id" :value="sampah.item_id">
+						<option v-for="sampah in getItems(s.kategori_id)" :key="sampah.item_id" :value="sampah.item_id">
 							{{ sampah.nama }}
 						</option>
 					</select>
@@ -20,6 +29,10 @@
 				<div>
 					<label>Stok</label><br />
 					<input v-model="s.stok" type="number" step="0.01" />
+				</div>
+
+				<div>
+					<input v-model="s.checkbox" type="checkbox" /> Sampah Aktif
 				</div>
 
 				<button type="button" @click="removeSampah(index)">
@@ -59,28 +72,22 @@ const id = route.params.id
 
 const addSampah = () => {
 	gudang.value.sampah.push({
-		stok: null,
-		kategori_id: null,
+		stok: 0,
+		active: null,
+		checkbox: true,
+		kategori_id: '',
+		item_id: '',
 	});
 };
 
 const removeSampah = async (index) => {
-	const s = gudang.value.sampah[index];
-
-	// kalau sudah ada di database → hit API delete
-	if (s.sampah_id) {
-		if (!confirm("Hapus sampah ini?")) return;
-
-		try {
-			await axios.delete(`/api/admin/gudang/sampah/${s.sampah_id}`, { headers });
-		} catch (err) {
-			alert("Gagal hapus sampah");
-			return;
-		}
-	}
-
 	gudang.value.sampah.splice(index, 1);
 };
+
+const getItems = (kategori_id) => {
+	const kategori = itemSampahList.value.find(k => k.kategori_id === kategori_id)
+	return kategori ? kategori.item_sampah : []
+}
 
 // ambil data berdasarkan id
 const fetchGudang = async () => {
@@ -88,7 +95,14 @@ const fetchGudang = async () => {
 		const res = await axios.get(`/api/admin/gudang/${id}`, { headers })
 		gudang.value = res.data
 
-		const resSampah = await axios.get(`/api/admin/item-sampah`, { headers })
+		for (const item of gudang.value.sampah) {
+			item.checkbox = item.active === 1;
+			item.kategori_id = item.item_sampah.kategori_sampah.kategori_id
+		}
+
+		console.log(gudang.value)
+
+		const resSampah = await axios.get(`/api/admin/kategori-sampah`, { headers })
 		itemSampahList.value = resSampah.data
 	} catch (err) {
 		console.error(err)
@@ -104,6 +118,7 @@ const submit = async () => {
 		sampah: gudang.value.sampah.map((s) => {
 			const item = {
 				stok: s.stok,
+				active: s.checkbox ? 1 : 0,
 				item_id: s.item_id,
 			};
 

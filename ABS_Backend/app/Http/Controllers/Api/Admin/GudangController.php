@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Api\Admin;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Gudang;
+use App\Models\Sampah;
+use App\Models\Tukang;
 
 class GudangController extends Controller
 {
@@ -13,7 +15,7 @@ class GudangController extends Controller
      */
     public function index()
     {
-        $gudang = Gudang::all();
+        $gudang = Gudang::with(['sampah', 'tukang'])->get();
         return response()->json(['data' => $gudang], 200);
     }
 
@@ -37,7 +39,7 @@ class GudangController extends Controller
      */
     public function show(string $id)
     {
-        $gudang = Gudang::with(['sampah', 'tukang'])->findOrFail($id);
+        $gudang = Gudang::with(['sampah.itemSampah.kategoriSampah', 'tukang'])->findOrFail($id);
 
         return response()->json($gudang);
     }
@@ -57,6 +59,47 @@ class GudangController extends Controller
         $gudang->update($validated);
 
         return response()->json($gudang);
+    }
+
+    public function updateStatus(Request $request, string $id)
+    {
+        $request->validate([
+            'active' => 'required',
+            'tukang' => 'array',
+            'sampah' => 'array',
+        ]);
+
+        $gudang = Gudang::findOrFail($id);
+
+        $gudang->update([
+            'active' => $request->active,
+        ]);
+
+        if ($request->has('tukang') && $request->has('sampah')) {
+            foreach ($request->tukang as $k) {
+                $item = Tukang::find($k['tukang_id']);
+
+                if ($item) {
+                    $item->update([
+                        'active' => $k['active'],
+                    ]);
+                }
+            }
+
+            foreach ($request->sampah as $k) {
+                $item = Sampah::find($k['sampah_id']);
+
+                if ($item) {
+                    $item->update([
+                        'active' => $k['active'],
+                    ]);
+                }
+            }
+        }
+
+        return response()->json([
+            'data' => $gudang->load(['sampah', 'tukang'])
+        ]);
     }
 
     /**

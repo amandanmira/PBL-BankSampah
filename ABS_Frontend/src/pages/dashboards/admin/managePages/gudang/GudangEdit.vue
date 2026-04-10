@@ -54,6 +54,11 @@ const fetchGudang = async () => {
     const id = route.params.id
     const res = await axios.get(`/api/admin/gudang/${id}`, {headers})
     form.value = res.data
+
+    if (form.value.active === 0) {
+      alert('Gudang Nonaktif!')
+      router.push('/dashboard-admin/kelola-gudang')
+    }
   } catch (err) {
     console.error(err)
   } finally {
