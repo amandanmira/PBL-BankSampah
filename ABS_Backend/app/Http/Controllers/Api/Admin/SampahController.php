@@ -146,7 +146,11 @@ class SampahController extends Controller
                 ]);
 
                 foreach ($item->sampah as $s) {
-                    $sampah = Sampah::find($s['sampah_id']);
+                    $sampah = Sampah::with('gudang')
+                    ->whereHas('gudang', function ($q) {
+                        $q->where('active', 1);
+                    })
+                    ->find($s['sampah_id']);
 
                     if ($sampah) {
                         $sampah->update([

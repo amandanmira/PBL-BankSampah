@@ -55,215 +55,130 @@ class DatabaseSeeder extends Seeder
         $dataItem = [
             [
                 'nama' => 'Kresek',
-                'harga_beli' => '500',
-                'harga_jual' => '1000',
-                'diskon' => '0',
                 'kategori_id' => '1',
             ],
             [
                 'nama' => 'Putihan',
-                'harga_beli' => '500',
-                'harga_jual' => '1000',
-                'diskon' => '0',
                 'kategori_id' => '1',
             ],
             [
                 'nama' => 'Bening',
-                'harga_beli' => '500',
-                'harga_jual' => '1000',
-                'diskon' => '0',
                 'kategori_id' => '1',
             ],
             [
                 'nama' => 'Multilayer',
-                'harga_beli' => '500',
-                'harga_jual' => '1000',
-                'diskon' => '0',
                 'kategori_id' => '1',
             ],
             [
                 'nama' => 'Duplek',
-                'harga_beli' => '500',
-                'harga_jual' => '1000',
-                'diskon' => '0',
                 'kategori_id' => '2',
             ],
             [
                 'nama' => 'Putihan',
-                'harga_beli' => '500',
-                'harga_jual' => '1000',
-                'diskon' => '0',
                 'kategori_id' => '2',
             ],
             [
                 'nama' => 'Minyak',
-                'harga_beli' => '500',
-                'harga_jual' => '1000',
-                'diskon' => '0',
                 'kategori_id' => '2',
             ],
             [
                 'nama' => 'Sterofom',
-                'harga_beli' => '500',
-                'harga_jual' => '1000',
-                'diskon' => '0',
                 'kategori_id' => '3',
             ],
             [
                 'nama' => 'Tisu',
-                'harga_beli' => '500',
-                'harga_jual' => '1000',
-                'diskon' => '0',
                 'kategori_id' => '3',
             ],
             [
                 'nama' => 'Sapon',
-                'harga_beli' => '500',
-                'harga_jual' => '1000',
-                'diskon' => '0',
                 'kategori_id' => '3',
             ],
             [
                 'nama' => 'Kain',
-                'harga_beli' => '500',
-                'harga_jual' => '1000',
-                'diskon' => '0',
                 'kategori_id' => '3',
             ],
             [
                 'nama' => 'Botol Bening',
-                'harga_beli' => '500',
-                'harga_jual' => '1000',
-                'diskon' => '0',
                 'kategori_id' => '4',
             ],
             [
                 'nama' => 'Botol Gelap',
-                'harga_beli' => '500',
-                'harga_jual' => '1000',
-                'diskon' => '0',
                 'kategori_id' => '4',
             ],
             [
                 'nama' => 'Pecahan Kaca',
-                'harga_beli' => '500',
-                'harga_jual' => '1000',
-                'diskon' => '0',
                 'kategori_id' => '4',
             ],
             [
                 'nama' => 'Aluminium',
-                'harga_beli' => '500',
-                'harga_jual' => '1000',
-                'diskon' => '0',
                 'kategori_id' => '5',
             ],
             [
                 'nama' => 'Kaleng',
-                'harga_beli' => '500',
-                'harga_jual' => '1000',
-                'diskon' => '0',
                 'kategori_id' => '5',
             ],
             [
                 'nama' => 'Besi',
-                'harga_beli' => '500',
-                'harga_jual' => '1000',
-                'diskon' => '0',
                 'kategori_id' => '5',
             ],
             [
                 'nama' => 'Tembaga',
-                'harga_beli' => '500',
-                'harga_jual' => '1000',
-                'diskon' => '0',
                 'kategori_id' => '5',
             ],
             [
                 'nama' => 'Botol Air',
-                'harga_beli' => '500',
-                'harga_jual' => '1000',
-                'diskon' => '0',
                 'kategori_id' => '6',
             ],
             [
                 'nama' => 'Plastik Keras',
-                'harga_beli' => '500',
-                'harga_jual' => '1000',
-                'diskon' => '0',
                 'kategori_id' => '6',
             ],
             [
                 'nama' => 'Handphone',
-                'harga_beli' => '500',
-                'harga_jual' => '1000',
-                'diskon' => '0',
                 'kategori_id' => '7',
             ],
             [
                 'nama' => 'Kabel',
-                'harga_beli' => '500',
-                'harga_jual' => '1000',
-                'diskon' => '0',
                 'kategori_id' => '7',
             ],
             [
                 'nama' => 'Charger',
-                'harga_beli' => '500',
-                'harga_jual' => '1000',
-                'diskon' => '0',
                 'kategori_id' => '7',
             ],
             [
                 'nama' => 'Computer',
-                'harga_beli' => '500',
-                'harga_jual' => '1000',
-                'diskon' => '0',
                 'kategori_id' => '7',
             ],
             [
                 'nama' => 'TV/Radio',
-                'harga_beli' => '500',
-                'harga_jual' => '1000',
-                'diskon' => '0',
                 'kategori_id' => '7',
             ],
         ];
 
         foreach ($dataItem as $item) {
-            ItemSampah::create($item);
+            ItemSampah::create([
+                'nama' => $item['nama'],
+                'harga_beli' => '500',
+                'harga_jual' => '1000',
+                'diskon' => '0',
+                'kategori_id' => $item['kategori_id'],
+            ]);
         }
 
         $dataSampah = [
-            [
-                'stok' => 100,
-                'item_id' => 1,
-                'gudang_id' => 1,
-            ],
-            [
-                'stok' => 100,
-                'item_id' => 5,
-                'gudang_id' => 1,
-            ],
-            [
-                'stok' => 100,
-                'item_id' => 8,
-                'gudang_id' => 1,
-            ],
-            [
-                'stok' => 100,
-                'item_id' => 12,
-                'gudang_id' => 1,
-            ],
-            [
-                'stok' => 100,
-                'item_id' => 15,
-                'gudang_id' => 1,
-            ],
+            [ 'item_id' => 1 ],
+            [ 'item_id' => 5 ],
+            [ 'item_id' => 8 ],
+            [ 'item_id' => 12 ],
+            [ 'item_id' => 15, ],
         ];
 
         foreach ($dataSampah as $item) {
-            Sampah::create($item);
+            Sampah::create([
+                'stok' => 100,
+                'item_id' => $item['item_id'],
+                'gudang_id' => 1,
+            ]);
         }
 
         Nasabah::create([

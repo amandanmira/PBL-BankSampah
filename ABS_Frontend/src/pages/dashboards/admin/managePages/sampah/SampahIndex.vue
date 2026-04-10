@@ -85,8 +85,6 @@ const fetchData = async () => {
 
 // delete jenis
 const deleteJenis = async (id) => {
-  if (!confirm("Yakin hapus data ini?")) return;
-
   try {
     const dataSampah = jenisList.value[id - 1]
     const statusData = ref({

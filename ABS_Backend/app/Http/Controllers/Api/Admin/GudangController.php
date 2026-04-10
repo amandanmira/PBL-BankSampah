@@ -65,35 +65,31 @@ class GudangController extends Controller
     {
         $request->validate([
             'active' => 'required',
-            'tukang' => 'array',
-            'sampah' => 'array',
         ]);
 
-        $gudang = Gudang::findOrFail($id);
+        $gudang = Gudang::with(['tukang', 'sampah'])->findOrFail($id);
 
         $gudang->update([
             'active' => $request->active,
         ]);
 
-        if ($request->has('tukang') && $request->has('sampah')) {
-            foreach ($request->tukang as $k) {
-                $item = Tukang::find($k['tukang_id']);
+        foreach ($gudang->tukang as $k) {
+            $item = Tukang::find($k['tukang_id']);
 
-                if ($item) {
-                    $item->update([
-                        'active' => $k['active'],
-                    ]);
-                }
+            if ($item) {
+                $item->update([
+                    'active' => $request->active,
+                ]);
             }
+        }
 
-            foreach ($request->sampah as $k) {
-                $item = Sampah::find($k['sampah_id']);
+        foreach ($gudang->sampah as $k) {
+            $item = Sampah::find($k['sampah_id']);
 
-                if ($item) {
-                    $item->update([
-                        'active' => $k['active'],
-                    ]);
-                }
+            if ($item) {
+                $item->update([
+                    'active' => $request->active,
+                ]);
             }
         }
 

@@ -81,31 +81,11 @@ const editGudang = (id) => {
 
 // delete
 const deleteGudang = async (id) => {
-  if (!confirm('Yakin mau hapus?')) return
-
   try {
     const dataGudang = gudangList.value[id - 1]
     const statusData = ref({
       active: !(dataGudang.active === 1) ? 1 : 0,
-      sampah: [],
-      tukang: [],
     })
-
-    console.log(dataGudang)
-
-    for (const k of dataGudang.sampah) {
-      statusData.value.sampah.push({
-        sampah_id: k.sampah_id,
-        active: statusData.value.active
-      })
-    }
-
-    for (const k of dataGudang.tukang) {
-      statusData.value.tukang.push({
-        tukang_id: k.tukang_id,
-        active: statusData.value.active
-      })
-    }
 
 		const token = sessionStorage.getItem('token')
 
