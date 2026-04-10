@@ -100,10 +100,16 @@ const fetchGudang = async () => {
 			item.kategori_id = item.item_sampah.kategori_sampah.kategori_id
 		}
 
-		console.log(gudang.value)
-
 		const resSampah = await axios.get(`/api/admin/kategori-sampah`, { headers })
+		//itemSampahList.value = resSampah.data
+
 		itemSampahList.value = resSampah.data
+			.filter(k => k.active == 1)
+			.map(k => ({
+				...k,
+				item_sampah: k.item_sampah.filter(i => i.active == 1)
+			}))
+		console.log(itemSampahList.value)
 	} catch (err) {
 		console.error(err)
 	}

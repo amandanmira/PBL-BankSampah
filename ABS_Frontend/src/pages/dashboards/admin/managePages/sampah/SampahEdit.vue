@@ -115,6 +115,11 @@ const fetchData = async () => {
     for (const item of form.value.item_sampah) {
       item.checkBox = item.active === 1;
     }
+
+    if (form.value.active === 0) {
+      alert("Sampah Nonaktif!")
+      router.push("/dashboard-admin/kelola-sampah");
+    }
   } catch (err) {
     error.value = err.response?.data || err.message;
   } finally {

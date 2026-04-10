@@ -96,6 +96,11 @@ const fetchData = async () => {
   try {
     const res = await axios.get(`/api/admin/kategori-sampah/${id}`, { headers });
     data.value = res.data;
+
+    if (data.value.active === 0) {
+      alert("Sampah Nonaktif!")
+      router.push("/dashboard-admin/kelola-sampah");
+    }
   } catch (err) {
     error.value = err.response?.data || err.message;
   } finally {
