@@ -22,6 +22,7 @@ use App\Http\Controllers\Api\Admin\SampahGudangController;
 
 // Pengepul
 use App\Http\Controllers\Api\Pengepul\RequestPembelianController;
+use App\Http\Controllers\Api\Petugas\KonfirmasiPenarikanController;
 use App\Http\Controllers\Api\Petugas\PenimbanganController;
 use App\Http\Controllers\Api\Petugas\RiwayatPenjemputanController;
 
@@ -62,12 +63,23 @@ Route::prefix('petugas')->middleware(['auth:sanctum', 'role:petugas'])->group(fu
     Route::delete('/berita/{id}', [BeritaController::class, 'destroy']);
     // Rute tambahan untuk handle update dengan file upload (thumbnail)
     Route::post('berita/{id}', [BeritaController::class, 'update']);
+
+    //penarikan
+    Route::get('/penarikan', [KonfirmasiPenarikanController::class, 'penarikan']);
+    Route::put('penarikan/{penarikan}/terima', [KonfirmasiPenarikanController::class, 'terima']);
+    Route::put('penarikan/{penarikan}/tolak', [KonfirmasiPenarikanController::class, 'tolak']);
+    Route::get('/riwayat-penarikan', [KonfirmasiPenarikanController::class, 'riwayatPenarikan']);
+    Route::get('/riwayat-penarikan/{id}', [KonfirmasiPenarikanController::class, 'show']);
+
+    //penjemputan
     Route::get('/penjemputan', [KonfirmasiPenjemputanController::class, 'penjemputan']);
     Route::get('/riwayat-penjemputan', [RiwayatPenjemputanController::class, 'riwayatPenjemputan']);
     Route::get('/riwayat-penjemputan/{id}', [RiwayatPenjemputanController::class, 'show']);
     Route::put('/penjemputan/{penjemputan}/terima', [KonfirmasiPenjemputanController::class, 'terima']);
     Route::put('/penjemputan/{penjemputan}/tolak', [KonfirmasiPenjemputanController::class, 'tolak']);
     Route::get('/showpenjemputan/{penjemputan}',[KonfirmasiPenjemputanController::class, 'show']);
+
+    //penimbangan
     Route::post('/penimbangan', [PenimbanganController::class, 'penimbangan']);
     Route::get('/list-sampah', [PenimbanganController::class, 'listSampah']);
     Route::get('/list-tukang', [PenimbanganController::class, 'listTukang']);

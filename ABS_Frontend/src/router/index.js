@@ -35,6 +35,10 @@ import BeritaEdit from "@/pages/dashboards/petugas/berita/Edit.vue";
 import BeritaShow from "@/pages/dashboards/petugas/berita/show.vue";
 import ConfigWeb from "@/pages/dashboards/admin/managePages/ConfigWeb.vue";
 
+//Penarikan
+import ListPenarikan from "@/pages/dashboards/petugas/ListPenarikan.vue";
+import RiwayatPenarikan from "@/pages/dashboards/petugas/RiwayatPenarikan.vue";
+
 //Penjmeputan
 import ListPenjemputan from "@/pages/dashboards/petugas/ListPenjemputan.vue";
 import RiwayatPenjemputanPetugas from "@/pages/dashboards/petugas/RiwayatPenjemputan.vue";
@@ -254,8 +258,16 @@ const routes = [
     component: ListPenjemputan,
   },
   {
+    path: "/dashboard-petugas/listpenarikan",
+    component: ListPenarikan,
+  },
+  {
     path: "/dashboard-petugas/riwayat-penjemputan",
     component: RiwayatPenjemputanPetugas,
+  },
+  {
+    path: '/dashboard-petugas/riwayat-penarikan',
+    component: RiwayatPenarikan,
   },
   {
     path: "/dashboard-petugas/penimbangan/:id",

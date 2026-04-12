@@ -6,7 +6,7 @@
     <div v-if="loading" class="loading">Memuat data...</div>
     <div v-if="error" class="error">{{ error }}</div>
 
-    <table v-else-if="allPenjemputans.length > 0">
+    <table v-else-if="filteredPenjemputans.length > 0">
       <thead>
         <tr>
           <th>ID</th>
@@ -17,9 +17,9 @@
         </tr>
       </thead>
       <tbody>
-        <tr v-for="p in allPenjemputans" :key="p.penjemputan_id">
+        <tr v-for="p in filteredPenjemputans" :key="p.penjemputan_id">
           <td>{{ p.penjemputan_id }}</td>
-          <td>{{ p.nasabah?.nama || 'N/A' }}</td>
+          <td>{{ p.nasabah?.nama || "N/A" }}</td>
           <td>{{ p.alamat }}</td>
           <td>
             <span :class="`status-${p.status}`">{{ p.status }}</span>
@@ -30,7 +30,7 @@
         </tr>
       </tbody>
     </table>
-    
+
     <div v-else-if="!loading">Belum ada riwayat penjemputan.</div>
 
     <div v-if="showModal" class="modal-overlay" @click.self="closeModal">
@@ -45,14 +45,16 @@
         <div v-else class="modal-body">
           <div class="section-info">
             <p><strong>Nasabah:</strong> {{ detail.nasabah?.nama }}</p>
-            <p><strong>Status:</strong> <span :class="`status-${detail.status}`">{{ detail.status }}</span></p>
+            <p>
+              <strong>Status:</strong> <span :class="`status-${detail.status}`">{{ detail.status }}</span>
+            </p>
             <p><strong>Alamat:</strong> {{ detail.alamat }}</p>
           </div>
 
           <div v-if="detail.status === 'selesai' && detail.penimbangan?.length > 0" class="transaction-area">
             <hr />
             <h3>Data Penimbangan & Transaksi</h3>
-            
+
             <div class="card-transaksi">
               <p><strong>ID Transaksi:</strong> {{ detail.penimbangan[0].transaksi?.transaksi_id }}</p>
               <p><strong>Tipe:</strong> {{ detail.penimbangan[0].transaksi?.tipe_transaksi }}</p>
@@ -92,7 +94,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref, onMounted, computed } from "vue";
 import { checkRole } from "@/utils";
 import axios from "axios";
 
@@ -107,6 +109,10 @@ const error = ref(null);
 const showModal = ref(false);
 const detail = ref({});
 const loadingDetail = ref(false);
+
+const filteredPenjemputans = computed(() => {
+  return allPenjemputans.value.filter((p) => p.status === "selesai" || p.status === "tolak");
+});
 
 const fetchData = async () => {
   try {
@@ -142,7 +148,7 @@ const closeModal = () => {
 };
 
 const calculateTotal = (items) => {
-  return items.reduce((sum, i) => sum + (i.berat_timbang * (i.sampah?.item_sampah?.harga_beli || 0)), 0);
+  return items.reduce((sum, i) => sum + i.berat_timbang * (i.sampah?.item_sampah?.harga_beli || 0), 0);
 };
 
 const formatRupiah = (val) => {
@@ -153,26 +159,101 @@ onMounted(fetchData);
 </script>
 
 <style scoped>
-.container { padding: 2rem; }
-table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
-th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
-th { background-color: #f4f4f4; }
+.container {
+  padding: 2rem;
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1rem;
+}
+th,
+td {
+  border: 1px solid #ddd;
+  padding: 12px;
+  text-align: left;
+}
+th {
+  background-color: #f4f4f4;
+}
 
-.btn-show { background-color: #4A6B46; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; }
+.btn-show {
+  background-color: #4a6b46;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+}
 
 /* Modal CSS */
-.modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center; z-index: 999; }
-.modal-content { background: white; padding: 2rem; border-radius: 8px; width: 500px; max-height: 80vh; overflow-y: auto; }
-.modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; margin-bottom: 1rem; }
-.close-x { border: none; background: none; font-size: 1.5rem; cursor: pointer; }
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 999;
+}
+.modal-content {
+  background: white;
+  padding: 2rem;
+  border-radius: 8px;
+  width: 500px;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #eee;
+  margin-bottom: 1rem;
+}
+.close-x {
+  border: none;
+  background: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+}
 
-.section-info p { margin: 5px 0; }
-.transaction-area h3 { color: #4A6B46; margin-top: 1rem; }
-.card-transaksi { background: #f9f9f9; padding: 10px; border-radius: 5px; margin-bottom: 10px; border-left: 4px solid #4A6B46; }
-.table-mini { font-size: 0.9em; margin-top: 10px; }
-.alert-proses { background: #e3f2fd; color: #1976d2; padding: 1rem; border-radius: 5px; margin-top: 1rem; }
+.section-info p {
+  margin: 5px 0;
+}
+.transaction-area h3 {
+  color: #4a6b46;
+  margin-top: 1rem;
+}
+.card-transaksi {
+  background: #f9f9f9;
+  padding: 10px;
+  border-radius: 5px;
+  margin-bottom: 10px;
+  border-left: 4px solid #4a6b46;
+}
+.table-mini {
+  font-size: 0.9em;
+  margin-top: 10px;
+}
+.alert-proses {
+  background: #e3f2fd;
+  color: #1976d2;
+  padding: 1rem;
+  border-radius: 5px;
+  margin-top: 1rem;
+}
 
 /* Status Colors */
-.status-proses { color: #3498db; font-weight: bold; }
-.status-selesai { color: #2ecc71; font-weight: bold; }
+.status-proses {
+  color: #3498db;
+  font-weight: bold;
+}
+.status-selesai {
+  color: #2ecc71;
+  font-weight: bold;
+}
 </style>
