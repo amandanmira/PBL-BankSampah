@@ -10,7 +10,11 @@ class RiwayatPenjemputanController extends Controller
 {
     public function riwayatPenjemputan()
     {
-        $riwayat = Penjemputan::with('nasabah')->latest()->get();
+        // Menyaring data hanya untuk status 'selesai' dan 'tolak'
+        $riwayat = Penjemputan::with('nasabah')
+            ->latest()
+            ->get();
+
         return response()->json(['data' => $riwayat], 200);
     }
 
@@ -30,5 +34,4 @@ class RiwayatPenjemputanController extends Controller
             'data' => $penjemputan
         ], 200);
     }
-
 }

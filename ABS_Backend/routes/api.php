@@ -42,6 +42,18 @@ Route::prefix('nasabah')->middleware(['auth:sanctum', 'role:nasabah'])->group(fu
     Route::get('/penjemputan-nasabah', [KonfirmasiPenjemputanController::class, 'penjemputanNasabah']);
 });
 
+Route::prefix('manager')->middleware(['auth:sanctum', 'role:manager'])->group(function () {
+
+    //Penarikan
+    Route::get('/riwayat-penarikan', [KonfirmasiPenarikanController::class, 'riwayatPenarikan']);
+    Route::get('/riwayat-penarikan/{id}', [KonfirmasiPenarikanController::class, 'show']);
+
+    //Penjemputan
+    Route::get('/riwayat-penjemputan', [RiwayatPenjemputanController::class, 'riwayatPenjemputan']);
+    Route::get('/riwayat-penjemputan/{id}', [RiwayatPenjemputanController::class, 'show']);
+
+});
+
 Route::prefix('pengepul')->middleware(['auth:sanctum', 'role:pengepul'])->group(function () {
     Route::put('/edit-profile/{id}', [ProfileController::class, 'updatePengepul']);
     Route::get('/profile/{id}', [ProfileController::class, 'showPengepul']);
@@ -77,7 +89,7 @@ Route::prefix('petugas')->middleware(['auth:sanctum', 'role:petugas'])->group(fu
     Route::get('/riwayat-penjemputan/{id}', [RiwayatPenjemputanController::class, 'show']);
     Route::put('/penjemputan/{penjemputan}/terima', [KonfirmasiPenjemputanController::class, 'terima']);
     Route::put('/penjemputan/{penjemputan}/tolak', [KonfirmasiPenjemputanController::class, 'tolak']);
-    Route::get('/showpenjemputan/{penjemputan}',[KonfirmasiPenjemputanController::class, 'show']);
+    Route::get('/showpenjemputan/{penjemputan}', [KonfirmasiPenjemputanController::class, 'show']);
 
     //penimbangan
     Route::post('/penimbangan', [PenimbanganController::class, 'penimbangan']);

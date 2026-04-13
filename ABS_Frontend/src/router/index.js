@@ -74,6 +74,10 @@ import RequestPembelianCreate from "@/pages/dashboards/pengepul/requestPembelian
 import RequestPembelianIndex from "@/pages/dashboards/pengepul/requestPembelian/RequestPembelianIndex.vue";
 import RequestPembelianEdit from "@/pages/dashboards/pengepul/requestPembelian/RequestPembelianEdit.vue";
 
+//Manager
+import RiwayatPenarikanMan from "@/pages/dashboards/manager/RiwayatPenarikanMan.vue";
+import RiwayatPenjemputanMan from "@/pages/dashboards/manager/RiwayatPenjemputanMan.vue";
+
 const routes = [
   {
     path: "/",
@@ -226,6 +230,14 @@ const routes = [
   {
     path: "/dashboard-manager",
     component: DashboardManager,
+  },
+  {
+    path: "/dashboard-manager/riwayat-penjemputan",
+    component: RiwayatPenjemputanMan,
+  },
+  {
+    path: "/dashboard-manager/riwayat-penarikan",
+    component: RiwayatPenarikanMan,
   },
 
   // Petugas
