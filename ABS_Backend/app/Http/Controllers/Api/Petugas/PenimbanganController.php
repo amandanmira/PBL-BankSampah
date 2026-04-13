@@ -90,6 +90,18 @@ public function penimbangan(Request $request)
         }
     }
 
+    // Tambahkan fungsi ini di bawah fungsi listSampah()
+    public function listKategori()
+    {
+        // Mengambil kategori yang aktif
+        $kategori = \App\Models\KategoriSampah::where('active', 1)->get();
+
+        return response()->json([
+            'message' => 'Berhasil mengambil data kategori',
+            'data' => $kategori
+        ], 200);
+    }
+
 public function listSampah()
     {
         // Mengambil semua data dari tabel sampah, beserta data dari tabel item_sampah

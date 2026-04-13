@@ -56,12 +56,27 @@
             </button>
 
             <div class="timbang-row">
+              
+              <div class="form-group">
+                <label>Kategori *</label>
+                <select v-model="row.kategori_id" @change="row.sampah_id = ''" required class="select-dropdown">
+                  <option value="" disabled>Pilih Kategori</option>
+                  <option 
+                    v-for="kat in listKategori" 
+                    :key="kat.kategori_id" 
+                    :value="kat.kategori_id"
+                  >
+                    {{ kat.nama }}
+                  </option>
+                </select>
+              </div>
+
               <div class="form-group">
                 <label>Jenis Sampah *</label>
-                <select v-model="row.sampah_id" required class="select-dropdown">
+                <select v-model="row.sampah_id" required class="select-dropdown" :disabled="!row.kategori_id">
                   <option value="" disabled>Pilih Jenis Sampah</option>
                   <option 
-                    v-for="item in listSampah" 
+                    v-for="item in filteredSampah(row.kategori_id)" 
                     :key="item.sampah_id" 
                     :value="item.sampah_id"
                   >
@@ -135,16 +150,16 @@
 
 <script setup>
 import { ref, computed, onMounted } from "vue";
-// TAMBAHKAN useRouter UNTUK REDIRECT
 import { useRoute, useRouter } from "vue-router";
 import axios from "axios";
 
 const route = useRoute();
-const router = useRouter(); // INISIALISASI ROUTER
+const router = useRouter(); 
 const penjemputan = ref(null);
 const loading = ref(true);
 const error = ref(null);
 
+const listKategori = ref([]); // STATE BARU: Menyimpan daftar kategori
 const listSampah = ref([]);
 const listTukang = ref([]); 
 const selectedTukang = ref(""); 
@@ -154,20 +169,28 @@ const isSubmitting = ref(false);
 const submitMessage = ref("");
 const isSuccess = ref(false);
 
-const formRows = ref([{ sampah_id: "", berat_timbang: "", foto: null }]);
+// Tambahkan kategori_id di data awal form
+const formRows = ref([{ kategori_id: "", sampah_id: "", berat_timbang: "", foto: null }]);
 
 const handleFileUpload = (event, index) => {
   formRows.value[index].foto = event.target.files[0];
 };
 
 const addRow = () => {
-  formRows.value.push({ sampah_id: "", berat_timbang: "", foto: null });
+  formRows.value.push({ kategori_id: "", sampah_id: "", berat_timbang: "", foto: null });
 };
 
 const removeRow = (index) => {
   if (formRows.value.length > 1) {
     formRows.value.splice(index, 1);
   }
+};
+
+// --- FUNGSI FILTER SAMPAH BERDASARKAN KATEGORI ---
+const filteredSampah = (kategoriId) => {
+  if (!kategoriId) return [];
+  // Hanya kembalikan data sampah yang kategori_id-nya sama dengan yang dipilih
+  return listSampah.value.filter(item => item.item_sampah && item.item_sampah.kategori_id === kategoriId);
 };
 
 const getHargaPerKg = (sampah_id) => {
@@ -210,6 +233,18 @@ const fetchData = async () => {
     error.value = "Gagal mengambil data detail penjemputan. " + (err.response ? err.response.data.message : err.message);
   } finally {
     loading.value = false;
+  }
+};
+
+// --- FUNGSI FETCH KATEGORI DARI API ---
+const fetchListKategori = async () => {
+  try {
+    const token = sessionStorage.getItem("token");
+    const headers = { Authorization: `Bearer ${token}` };
+    const response = await axios.get("http://localhost:8000/api/petugas/list-kategori", { headers });
+    listKategori.value = response.data.data;
+  } catch (err) {
+    console.error("Gagal mengambil daftar kategori:", err);
   }
 };
 
@@ -267,10 +302,9 @@ const submitPenimbangan = async () => {
     isSuccess.value = true;
     submitMessage.value = response.data.message;
     
-    // --- REDIRECT KE HALAMAN LIST PENJEMPUTAN ---
     setTimeout(() => {
       router.push('/dashboard-petugas/listpenjemputan');
-    }, 1500); // Tunggu 1.5 detik agar pengguna melihat pesan sukses
+    }, 1500); 
     
   } catch (err) {
     isSuccess.value = false;
@@ -282,11 +316,18 @@ const submitPenimbangan = async () => {
 
 onMounted(() => {
   fetchData();
+  fetchListKategori(); // Panggil data kategori
   fetchListSampah();
   fetchListTukang();
 });
 </script>
 
 <style scoped>
+/* CSS Dasar */
+.mt-3 { margin-top: 1rem; }
+.mb-3 { margin-bottom: 1rem; }
+.select-dropdown { width: 100%; font-size: 1em; padding: 0.8rem; border: 1px solid #ccc; border-radius: 6px; background-color: #fcfcfc; }
+.select-dropdown:focus { border-color: #4A6B46; outline: none; }
+.file-input { padding: 0.5rem; background-color: #fff; cursor: pointer; border: 1px dashed #4A6B46; width: 100%; border-radius: 6px; }
 
 </style>

@@ -51,7 +51,6 @@ Route::prefix('manager')->middleware(['auth:sanctum', 'role:manager'])->group(fu
     //Penjemputan
     Route::get('/riwayat-penjemputan', [RiwayatPenjemputanController::class, 'riwayatPenjemputan']);
     Route::get('/riwayat-penjemputan/{id}', [RiwayatPenjemputanController::class, 'show']);
-
 });
 
 Route::prefix('pengepul')->middleware(['auth:sanctum', 'role:pengepul'])->group(function () {
@@ -95,6 +94,7 @@ Route::prefix('petugas')->middleware(['auth:sanctum', 'role:petugas'])->group(fu
     Route::post('/penimbangan', [PenimbanganController::class, 'penimbangan']);
     Route::get('/list-sampah', [PenimbanganController::class, 'listSampah']);
     Route::get('/list-tukang', [PenimbanganController::class, 'listTukang']);
+    Route::get('/list-kategori', [PenimbanganController::class, 'listKategori']);
 });
 
 // Route Admin
@@ -111,6 +111,7 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'role:admin'])->group(functi
 
     // Manager
     Route::post('/buatManager', [BuatManagerController::class,  'buatManager']);
+    Route::get('manager', [KelolaAkunController::class, 'indexManager']);
     Route::get('manager/{manager}', [KelolaAkunController::class, 'showManager']);
     Route::put('manager/{manager}/deactivate', [AksiAdminController::class, 'deactivateManager']);
     Route::put('manager/{manager}/activate', [AksiAdminController::class, 'activateManager']);
@@ -124,13 +125,17 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'role:admin'])->group(functi
     Route::put('pengepul/{pengepul}/deactivate', [AksiAdminController::class, 'deactivatePengepul']);
     Route::put('pengepul/{pengepul}/activate', [AksiAdminController::class, 'activatePengepul']);
 
-
+    //Nasabah
     Route::get('nasabah', [KelolaAkunController::class, 'indexNasabah']);
     Route::put('nasabah/{nasabah}/deactivate', [AksiAdminController::class, 'deactivateNasabah']);
     Route::put('nasabah/{nasabah}/activate', [AksiAdminController::class, 'activateNasabah']);
+
+    //tukang
     Route::get('tukang', [KelolaAkunController::class, 'indexTukang']);
+
+    //Admin
     Route::get('admin', [KelolaAkunController::class, 'indexAdmin']);
-    Route::get('manager', [KelolaAkunController::class, 'indexManager']);
+
 
     // Gudang
     Route::apiResource('gudang', GudangController::class);
