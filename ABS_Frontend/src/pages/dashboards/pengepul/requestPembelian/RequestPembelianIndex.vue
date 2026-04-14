@@ -31,7 +31,8 @@
 					<td>
 						<button v-if="transaksi.status == 'proses'"
 							@click="router.push(`/dashboard-pengepul/request-pembelian/${transaksi.transaksi_id}`)">Update</button>
-						<p v-else>-</p>
+						<button @click="previewPdf(transaksi.transaksi_id)">Cetak PDF</button>
+
 					</td>
 				</tr>
 			</tbody>
@@ -86,6 +87,25 @@ const downloadExcel = async () => {
 		document.body.appendChild(link)
 		link.click()
 		link.remove()
+	} catch (err) {
+		console.error(err)
+	}
+}
+
+const previewPdf = async (id) => {
+	try {
+		const response = await axios.get(
+			`/api/pengepul/export-pembelian/pdf/${id}`,
+			{
+				headers,
+				responseType: 'blob', // penting
+			}
+		)
+
+		const file = new Blob([response.data], { type: 'application/pdf' })
+		const fileURL = URL.createObjectURL(file)
+
+		window.open(fileURL)
 	} catch (err) {
 		console.error(err)
 	}

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Maatwebsite\Excel\Facades\Excel;
+use Barryvdh\DomPDF\Facade\Pdf;
 use App\Exports\TransaksiPengepulExport;
 use App\Models\TransaksiPengepul;
 use App\Models\ItemSampah;
@@ -118,5 +119,15 @@ class RequestPembelianController extends Controller
     public function exportExcel()
     {
         return Excel::download(new TransaksiPengepulExport, 'transaksi.xlsx');
+    }
+
+    public function exportPdf($transaksi_id)
+    {
+        $transaksi = TransaksiPengepul::with('detailTransaksi.sampah.itemSampah')
+                        ->findOrFail($transaksi_id);
+
+        $pdf = Pdf::loadView('pdf.transaksi-pengepul', compact('transaksi'));
+
+        return $pdf->stream();
     }
 }

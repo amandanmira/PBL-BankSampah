@@ -49,6 +49,7 @@ Route::prefix('pengepul')->middleware(['auth:sanctum', 'role:pengepul'])->group(
     Route::put('/request-pembelian/{id}', [RequestPembelianController::class, 'update']);
     Route::post('/request-pembelian', [RequestPembelianController::class, 'store']);
     Route::get('/export-pembelian/excel', [RequestPembelianController::class, 'exportExcel']);
+    Route::get('/export-pembelian/pdf/{transaksi_id}', [RequestPembelianController::class, 'exportPdf']);
 });
 
 // Route Petugas
