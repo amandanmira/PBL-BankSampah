@@ -39,8 +39,14 @@ class KonfirmasiPenjemputanController extends Controller
 
     public function terima(Request $request, Penjemputan $penjemputan)
     {
+        // Validasi agar tukang_id wajib diisi
+        $request->validate([
+            'tukang_id' => 'required|exists:tukangs,tukang_id' // sesuaikan nama tabel tukang jika berbeda
+        ]);
+
         $penjemputan->status = 'proses';
-        $penjemputan->petugas_id = Auth::id(); // Mengisi ID petugas yang sedang login
+        $penjemputan->petugas_id = Auth::id();
+        $penjemputan->tukang_id = $request->tukang_id; // Menyimpan ID Tukang
         $penjemputan->save();
 
         return response()->json(['message' => 'Penjemputan di Proses'], 200);
@@ -76,5 +82,14 @@ class KonfirmasiPenjemputanController extends Controller
         $penjemputan->load('nasabah', 'petugas');
 
         return response()->json(['data' => $penjemputan], 200);
+    }
+
+    // Tambahkan use App\Models\Tukang; di bagian atas controller jika belum ada
+
+    public function getTukang()
+    {
+        // Mengambil daftar tukang yang statusnya aktif (berdasarkan gambar tabel Anda)
+        $tukang = \App\Models\Tukang::where('active', 1)->get();
+        return response()->json(['data' => $tukang], 200);
     }
 }

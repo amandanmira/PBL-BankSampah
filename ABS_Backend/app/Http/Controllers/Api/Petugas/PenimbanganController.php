@@ -13,15 +13,14 @@ class PenimbanganController extends Controller
 {
 public function penimbangan(Request $request)
     {
-        // 1. Validasi Input (Ubah validasi foto menjadi per item)
+        // 1. Validasi Input (tipe_transaksi dihapus dari validasi)
         $request->validate([
             'penjemputan_id'        => 'required',
             'tukang_id'             => 'required',
-            'tipe_transaksi'        => 'required|in:dijemput,antar_sendiri',
             'items'                 => 'required|array|min:1',
             'items.*.sampah_id'     => 'required',
             'items.*.berat_timbang' => 'required|numeric|min:0.1',
-            'items.*.foto'          => 'nullable|image|mimes:jpeg,png,jpg|max:5120', // Validasi foto per baris
+            'items.*.foto'          => 'nullable|image|mimes:jpeg,png,jpg|max:5120',
         ]);
 
         DB::beginTransaction();
@@ -31,7 +30,10 @@ public function penimbangan(Request $request)
 
             // Buat Data Transaksi Baru
             $transaksi = new \App\Models\TransaksiNasabah();
-            $transaksi->tipe_transaksi = $request->tipe_transaksi;
+
+            // ---> OTOMATIS DIISI 'dijemput' <---
+            $transaksi->tipe_transaksi = 'dijemput';
+
             $transaksi->tanggal        = now();
             $transaksi->status         = 'selesai';
             $transaksi->petugas_id     = $request->user()->petugas_id;
@@ -40,8 +42,7 @@ public function penimbangan(Request $request)
             $total_semua_harga = 0;
 
             foreach ($request->items as $index => $itemData) {
-                // ... (Proses cek foto, simpan penimbangan, dan update stok sampah tetap sama) ...
-
+                // Proses upload foto per baris
                 $fotoPath = null;
                 if ($request->hasFile("items.$index.foto")) {
                     $fotoPath = $request->file("items.$index.foto")->store('penimbangan_foto', 'public');
@@ -69,10 +70,9 @@ public function penimbangan(Request $request)
                 }
             }
 
-            // ---> TAMBAHKAN KODE INI UNTUK MENGUBAH STATUS PENJEMPUTAN <---
+            // Ubah Status Penjemputan
             $penjemputan->status = 'selesai';
             $penjemputan->save();
-            // ---------------------------------------------------------------
 
             DB::commit();
 
@@ -137,6 +137,100 @@ public function listTukang(Request $request)
             'data' => $tukang
         ], 200);
     }
+
+    // --- 1. FUNGSI UNTUK MENGAMBIL DAFTAR NASABAH ---
+    public function listNasabah()
+    {
+        // Mengambil semua nasabah, bisa disesuaikan jika ada filter status 'aktif'
+        $nasabah = \App\Models\Nasabah::all();
+
+        return response()->json([
+            'message' => 'Berhasil mengambil data nasabah',
+            'data' => $nasabah
+        ], 200);
+    }
+
+    // --- 2. FUNGSI UNTUK MENYIMPAN PENIMBANGAN ANTAR SENDIRI ---
+    public function penimbanganAntarSendiri(Request $request)
+    {
+        // Validasi: penjemputan_id tidak ada, tapi nasabah_id wajib
+        $request->validate([
+            'nasabah_id'            => 'required',
+            'tukang_id'             => 'required',
+            'items'                 => 'required|array|min:1',
+            'items.*.sampah_id'     => 'required',
+            'items.*.berat_timbang' => 'required|numeric|min:0.1',
+            'items.*.foto'          => 'nullable|image|mimes:jpeg,png,jpg|max:5120',
+        ]);
+
+        DB::beginTransaction();
+
+        try {
+            // Buat Data Transaksi Baru (Otomatis tipe 'antar_sendiri')
+            $transaksi = new \App\Models\TransaksiNasabah();
+            $transaksi->tipe_transaksi = 'antar_sendiri';
+            $transaksi->tanggal        = now();
+            $transaksi->status         = 'selesai';
+            $transaksi->petugas_id     = $request->user()->petugas_id;
+            $transaksi->save();
+
+            $total_semua_harga = 0;
+
+            foreach ($request->items as $index => $itemData) {
+                // Proses upload foto per baris
+                $fotoPath = null;
+                if ($request->hasFile("items.$index.foto")) {
+                    $fotoPath = $request->file("items.$index.foto")->store('penimbangan_foto', 'public');
+                }
+
+                $penimbangan = new Penimbangan();
+                $penimbangan->sampah_id      = $itemData['sampah_id'];
+                $penimbangan->berat_timbang  = $itemData['berat_timbang'];
+
+                // Ambil ID nasabah langsung dari form (karena tidak ada penjemputan)
+                $penimbangan->nasabah_id     = $request->nasabah_id;
+
+                $penimbangan->transaksi_id   = $transaksi->transaksi_id;
+                $penimbangan->foto           = $fotoPath;
+                $penimbangan->gudang_id      = $request->user()->gudang_id;
+                $penimbangan->tukang_id      = $request->tukang_id;
+
+                // BIARKAN KOSONG KARENA ANTAR SENDIRI
+                $penimbangan->penjemputan_id = null;
+
+                $penimbangan->save();
+
+                // Update Stok Sampah
+                $sampah = \App\Models\Sampah::where('sampah_id', $itemData['sampah_id'])->first();
+                if ($sampah) {
+                    $sampah->stok += $itemData['berat_timbang'];
+                    $sampah->save();
+
+                    $sampah->load('itemSampah');
+                    $harga_per_kg = $sampah->itemSampah ? $sampah->itemSampah->harga_beli : 0;
+                    $total_semua_harga += ($harga_per_kg * $itemData['berat_timbang']);
+                }
+            }
+
+            // (Jika di sistemmu saldo nasabah bertambah saat menimbang, kamu bisa tambahkan kode penambahan saldo di sini)
+
+            DB::commit();
+
+            return response()->json([
+                'message' => 'Transaksi Antar Sendiri berhasil disimpan!',
+                'total_keseluruhan' => $total_semua_harga
+            ], 200);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'message' => 'Gagal menyimpan data penimbangan.',
+                'error'   => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    
 
 
 }

@@ -19,15 +19,6 @@
         <form @submit.prevent="submitPenimbangan">
           
           <div class="form-section top-section">
-            <div class="form-group mb-3">
-              <label for="tipe_transaksi">Tipe Transaksi *</label>
-              <select id="tipe_transaksi" v-model="tipeTransaksi" required class="select-dropdown">
-                <option value="" disabled>Pilih Tipe Transaksi</option>
-                <option value="dijemput">Dijemput</option>
-                <option value="antar_sendiri">Antar Sendiri</option>
-              </select>
-            </div>
-
             <div class="form-group">
               <label for="tukang">Petugas / Tukang Timbang *</label>
               <select id="tukang" v-model="selectedTukang" required class="select-dropdown">
@@ -134,7 +125,7 @@
             </div>
           </div>
 
-          <button type="submit" class="btn-submit" :disabled="isSubmitting || totalNilai <= 0 || !selectedTukang || !tipeTransaksi">
+          <button type="submit" class="btn-submit" :disabled="isSubmitting || totalNilai <= 0 || !selectedTukang">
             {{ isSubmitting ? 'Memproses...' : 'Simpan dan Selesai' }}
           </button>
         </form>
@@ -159,17 +150,15 @@ const penjemputan = ref(null);
 const loading = ref(true);
 const error = ref(null);
 
-const listKategori = ref([]); // STATE BARU: Menyimpan daftar kategori
+const listKategori = ref([]);
 const listSampah = ref([]);
 const listTukang = ref([]); 
 const selectedTukang = ref(""); 
-const tipeTransaksi = ref(""); 
 
 const isSubmitting = ref(false);
 const submitMessage = ref("");
 const isSuccess = ref(false);
 
-// Tambahkan kategori_id di data awal form
 const formRows = ref([{ kategori_id: "", sampah_id: "", berat_timbang: "", foto: null }]);
 
 const handleFileUpload = (event, index) => {
@@ -186,10 +175,8 @@ const removeRow = (index) => {
   }
 };
 
-// --- FUNGSI FILTER SAMPAH BERDASARKAN KATEGORI ---
 const filteredSampah = (kategoriId) => {
   if (!kategoriId) return [];
-  // Hanya kembalikan data sampah yang kategori_id-nya sama dengan yang dipilih
   return listSampah.value.filter(item => item.item_sampah && item.item_sampah.kategori_id === kategoriId);
 };
 
@@ -236,7 +223,6 @@ const fetchData = async () => {
   }
 };
 
-// --- FUNGSI FETCH KATEGORI DARI API ---
 const fetchListKategori = async () => {
   try {
     const token = sessionStorage.getItem("token");
@@ -287,7 +273,7 @@ const submitPenimbangan = async () => {
     formData.append("nasabah_id", penjemputan.value.nasabah_id);
     formData.append("penjemputan_id", penjemputan.value.penjemputan_id);
     formData.append("tukang_id", selectedTukang.value);
-    formData.append("tipe_transaksi", tipeTransaksi.value);
+    // tipeTransaksi dihapus dari formData
     
     validItems.forEach((item, index) => {
       formData.append(`items[${index}][sampah_id]`, item.sampah_id);
@@ -316,14 +302,13 @@ const submitPenimbangan = async () => {
 
 onMounted(() => {
   fetchData();
-  fetchListKategori(); // Panggil data kategori
+  fetchListKategori(); 
   fetchListSampah();
   fetchListTukang();
 });
 </script>
 
 <style scoped>
-/* CSS Dasar */
 .mt-3 { margin-top: 1rem; }
 .mb-3 { margin-bottom: 1rem; }
 .select-dropdown { width: 100%; font-size: 1em; padding: 0.8rem; border: 1px solid #ccc; border-radius: 6px; background-color: #fcfcfc; }

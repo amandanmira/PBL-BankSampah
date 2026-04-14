@@ -89,12 +89,17 @@ Route::prefix('petugas')->middleware(['auth:sanctum', 'role:petugas'])->group(fu
     Route::put('/penjemputan/{penjemputan}/terima', [KonfirmasiPenjemputanController::class, 'terima']);
     Route::put('/penjemputan/{penjemputan}/tolak', [KonfirmasiPenjemputanController::class, 'tolak']);
     Route::get('/showpenjemputan/{penjemputan}', [KonfirmasiPenjemputanController::class, 'show']);
+    Route::get('/tukang', [KonfirmasiPenjemputanController::class, 'getTukang']);
 
     //penimbangan
     Route::post('/penimbangan', [PenimbanganController::class, 'penimbangan']);
     Route::get('/list-sampah', [PenimbanganController::class, 'listSampah']);
     Route::get('/list-tukang', [PenimbanganController::class, 'listTukang']);
     Route::get('/list-kategori', [PenimbanganController::class, 'listKategori']);
+
+    //penimbangan antar sendiri
+    Route::get('/list-nasabah', [PenimbanganController::class, 'listNasabah']);
+    Route::post('/penimbangan-antar-sendiri', [PenimbanganController::class, 'penimbanganAntarSendiri']);
 });
 
 // Route Admin
