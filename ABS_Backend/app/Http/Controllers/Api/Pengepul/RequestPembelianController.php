@@ -116,9 +116,9 @@ class RequestPembelianController extends Controller
         ]);
     }
 
-    public function exportExcel()
+    public function exportExcel($pengepul_id)
     {
-        return Excel::download(new TransaksiPengepulExport, 'transaksi.xlsx');
+        return Excel::download(new TransaksiPengepulExport($pengepul_id), 'transaksi.xlsx');
     }
 
     public function exportPdf($transaksi_id)

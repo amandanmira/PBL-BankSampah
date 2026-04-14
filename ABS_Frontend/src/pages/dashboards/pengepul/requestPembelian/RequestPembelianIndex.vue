@@ -73,7 +73,7 @@ const fetchTransaksi = async () => {
 const downloadExcel = async () => {
 	try {
 		const res = await axios.get(
-			`/api/pengepul/export-pembelian/excel`,
+			`/api/pengepul/export-pembelian/excel/${user.pengepul_id}`,
 			{
 				headers,
 				responseType: 'blob', // penting

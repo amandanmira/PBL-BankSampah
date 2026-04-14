@@ -48,7 +48,7 @@ Route::prefix('pengepul')->middleware(['auth:sanctum', 'role:pengepul'])->group(
     Route::get('/request-pembelian/show/{id}', [RequestPembelianController::class, 'show']);
     Route::put('/request-pembelian/{id}', [RequestPembelianController::class, 'update']);
     Route::post('/request-pembelian', [RequestPembelianController::class, 'store']);
-    Route::get('/export-pembelian/excel', [RequestPembelianController::class, 'exportExcel']);
+    Route::get('/export-pembelian/excel/{pengepul_id}', [RequestPembelianController::class, 'exportExcel']);
     Route::get('/export-pembelian/pdf/{transaksi_id}', [RequestPembelianController::class, 'exportPdf']);
 });
 

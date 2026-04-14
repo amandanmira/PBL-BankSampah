@@ -109,15 +109,20 @@ const removeSampah = (index) => {
 	form.detail.splice(index, 1);
 };
 
-const getHarga = (item_id) => {
-	const item = sampahList.value.find(i => i.item_id === item_id)
-	return item ? item.harga_jual : 0
+const getHarga = (kategori_id, item_id) => {
+	const kategori = ref(sampahList.value.find(i => i.kategori_id === kategori_id))
+	const item = kategori.value.item_sampah.find(i => i.item_id === item_id)
+	return item ? item.harga_beli : 0
 }
 
 const getSubtotal = (item) => {
-	const subtotal = getHarga(item.item_id) * item.berat
-	item.harga = subtotal
-	return subtotal
+	if (item.kategori_id && item.item_id) {
+		const subtotal = getHarga(item.kategori_id, item.item_id) * item.berat
+		item.harga = subtotal
+		return subtotal
+	} else {
+		return 0
+	}
 }
 
 const getSampahByKategori = (kategori_id, item_id) => {
