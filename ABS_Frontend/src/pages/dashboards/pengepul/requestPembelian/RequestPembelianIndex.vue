@@ -4,6 +4,7 @@
 
 		<!-- tombol create -->
 		<button @click="router.push('/dashboard-pengepul/request-pembelian/create')">+ Tambah Pembelian</button>
+		<button @click="downloadExcel()">Download Laporan Excel</button>
 
 		<table border="1" cellpadding="8" cellspacing="0">
 			<thead>
@@ -49,20 +50,42 @@ checkRole('pengepul')
 const router = useRouter()
 const transaksiList = ref([])
 
+const token = sessionStorage.getItem('token')
+const user = JSON.parse(sessionStorage.getItem('user'))
+
+if (!token) {
+	throw new Error('Otentikasi diperlukan.')
+}
+
+const headers = { 'Authorization': `Bearer ${token}` }
+
 // ambil data
 const fetchTransaksi = async () => {
 	try {
-		const token = sessionStorage.getItem('token')
-		const user = JSON.parse(sessionStorage.getItem('user'))
-
-		if (!token) {
-			throw new Error('Otentikasi diperlukan.')
-		}
-
-		const headers = { 'Authorization': `Bearer ${token}` }
-
 		const res = await axios.get(`/api/pengepul/request-pembelian/${user.pengepul_id}`, { headers })
 		transaksiList.value = res.data
+	} catch (err) {
+		console.error(err)
+	}
+}
+
+const downloadExcel = async () => {
+	try {
+		const res = await axios.get(
+			`/api/pengepul/export-pembelian/excel`,
+			{
+				headers,
+				responseType: 'blob', // penting
+			}
+		)
+
+		const url = window.URL.createObjectURL(new Blob([res.data]))
+		const link = document.createElement('a')
+		link.href = url
+		link.setAttribute('download', 'transaksi.xlsx') // nama file
+		document.body.appendChild(link)
+		link.click()
+		link.remove()
 	} catch (err) {
 		console.error(err)
 	}

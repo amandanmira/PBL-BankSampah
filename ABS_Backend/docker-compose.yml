@@ -3,7 +3,7 @@ version: '3.8'
 services:
   app:
     build: .
-    image: php:8.2-fpm
+    image: php:8.3-fpm
     container_name: ABS_app
     volumes:
       - .:/var/www

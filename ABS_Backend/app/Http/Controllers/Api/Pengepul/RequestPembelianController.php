@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Api\Pengepul;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\TransaksiPengepulExport;
 use App\Models\TransaksiPengepul;
 use App\Models\ItemSampah;
 use App\Models\KategoriSampah;
@@ -111,5 +113,10 @@ class RequestPembelianController extends Controller
         return response()->json([
             'data' => $transaksi
         ]);
+    }
+
+    public function exportExcel()
+    {
+        return Excel::download(new TransaksiPengepulExport, 'transaksi.xlsx');
     }
 }
