@@ -35,8 +35,15 @@ import BeritaEdit from "@/pages/dashboards/petugas/berita/Edit.vue";
 import BeritaShow from "@/pages/dashboards/petugas/berita/show.vue";
 import ConfigWeb from "@/pages/dashboards/admin/managePages/ConfigWeb.vue";
 
+//Penarikan
+import ListPenarikan from "@/pages/dashboards/petugas/ListPenarikan.vue";
+import RiwayatPenarikan from "@/pages/dashboards/petugas/RiwayatPenarikan.vue";
+
 //Penjmeputan
 import ListPenjemputan from "@/pages/dashboards/petugas/ListPenjemputan.vue";
+import RiwayatPenjemputanPetugas from "@/pages/dashboards/petugas/RiwayatPenjemputan.vue";
+import Penimbangan from "@/pages/dashboards/petugas/Penimbangan.vue";
+import PenimbanganAntarSendiri from "@/pages/dashboards/petugas/PenimbanganAntarSendiri.vue";
 
 // Gudang
 import GudangIndex from "@/pages/dashboards/admin/managePages/gudang/GudangIndex.vue";
@@ -67,6 +74,10 @@ import RiwayatPenjemputan from "@/pages/dashboards/nasabah/RiwayatPenjemputan.vu
 import RequestPembelianCreate from "@/pages/dashboards/pengepul/requestPembelian/RequestPembelianCreate.vue";
 import RequestPembelianIndex from "@/pages/dashboards/pengepul/requestPembelian/RequestPembelianIndex.vue";
 import RequestPembelianEdit from "@/pages/dashboards/pengepul/requestPembelian/RequestPembelianEdit.vue";
+
+//Manager
+import RiwayatPenarikanMan from "@/pages/dashboards/manager/RiwayatPenarikanMan.vue";
+import RiwayatPenjemputanMan from "@/pages/dashboards/manager/RiwayatPenjemputanMan.vue";
 
 const routes = [
   {
@@ -221,6 +232,14 @@ const routes = [
     path: "/dashboard-manager",
     component: DashboardManager,
   },
+  {
+    path: "/dashboard-manager/riwayat-penjemputan",
+    component: RiwayatPenjemputanMan,
+  },
+  {
+    path: "/dashboard-manager/riwayat-penarikan",
+    component: RiwayatPenarikanMan,
+  },
 
   // Petugas
   {
@@ -250,6 +269,26 @@ const routes = [
   {
     path: "/dashboard-petugas/listpenjemputan",
     component: ListPenjemputan,
+  },
+  {
+    path: "/dashboard-petugas/listpenarikan",
+    component: ListPenarikan,
+  },
+  {
+    path: "/dashboard-petugas/riwayat-penjemputan",
+    component: RiwayatPenjemputanPetugas,
+  },
+  {
+    path: '/dashboard-petugas/riwayat-penarikan',
+    component: RiwayatPenarikan,
+  },
+  {
+    path: "/dashboard-petugas/penimbangan/:id",
+    component: Penimbangan,
+  },
+  {
+    path: "/dashboard-petugas/penimbangan",
+    component: PenimbanganAntarSendiri,
   },
 
   // Pengepul
