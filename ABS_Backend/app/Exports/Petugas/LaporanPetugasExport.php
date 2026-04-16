@@ -12,8 +12,11 @@ class LaporanPetugasExport implements WithMultipleSheets
             new LaporanTransaksiPengepulExport(),
             new LaporanTransaksiNasabahExport(),
             new LaporanDetailTransaksiExport(),
+            new LaporanPenimbanganExport(),
             new LaporanPengepulExport(),
+            new LaporanNasabahExport(),
             new LaporanPenjualanSampahExport(),
+            new LaporanPembelianSampahExport(),
         ];
     }
 }

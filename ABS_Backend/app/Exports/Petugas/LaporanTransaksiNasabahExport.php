@@ -18,7 +18,7 @@ class LaporanTransaksiNasabahExport implements FromCollection, WithHeadings, Wit
     {
         $oneMonthAgo = Carbon::now()->subMonth();
 
-        return TransaksiNasabah::where('created_at', '>=', $oneMonthAgo)
+        return TransaksiNasabah::where('tanggal', '>=', $oneMonthAgo)
             ->where('status', 'selesai')
             ->with([
                 'penimbangan' => function ($q) use ($oneMonthAgo) {
