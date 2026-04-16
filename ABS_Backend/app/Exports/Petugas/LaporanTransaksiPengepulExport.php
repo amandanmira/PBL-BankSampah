@@ -34,7 +34,6 @@ class LaporanTransaksiPengepulExport implements FromCollection, WithHeadings, Wi
 
         return [
             $transaksi->transaksi_id,
-            $transaksi->status,
             $transaksi->deadline,
             $transaksi->created_at,
             $transaksi->pengepul->nama,
@@ -45,7 +44,7 @@ class LaporanTransaksiPengepulExport implements FromCollection, WithHeadings, Wi
 
     public function headings(): array
     {
-        return ['ID', 'Status', 'Deadline', 'Tanggal Transaksi', 'Pengepul', 'Detail Transaksi', 'Total'];
+        return ['ID', 'Deadline', 'Tanggal Transaksi', 'Pengepul', 'Detail Transaksi', 'Total'];
     }
 
     public function title(): string
