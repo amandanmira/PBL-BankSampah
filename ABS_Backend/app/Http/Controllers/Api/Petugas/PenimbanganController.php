@@ -53,8 +53,7 @@ public function penimbangan(Request $request)
                 $penimbangan->berat_timbang  = $itemData['berat_timbang'];
                 $penimbangan->nasabah_id     = $penjemputan->nasabah_id;
                 $penimbangan->transaksi_id   = $transaksi->transaksi_id;
-                $penimbangan->foto           = $fotoPath;
-                $penimbangan->gudang_id      = $request->user()->gudang_id;
+                $penimbangan->foto           = $fotoPath; // gudang_id
                 $penimbangan->tukang_id      = $request->tukang_id;
                 $penimbangan->penjemputan_id = $request->penjemputan_id;
                 $penimbangan->save();
@@ -192,7 +191,6 @@ public function listTukang(Request $request)
 
                 $penimbangan->transaksi_id   = $transaksi->transaksi_id;
                 $penimbangan->foto           = $fotoPath;
-                $penimbangan->gudang_id      = $request->user()->gudang_id;
                 $penimbangan->tukang_id      = $request->tukang_id;
 
                 // BIARKAN KOSONG KARENA ANTAR SENDIRI
@@ -230,7 +228,7 @@ public function listTukang(Request $request)
         }
     }
 
-    
+
 
 
 }

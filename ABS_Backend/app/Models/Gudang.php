@@ -33,9 +33,4 @@ class Gudang extends Model
     {
         return $this->hasMany(Petugas::class,'gudang_id','gudang_id');
     }
-
-    public function penimbangan()
-    {
-        return $this->hasMany(Penimbangan::class,'gudang_id','gudang_id');
-    }
 }

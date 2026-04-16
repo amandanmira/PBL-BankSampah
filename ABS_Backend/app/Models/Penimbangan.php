@@ -16,7 +16,6 @@ class Penimbangan extends Model
         'sampah_id',
         'tukang_id',
         'penjemputan_id',
-        'gudang_id',
     ];
 
     public function nasabah()
@@ -42,10 +41,5 @@ class Penimbangan extends Model
     public function penjemputan()
     {
         return $this->belongsTo(Penjemputan::class,'penjemputan_id','penjemputan_id');
-    }
-
-    public function gudang()
-    {
-        return $this->belongsTo(Gudang::class,'gudang_id','gudang_id');
     }
 }

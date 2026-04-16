@@ -37,12 +37,6 @@ return new class extends Migration
                 ->constrained('gudangs','gudang_id')
                 ->cascadeOnDelete();
         });
-
-        Schema::table('penimbangans', function (Blueprint $table) {
-            $table->foreignId('gudang_id')
-                ->constrained('gudangs','gudang_id')
-                ->cascadeOnDelete();
-        });
     }
 
     /**
@@ -50,11 +44,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('penimbangans', function (Blueprint $table) {
-            $table->dropForeign(['gudang_id']);
-            $table->dropColumn('gudang_id');
-        });
-
         Schema::table('petugas', function (Blueprint $table) {
             $table->dropForeign(['gudang_id']);
             $table->dropColumn('gudang_id');

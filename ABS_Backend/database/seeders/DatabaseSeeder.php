@@ -17,6 +17,7 @@ use App\Models\Admin;
 use App\Models\KategoriSampah;
 use App\Models\ItemSampah;
 use App\Models\Sampah;
+use App\Models\Tukang;
 
 class DatabaseSeeder extends Seeder
 {
@@ -36,6 +37,7 @@ class DatabaseSeeder extends Seeder
 
         Gudang::create([
             'alamat' => 'Surakarta',
+            'kapasitas' => '1000',
         ]);
 
         $dataKategori = [
@@ -181,13 +183,30 @@ class DatabaseSeeder extends Seeder
             ]);
         }
 
-        Nasabah::create([
-            'nama' => 'Nasabah',
-            'username' => 'nasabah',
-            'email' => 'nasabah@abs.com',
-            'password' => Hash::make('nasabah123'),
-            'status' => 'aktif',
-        ]);
+        $dataNasabah = [
+            [
+                'nama' => 'Nasabah',
+                'username' => 'nasabah',
+            ],
+            [
+                'nama' => 'Nasabah2',
+                'username' => 'nasabah2',
+            ],
+            [
+                'nama' => 'Nasabah3',
+                'username' => 'nasabah3',
+            ],
+        ];
+
+        foreach ($dataNasabah as $item) {
+            Nasabah::create([
+                'nama' => $item['nama'],
+                'username' => $item['username'],
+                'email' => $item['username'] . '@abs.com',
+                'password' => Hash::make('nasabah123'),
+                'status' => 'aktif',
+            ]);
+        }
 
         $dataPengepul = [
             [
@@ -237,6 +256,13 @@ class DatabaseSeeder extends Seeder
             'username' => 'admin',
             'email' => 'admin@abs.com',
             'password' => Hash::make('admin123'),
+        ]);
+
+        Tukang::create([
+            'nama' => 'Tukang',
+            'no_telp' => '081212341234',
+            'active' => 1,
+            'gudang_id' => 1,
         ]);
     }
 }
