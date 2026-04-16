@@ -16,6 +16,7 @@ use App\Http\Controllers\Api\Nasabah\RequestPenarikanController;
 use App\Http\Controllers\Api\Nasabah\RequestPenjemputanController;
 use App\Http\Controllers\Api\Petugas\BeritaController;
 use App\Http\Controllers\Api\Petugas\KonfirmasiPenjemputanController;
+use App\Http\Controllers\Api\Petugas\LaporanController;
 use App\Http\Controllers\Api\ProfileController;
 
 use App\Http\Controllers\Api\Admin\SampahGudangController;
@@ -102,6 +103,9 @@ Route::prefix('petugas')->middleware(['auth:sanctum', 'role:petugas'])->group(fu
     //penimbangan antar sendiri
     Route::get('/list-nasabah', [PenimbanganController::class, 'listNasabah']);
     Route::post('/penimbangan-antar-sendiri', [PenimbanganController::class, 'penimbanganAntarSendiri']);
+
+    // API Laporan
+    Route::get('/cetak-laporan/excel', [LaporanController::class, 'exportExcel']);
 });
 
 // Route Admin

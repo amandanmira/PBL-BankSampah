@@ -7,7 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Maatwebsite\Excel\Facades\Excel;
 use Barryvdh\DomPDF\Facade\Pdf;
-use App\Exports\TransaksiPengepulExport;
+use App\Exports\Pengepul\TransaksiPengepulExport;
 use App\Models\TransaksiPengepul;
 use App\Models\ItemSampah;
 use App\Models\KategoriSampah;
