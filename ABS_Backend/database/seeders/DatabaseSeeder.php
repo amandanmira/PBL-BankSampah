@@ -189,16 +189,33 @@ class DatabaseSeeder extends Seeder
             'status' => 'aktif',
         ]);
 
-        Pengepul::create([
-            'nama' => 'Pengepul',
-            'username' => 'pengepul',
-            'email' => 'pengepul@abs.com',
-            'password' => Hash::make('pengepul123'),
-            'no_telp' => '081234567890',
-            'nama_lembaga' => 'CV.Penegpul',
-            'alamat' => 'Surakarta',
-            'status' => 'aktif',
-        ]);
+        $dataPengepul = [
+            [
+                'nama' => 'Pengepul',
+                'username' => 'pengepul',
+            ],
+            [
+                'nama' => 'Pengepul2',
+                'username' => 'pengepul2',
+            ],
+            [
+                'nama' => 'Pengepul3',
+                'username' => 'pengepul3',
+            ],
+        ];
+
+        foreach ($dataPengepul as $item) {
+            Pengepul::create([
+                'nama' => $item['nama'],
+                'username' => $item['username'],
+                'email' => $item['username'] . '@abs.com',
+                'password' => Hash::make('pengepul123'),
+                'no_telp' => '081234567890',
+                'nama_lembaga' => 'CV.Penegpul',
+                'alamat' => 'Surakarta',
+                'status' => 'aktif',
+            ]);
+        }
 
         Petugas::create([
             'nama' => 'Petugas',

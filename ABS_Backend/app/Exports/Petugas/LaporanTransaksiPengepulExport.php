@@ -19,7 +19,7 @@ class LaporanTransaksiPengepulExport implements FromCollection, WithHeadings, Wi
         $oneMonthAgo = Carbon::now()->subMonth();
 
         return TransaksiPengepul::where('created_at', '>=', $oneMonthAgo)
-            ->where('status', 'aktif')
+            ->where('status', 'selesai')
             ->with(['detailTransaksi.sampah.itemSampah', 'pengepul'])->get();
     }
 
