@@ -30,9 +30,7 @@ class LaporanTransaksiPengepulExport implements FromCollection, WithHeadings, Wi
             return $item->sampah->itemSampah->nama . ' (' . $item->berat . ' KG )';
         })->implode(', ');
 
-        $total = $transaksi->detailTransaksi->sum(function ($item) {
-            return $item->harga; // sesuaikan field
-        });
+        $total = $transaksi->detailTransaksi->sum('harga');
 
         return [
             $transaksi->transaksi_id,

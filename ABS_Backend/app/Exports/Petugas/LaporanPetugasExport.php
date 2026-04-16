@@ -11,6 +11,7 @@ class LaporanPetugasExport implements WithMultipleSheets
         return [
             new LaporanTransaksiPengepulExport(),
             new LaporanDetailTransaksiExport(),
+            new LaporanPengepulExport(),
         ];
     }
 }

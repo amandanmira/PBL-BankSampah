@@ -20,6 +20,9 @@ class LaporanDetailTransaksiExport implements FromCollection, WithMapping, WithH
         $oneMonthAgo = Carbon::now()->subMonth();
 
         return DetailTransaksi::where('created_at', '>=', $oneMonthAgo)
+            ->whereHas('transaksiPengepul', function ($q) {
+                $q->where('status', 'selesai');
+            })
             ->with(['transaksiPengepul.pengepul', 'sampah.itemSampah'])->get();
     }
 
