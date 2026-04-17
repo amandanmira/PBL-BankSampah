@@ -106,6 +106,7 @@ Route::prefix('petugas')->middleware(['auth:sanctum', 'role:petugas'])->group(fu
 
     // API Laporan
     Route::get('/cetak-laporan/excel', [LaporanController::class, 'exportExcel']);
+    Route::get('/cetak-laporan/pdf', [LaporanController::class, 'exportPdf']);
 });
 
 // Route Admin

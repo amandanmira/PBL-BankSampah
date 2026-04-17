@@ -12,6 +12,8 @@
   <RouterLink to="/dashboard-petugas/listpenarikan">List Penarikan</RouterLink>
   <br />
   <button @click="downloadExcel()">Cetak Laporan Excel</button>
+  <br />
+  <button @click="previewPdf()">Cetak Laporan Pdf</button>
 </template>
 
 <script setup>
@@ -46,6 +48,25 @@ const downloadExcel = async () => {
     document.body.appendChild(link)
     link.click()
     link.remove()
+  } catch (err) {
+    console.error(err)
+  }
+}
+
+const previewPdf = async (id) => {
+  try {
+    const response = await axios.get(
+      `/api/petugas/cetak-laporan/pdf`,
+      {
+        headers,
+        responseType: 'blob', // penting
+      }
+    )
+
+    const file = new Blob([response.data], { type: 'application/pdf' })
+    const fileURL = URL.createObjectURL(file)
+
+    window.open(fileURL)
   } catch (err) {
     console.error(err)
   }
