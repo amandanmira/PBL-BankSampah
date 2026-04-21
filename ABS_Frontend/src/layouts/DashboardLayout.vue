@@ -33,6 +33,17 @@ const menuItems = computed(() => {
       { name: "Deadline Pembayaran", path: "/dashboard-admin/deadline-pembayaran", icon: "material-symbols:calendar-today-outline" },
     ];
   }
+  if (role === "petugas") {
+    return [
+      { name: "Dashboard", path: "/dashboard-petugas", icon: "material-symbols:dashboard-outline" },
+      { name: "Request Penjemputan", path: "/dashboard-petugas/listpenjemputan", icon: "material-symbols:local-shipping-outline" },
+      { name: "Setor Manual", path: "/dashboard-petugas/penimbangan", icon: "material-symbols:delete-outline" },
+      { name: "Request Penarikan", path: "/dashboard-petugas/listpenarikan", icon: "material-symbols:account-balance-wallet-outline" },
+      { name: "Riwayat", path: "/dashboard-petugas/riwayat-penjemputan", icon: "material-symbols:history" },
+      { name: "Laporan Harian", path: "/dashboard-petugas/laporan-harian", icon: "material-symbols:description-outline" },
+      { name: "Notifikasi", path: "/dashboard-petugas/notifikasi", icon: "material-symbols:notifications-outline" },
+    ];
+  }
   // Default to nasabah
   return [
     { name: "Dashboard", path: "/dashboard-nasabah", icon: "material-symbols:dashboard-outline" },
@@ -131,7 +142,12 @@ onMounted(() => {
             :class="cn('overflow-hidden transition-all duration-300 whitespace-nowrap', isSidebarCollapsed ? 'max-w-0 opacity-0' : 'max-w-xs opacity-100')"
           >
             <p class="font-bold truncate text-sm leading-tight">{{ user.name || 'Nama User' }}</p>
-            <p class="text-[10px] text-white/60 truncate">{{ user.username || 'Username' }}</p>
+            <p class="text-[10px] text-white/60 truncate">{{ user.role === 'petugas' ? 'Petugas' : (user.username || 'Username') }}</p>
+            <div v-if="user.role === 'petugas'" class="mt-1">
+              <span class="bg-white/20 text-[8px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">
+                {{ user.gudang?.nama || 'Gudang A' }}
+              </span>
+            </div>
           </div>
         </button>
       </div>
