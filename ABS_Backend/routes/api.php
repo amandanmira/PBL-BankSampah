@@ -20,6 +20,7 @@ use App\Http\Controllers\Api\Petugas\LaporanController;
 use App\Http\Controllers\Api\ProfileController;
 
 use App\Http\Controllers\Api\Admin\SampahGudangController;
+use App\Http\Controllers\Api\Admin\DashboardAdminController;
 
 // Pengepul
 use App\Http\Controllers\Api\Pengepul\RequestPembelianController;
@@ -174,4 +175,7 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'role:admin'])->group(functi
     Route::put('/web-config', [WebController::class, 'update']);
 
     Route::put('/tukang/{gudang_id}', [TukangController::class, 'update']);
+
+    // Dashboard Stats
+    Route::get('/dashboard-stats', [DashboardAdminController::class, 'index']);
 });

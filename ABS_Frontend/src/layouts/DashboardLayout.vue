@@ -18,14 +18,30 @@ const toggleSidebar = () => {
   isSidebarCollapsed.value = !isSidebarCollapsed.value;
 };
 
-const menuItems = [
-  { name: "Dashboard", path: "/dashboard-nasabah", icon: "material-symbols:dashboard-outline" },
-  { name: "Katalog Sampah", path: "/dashboard-nasabah/katalog", icon: "material-symbols:book-outline" },
-  { name: "Request Jemput/Setor", path: "/dashboard-nasabah/request-penjemputan", icon: "material-symbols:local-shipping-outline" },
-  { name: "Penarikan Uang", path: "/dashboard-nasabah/request-penarikan", icon: "material-symbols:account-balance-wallet-outline" },
-  { name: "Sampah Saya", path: "/dashboard-nasabah/sampah-saya", icon: "material-symbols:delete-outline" },
-  { name: "Riwayat Penarikan", path: "/dashboard-nasabah/riwayatpenjemputan", icon: "material-symbols:history" },
-];
+const role = sessionStorage.getItem("role");
+
+const menuItems = computed(() => {
+  if (role === "admin") {
+    return [
+      { name: "Dashboard", path: "/dashboard-admin", icon: "material-symbols:dashboard-outline" },
+      { name: "Kelola Akun", path: "/dashboard-admin/kelola-users", icon: "material-symbols:person-outline" },
+      { name: "Konfirmasi Pengepul", path: "/dashboard-admin/verifikasi-pengepul", icon: "material-symbols:verified-user-outline" },
+      { name: "Konfigurasi Web", path: "/dashboard-admin/konfigurasi-web", icon: "material-symbols:settings-outline" },
+      { name: "Kelola Sampah", path: "/dashboard-admin/kelola-sampah", icon: "material-symbols:delete-outline" },
+      { name: "Kelola Gudang", path: "/dashboard-admin/kelola-gudang", icon: "material-symbols:home-work-outline" },
+      { name: "Deadline Pembayaran", path: "/dashboard-admin/deadline-pembayaran", icon: "material-symbols:calendar-today-outline" },
+    ];
+  }
+  // Default to nasabah
+  return [
+    { name: "Dashboard", path: "/dashboard-nasabah", icon: "material-symbols:dashboard-outline" },
+    { name: "Katalog Sampah", path: "/dashboard-nasabah/katalog", icon: "material-symbols:book-outline" },
+    { name: "Request Jemput/Setor", path: "/dashboard-nasabah/request-penjemputan", icon: "material-symbols:local-shipping-outline" },
+    { name: "Penarikan Uang", path: "/dashboard-nasabah/request-penarikan", icon: "material-symbols:account-balance-wallet-outline" },
+    { name: "Sampah Saya", path: "/dashboard-nasabah/sampah-saya", icon: "material-symbols:delete-outline" },
+    { name: "Riwayat Penarikan", path: "/dashboard-nasabah/riwayatpenjemputan", icon: "material-symbols:history" },
+  ];
+});
 
 const handleLogout = () => {
   sessionStorage.clear();
