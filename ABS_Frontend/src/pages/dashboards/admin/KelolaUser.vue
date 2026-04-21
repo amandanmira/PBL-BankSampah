@@ -24,6 +24,7 @@ const currentPage = ref(1);
 
 // Modal State
 const isModalOpen = ref(false);
+const isManagerModalOpen = ref(false);
 const isSubmitting = ref(false);
 const form = ref({
   nama: "",
@@ -175,6 +176,31 @@ const handleAddPetugas = async () => {
   }
 };
 
+const handleAddManager = async () => {
+  try {
+    isSubmitting.value = true;
+    const token = sessionStorage.getItem("token");
+    const headers = { Authorization: `Bearer ${token}` };
+
+    await axios.post("/api/admin/buatManager", {
+      nama: form.value.nama,
+      username: form.value.username,
+      email: form.value.email,
+      password: form.value.password
+    }, { headers });
+    
+    alert("Akun manager berhasil dibuat!");
+    isManagerModalOpen.value = false;
+    // Reset form
+    form.value = { nama: "", username: "", email: "", password: "", no_telp: "", gudang_id: "" };
+    fetchData(); // Refresh list
+  } catch (err) {
+    alert("Gagal membuat manager: " + (err.response?.data?.message || err.message));
+  } finally {
+    isSubmitting.value = false;
+  }
+};
+
 // Helpers
 const formatDate = (dateStr) => {
   if (!dateStr) return "-";
@@ -217,6 +243,15 @@ const formatDate = (dateStr) => {
         >
           <Icon icon="material-symbols:add" class="w-5 h-5" />
           Tambah Petugas
+        </button>
+
+        <button
+          v-if="selectedRole === 'Manager'"
+          @click="isManagerModalOpen = true"
+          class="flex items-center gap-2 bg-[#4A7043] text-white px-5 py-2.5 rounded-xl font-semibold hover:bg-[#3d5d37] transition-colors shadow-md shrink-0 self-end md:self-auto"
+        >
+          <Icon icon="material-symbols:add" class="w-5 h-5" />
+          Tambah Manager
         </button>
       </div>
 
@@ -459,6 +494,76 @@ const formatDate = (dateStr) => {
             </button>
             <button 
               @click="handleAddPetugas"
+              :disabled="isSubmitting"
+              class="flex-1 bg-[#4A7043] text-white py-4 rounded-2xl font-bold hover:bg-[#3d5d37] transition-all shadow-md disabled:opacity-50"
+            >
+              {{ isSubmitting ? 'Menyimpan...' : 'Simpan' }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Add Manager Modal -->
+    <div 
+      v-if="isManagerModalOpen"
+      class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300"
+    >
+      <div class="bg-white w-full max-w-lg rounded-[32px] overflow-hidden shadow-2xl animate-in zoom-in-95 duration-300">
+        <div class="p-8 space-y-6">
+          <h2 class="text-2xl font-bold text-gray-800">Tambah Manager Baru</h2>
+          
+          <div class="space-y-4">
+            <div class="space-y-1.5">
+              <label class="text-xs font-bold text-gray-500 uppercase tracking-wider ml-1">Nama Lengkap</label>
+              <input 
+                v-model="form.nama"
+                type="text" 
+                placeholder="Masukkan nama lengkap"
+                class="w-full bg-gray-50 border-none rounded-2xl p-4 focus:ring-2 focus:ring-[#4A7043] outline-none transition-all placeholder:text-gray-300 text-sm"
+              />
+            </div>
+            
+            <div class="space-y-1.5">
+              <label class="text-xs font-bold text-gray-500 uppercase tracking-wider ml-1">Username</label>
+              <input 
+                v-model="form.username"
+                type="text" 
+                placeholder="Username untuk login"
+                class="w-full bg-gray-50 border-none rounded-2xl p-4 focus:ring-2 focus:ring-[#4A7043] outline-none transition-all placeholder:text-gray-300 text-sm"
+              />
+            </div>
+            
+            <div class="space-y-1.5">
+              <label class="text-xs font-bold text-gray-500 uppercase tracking-wider ml-1">Password</label>
+              <input 
+                v-model="form.password"
+                type="password" 
+                placeholder="Masukkan password"
+                class="w-full bg-gray-50 border-none rounded-2xl p-4 focus:ring-2 focus:ring-[#4A7043] outline-none transition-all placeholder:text-gray-300 text-sm"
+              />
+            </div>
+            
+            <div class="space-y-1.5">
+              <label class="text-xs font-bold text-gray-500 uppercase tracking-wider ml-1">Email</label>
+              <input 
+                v-model="form.email"
+                type="email" 
+                placeholder="email@example.com"
+                class="w-full bg-gray-50 border-none rounded-2xl p-4 focus:ring-2 focus:ring-[#4A7043] outline-none transition-all placeholder:text-gray-300 text-sm"
+              />
+            </div>
+          </div>
+
+          <div class="flex gap-4 pt-4">
+            <button 
+              @click="isManagerModalOpen = false"
+              class="flex-1 bg-gray-500 text-white py-4 rounded-2xl font-bold hover:bg-gray-600 transition-colors shadow-sm"
+            >
+              Batal
+            </button>
+            <button 
+              @click="handleAddManager"
               :disabled="isSubmitting"
               class="flex-1 bg-[#4A7043] text-white py-4 rounded-2xl font-bold hover:bg-[#3d5d37] transition-all shadow-md disabled:opacity-50"
             >

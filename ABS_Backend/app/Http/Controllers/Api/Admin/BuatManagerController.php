@@ -13,8 +13,8 @@ class BuatManagerController extends Controller
     {
         $request->validate([
             'nama' => 'required|max:50',
-            'username' => 'required|max:20|unique:petugas,username',
-            'email' => 'required|email|max:50|unique:petugas,email',
+            'username' => 'required|max:20|unique:managers,username',
+            'email' => 'required|email|max:50|unique:managers,email',
             'password' => 'required|min:8',
         ]);
 
@@ -23,6 +23,7 @@ class BuatManagerController extends Controller
             'username' => $request->username,
             'email' => $request->email,
             'password' => Hash::make($request->password),
+            'status' => 'aktif',
         ]);
 
         return response()->json([

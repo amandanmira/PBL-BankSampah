@@ -44,6 +44,13 @@ const menuItems = computed(() => {
       { name: "Notifikasi", path: "/dashboard-petugas/notifikasi", icon: "material-symbols:notifications-outline" },
     ];
   }
+  if (role === "manager") {
+    return [
+      { name: "Dashboard", path: "/dashboard-manager", icon: "material-symbols:dashboard-outline" },
+      { name: "Riwayat Penjemputan", path: "/dashboard-manager/riwayat-penjemputan", icon: "material-symbols:local-shipping-outline" },
+      { name: "Riwayat Penarikan", path: "/dashboard-manager/riwayat-penarikan", icon: "material-symbols:account-balance-wallet-outline" },
+    ];
+  }
   // Default to nasabah
   return [
     { name: "Dashboard", path: "/dashboard-nasabah", icon: "material-symbols:dashboard-outline" },
@@ -93,63 +100,77 @@ onMounted(() => {
       :class="
         cn(
           'h-full bg-[#4A7043] text-white flex flex-col relative z-50 shrink-0 transition-all duration-300 ease-in-out',
-          isSidebarCollapsed ? 'w-20' : 'w-72'
+          isSidebarCollapsed ? 'w-24' : 'w-80'
         )
       "
     >
-      <!-- Logo Section with Toggle -->
-      <div :class="cn('p-6 flex items-center transition-all duration-300', isSidebarCollapsed ? 'justify-center px-0' : 'justify-start gap-4')">
+      <!-- Sidebar Toggle (Top Left) -->
+      <div :class="cn('p-6 flex transition-all duration-300', isSidebarCollapsed ? 'justify-center' : 'justify-start')">
         <button 
           @click="toggleSidebar" 
           class="p-2 hover:bg-white/10 rounded-lg transition-colors shrink-0"
         >
           <Icon icon="material-symbols:menu" class="w-7 h-7" />
         </button>
-        
-        <!-- Logo Display -->
+      </div>
+
+      <!-- Logo Section -->
+      <div :class="cn('px-4 mb-6 transition-all duration-300', isSidebarCollapsed ? 'flex flex-col items-center gap-4' : '')">
         <div 
-          :class="cn('flex items-center gap-3 overflow-hidden transition-all duration-300', isSidebarCollapsed ? 'max-w-0 opacity-0' : 'max-w-xs opacity-100')"
+          :class="
+            cn(
+              'bg-white/10 rounded-[2rem] p-6 flex flex-col items-center text-center transition-all duration-300 overflow-hidden border border-white/5',
+              isSidebarCollapsed ? 'bg-transparent border-none p-0' : 'w-full'
+            )
+          "
         >
-          <div v-if="webConfig.logo" class="w-10 h-10 shrink-0 bg-white/10 rounded-xl p-1.5">
-            <img :src="`${axios.defaults.baseURL}/storage/${webConfig.logo}`" class="w-full h-full object-contain" alt="Logo" />
+          <!-- Logo Icon -->
+          <div :class="cn('flex items-center justify-center transition-all duration-300', isSidebarCollapsed ? 'w-14 h-14' : 'w-24 h-24 mb-4')">
+            <div v-if="webConfig.logo" class="w-full h-full p-1">
+              <img :src="`${axios.defaults.baseURL}/storage/${webConfig.logo}`" class="w-full h-full object-contain" alt="Logo" />
+            </div>
+            <Icon v-else icon="material-symbols:recycling" :class="cn('text-[#4CAF50] transition-all duration-300', isSidebarCollapsed ? 'w-12 h-12' : 'w-20 h-20')" />
           </div>
-          <div v-else class="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center font-bold text-sm shrink-0">ABS</div>
-          
-          <div class="flex flex-col whitespace-nowrap">
-            <h1 class="font-bold text-sm leading-none uppercase tracking-widest">{{ webConfig.logo ? '' : 'ABS' }}</h1>
-            <p class="text-[8px] text-white/60">Aplikasi Bank Sampah</p>
+
+          <!-- Logo Text -->
+          <div 
+            :class="cn('overflow-hidden transition-all duration-300 flex flex-col items-center', isSidebarCollapsed ? 'max-h-0 opacity-0' : 'max-h-20 opacity-100')"
+          >
+            <p class="text-xs text-white/80 font-bold uppercase tracking-[0.2em]">Aplikasi Bank Sampah</p>
           </div>
         </div>
+        
+        <!-- Divider for collapsed state -->
+        <div v-if="isSidebarCollapsed" class="w-10 h-[1px] bg-white/10"></div>
       </div>
 
       <!-- User Profile (Sidebar) -->
-      <div :class="cn('px-4 mb-8 transition-all duration-300', isSidebarCollapsed ? 'flex justify-center px-0' : '')">
+      <div :class="cn('px-4 mb-8 transition-all duration-300', isSidebarCollapsed ? 'flex flex-col items-center gap-4' : '')">
         <button 
           @click="() => {}"
           :class="
             cn(
-              'bg-white/10 hover:bg-white/15 rounded-3xl p-3 flex items-center transition-all duration-300 overflow-hidden',
-              isSidebarCollapsed ? 'w-12 h-12 justify-center rounded-full p-0' : 'w-full gap-3 px-4'
+              'bg-white/10 hover:bg-white/15 rounded-[2rem] p-4 flex items-center transition-all duration-300 overflow-hidden border border-white/5',
+              isSidebarCollapsed ? 'bg-transparent border-none p-0 w-14 h-14 justify-center' : 'w-full gap-4 px-6'
             )
           "
         >
-          <div :class="cn('rounded-full bg-[#8BA783] flex items-center justify-center font-bold border-2 border-white/20 shrink-0 transition-all duration-300', isSidebarCollapsed ? 'w-10 h-10 text-sm' : 'w-12 h-12 text-base')">
-            {{ user.name?.charAt(0) || 'U' }}
+          <!-- User Icon -->
+          <div :class="cn('w-14 h-14 rounded-full bg-[#A86444] flex items-center justify-center shrink-0 shadow-lg border-2 border-white/10 transition-all duration-300', isSidebarCollapsed ? 'w-14 h-14' : '')">
+            <Icon icon="material-symbols:person" class="w-8 h-8" />
           </div>
           
-          <!-- Profile Text Reveal -->
+          <!-- User Details -->
           <div 
-            :class="cn('overflow-hidden transition-all duration-300 whitespace-nowrap', isSidebarCollapsed ? 'max-w-0 opacity-0' : 'max-w-xs opacity-100')"
+            :class="cn('flex-1 text-left overflow-hidden transition-all duration-300 whitespace-nowrap', isSidebarCollapsed ? 'max-w-0 opacity-0' : 'max-w-xs opacity-100')"
           >
-            <p class="font-bold truncate text-sm leading-tight">{{ user.name || 'Nama User' }}</p>
-            <p class="text-[10px] text-white/60 truncate">{{ user.role === 'petugas' ? 'Petugas' : (user.username || 'Username') }}</p>
-            <div v-if="user.role === 'petugas'" class="mt-1">
-              <span class="bg-white/20 text-[8px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">
-                {{ user.gudang?.nama || 'Gudang A' }}
-              </span>
-            </div>
+            <p class="font-black text-sm leading-tight truncate">{{ user.name || 'Nama User' }}</p>
+            <p class="text-[10px] font-bold text-white/40 uppercase tracking-widest mt-0.5">{{ user.role || 'Role' }}</p>
           </div>
         </button>
+
+        <!-- Divider for collapsed state -->
+        <div v-if="isSidebarCollapsed" class="w-10 h-[1px] bg-white/10"></div>
       </div>
 
       <!-- Navigation -->

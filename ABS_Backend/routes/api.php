@@ -27,6 +27,7 @@ use App\Http\Controllers\Api\Pengepul\RequestPembelianController;
 use App\Http\Controllers\Api\Petugas\KonfirmasiPenarikanController;
 use App\Http\Controllers\Api\Petugas\PenimbanganController;
 use App\Http\Controllers\Api\Petugas\RiwayatPenjemputanController;
+use App\Http\Controllers\Api\Manager\DashboardManagerController;
 
 Route::get('verify-nasabah/{token}', [AuthController::class, 'verifyEmail']);
 Route::get('/web-config', [WebController::class, 'show']);
@@ -54,6 +55,9 @@ Route::prefix('manager')->middleware(['auth:sanctum', 'role:manager'])->group(fu
     //Penjemputan
     Route::get('/riwayat-penjemputan', [RiwayatPenjemputanController::class, 'riwayatPenjemputan']);
     Route::get('/riwayat-penjemputan/{id}', [RiwayatPenjemputanController::class, 'show']);
+
+    // Dashboard Stats
+    Route::get('/dashboard-stats', [DashboardManagerController::class, 'index']);
 });
 
 Route::prefix('pengepul')->middleware(['auth:sanctum', 'role:pengepul'])->group(function () {

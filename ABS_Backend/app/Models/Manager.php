@@ -17,6 +17,7 @@ class Manager extends Authenticatable
         'nama',
         'username',
         'email',
-        'password'
+        'password',
+        'status'
     ];
 }
