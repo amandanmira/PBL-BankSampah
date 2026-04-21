@@ -58,7 +58,7 @@ const user = computed(() => {
 
 const displayName = computed(() => {
   if (role === "admin") return "Super Admin";
-  return user.value.name || "Nama User";
+  return user.value.nama || "Nama User";
 });
 
 const displayRole = computed(() => {
