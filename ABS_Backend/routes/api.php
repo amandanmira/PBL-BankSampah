@@ -29,6 +29,7 @@ use App\Http\Controllers\Api\Petugas\PenimbanganController;
 use App\Http\Controllers\Api\Petugas\RiwayatPenjemputanController;
 
 Route::get('verify-nasabah/{token}', [AuthController::class, 'verifyEmail']);
+Route::get('/web-config', [WebController::class, 'show']);
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);

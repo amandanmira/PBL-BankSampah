@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed } from "vue";
+import { ref, computed, onMounted, inject } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import { Icon } from "@iconify/vue";
 import { cn } from "@/lib/utils";
@@ -11,6 +11,7 @@ const props = defineProps({
 
 const router = useRouter();
 const route = useRoute();
+const axios = inject('axios');
 
 const isSidebarCollapsed = ref(false);
 
@@ -55,6 +56,23 @@ const user = computed(() => {
     return {};
   }
 });
+
+const webConfig = ref({
+  logo: null,
+});
+
+const fetchWebConfig = async () => {
+  try {
+    const res = await axios.get("/api/web-config");
+    webConfig.value = res.data;
+  } catch (err) {
+    console.error("Failed to fetch web config:", err);
+  }
+};
+
+onMounted(() => {
+  fetchWebConfig();
+});
 </script>
 
 <template>
@@ -77,13 +95,17 @@ const user = computed(() => {
           <Icon icon="material-symbols:menu" class="w-7 h-7" />
         </button>
         
-        <!-- Logo Text Reveal -->
+        <!-- Logo Display -->
         <div 
           :class="cn('flex items-center gap-3 overflow-hidden transition-all duration-300', isSidebarCollapsed ? 'max-w-0 opacity-0' : 'max-w-xs opacity-100')"
         >
-          <div class="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center font-bold text-sm shrink-0">LOGO</div>
+          <div v-if="webConfig.logo" class="w-10 h-10 shrink-0 bg-white/10 rounded-xl p-1.5">
+            <img :src="`${axios.defaults.baseURL}/storage/${webConfig.logo}`" class="w-full h-full object-contain" alt="Logo" />
+          </div>
+          <div v-else class="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center font-bold text-sm shrink-0">ABS</div>
+          
           <div class="flex flex-col whitespace-nowrap">
-            <h1 class="font-bold text-sm leading-none uppercase tracking-widest">LOGO</h1>
+            <h1 class="font-bold text-sm leading-none uppercase tracking-widest">{{ webConfig.logo ? '' : 'ABS' }}</h1>
             <p class="text-[8px] text-white/60">Aplikasi Bank Sampah</p>
           </div>
         </div>
