@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed } from "vue";
+import { ref, computed, onMounted, inject } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import { Icon } from "@iconify/vue";
 import { cn } from "@/lib/utils";
@@ -11,6 +11,7 @@ const props = defineProps({
 
 const router = useRouter();
 const route = useRoute();
+const axios = inject('axios');
 
 const isSidebarCollapsed = ref(false);
 
@@ -56,14 +57,21 @@ const user = computed(() => {
   }
 });
 
-const displayName = computed(() => {
-  if (role === "admin") return "Super Admin";
-  return user.value.nama || "Nama User";
+const webConfig = ref({
+  logo: null,
 });
 
-const displayRole = computed(() => {
-  if (role === "admin") return "Administrator";
-  return user.value.username || "Role";
+const fetchWebConfig = async () => {
+  try {
+    const res = await axios.get("/api/web-config");
+    webConfig.value = res.data;
+  } catch (err) {
+    console.error("Failed to fetch web config:", err);
+  }
+};
+
+onMounted(() => {
+  fetchWebConfig();
 });
 </script>
 
@@ -87,13 +95,17 @@ const displayRole = computed(() => {
           <Icon icon="material-symbols:menu" class="w-7 h-7" />
         </button>
         
-        <!-- Logo Text Reveal -->
+        <!-- Logo Display -->
         <div 
           :class="cn('flex items-center gap-3 overflow-hidden transition-all duration-300', isSidebarCollapsed ? 'max-w-0 opacity-0' : 'max-w-xs opacity-100')"
         >
-          <div class="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center font-bold text-sm shrink-0">LOGO</div>
+          <div v-if="webConfig.logo" class="w-10 h-10 shrink-0 bg-white/10 rounded-xl p-1.5">
+            <img :src="`${axios.defaults.baseURL}/storage/${webConfig.logo}`" class="w-full h-full object-contain" alt="Logo" />
+          </div>
+          <div v-else class="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center font-bold text-sm shrink-0">ABS</div>
+          
           <div class="flex flex-col whitespace-nowrap">
-            <h1 class="font-bold text-sm leading-none uppercase tracking-widest">LOGO</h1>
+            <h1 class="font-bold text-sm leading-none uppercase tracking-widest">{{ webConfig.logo ? '' : 'ABS' }}</h1>
             <p class="text-[8px] text-white/60">Aplikasi Bank Sampah</p>
           </div>
         </div>
@@ -111,15 +123,15 @@ const displayRole = computed(() => {
           "
         >
           <div :class="cn('rounded-full bg-[#8BA783] flex items-center justify-center font-bold border-2 border-white/20 shrink-0 transition-all duration-300', isSidebarCollapsed ? 'w-10 h-10 text-sm' : 'w-12 h-12 text-base')">
-            {{ displayName.charAt(0) }}
+            {{ user.name?.charAt(0) || 'U' }}
           </div>
           
           <!-- Profile Text Reveal -->
           <div 
-            :class="cn('overflow-hidden transition-all duration-300 whitespace-nowrap text-left flex flex-col items-start justify-center', isSidebarCollapsed ? 'max-w-0 opacity-0' : 'max-w-xs opacity-100')"
+            :class="cn('overflow-hidden transition-all duration-300 whitespace-nowrap', isSidebarCollapsed ? 'max-w-0 opacity-0' : 'max-w-xs opacity-100')"
           >
-            <p class="font-bold truncate text-sm leading-tight w-full">{{ displayName }}</p>
-            <p class="text-[10px] text-white/60 truncate w-full">{{ displayRole }}</p>
+            <p class="font-bold truncate text-sm leading-tight">{{ user.name || 'Nama User' }}</p>
+            <p class="text-[10px] text-white/60 truncate">{{ user.username || 'Username' }}</p>
           </div>
         </button>
       </div>
