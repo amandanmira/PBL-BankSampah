@@ -55,6 +55,16 @@ const user = computed(() => {
     return {};
   }
 });
+
+const displayName = computed(() => {
+  if (role === "admin") return "Super Admin";
+  return user.value.name || "Nama User";
+});
+
+const displayRole = computed(() => {
+  if (role === "admin") return "Administrator";
+  return user.value.username || "Role";
+});
 </script>
 
 <template>
@@ -101,15 +111,15 @@ const user = computed(() => {
           "
         >
           <div :class="cn('rounded-full bg-[#8BA783] flex items-center justify-center font-bold border-2 border-white/20 shrink-0 transition-all duration-300', isSidebarCollapsed ? 'w-10 h-10 text-sm' : 'w-12 h-12 text-base')">
-            {{ user.name?.charAt(0) || 'U' }}
+            {{ displayName.charAt(0) }}
           </div>
           
           <!-- Profile Text Reveal -->
           <div 
-            :class="cn('overflow-hidden transition-all duration-300 whitespace-nowrap', isSidebarCollapsed ? 'max-w-0 opacity-0' : 'max-w-xs opacity-100')"
+            :class="cn('overflow-hidden transition-all duration-300 whitespace-nowrap text-left flex flex-col items-start justify-center', isSidebarCollapsed ? 'max-w-0 opacity-0' : 'max-w-xs opacity-100')"
           >
-            <p class="font-bold truncate text-sm leading-tight">{{ user.name || 'Nama User' }}</p>
-            <p class="text-[10px] text-white/60 truncate">{{ user.username || 'Username' }}</p>
+            <p class="font-bold truncate text-sm leading-tight w-full">{{ displayName }}</p>
+            <p class="text-[10px] text-white/60 truncate w-full">{{ displayRole }}</p>
           </div>
         </button>
       </div>
