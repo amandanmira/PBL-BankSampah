@@ -15,15 +15,15 @@ class VerifikasiEmailNasabah extends Mailable
     use Queueable, SerializesModels;
 
     public $nasabah;
-    public $verification_token;
+    public $otp;
 
     /**
      * Create a new message instance.
      */
-    public function __construct(Nasabah $nasabah, $verification_token)
+    public function __construct(Nasabah $nasabah, $otp)
     {
         $this->nasabah = $nasabah;
-        $this->verification_token = $verification_token;
+        $this->otp = $otp;
     }
 
     /**

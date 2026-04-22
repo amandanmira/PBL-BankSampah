@@ -48,14 +48,17 @@ const chartOptions = ref({
   },
 });
 
+// Data Seri Chart
+// TODO: Hubungkan dengan data historis transaksi dari database (misal: 6 bulan terakhir)
+// Data ini nantinya akan diisi secara dinamis melalui props atau fetch API
 const series = ref([
   {
     name: "Volume (kg)",
-    data: [45, 52, 48, 65, 58, 75],
+    data: [0, 0, 0, 0, 0, 0],
   },
   {
     name: "Pendapatan (Rp)",
-    data: [50, 58, 52, 75, 65, 82],
+    data: [0, 0, 0, 0, 0, 0],
   },
 ]);
 </script>

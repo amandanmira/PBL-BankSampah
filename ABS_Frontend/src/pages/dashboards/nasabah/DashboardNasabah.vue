@@ -13,31 +13,36 @@ checkRole("nasabah");
 
 const user = ref(JSON.parse(sessionStorage.getItem("user") || "{}"));
 
+// Data Statistik Ringkasan
+// TODO: Hubungkan dengan API backend untuk mengambil data asli dari database
+// Contoh: const statsData = await axios.get('/api/nasabah/stats')
 const stats = ref([
   {
     title: "Saldo Tersedia",
-    value: "Rp 450.000",
+    value: "Rp 0",
     icon: "material-symbols:account-balance-wallet-outline",
     iconClass: "text-[#4A7043] bg-[#E8F0E6]",
   },
   {
     title: "Total Sampah",
-    value: "125.5 kg",
+    value: "0 kg",
     icon: "material-symbols:package-2-outline",
     iconClass: "text-cyan-600 bg-cyan-50",
   },
   {
     title: "Total Transaksi",
-    value: "28",
+    value: "0",
     icon: "material-symbols:trending-up",
     iconClass: "text-orange-600 bg-orange-50",
   },
 ]);
 
 // Top Nasabah - Dikosongkan sementara
+// TODO: Ambil data peringkat nasabah dari tabel transaksi/poin di database
 const topNasabah = ref([]);
 
 // Aktivitas Terbaru - Dikosongkan sementara
+// TODO: Ambil riwayat aktivitas terbaru dari tabel riwayat_transaksi/aktivitas
 const recentActivities = ref([]);
 </script>
 

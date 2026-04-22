@@ -38,17 +38,19 @@ class AuthController extends Controller
             'status' => 'pending'
         ]);
 
-        // Buat dan simpan token verifikasi
-        $token = Str::random(60);
-        $nasabah->verification_token = $token;
+        // Buat dan simpan OTP verifikasi (6 digit angka)
+        $otp = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+        $nasabah->verification_token = $otp;
         $nasabah->save();
 
         // Kirim email verifikasi
-        Mail::to($nasabah->email)->send(new VerifikasiEmailNasabah($nasabah, $token));
+        Mail::to($nasabah->email)->send(new VerifikasiEmailNasabah($nasabah, $otp));
 
         return response()->json([
-            'message' => 'Registrasi berhasil. Silakan cek email Anda untuk verifikasi.',
-            'data' => $nasabah
+            'message' => 'Registrasi berhasil. Silakan cek email Anda untuk kode verifikasi.',
+            'data' => [
+                'email' => $nasabah->email
+            ]
         ]);
     }
 
@@ -218,7 +220,7 @@ class AuthController extends Controller
         $nasabah = Nasabah::where('verification_token', $token)->first();
 
         if (!$nasabah) {
-            return response()->json(['message' => 'Token verifikasi tidak valid.'], 404);
+            return response()->json(['message' => 'Kode verifikasi tidak valid.'], 404);
         }
 
         $nasabah->status = 'aktif';
@@ -226,5 +228,54 @@ class AuthController extends Controller
         $nasabah->save();
 
         return response()->json(['message' => 'Email berhasil diverifikasi. Akun Anda sekarang aktif.']);
+    }
+
+    public function verifyOtp(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|email',
+            'otp' => 'required|string|size:6'
+        ]);
+
+        $nasabah = Nasabah::where('email', $request->email)
+            ->where('verification_token', $request->otp)
+            ->first();
+
+        if (!$nasabah) {
+            return response()->json(['message' => 'Kode verifikasi tidak valid.'], 422);
+        }
+
+        $nasabah->status = 'aktif';
+        $nasabah->verification_token = null;
+        $nasabah->save();
+
+        return response()->json(['message' => 'Email berhasil diverifikasi. Akun Anda sekarang aktif.']);
+    }
+
+    public function resendOtp(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|email'
+        ]);
+
+        $nasabah = Nasabah::where('email', $request->email)->first();
+
+        if (!$nasabah) {
+            return response()->json(['message' => 'User tidak ditemukan.'], 44);
+        }
+
+        if ($nasabah->status === 'aktif') {
+            return response()->json(['message' => 'Akun sudah aktif.'], 422);
+        }
+
+        // Generate new OTP
+        $otp = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+        $nasabah->verification_token = $otp;
+        $nasabah->save();
+
+        // Send Email
+        Mail::to($nasabah->email)->send(new VerifikasiEmailNasabah($nasabah, $otp));
+
+        return response()->json(['message' => 'Kode verifikasi baru telah dikirim ke email Anda.']);
     }
 }
