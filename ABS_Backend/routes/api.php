@@ -38,6 +38,10 @@ Route::post('verify-otp', [AuthController::class, 'verifyOtp']);
 Route::post('resend-otp', [AuthController::class, 'resendOtp']);
 Route::get('/web-config', [WebController::class, 'show']);
 
+// Password Reset
+Route::post('password/email', [App\Http\Controllers\Api\PasswordResetController::class, 'sendResetLinkEmail']);
+Route::post('password/reset', [App\Http\Controllers\Api\PasswordResetController::class, 'resetPassword']);
+
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
 });

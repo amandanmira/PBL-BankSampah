@@ -9,6 +9,8 @@ import RegisterPengepul from "@/pages/auth/RegisterPengepul.vue";
 import BuatPetugas from "@/pages/dashboards/admin/BuatPetugas.vue";
 import BuatManager from "@/pages/dashboards/admin/BuatManager.vue";
 import Login from "@/pages/auth/Login.vue";
+import ForgotPassword from "@/pages/auth/ForgotPassword.vue";
+import ResetPassword from "@/pages/auth/ResetPassword.vue";
 import VerifikasiEmail from "@/pages/dashboards/nasabah/VerifikasiEmail.vue";
 
 // Dashboards
@@ -130,6 +132,15 @@ const routes = [
   {
     path: "/login",
     component: Login,
+  },
+  {
+    path: "/forgot-password",
+    component: ForgotPassword,
+  },
+  {
+    path: "/reset-password/:token",
+    name: "ResetPassword",
+    component: ResetPassword,
   },
   {
     path: "/verify-email/:token",

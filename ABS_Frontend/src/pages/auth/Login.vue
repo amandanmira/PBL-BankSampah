@@ -114,10 +114,10 @@
 
             <!-- Forgot Password -->
             <div class="flex justify-end">
-              <a
-                href="/forgot-password"
+              <router-link
+                to="/forgot-password"
                 class="text-[#4A7043] text-sm font-medium no-underline hover:underline"
-                >Lupa Password?</a
+                >Lupa Password?</router-link
               >
             </div>
 
