@@ -29,37 +29,38 @@ class SampahController extends Controller
     {
         $request->validate([
             'nama' => 'required|string|max:50',
-            'item' => 'array'
+            'items' => 'nullable|array',
+            'items.*.nama' => 'required|string|max:50',
+            'items.*.harga_beli' => 'required|numeric',
+            'items.*.harga_jual' => 'required|numeric',
+            'items.*.diskon' => 'nullable|numeric',
+            'items.*.foto' => 'nullable|image|max:2048'
         ]);
 
-        $kategori = KategoriSampah::create([
-            'nama' => $request->nama,
-        ]);
+        return \DB::transaction(function () use ($request) {
+            $kategori = KategoriSampah::create([
+                'nama' => $request->nama,
+            ]);
 
-        // simpan item jika ada
-        if ($request->has('item')) {
-            foreach ($request->item as $index => $k) {
-                $foto = null;
+            if ($request->has('items')) {
+                foreach ($request->items as $index => $itemData) {
+                    $foto = null;
+                    if ($request->hasFile("items.$index.foto")) {
+                        $foto = $request->file("items.$index.foto")->store('foto-item-sampah', 'public');
+                    }
 
-                // ambil file berdasarkan index array
-                if ($request->hasFile("item.$index.foto")) {
-                    $path = $request->file("item.$index.foto")
-                                    ->store('foto-item-sampah', 'public');
-
-                    $foto = $path;
+                    $kategori->itemSampah()->create([
+                        'nama' => $itemData['nama'],
+                        'harga_beli' => $itemData['harga_beli'],
+                        'harga_jual' => $itemData['harga_jual'],
+                        'diskon' => ($itemData['diskon'] ?? 0) / 100,
+                        'foto' => $foto,
+                    ]);
                 }
-
-                $kategori->itemSampah()->create([
-                    'nama' => $k['nama'],
-                    'harga_beli' => $k['harga_beli'] ?? 0,
-                    'harga_jual' => $k['harga_jual'] ?? 0,
-                    'diskon' => $k['diskon'] ?? 0,
-                    'foto' => $foto,
-                ]);
             }
-        }
 
-        return response()->json($kategori->load('itemSampah'), 201);
+            return response()->json($kategori->load('itemSampah'), 201);
+        });
     }
 
     // SHOW detail
@@ -74,56 +75,58 @@ class SampahController extends Controller
     {
         $kategori = KategoriSampah::findOrFail($id);
 
-        $kategori->update([
-            'nama' => $request->nama ?? $kategori->nama,
-            'active' => $request->active ?? $kategori->active,
+        $request->validate([
+            'nama' => 'nullable|string|max:50',
+            'active' => 'nullable|boolean',
+            'items' => 'nullable|array',
         ]);
 
-        // update kategori jika dikirim
-        if ($request->has('item')) {
-            foreach ($request->item as $index => $k) {
-                $item = null;
+        return \DB::transaction(function () use ($request, $kategori) {
+            $kategori->update([
+                'nama' => $request->nama ?? $kategori->nama,
+                'active' => $request->active ?? $kategori->active,
+            ]);
 
-                if (isset($k['item_id'])) {
-                    $item = itemSampah::find($k['item_id']);
-                }
-
-                $data = [
-                    'nama' => $k['nama'],
-                    'harga_beli' => $k['harga_beli'],
-                    'harga_jual' => $k['harga_jual'],
-                    'diskon' => $k['diskon'],
-                    'active' => $k['active'],
-                ];
-
-                // kalau ada file baru
-                if ($request->hasFile("item.$index.foto")) {
-
-                    // hapus file lama kalau ada
-                    if ($item && $item->foto && Storage::disk('public')->exists($item->foto)) {
-                        Storage::disk('public')->delete($item->foto);
+            if ($request->has('items')) {
+                $sentItemIds = [];
+                foreach ($request->items as $index => $itemData) {
+                    $item = null;
+                    if (isset($itemData['item_id'])) {
+                        $item = ItemSampah::find($itemData['item_id']);
+                        $sentItemIds[] = $itemData['item_id'];
                     }
 
-                    // simpan file baru
-                    $path = $request->file("item.$index.foto")
-                                    ->store('foto-item-sampah', 'public');
+                    $data = [
+                        'nama' => $itemData['nama'],
+                        'harga_beli' => $itemData['harga_beli'],
+                        'harga_jual' => $itemData['harga_jual'],
+                        'diskon' => ($itemData['diskon'] ?? 0) / 100,
+                        'active' => $itemData['active'] ?? true,
+                    ];
 
-                    $data['foto'] = $path;
+                    if ($request->hasFile("items.$index.foto")) {
+                        if ($item && $item->foto && Storage::disk('public')->exists($item->foto)) {
+                            Storage::disk('public')->delete($item->foto);
+                        }
+                        $data['foto'] = $request->file("items.$index.foto")->store('foto-item-sampah', 'public');
+                    }
+
+                    if ($item) {
+                        $item->update($data);
+                    } else {
+                        $newItem = $kategori->itemSampah()->create($data);
+                        $sentItemIds[] = $newItem->item_id;
+                    }
                 }
 
-                if ($item) {
-                    // update
-                    $item->update($data);
-                } else {
-                    // create baru
-                    $kategori->itemSampah()->create($data);
-                }
+                // Optional: Delete items that were not sent in the update (careful with this!)
+                // $kategori->itemSampah()->whereNotIn('item_id', $sentItemIds)->delete();
             }
-        }
 
-        return response()->json([
-            'data' => $kategori->load('itemSampah')
-        ]);
+            return response()->json([
+                'data' => $kategori->load('itemSampah')
+            ]);
+        });
     }
 
     public function updateStatus(Request $request, $id) {

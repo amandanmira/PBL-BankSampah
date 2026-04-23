@@ -13,7 +13,7 @@ class ItemSampah extends Model
         'harga_beli',
         'harga_jual',
         'diskon',
-        'jenis_id',
+        'kategori_id',
         'foto',
         'active',
     ];
