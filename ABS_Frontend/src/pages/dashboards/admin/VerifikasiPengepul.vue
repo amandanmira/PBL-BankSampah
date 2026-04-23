@@ -1,205 +1,484 @@
-<template>
-  <div class="container">
-    <h1>Verifikasi Pendaftar Pengepul</h1>
-    <p>Halaman ini untuk menerima atau menolak pendaftar pengepul baru.</p>
-
-    <div v-if="loading" class="loading">
-      Memuat data...
-    </div>
-
-    <div v-if="error" class="error">
-      {{ error }}
-    </div>
-
-    <table v-else-if="pendingPengepuls.length > 0">
-      <thead>
-        <tr>
-          <th>ID</th>
-          <th>Nama</th>
-          <th>Email</th>
-          <th>No. Telepon</th>
-          <th>Nama Lembaga</th>
-          <th>Alamat</th>
-          <th>Status</th>
-          <th>Aksi</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="pengepul in pendingPengepuls" :key="pengepul.pengepul_id">
-          <td>{{ pengepul.pengepul_id }}</td>
-          <td>{{ pengepul.nama }}</td>
-          <td>{{ pengepul.email }}</td>
-          <td>{{ pengepul.no_telp }}</td>
-          <td>{{ pengepul.nama_lembaga }}</td>
-          <td>{{ pengepul.alamat }}</td>
-          <td>
-            <span class="status-pending">{{ pengepul.status }}</span>
-          </td>
-          <td class="aksi-buttons">
-            <button @click="handleAction(pengepul.pengepul_id, 'terima')" class="button-terima">Terima</button>
-            <button @click="handleAction(pengepul.pengepul_id, 'tolak')" class="button-tolak">Tolak</button>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-    <div v-else-if="!loading">
-      Tidak ada pendaftar pengepul yang perlu diverifikasi.
-    </div>
-  </div>
-</template>
-
 <script setup>
-import { ref, onMounted, computed } from "vue";
+import { ref, onMounted, computed, inject } from "vue";
+import { Icon } from "@iconify/vue";
+import DashboardLayout from "@/layouts/DashboardLayout.vue";
 import { checkRole } from "@/utils";
-import axios from "axios";
+import { cn } from "@/lib/utils";
 
-// Pastikan hanya admin yang bisa mengakses
+// Security check
 checkRole("admin");
 
-const allPengepuls = ref([]);
-const loading = ref(true);
+const axios = inject('axios');
+
+// State
+const pendingPengepuls = ref([]);
+const isLoading = ref(true);
 const error = ref(null);
+const searchQuery = ref("");
+const itemsPerPage = ref(10);
+const currentPage = ref(1);
 
-// Computed property untuk memfilter pengepul yang statusnya 'pending'
-const pendingPengepuls = computed(() => {
-  return allPengepuls.value.filter((p) => p.status === "pending");
-});
+// Modal States
+const isRejectModalOpen = ref(false);
+const isDocModalOpen = ref(false);
+const isSubmitting = ref(false);
+const selectedPengepul = ref(null);
+const rejectionReason = ref("");
 
-// Fungsi untuk mengambil data dari API
+// Fetch Data
 const fetchData = async () => {
-  loading.value = true;
   try {
+    isLoading.value = true;
     const token = sessionStorage.getItem("token");
-    if (!token) {
-      throw new Error("Otentikasi diperlukan.");
-    }
     const headers = { Authorization: `Bearer ${token}` };
 
-    const response = await axios.get("http://localhost:8000/api/admin/pengepul", { headers });
-    allPengepuls.value = response.data.data;
+    const response = await axios.get("/api/admin/pengepul/pending", { headers });
+    pendingPengepuls.value = response.data.data;
   } catch (err) {
-    error.value = "Gagal mengambil data pengepul. " + (err.response ? err.response.data.message : err.message);
+    error.value = "Gagal memuat data pendaftar: " + (err.response?.data?.message || err.message);
     console.error(err);
   } finally {
-    loading.value = false;
+    isLoading.value = false;
   }
 };
 
-// Fungsi untuk menangani aksi terima atau tolak
-const handleAction = async (id, action) => {
-  if (action === "terima") {
-    if (!confirm("Apakah Anda yakin ingin menerima pendaftar ini?")) {
-      return;
-    }
-  } else if (action === "tolak") {
-    const alasan = prompt("Masukkan alasan penolakan:");
-    if (!alasan) {
-      alert("Aksi dibatalkan. Alasan penolakan harus diisi.");
-      return;
-    }
+onMounted(fetchData);
 
-    if (!confirm(`Apakah Anda yakin ingin menolak pendaftar ini dengan alasan: "${alasan}"?`)) {
-      return;
-    }
+// Filtering and Pagination
+const filteredPengepuls = computed(() => {
+  let result = pendingPengepuls.value;
 
-    try {
-      const token = sessionStorage.getItem("token");
-      const headers = { Authorization: `Bearer ${token}` };
-      const data = { ket_status: alasan };
-
-      await axios.put(`http://localhost:8000/api/admin/pengepul/${id}/tolak`, data, { headers });
-
-      // Hapus item dari list di frontend untuk update UI secara instan
-      allPengepuls.value = allPengepuls.value.filter((p) => p.pengepul_id !== id);
-    } catch (err) {
-      error.value = `Gagal menolak pendaftar. ` + (err.response ? err.response.data.message : err.message);
-      console.error(err);
-    }
-    return; // Hentikan eksekusi setelah menangani 'tolak'
+  // Filter by Search
+  if (searchQuery.value) {
+    const q = searchQuery.value.toLowerCase();
+    result = result.filter(
+      (p) =>
+        p.nama?.toLowerCase().includes(q) ||
+        p.nama_lembaga?.toLowerCase().includes(q) ||
+        p.username?.toLowerCase().includes(q) ||
+        p.email?.toLowerCase().includes(q)
+    );
   }
 
-  // Bagian ini hanya untuk 'terima'
+  return result;
+});
+
+const totalPages = computed(() => Math.ceil(filteredPengepuls.value.length / itemsPerPage.value));
+
+const paginatedPengepuls = computed(() => {
+  const start = (currentPage.value - 1) * itemsPerPage.value;
+  const end = start + itemsPerPage.value;
+  return filteredPengepuls.value.slice(start, end);
+});
+
+// Actions
+const handleApprove = async (pengepul) => {
+  if (!confirm(`Apakah Anda yakin ingin menyetujui pendaftaran ${pengepul.nama_lembaga}?`)) return;
+
   try {
+    isSubmitting.value = true;
     const token = sessionStorage.getItem("token");
     const headers = { Authorization: `Bearer ${token}` };
 
-    await axios.put(`http://localhost:8000/api/admin/pengepul/${id}/terima`, {}, { headers });
-
-    // Hapus item dari list di frontend untuk update UI secara instan
-    allPengepuls.value = allPengepuls.value.filter((p) => p.pengepul_id !== id);
+    await axios.put(`/api/admin/pengepul/${pengepul.pengepul_id}/terima`, {}, { headers });
+    
+    // Update local state
+    pendingPengepuls.value = pendingPengepuls.value.filter(p => p.pengepul_id !== pengepul.pengepul_id);
+    alert("Pendaftaran berhasil disetujui!");
   } catch (err) {
-    error.value = `Gagal menerima pendaftar. ` + (err.response ? err.response.data.message : err.message);
-    console.error(err);
+    alert("Gagal menyetujui pendaftaran: " + (err.response?.data?.message || err.message));
+  } finally {
+    isSubmitting.value = false;
   }
 };
 
-// Ambil data saat komponen dimuat
-onMounted(fetchData);
+const openRejectModal = (pengepul) => {
+  selectedPengepul.value = pengepul;
+  rejectionReason.value = "";
+  isRejectModalOpen.value = true;
+};
+
+const handleReject = async () => {
+  if (!rejectionReason.value.trim()) {
+    alert("Alasan penolakan wajib diisi.");
+    return;
+  }
+
+  try {
+    isSubmitting.value = true;
+    const token = sessionStorage.getItem("token");
+    const headers = { Authorization: `Bearer ${token}` };
+
+    await axios.put(`/api/admin/pengepul/${selectedPengepul.value.pengepul_id}/tolak`, {
+      ket_status: rejectionReason.value
+    }, { headers });
+    
+    // Update local state
+    pendingPengepuls.value = pendingPengepuls.value.filter(p => p.pengepul_id !== selectedPengepul.value.pengepul_id);
+    isRejectModalOpen.value = false;
+    alert("Pendaftaran berhasil ditolak.");
+  } catch (err) {
+    alert("Gagal menolak pendaftaran: " + (err.response?.data?.message || err.message));
+  } finally {
+    isSubmitting.value = false;
+  }
+};
+
+const openDocModal = (pengepul) => {
+  selectedPengepul.value = pengepul;
+  isDocModalOpen.value = true;
+};
+
+// Helpers
+const formatDate = (dateStr) => {
+  if (!dateStr) return "-";
+  const date = new Date(dateStr);
+  return new Intl.DateTimeFormat("id-ID", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  }).format(date);
+};
+
+const isImage = (filename) => {
+  if (!filename) return false;
+  const ext = filename.split('.').pop().toLowerCase();
+  return ['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext);
+};
+
+const getFileUrl = (path) => {
+  if (!path) return '#';
+  // Assuming storage is linked and accessible via /storage
+  return `http://localhost:8000/storage/${path}`;
+};
 </script>
 
+<template>
+  <DashboardLayout title="Konfirmasi Pengepul">
+    <div class="space-y-6 animate-in fade-in duration-500">
+      
+      <!-- Header with Badge -->
+      <div class="flex items-center gap-4">
+        <h1 class="text-2xl font-bold text-gray-800">Pengepul Menunggu Konfirmasi</h1>
+        <div class="bg-[#7A3E3E] text-white px-4 py-1.5 rounded-xl text-sm font-bold shadow-sm">
+          {{ pendingPengepuls.length }} Request
+        </div>
+      </div>
+
+      <!-- Search Bar -->
+      <div class="relative group max-w-lg">
+        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+          <Icon icon="material-symbols:search" class="w-5 h-5 text-gray-400 group-focus-within:text-[#4A7043] transition-colors" />
+        </div>
+        <input
+          v-model="searchQuery"
+          type="text"
+          placeholder="Cari nama perusahaan, pemilik, atau username..."
+          class="w-full bg-white border-none rounded-2xl py-4 pl-12 pr-4 shadow-sm focus:ring-2 focus:ring-[#4A7043] outline-none transition-all placeholder:text-gray-400"
+        />
+      </div>
+
+      <!-- Table Container -->
+      <div class="bg-white rounded-[32px] shadow-sm overflow-hidden border border-gray-100">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="bg-[#4A7043] text-white">
+                <th class="px-6 py-5 font-bold uppercase text-xs tracking-wider">Identitas</th>
+                <th class="px-6 py-5 font-bold uppercase text-xs tracking-wider">Kontak</th>
+                <th class="px-6 py-5 font-bold uppercase text-xs tracking-wider">Alamat</th>
+                <th class="px-6 py-5 font-bold uppercase text-xs tracking-wider">Tanggal Daftar</th>
+                <th class="px-6 py-5 font-bold uppercase text-xs tracking-wider text-center">Aksi</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-50">
+              <tr v-if="isLoading">
+                <td colspan="5" class="px-6 py-20 text-center">
+                  <div class="flex flex-col items-center gap-3">
+                    <Icon icon="line-md:loading-twotone-loop" class="w-10 h-10 text-[#4A7043]" />
+                    <span class="text-gray-500 font-medium italic">Memuat pendaftar...</span>
+                  </div>
+                </td>
+              </tr>
+              <tr v-else-if="paginatedPengepuls.length === 0">
+                <td colspan="5" class="px-6 py-20 text-center text-gray-500 italic">
+                  Tidak ada pendaftar pengepul yang perlu dikonfirmasi.
+                </td>
+              </tr>
+              <tr 
+                v-for="pengepul in paginatedPengepuls" 
+                :key="pengepul.pengepul_id"
+                class="hover:bg-gray-50/50 transition-colors group"
+              >
+                <!-- Identitas -->
+                <td class="px-6 py-6">
+                  <div class="flex items-start gap-3">
+                    <div class="p-2 bg-[#4A7043]/10 rounded-lg text-[#4A7043]">
+                      <Icon icon="material-symbols:business-outline" class="w-6 h-6" />
+                    </div>
+                    <div class="flex flex-col">
+                      <span class="font-bold text-gray-800 text-base">{{ pengepul.nama_lembaga }}</span>
+                      <span class="text-xs text-[#4A7043] font-medium">@{{ pengepul.username }}</span>
+                      <span class="text-xs text-gray-500 mt-1 italic">Pemilik: {{ pengepul.nama }}</span>
+                    </div>
+                  </div>
+                </td>
+                
+                <!-- Kontak -->
+                <td class="px-6 py-6">
+                  <div class="flex flex-col gap-1 text-sm text-gray-600">
+                    <div class="flex items-center gap-2">
+                      <Icon icon="material-symbols:mail-outline" class="w-4 h-4 text-gray-400" />
+                      <span>{{ pengepul.email }}</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                      <Icon icon="material-symbols:call-outline" class="w-4 h-4 text-gray-400" />
+                      <span>{{ pengepul.no_telp }}</span>
+                    </div>
+                  </div>
+                </td>
+                
+                <!-- Alamat -->
+                <td class="px-6 py-6">
+                  <div class="flex items-start gap-2 text-sm text-gray-600 max-w-[250px]">
+                    <Icon icon="material-symbols:location-on-outline" class="w-4 h-4 text-gray-400 mt-0.5 shrink-0" />
+                    <span class="line-clamp-2">{{ pengepul.alamat }}</span>
+                  </div>
+                </td>
+                
+                <!-- Tanggal Daftar -->
+                <td class="px-6 py-6">
+                  <div class="flex items-center gap-2 text-sm text-gray-600 font-medium">
+                    <Icon icon="material-symbols:calendar-today-outline" class="w-4 h-4 text-gray-400" />
+                    <span>{{ formatDate(pengepul.created_at) }}</span>
+                  </div>
+                </td>
+                
+                <!-- Aksi -->
+                <td class="px-6 py-6">
+                  <div class="flex items-center justify-center gap-2">
+                    <button 
+                      @click="handleApprove(pengepul)"
+                      class="p-2 bg-[#4A7043] text-white rounded-lg hover:bg-[#3d5d37] transition-all shadow-sm group/btn"
+                      title="Setujui"
+                    >
+                      <Icon icon="material-symbols:check-circle-outline" class="w-5 h-5" />
+                    </button>
+                    <button 
+                      @click="openRejectModal(pengepul)"
+                      class="p-2 bg-[#7A3E3E] text-white rounded-lg hover:bg-[#633232] transition-all shadow-sm"
+                      title="Tolak"
+                    >
+                      <Icon icon="material-symbols:cancel-outline" class="w-5 h-5" />
+                    </button>
+                    <button 
+                      @click="openDocModal(pengepul)"
+                      class="p-2 bg-[#526D4E] text-white rounded-lg hover:bg-[#435940] transition-all shadow-sm"
+                      title="Lihat Dokumen"
+                    >
+                      <Icon icon="material-symbols:description-outline" class="w-5 h-5" />
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Pagination -->
+      <div class="bg-white rounded-2xl p-4 flex flex-col md:flex-row items-center justify-between gap-4 shadow-sm border border-gray-100">
+        <div class="flex items-center gap-3">
+          <span class="text-sm text-gray-500 font-medium">Tampilkan</span>
+          <div class="relative">
+            <select 
+              v-model="itemsPerPage"
+              class="appearance-none bg-gray-50 border border-gray-200 rounded-xl px-4 py-2 pr-10 text-sm font-semibold outline-none focus:ring-2 focus:ring-[#4A7043] transition-all"
+            >
+              <option :value="5">5</option>
+              <option :value="10">10</option>
+              <option :value="20">20</option>
+              <option :value="50">50</option>
+            </select>
+            <Icon icon="material-symbols:keyboard-arrow-down" class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <button 
+            @click="currentPage--"
+            :disabled="currentPage === 1"
+            class="px-4 py-2 rounded-xl text-sm font-semibold transition-all disabled:opacity-30 disabled:cursor-not-allowed hover:bg-gray-100 text-gray-600"
+          >
+            Sebelumnya
+          </button>
+          
+          <div class="bg-[#4A7043] text-white px-4 py-2 rounded-xl text-sm font-bold shadow-sm">
+            {{ currentPage }} / {{ totalPages || 1 }}
+          </div>
+          
+          <button 
+            @click="currentPage++"
+            :disabled="currentPage === totalPages || totalPages === 0"
+            class="px-4 py-2 rounded-xl text-sm font-semibold transition-all disabled:opacity-30 disabled:cursor-not-allowed hover:bg-gray-100 text-gray-600"
+          >
+            Selanjutnya
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Rejection Modal -->
+    <div 
+      v-if="isRejectModalOpen"
+      class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300"
+    >
+      <div class="bg-white w-full max-w-lg rounded-[32px] overflow-hidden shadow-2xl animate-in zoom-in-95 duration-300">
+        <div class="p-8 space-y-6">
+          <h2 class="text-2xl font-bold text-gray-800">Tolak Pendaftaran</h2>
+          <p class="text-gray-600">
+            Anda akan menolak pendaftaran <span class="font-bold text-gray-800">{{ selectedPengepul?.nama_lembaga }}</span>
+          </p>
+          
+          <div class="space-y-1.5">
+            <label class="text-xs font-bold text-gray-500 uppercase tracking-wider ml-1">Alasan Penolakan *</label>
+            <textarea 
+              v-model="rejectionReason"
+              placeholder="Jelaskan alasan penolakan (wajib diisi)"
+              rows="4"
+              class="w-full bg-gray-50 border-none rounded-2xl p-4 focus:ring-2 focus:ring-[#7A3E3E] outline-none transition-all placeholder:text-gray-300 text-sm resize-none"
+            ></textarea>
+          </div>
+
+          <div class="flex gap-4">
+            <button 
+              @click="isRejectModalOpen = false"
+              class="flex-1 bg-gray-500 text-white py-4 rounded-2xl font-bold hover:bg-gray-600 transition-colors shadow-sm"
+            >
+              Batal
+            </button>
+            <button 
+              @click="handleReject"
+              :disabled="isSubmitting || !rejectionReason.trim()"
+              class="flex-1 bg-[#7A3E3E] text-white py-4 rounded-2xl font-bold hover:bg-[#633232] transition-all shadow-md disabled:opacity-50"
+            >
+              {{ isSubmitting ? 'Memproses...' : 'Tolak Pendaftaran' }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Document Modal -->
+    <div 
+      v-if="isDocModalOpen"
+      class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300"
+    >
+      <div class="bg-white w-full max-w-2xl rounded-[32px] overflow-hidden shadow-2xl animate-in zoom-in-95 duration-300">
+        <div class="p-8 space-y-6">
+          <div>
+            <h2 class="text-2xl font-bold text-gray-800">Dokumen Pendukung</h2>
+            <p class="text-gray-600">
+              Dokumen untuk <span class="font-bold text-gray-800">{{ selectedPengepul?.nama_lembaga }}</span>
+            </p>
+          </div>
+          
+          <div class="space-y-4">
+            <!-- KTP -->
+            <div class="bg-gray-50 rounded-2xl p-6 flex items-center justify-between group hover:bg-gray-100 transition-colors">
+              <div class="flex items-center gap-4">
+                <div class="p-3 bg-white rounded-xl shadow-sm text-[#4A7043]">
+                  <Icon icon="material-symbols:badge-outline" class="w-8 h-8" />
+                </div>
+                <div class="flex flex-col">
+                  <span class="font-bold text-gray-800 text-lg uppercase">KTP</span>
+                  <span class="text-sm text-gray-400 italic">{{ selectedPengepul?.ktp || 'Tidak ada file' }}</span>
+                </div>
+              </div>
+              <a 
+                v-if="selectedPengepul?.ktp"
+                :href="getFileUrl(selectedPengepul.ktp)" 
+                target="_blank"
+                class="bg-[#4A7043] text-white px-6 py-2.5 rounded-xl font-bold hover:bg-[#3d5d37] transition-all shadow-sm"
+              >
+                Lihat Dokumen
+              </a>
+            </div>
+
+            <!-- NPWP -->
+            <div class="bg-gray-50 rounded-2xl p-6 flex items-center justify-between group hover:bg-gray-100 transition-colors">
+              <div class="flex items-center gap-4">
+                <div class="p-3 bg-white rounded-xl shadow-sm text-[#4A7043]">
+                  <Icon icon="material-symbols:description-outline" class="w-8 h-8" />
+                </div>
+                <div class="flex flex-col">
+                  <span class="font-bold text-gray-800 text-lg uppercase">NPWP</span>
+                  <span class="text-sm text-gray-400 italic">{{ selectedPengepul?.npwp || 'Tidak ada file' }}</span>
+                </div>
+              </div>
+              <a 
+                v-if="selectedPengepul?.npwp"
+                :href="getFileUrl(selectedPengepul.npwp)" 
+                target="_blank"
+                class="bg-[#4A7043] text-white px-6 py-2.5 rounded-xl font-bold hover:bg-[#3d5d37] transition-all shadow-sm"
+              >
+                Lihat Dokumen
+              </a>
+            </div>
+          </div>
+
+          <button 
+            @click="isDocModalOpen = false"
+            class="w-full bg-gray-500 text-white py-4 rounded-2xl font-bold hover:bg-gray-600 transition-colors shadow-sm mt-4"
+          >
+            Tutup
+          </button>
+        </div>
+      </div>
+    </div>
+
+  </DashboardLayout>
+</template>
+
 <style scoped>
-.container {
-  padding: 2rem;
-  font-family: "Arial", sans-serif;
+.animate-in {
+  animation-duration: 0.5s;
+  animation-fill-mode: both;
 }
-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 1rem;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+.fade-in {
+  animation-name: fadeIn;
 }
-th,
-td {
-  border: 1px solid #ddd;
-  padding: 12px;
-  text-align: left;
-  vertical-align: middle;
+.zoom-in-95 {
+  animation-name: zoomIn95;
 }
-th {
-  background-color: #f8f8f8;
-  font-weight: bold;
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
 }
-.loading,
-.error {
-  margin-top: 1rem;
-  color: #888;
-  text-align: center;
+
+@keyframes zoomIn95 {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
 }
-.error {
-  color: #e74c3c;
-  font-weight: bold;
+
+/* Custom Select Styling */
+select {
+  background-image: none;
 }
-.status-pending {
-  background-color: #f39c12;
-  color: white;
-  padding: 4px 8px;
-  border-radius: 4px;
-  font-size: 0.9em;
-  text-transform: capitalize;
+
+::-webkit-scrollbar {
+  height: 6px;
+  width: 6px;
 }
-.aksi-buttons {
-  display: flex;
-  gap: 8px;
+::-webkit-scrollbar-track {
+  background: transparent;
 }
-button {
-  padding: 8px 12px;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  color: white;
-  font-weight: bold;
-  transition: background-color 0.2s;
+::-webkit-scrollbar-thumb {
+  background: #e2e8f0;
+  border-radius: 10px;
 }
-.button-terima {
-  background-color: #2ecc71;
-}
-.button-terima:hover {
-  background-color: #27ae60;
-}
-.button-tolak {
-  background-color: #e74c3c;
-}
-.button-tolak:hover {
-  background-color: #c0392b;
+::-webkit-scrollbar-thumb:hover {
+  background: #cbd5e0;
 }
 </style>

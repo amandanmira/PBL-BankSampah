@@ -39,6 +39,15 @@ class KelolaAkunController extends Controller
     }
 
     /**
+     * Menampilkan daftar pengepul yang sedang menunggu konfirmasi (pending).
+     */
+    public function indexPendingPengepul()
+    {
+        $pengepul = Pengepul::where('status', 'pending')->latest()->get();
+        return response()->json(['data' => $pengepul], 200);
+    }
+
+    /**
      * Menampilkan detail pengepul.
      */
     public function showPengepul(Pengepul $pengepul)

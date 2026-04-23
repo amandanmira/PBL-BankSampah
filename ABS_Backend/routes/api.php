@@ -146,6 +146,7 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'role:admin'])->group(functi
     Route::put('/edit-manager/{id}', [ProfileController::class, 'updateManager']);
 
     // Pengepul
+    Route::get('pengepul/pending', [KelolaAkunController::class, 'indexPendingPengepul']);
     Route::get('pengepul', [KelolaAkunController::class, 'indexPengepul']);
     Route::get('pengepul/{pengepul}', [KelolaAkunController::class, 'showPengepul']);
     Route::put('pengepul/{pengepul}/terima', [AksiAdminController::class, 'terimaPengepul']);
