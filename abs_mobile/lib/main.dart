@@ -221,11 +221,16 @@ class _LoginPageState extends State<LoginPage> {
 
                           // 3. Validasi Role Petugas
                           if (role == 'petugas') {
+                            // AMBIL TOKEN DARI SERVER
+                            String token = result['token']; 
+                            
                             if (mounted) {
-                              // Pindah ke halaman Dashboard dan buang halaman login (supaya gak bisa di-back)
                               Navigator.pushReplacement(
                                 context,
-                                MaterialPageRoute(builder: (context) => const DashboardPetugas()),
+                                MaterialPageRoute(
+                                  // KIRIM TOKEN KE DASHBOARD
+                                  builder: (context) => DashboardPetugas(token: token), 
+                                ),
                               );
                             }
                           } else {
