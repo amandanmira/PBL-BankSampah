@@ -148,7 +148,7 @@ class _DashboardPetugasState extends State<DashboardPetugas> {
                           badgeTextColor: isPending ? const Color(0xFF856404) : primaryGreen,
                         ),
                       );
-                    }).toList(),
+                    }),
                     const SizedBox(height: 32),
 
                     // LIST: AKTIVITAS TERKINI
@@ -174,7 +174,7 @@ class _DashboardPetugasState extends State<DashboardPetugas> {
                         isActive: item['status'] == 'selesai',
                         isLast: isLast,
                       );
-                    }).toList(),
+                    }),
                     
                     const SizedBox(height: 50),
                   ],
