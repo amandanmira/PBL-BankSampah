@@ -12,7 +12,6 @@ use App\Http\Controllers\Api\AuthController;
 
 // API
 Route::prefix('api')->group(function () {
-    Route::post('/login', [AuthController::class, 'login']);
     Route::post('/register-pengepul', [AuthController::class , 'registerPengepul']);
     Route::post('/register-nasabah', [AuthController::class , 'registerNasabah']);
     Route::post('/check-email', [AuthController::class , 'checkEmail']);
