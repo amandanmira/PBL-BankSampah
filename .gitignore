@@ -69,3 +69,7 @@ app.*.map.json
 
 # Web related
 **/lib/generated_plugin_registrant.dart
+abs_mobile/ios/Flutter/ephemeral/flutter_lldb_helper.py
+abs_mobile/ios/Flutter/ephemeral/flutter_lldbinit
+abs_mobile/ios/Runner/GeneratedPluginRegistrant.h
+abs_mobile/ios/Runner/GeneratedPluginRegistrant.m
