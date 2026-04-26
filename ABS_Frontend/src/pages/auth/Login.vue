@@ -182,9 +182,12 @@ const togglePassword = () => {
   })
 }
 
+const isLoading = ref(false)
+
 // Fungsi Login
 const handleLogin = async () => {
   try {
+    isLoading.value = true
     errorMessage.value = ''
 
     // LANGKAH 1 WAJIB: Minta tiket / cookie keamanan ke Laravel
@@ -221,6 +224,8 @@ const handleLogin = async () => {
     }
   } catch (error) {
     errorMessage.value = error.response?.data?.message || error
+  } finally {
+    isLoading.value = false
   }
 }
 </script>
