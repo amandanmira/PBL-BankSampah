@@ -36,6 +36,7 @@ import BeritaCreate from "@/pages/dashboards/petugas/berita/Create.vue";
 import BeritaEdit from "@/pages/dashboards/petugas/berita/Edit.vue";
 import BeritaShow from "@/pages/dashboards/petugas/berita/show.vue";
 import ConfigWeb from "@/pages/dashboards/admin/managePages/ConfigWeb.vue";
+import AturDeadline from "@/pages/dashboards/admin/managePages/AturDeadline.vue";
 
 //Penarikan
 import ListPenarikan from "@/pages/dashboards/petugas/ListPenarikan.vue";
@@ -207,6 +208,10 @@ const routes = [
   {
     path: "/dashboard-admin/konfigurasi-web",
     component: ConfigWeb,
+  },
+  {
+    path: "/dashboard-admin/deadline-pembayaran",
+    component: AturDeadline,
   },
 
   // Manager
