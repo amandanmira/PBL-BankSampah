@@ -14,6 +14,24 @@
         <strong>Nama Nasabah:</strong>
         <span>{{ penjemputan.nasabah ? penjemputan.nasabah.nama : "Tidak diketahui" }}</span>
       </div>
+      
+      <!-- New: Request Info Section -->
+      <div class="request-info-banner mt-4 p-4 rounded-xl bg-[#F5F5F0] border border-[#E0E0D5]">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <p class="text-[10px] font-black text-stone-400 uppercase tracking-widest mb-1">Estimasi Nasabah:</p>
+            <p class="font-bold text-[#4A7043]">{{ penjemputan.deskripsi?.split('|')[0] || '-' }}</p>
+          </div>
+          <div>
+            <p class="text-[10px] font-black text-stone-400 uppercase tracking-widest mb-1">Jenis Sampah:</p>
+            <p class="font-bold text-stone-700">{{ penjemputan.deskripsi?.split('|')[1] || '-' }}</p>
+          </div>
+        </div>
+        <div v-if="penjemputan.deskripsi?.split('|')[2]" class="mt-3 pt-2 border-t border-stone-200/50">
+          <p class="text-[10px] font-black text-stone-400 uppercase tracking-widest mb-1">Keterangan:</p>
+          <p class="text-xs italic text-stone-600">"{{ penjemputan.deskripsi?.split('|')[2] }}"</p>
+        </div>
+      </div>
 
       <div class="form-section-wrapper">
         <form @submit.prevent="submitPenimbangan">

@@ -236,6 +236,10 @@ onMounted(() => {
                 <p class="text-[10px] font-black text-stone-400 uppercase tracking-widest mb-1">Jenis Sampah</p>
                 <p class="font-black text-stone-800 text-lg">{{ request.deskripsi?.split('|')[1] || 'Plastik PET, Botol Kaca' }}</p>
               </div>
+              <div v-if="request.deskripsi?.split('|')[2]" class="md:col-span-2 pt-2 border-t border-stone-100">
+                <p class="text-[10px] font-black text-stone-400 uppercase tracking-widest mb-1">Keterangan Tambahan</p>
+                <p class="text-xs font-bold text-stone-600">{{ request.deskripsi?.split('|')[2] }}</p>
+              </div>
             </div>
 
             <!-- Worker Selection -->

@@ -15,7 +15,7 @@ class GudangController extends Controller
      */
     public function index()
     {
-        $gudang = Gudang::with(['sampah', 'tukang'])->get();
+        $gudang = Gudang::with(['sampah.itemSampah', 'tukang'])->get();
         return response()->json(['data' => $gudang], 200);
     }
 
