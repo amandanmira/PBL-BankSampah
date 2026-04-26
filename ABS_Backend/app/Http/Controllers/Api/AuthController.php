@@ -130,7 +130,7 @@ class AuthController extends Controller
             ]);
         }
 
-        $petugas = Petugas::where('email', $email)->first();
+        $petugas = Petugas::with('gudang')->where('email', $email)->first();
         if ($petugas && Hash::check($password, $petugas->password)) {
             // Tambahkan pengecekan ini
             if (!$petugas->active) {

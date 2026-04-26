@@ -145,7 +145,7 @@ onMounted(() => {
       </div>
 
       <!-- User Profile (Sidebar) -->
-      <div :class="cn('px-4 mb-8 transition-all duration-300', isSidebarCollapsed ? 'flex flex-col items-center gap-4' : '')">
+      <div :class="cn('px-4 mb-8 transition-all duration-300 flex flex-col items-center', isSidebarCollapsed ? 'gap-4' : 'gap-2')">
         <button 
           @click="() => {}"
           :class="
@@ -164,10 +164,21 @@ onMounted(() => {
           <div 
             :class="cn('flex-1 text-left overflow-hidden transition-all duration-300 whitespace-nowrap', isSidebarCollapsed ? 'max-w-0 opacity-0' : 'max-w-xs opacity-100')"
           >
-            <p class="font-black text-sm leading-tight truncate">{{ user.name || 'Nama User' }}</p>
-            <p class="text-[10px] font-bold text-white/40 uppercase tracking-widest mt-0.5">{{ user.role || 'Role' }}</p>
+            <p class="font-black text-sm leading-tight truncate">
+              {{ role === 'nasabah' ? (user.username || 'Username') : (user.nama || user.name || 'Nama User') }}
+            </p>
+            <p class="text-[10px] font-bold text-white/60 mt-0.5">
+              {{ role === 'nasabah' ? (user.nama || 'Nama Nasabah') : (role === 'admin' ? 'Administrator' : (role ? role.charAt(0).toUpperCase() + role.slice(1) : 'Role')) }}
+            </p>
           </div>
         </button>
+
+        <!-- Warehouse Badge (For Petugas) -->
+        <div v-if="role === 'petugas' && !isSidebarCollapsed" class="w-full flex justify-center">
+          <div class="bg-white/10 text-white text-[10px] px-4 py-1.5 rounded-full font-bold backdrop-blur-sm border border-white/5">
+            {{ user.gudang?.alamat || 'Gudang' }}
+          </div>
+        </div>
 
         <!-- Divider for collapsed state -->
         <div v-if="isSidebarCollapsed" class="w-10 h-[1px] bg-white/10"></div>
