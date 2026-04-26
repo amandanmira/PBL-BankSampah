@@ -12,7 +12,7 @@ checkRole("admin");
 const stats = ref({
   total_petugas: 0,
   nasabah_aktif: 0,
-  pengepul_terverifikasi: 0,
+  total_pengepul: 0,
   total_gudang: 0,
 });
 
@@ -57,9 +57,9 @@ onMounted(() => {
           icon-class="bg-[#5FA09B] text-white"
         />
         <StatCard
-          title="Pengepul Terverifikasi"
-          :value="stats.pengepul_terverifikasi"
-          icon="material-symbols:verified-user-outline"
+          title="Total Pengepul"
+          :value="stats.total_pengepul"
+          icon="material-symbols:group-outline"
           icon-class="bg-[#A86444] text-white"
         />
         <StatCard

@@ -15,9 +15,9 @@ class DashboardAdminController extends Controller
     public function index()
     {
         $totalPetugas = Petugas::count();
-        $nasabahAktif = Nasabah::count(); 
-        $pengepulVerifikasi = 28; 
-        $totalGudang = 8; 
+        $nasabahAktif = Nasabah::where('status', 'aktif')->count(); 
+        $totalPengepul = Pengepul::count(); 
+        $totalGudang = Gudang::count(); 
 
         // Recent activities (Mocking logic based on latest records)
         $activities = [];
@@ -78,7 +78,7 @@ class DashboardAdminController extends Controller
             'stats' => [
                 'total_petugas' => $totalPetugas,
                 'nasabah_aktif' => $nasabahAktif,
-                'pengepul_terverifikasi' => $pengepulVerifikasi,
+                'total_pengepul' => $totalPengepul,
                 'total_gudang' => $totalGudang,
             ],
             'activities' => $activities
