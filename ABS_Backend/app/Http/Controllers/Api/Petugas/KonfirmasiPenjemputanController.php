@@ -11,7 +11,7 @@ class KonfirmasiPenjemputanController extends Controller
 {
     public function penjemputan()
     {
-        $penjemputan = Penjemputan::with('petugas')->whereIn('status',['pending', 'proses'])->latest()->get();
+        $penjemputan = Penjemputan::with(['petugas', 'nasabah'])->whereIn('status',['pending', 'proses'])->latest()->get();
         return response()->json(['data' => $penjemputan], 200);
     }
 

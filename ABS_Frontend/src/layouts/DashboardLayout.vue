@@ -19,12 +19,14 @@ const toggleSidebar = () => {
   isSidebarCollapsed.value = !isSidebarCollapsed.value;
 };
 
-const role = sessionStorage.getItem("role");
+const role = computed(() => sessionStorage.getItem("role")?.toLowerCase());
 
 const menuItems = computed(() => {
-  if (role === "admin") {
+  console.log("Current role in sidebar:", role.value);
+  
+  if (role.value === "admin") {
     return [
-      { name: "Dashboard", path: "/dashboard-admin", icon: "material-symbols:dashboard-outline" },
+      { name: "Dashboard", path: "/dashboard-admin", icon: "material-symbols:grid-view-outline" },
       { name: "Kelola Akun", path: "/dashboard-admin/kelola-users", icon: "material-symbols:person-outline" },
       { name: "Konfirmasi Pengepul", path: "/dashboard-admin/verifikasi-pengepul", icon: "material-symbols:verified-user-outline" },
       { name: "Konfigurasi Web", path: "/dashboard-admin/konfigurasi-web", icon: "material-symbols:settings-outline" },
@@ -33,27 +35,27 @@ const menuItems = computed(() => {
       { name: "Deadline Pembayaran", path: "/dashboard-admin/deadline-pembayaran", icon: "material-symbols:calendar-today-outline" },
     ];
   }
-  if (role === "petugas") {
+  if (role.value === "petugas") {
     return [
-      { name: "Dashboard", path: "/dashboard-petugas", icon: "material-symbols:dashboard-outline" },
+      { name: "Dashboard", path: "/dashboard-petugas", icon: "material-symbols:grid-view-outline" },
       { name: "Request Penjemputan", path: "/dashboard-petugas/listpenjemputan", icon: "material-symbols:local-shipping-outline" },
-      { name: "Setor Manual", path: "/dashboard-petugas/penimbangan", icon: "material-symbols:delete-outline" },
+      { name: "Setor Manual", path: "/dashboard-petugas/penimbangan", icon: "material-symbols:storefront-outline" },
       { name: "Request Penarikan", path: "/dashboard-petugas/listpenarikan", icon: "material-symbols:account-balance-wallet-outline" },
       { name: "Riwayat", path: "/dashboard-petugas/riwayat-penjemputan", icon: "material-symbols:history" },
       { name: "Laporan Harian", path: "/dashboard-petugas/laporan-harian", icon: "material-symbols:description-outline" },
-      { name: "Notifikasi", path: "/dashboard-petugas/notifikasi", icon: "material-symbols:notifications-outline" },
+      { name: "Berita", path: "/dashboard-petugas/kelola-berita", icon: "material-symbols:article-outline" },
     ];
   }
-  if (role === "manager") {
+  if (role.value === "manager") {
     return [
-      { name: "Dashboard", path: "/dashboard-manager", icon: "material-symbols:dashboard-outline" },
+      { name: "Dashboard", path: "/dashboard-manager", icon: "material-symbols:grid-view-outline" },
       { name: "Riwayat Penjemputan", path: "/dashboard-manager/riwayat-penjemputan", icon: "material-symbols:local-shipping-outline" },
       { name: "Riwayat Penarikan", path: "/dashboard-manager/riwayat-penarikan", icon: "material-symbols:account-balance-wallet-outline" },
     ];
   }
   // Default to nasabah
   return [
-    { name: "Dashboard", path: "/dashboard-nasabah", icon: "material-symbols:dashboard-outline" },
+    { name: "Dashboard", path: "/dashboard-nasabah", icon: "material-symbols:grid-view-outline" },
     { name: "Katalog Sampah", path: "/dashboard-nasabah/katalog", icon: "material-symbols:book-outline" },
     { name: "Request Jemput/Setor", path: "/dashboard-nasabah/request-penjemputan", icon: "material-symbols:local-shipping-outline" },
     { name: "Penarikan Uang", path: "/dashboard-nasabah/request-penarikan", icon: "material-symbols:account-balance-wallet-outline" },
@@ -228,7 +230,7 @@ onMounted(() => {
           <div 
             :class="cn('overflow-hidden transition-all duration-300 whitespace-nowrap', isSidebarCollapsed ? 'max-w-0 opacity-0' : 'max-w-xs opacity-100')"
           >
-            <span class="font-semibold text-xs">Keluar</span>
+            <span class="font-semibold text-xs">Logout</span>
           </div>
         </button>
       </div>
