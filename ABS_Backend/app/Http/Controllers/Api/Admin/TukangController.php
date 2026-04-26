@@ -56,7 +56,20 @@ class TukangController extends Controller
 
 
         return response()->json([
-            'message' => 'Update Sampah Berhasil!'
+            'message' => 'Update Tukang Berhasil!'
         ]);
+    }
+
+    public function destroy($id)
+    {
+        $tukang = Tukang::find($id);
+        if ($tukang) {
+            if ($tukang->foto && Storage::disk('public')->exists($tukang->foto)) {
+                Storage::disk('public')->delete($tukang->foto);
+            }
+            $tukang->delete();
+            return response()->json(['message' => 'Tukang berhasil dihapus'], 200);
+        }
+        return response()->json(['message' => 'Tukang tidak ditemukan'], 404);
     }
 }

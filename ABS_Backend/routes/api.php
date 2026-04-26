@@ -191,6 +191,7 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'role:admin'])->group(functi
     Route::put('/web-config', [WebController::class, 'update']);
 
     Route::put('/tukang/{gudang_id}', [TukangController::class, 'update']);
+    Route::delete('/tukang/{id}', [TukangController::class, 'destroy']);
 
     // Dashboard Stats
     Route::get('/dashboard-stats', [DashboardAdminController::class, 'index']);

@@ -11,6 +11,15 @@ axios.defaults.baseURL = 'http://localhost:8000';
 axios.defaults.withCredentials = true;
 axios.defaults.withXSRFToken = true;
 
+// Interceptor untuk menambahkan token otomatis
+axios.interceptors.request.use((config) => {
+  const token = sessionStorage.getItem('token');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
 const app = createApp(App)
 
 app.use(createPinia())

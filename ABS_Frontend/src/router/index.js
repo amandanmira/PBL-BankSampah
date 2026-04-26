@@ -51,11 +51,6 @@ import LaporanHarianPetugas from "@/pages/dashboards/petugas/LaporanHarian.vue";
 
 // Gudang
 import GudangIndex from "@/pages/dashboards/admin/managePages/gudang/GudangIndex.vue";
-import GudangCreate from "@/pages/dashboards/admin/managePages/gudang/GudangCreate.vue";
-import GudangEdit from "@/pages/dashboards/admin/managePages/gudang/GudangEdit.vue";
-import GudangShow from "@/pages/dashboards/admin/managePages/gudang/GudangShow.vue";
-import ManageSampahGudang from "@/pages/dashboards/admin/managePages/gudang/ManageSampahGudang.vue";
-import ManageTukang from "@/pages/dashboards/admin/managePages/gudang/ManageTukang.vue";
 
 // Sampah
 import SampahIndex from "@/pages/dashboards/admin/managePages/sampah/SampahIndex.vue";
@@ -184,28 +179,6 @@ const routes = [
   {
     path: "/dashboard-admin/kelola-gudang",
     component: GudangIndex,
-  },
-  {
-    path: "/dashboard-admin/kelola-gudang/create",
-    component: GudangCreate,
-  },
-  {
-    path: "/dashboard-admin/kelola-gudang/:id/edit",
-    component: GudangEdit,
-  },
-  {
-    path: "/dashboard-admin/kelola-gudang/:id",
-    component: GudangShow,
-		children: [
-			{
-        path: "sampah",
-        component: ManageSampahGudang,
-      },
-			{
-        path: "tukang",
-        component: ManageTukang,
-      },
-		]
   },
 
   // Sampah
