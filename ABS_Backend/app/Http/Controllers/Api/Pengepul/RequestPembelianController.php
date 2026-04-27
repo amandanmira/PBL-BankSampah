@@ -34,7 +34,10 @@ class RequestPembelianController extends Controller
             ]);
 
         return response()->json(
-            TransaksiPengepul::with('detailTransaksi.sampah.itemSampah')->where('pengepul_id', $pengepul_id)->get()
+            TransaksiPengepul::with('detailTransaksi.sampah.itemSampah')
+                ->where('pengepul_id', $pengepul_id)
+                ->latest()
+                ->paginate(10)
         );
     }
 

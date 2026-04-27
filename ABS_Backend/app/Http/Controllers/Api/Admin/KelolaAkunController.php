@@ -17,8 +17,8 @@ class KelolaAkunController extends Controller
      */
     public function indexPetugas()
     {
-        $petugas = Petugas::latest()->get();
-        return response()->json(['data' => $petugas], 200);
+        $petugas = Petugas::latest()->paginate(10);
+        return response()->json($petugas, 200);
     }
 
     /**
@@ -34,8 +34,8 @@ class KelolaAkunController extends Controller
      */
     public function indexPengepul()
     {
-        $pengepul = Pengepul::latest()->get();
-        return response()->json(['data' => $pengepul], 200);
+        $pengepul = Pengepul::latest()->paginate(10);
+        return response()->json($pengepul, 200);
     }
 
     /**
@@ -43,8 +43,8 @@ class KelolaAkunController extends Controller
      */
     public function indexPendingPengepul()
     {
-        $pengepul = Pengepul::where('status', 'pending')->latest()->get();
-        return response()->json(['data' => $pengepul], 200);
+        $pengepul = Pengepul::where('status', 'pending')->latest()->paginate(10);
+        return response()->json($pengepul, 200);
     }
 
     /**
@@ -60,8 +60,8 @@ class KelolaAkunController extends Controller
      */
     public function indexNasabah()
     {
-        $nasabah = Nasabah::latest()->get();
-        return response()->json(['data' => $nasabah], 200);
+        $nasabah = Nasabah::latest()->paginate(10);
+        return response()->json($nasabah, 200);
     }
 
     /**
@@ -69,8 +69,8 @@ class KelolaAkunController extends Controller
      */
     public function indexTukang()
     {
-        $tukang = Tukang::latest()->get();
-        return response()->json(['data' => $tukang], 200);
+        $tukang = Tukang::latest()->paginate(10);
+        return response()->json($tukang, 200);
     }
 
     /**
@@ -78,8 +78,8 @@ class KelolaAkunController extends Controller
      */
     public function indexAdmin()
     {
-        $admin = Admin::latest()->get();
-        return response()->json(['data' => $admin], 200);
+        $admin = Admin::latest()->paginate(10);
+        return response()->json($admin, 200);
     }
 
     /**
@@ -87,8 +87,8 @@ class KelolaAkunController extends Controller
      */
     public function indexManager()
     {
-        $manager = Manager::latest()->get();
-        return response()->json(['data' => $manager], 200);
+        $manager = Manager::latest()->paginate(10);
+        return response()->json($manager, 200);
     }
 
     /**
