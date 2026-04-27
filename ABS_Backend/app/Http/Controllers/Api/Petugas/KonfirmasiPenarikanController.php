@@ -12,8 +12,8 @@ class KonfirmasiPenarikanController extends Controller
 {
     public function penarikan()
     {
-        $penarikan = Penarikan::with('nasabah')->latest()->get();
-        return response()->json(['data' => $penarikan], 200);
+        $penarikan = Penarikan::with('nasabah')->latest()->paginate(10);
+        return response()->json($penarikan, 200);
     }
 
     public function terima(Request $request, $id)
@@ -88,10 +88,10 @@ class KonfirmasiPenarikanController extends Controller
     {
         // Menyaring data hanya untuk status 'selesai' dan 'tolak'
         $riwayat = Penarikan::with('nasabah')
+            ->latest()
+            ->paginate(10);
 
-            ->get();
-
-        return response()->json(['data' => $riwayat], 200);
+        return response()->json($riwayat, 200);
     }
 
     public function show($id)

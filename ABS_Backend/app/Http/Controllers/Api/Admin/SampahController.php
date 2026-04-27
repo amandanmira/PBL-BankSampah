@@ -14,14 +14,14 @@ class SampahController extends Controller
     public function index()
     {
         return response()->json(
-            KategoriSampah::with('itemSampah.sampah')->get()
+            KategoriSampah::with('itemSampah.sampah')->latest()->paginate(10)
         );
     }
 
     public function indexItem()
     {
         return response()->json(
-            ItemSampah::all()
+            ItemSampah::latest()->paginate(10)
         );
     }
 

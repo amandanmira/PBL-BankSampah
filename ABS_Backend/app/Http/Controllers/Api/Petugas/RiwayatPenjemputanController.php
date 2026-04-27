@@ -13,9 +13,9 @@ class RiwayatPenjemputanController extends Controller
         // Menyaring data hanya untuk status 'selesai' dan 'tolak'
         $riwayat = Penjemputan::with('nasabah')
             ->latest()
-            ->get();
+            ->paginate(10);
 
-        return response()->json(['data' => $riwayat], 200);
+        return response()->json($riwayat, 200);
     }
 
     public function show($id)
