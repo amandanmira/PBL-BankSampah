@@ -13,6 +13,7 @@ class Penjemputan extends Model
         'alamat',
         'foto',
         'jadwal',
+        'estimasi_berat',
         'status',
         'ket_status',
         'tukang_id',
@@ -45,4 +46,10 @@ class Penjemputan extends Model
     {
         return $this->hasMany(Penimbangan::class,'penjemputan_id','penjemputan_id');
     }
+
+    public function detailPenjemputan()
+    {
+        return $this->hasMany(DetailPenjemputan::class,'penjemputan_id','penjemputan_id');
+    }
+
 }

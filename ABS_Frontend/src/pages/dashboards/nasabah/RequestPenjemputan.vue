@@ -19,6 +19,7 @@ const logoFile = ref(null);
 const preview = ref(null);
 const loading = ref(false);
 const selectedItems = ref([]); // Array of selected item names
+const selectedItemsId = ref([]); // Array of selected item names
 
 // Pagination for Sampah
 const currentPage = ref(1);
@@ -78,12 +79,14 @@ const handleFile = (e) => {
   }
 };
 
-const toggleItem = (itemName) => {
+const toggleItem = (itemName, id) => {
   const index = selectedItems.value.indexOf(itemName);
   if (index > -1) {
     selectedItems.value.splice(index, 1);
+    selectedItemsId.value.splice(index, 1);
   } else {
     selectedItems.value.push(itemName);
+    selectedItemsId.value.push(id);
   }
 };
 
@@ -113,11 +116,22 @@ const submitRequest = async () => {
     const typesStr = selectedItems.value.join(", ");
     const combinedDesc = `${form.value.estimasi_berat}|${typesStr}|${form.value.deskripsi}`;
     
-    formData.append("deskripsi", combinedDesc);
+    formData.append("deskripsi", form.value.deskripsi);
     formData.append("alamat", addressType.value === 'alamat_profil' ? (user.alamat || '-') : form.value.alamat);
     formData.append("foto", logoFile.value);
+    formData.append("estimasi_berat", form.value.estimasi_berat);
     formData.append("nasabah_id", user.nasabah_id);
     formData.append("gudang_id", form.value.gudang_id);
+
+    let i = 0;
+    for (const s of selectedItemsId.value) {
+      formData.append(`detail[${i}][sampah_id]`, s);
+
+      i++;
+    }
+
+    // console.log(selectedItemsId.value);
+    // console.log(Object.fromEntries(formData));
 
     await axios.post("/api/nasabah/request-penjemputan", formData, {
       headers: { "Content-Type": "multipart/form-data" }
@@ -366,7 +380,7 @@ onMounted(() => {
               <div 
                 v-for="s in paginatedSampah" 
                 :key="s.sampah_id"
-                @click="toggleItem(s.item_sampah.nama)"
+@click="toggleItem(s.item_sampah.nama, s.sampah_id)"
                 :class="[
                   'p-5 rounded-2xl border-2 transition-all cursor-pointer flex justify-between items-center group bg-white shadow-sm',
                   selectedItems.includes(s.item_sampah.nama) ? 'border-[#4A7043] ring-1 ring-[#4A7043]' : 'border-transparent hover:border-stone-200'
