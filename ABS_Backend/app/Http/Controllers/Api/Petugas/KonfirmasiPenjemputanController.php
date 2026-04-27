@@ -11,8 +11,8 @@ class KonfirmasiPenjemputanController extends Controller
 {
     public function penjemputan()
     {
-        $penjemputan = Penjemputan::with(['petugas', 'nasabah'])->whereIn('status',['pending', 'proses'])->latest()->get();
-        return response()->json(['data' => $penjemputan], 200);
+        $penjemputan = Penjemputan::with(['petugas', 'nasabah'])->whereIn('status',['pending', 'proses'])->latest()->paginate(10);
+        return response()->json($penjemputan, 200);
     }
 
     //riwayat buat nasabah
@@ -32,9 +32,9 @@ class KonfirmasiPenjemputanController extends Controller
         $penjemputan = Penjemputan::with('nasabah')
             ->where('nasabah_id', $user->nasabah_id)
             ->latest()
-            ->get();
+            ->paginate(10);
 
-        return response()->json(['data' => $penjemputan], 200);
+        return response()->json($penjemputan, 200);
     }
 
     public function terima(Request $request, Penjemputan $penjemputan)

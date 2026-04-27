@@ -16,7 +16,7 @@ class BeritaController extends Controller
     public function index()
     {
         // Mengambil semua berita, diurutkan dari yang terbaru, dan memuat relasi dengan petugas
-        $berita = Berita::with('petugas')->latest()->get();
+        $berita = Berita::with('petugas')->latest()->paginate(10);
         return response()->json($berita);
     }
 
