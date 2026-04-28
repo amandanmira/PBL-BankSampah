@@ -15,9 +15,12 @@ const axios = inject('axios');
 const activeTab = ref("Jemput Sampah");
 const addressType = ref("alamat_profil"); // alamat_profil or alamat_baru
 const gudangList = ref([]);
-const logoFile = ref(null);
-const preview = ref(null);
+const uploadedPhotos = ref([]);
+const selectedPreview = ref(null);
+const fileInput = ref(null);
 const loading = ref(false);
+const showSuccessModal = ref(false);
+const submittedTrackingId = ref("");
 const selectedItems = ref([]); // Array of selected item names
 const selectedItemsId = ref([]); // Array of selected item names
 
@@ -72,11 +75,40 @@ const fetchGudang = async () => {
 };
 
 const handleFile = (e) => {
-  const file = e.target.files[0];
-  if (file) {
-    logoFile.value = file;
-    preview.value = URL.createObjectURL(file);
+  const files = Array.from(e.target.files);
+  if (uploadedPhotos.value.length + files.length > 3) {
+    alert("Maksimal hanya bisa mengupload 3 foto.");
+    if (fileInput.value) fileInput.value.value = '';
+    return;
   }
+  
+  files.forEach(file => {
+    if (uploadedPhotos.value.length < 3) {
+      uploadedPhotos.value.push({
+        file: file,
+        previewUrl: URL.createObjectURL(file)
+      });
+    }
+  });
+  
+  if (fileInput.value) fileInput.value.value = '';
+};
+
+const removePhoto = (index) => {
+  uploadedPhotos.value.splice(index, 1);
+};
+
+const openPreview = (url) => {
+  selectedPreview.value = url;
+};
+
+const closePreview = () => {
+  selectedPreview.value = null;
+};
+
+const closeSuccessModal = () => {
+  showSuccessModal.value = false;
+  router.push('/dashboard-nasabah');
 };
 
 const toggleItem = (itemName, id) => {
@@ -99,8 +131,8 @@ const submitRequest = async () => {
     alert("Silakan isi alamat lengkap.");
     return;
   }
-  if (!logoFile.value) {
-    alert("Silakan upload foto sampah.");
+  if (uploadedPhotos.value.length === 0) {
+    alert("Silakan upload minimal satu foto sampah.");
     return;
   }
   if (selectedItems.value.length === 0) {
@@ -118,7 +150,9 @@ const submitRequest = async () => {
     
     formData.append("deskripsi", form.value.deskripsi);
     formData.append("alamat", addressType.value === 'alamat_profil' ? (user.alamat || '-') : form.value.alamat);
-    formData.append("foto", logoFile.value);
+    uploadedPhotos.value.forEach((photo) => {
+      formData.append("foto[]", photo.file);
+    });
     formData.append("estimasi_berat", form.value.estimasi_berat);
     formData.append("nasabah_id", user.nasabah_id);
     formData.append("gudang_id", form.value.gudang_id);
@@ -133,12 +167,20 @@ const submitRequest = async () => {
     // console.log(selectedItemsId.value);
     // console.log(Object.fromEntries(formData));
 
-    await axios.post("/api/nasabah/request-penjemputan", formData, {
+    const response = await axios.post("/api/nasabah/request-penjemputan", formData, {
       headers: { "Content-Type": "multipart/form-data" }
     });
 
-    alert("Request Penjemputan Berhasil Terkirim!");
-    router.push('/dashboard-nasabah');
+    submittedTrackingId.value = `#JMP-${String(response.data.data.penjemputan_id).padStart(9, '0')}`;
+    showSuccessModal.value = true;
+    
+    // Clear form
+    uploadedPhotos.value = [];
+    selectedItems.value = [];
+    selectedItemsId.value = [];
+    form.value.deskripsi = "";
+    if (fileInput.value) fileInput.value.value = '';
+
   } catch (err) {
     console.error("Failed to submit request:", err);
     alert("Gagal mengirim request. Pastikan semua data terisi.");
@@ -300,24 +342,31 @@ onMounted(() => {
               class="hidden" 
               @change="handleFile" 
               accept="image/*"
+              multiple
             />
             
-            <template v-if="!preview">
-              <div class="w-20 h-20 bg-stone-100 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
-                <Icon icon="material-symbols:upload" class="w-10 h-10 text-stone-400 group-hover:text-[#4A7043]" />
-              </div>
-              <div class="text-center">
-                <p class="text-xl font-black text-stone-800">Upload Foto Sampah</p>
-                <p class="text-xs font-bold text-stone-400 mt-1">Klik untuk memilih foto (maks 4MB)</p>
-              </div>
-            </template>
-            <template v-else>
-              <img :src="preview" class="absolute inset-0 w-full h-full object-cover opacity-20" />
-              <div class="relative z-10 w-24 h-24 rounded-3xl overflow-hidden border-4 border-white shadow-xl">
-                <img :src="preview" class="w-full h-full object-cover" />
-              </div>
-              <p class="relative z-10 font-black text-[#4A7043] text-sm bg-white/80 px-4 py-1.5 rounded-full backdrop-blur-sm">Ganti Foto</p>
-            </template>
+            <div class="w-20 h-20 bg-stone-100 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
+              <Icon icon="material-symbols:upload" class="w-10 h-10 text-stone-400 group-hover:text-[#4A7043]" />
+            </div>
+            <div class="text-center">
+              <p class="text-xl font-black text-stone-800">Upload Foto Sampah</p>
+              <p class="text-xs font-bold text-stone-400 mt-1">Klik untuk memilih foto (bisa lebih dari 1, maks 3 foto)</p>
+            </div>
+          </div>
+          
+          <!-- Thumbnails -->
+          <div v-if="uploadedPhotos.length > 0" class="flex flex-wrap gap-4 mt-4">
+            <div v-for="(photo, index) in uploadedPhotos" :key="index" class="relative group w-24 h-24 rounded-2xl overflow-hidden border border-stone-200 shadow-sm cursor-pointer" @click="openPreview(photo.previewUrl)">
+              <img :src="photo.previewUrl" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" />
+              <!-- Delete Button overlay -->
+              <button @click.stop="removePhoto(index)" class="absolute top-1 right-1 bg-white/90 text-red-500 rounded-full p-1.5 opacity-0 group-hover:opacity-100 transition-opacity shadow-sm hover:bg-red-50">
+                <Icon icon="material-symbols:close" class="w-4 h-4 font-bold" />
+              </button>
+            </div>
+          </div>
+          <div v-if="uploadedPhotos.length > 0" class="flex items-center gap-2 text-stone-400 px-1 mt-2">
+            <Icon icon="material-symbols:lightbulb-outline" class="w-4 h-4 text-orange-400" />
+            <p class="text-[10px] font-bold italic">Tips: Pastikan sampah sudah ditata rapi dan foto terlihat jelas untuk mempercepat proses verifikasi</p>
           </div>
         </div>
 
@@ -464,6 +513,62 @@ onMounted(() => {
           </template>
         </button>
 
+      </div>
+    </div>
+    
+    <!-- Image Preview Modal -->
+    <div v-if="selectedPreview" class="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm animate-in fade-in zoom-in duration-200" @click="closePreview">
+      <div class="relative max-w-4xl max-h-[90vh] p-4">
+        <button @click="closePreview" class="absolute -top-12 right-0 bg-white text-stone-800 rounded-full w-12 h-12 flex items-center justify-center hover:bg-stone-200 transition-colors shadow-lg">
+          <Icon icon="material-symbols:close" class="w-6 h-6 font-black" />
+        </button>
+        <img :src="selectedPreview" class="max-w-full max-h-[85vh] rounded-2xl shadow-2xl object-contain border-4 border-white/10" @click.stop />
+      </div>
+    </div>
+
+    <!-- Success Modal -->
+    <div v-if="showSuccessModal" class="fixed inset-0 z-[110] flex items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
+      <div class="bg-white w-full max-w-md rounded-[2.5rem] p-8 relative shadow-2xl animate-in zoom-in-95 duration-300">
+        <!-- Close Button -->
+        <button @click="closeSuccessModal" class="absolute top-6 right-6 bg-stone-100 text-stone-400 hover:text-stone-600 w-8 h-8 rounded-full flex items-center justify-center transition-colors">
+          <Icon icon="material-symbols:close" class="w-5 h-5" />
+        </button>
+
+        <div class="flex flex-col items-center text-center mt-4">
+          <!-- Icon -->
+          <div class="relative mb-6">
+            <div class="w-20 h-20 bg-green-50 rounded-full flex items-center justify-center">
+              <Icon icon="material-symbols:check-circle-outline" class="w-12 h-12 text-[#4A7043]" />
+            </div>
+            <div class="absolute -bottom-2 -right-2 w-10 h-10 bg-[#4A7043] rounded-full border-4 border-white flex items-center justify-center shadow-sm">
+              <Icon icon="material-symbols:local-shipping-outline" class="w-5 h-5 text-white" />
+            </div>
+          </div>
+
+          <!-- Title & Desc -->
+          <h3 class="text-2xl font-black text-stone-800 mb-3">Request Berhasil Dibuat! 🎉</h3>
+          <p class="text-stone-500 text-sm font-medium leading-relaxed mb-8 px-4">
+            Permintaan penjemputan sampah Anda telah diterima. Petugas akan menghubungi Anda untuk konfirmasi jadwal.
+          </p>
+
+          <!-- Tracking Box -->
+          <div class="w-full bg-[#FAFAFA] rounded-3xl p-6 mb-8 border border-stone-100">
+            <p class="text-[10px] font-black text-stone-400 uppercase tracking-widest mb-2">Tracking Jemput</p>
+            <p class="text-2xl font-black text-[#4A7043] tracking-wider">{{ submittedTrackingId }}</p>
+            <p class="text-xs font-bold text-stone-400 mt-2">Simpan ID ini untuk melacak status request Anda</p>
+          </div>
+
+          <!-- Actions -->
+          <div class="w-full space-y-3">
+            <button class="w-full py-4 rounded-[1.5rem] bg-[#4A7043] text-white font-black text-sm flex items-center justify-center gap-2 hover:bg-[#3d5c37] transition-colors shadow-lg shadow-green-900/20">
+              <Icon icon="material-symbols:local-shipping-outline" class="w-5 h-5" />
+              Lihat Tracking <span class="opacity-70 font-medium text-xs ml-1">(Statis)</span>
+            </button>
+            <button @click="closeSuccessModal" class="w-full py-4 rounded-[1.5rem] bg-white border-2 border-stone-100 text-stone-600 font-black text-sm hover:border-stone-200 hover:bg-stone-50 transition-colors">
+              Kembali ke Dashboard
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   </DashboardLayout>

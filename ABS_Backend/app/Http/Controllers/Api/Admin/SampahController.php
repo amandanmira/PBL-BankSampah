@@ -14,7 +14,7 @@ class SampahController extends Controller
     public function index()
     {
         return response()->json(
-            KategoriSampah::with('itemSampah.sampah')->latest()->paginate(10)
+            KategoriSampah::with('itemSampah.sampah')->latest()->get()
         );
     }
 

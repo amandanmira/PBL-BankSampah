@@ -13,17 +13,19 @@ class RequestPenjemputanController extends Controller
             'deskripsi' => 'required|string',
             'alamat' => 'required|string',
             'estimasi_berat' => 'required|string',
-            'foto' => 'required|image|mimes:jpg,jpeg,png,webp|max:4096',
+            'foto' => 'required|array|max:3',
+            'foto.*' => 'image|mimes:jpg,jpeg,png,webp|max:4096',
             'nasabah_id' => 'required',
         ]);
 
-        // handle upload logo
+        $fotoPaths = [];
         if ($request->hasFile('foto')) {
-            // simpan logo baru
-            $path = $request->file('foto')->store('foto-penjemputan', 'public');
-
-            $validated['foto'] = $path;
+            $files = $request->file('foto');
+            foreach ($files as $file) {
+                $fotoPaths[] = $file->store('foto-penjemputan', 'public');
+            }
         }
+        $validated['foto'] = $fotoPaths;
 
         $penjemputan = Penjemputan::create([
             'deskripsi' => $validated['deskripsi'],

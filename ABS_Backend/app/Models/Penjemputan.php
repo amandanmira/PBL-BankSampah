@@ -52,4 +52,17 @@ class Penjemputan extends Model
         return $this->hasMany(DetailPenjemputan::class,'penjemputan_id','penjemputan_id');
     }
 
+    public function getFotoAttribute($value)
+    {
+        $decoded = json_decode($value, true);
+        if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+            return $decoded;
+        }
+        return $value ? [$value] : [];
+    }
+
+    public function setFotoAttribute($value)
+    {
+        $this->attributes['foto'] = is_array($value) ? json_encode($value) : $value;
+    }
 }

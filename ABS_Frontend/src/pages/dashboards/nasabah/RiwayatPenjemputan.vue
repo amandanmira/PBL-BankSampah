@@ -28,7 +28,10 @@
           <td>{{ penjemputan.deskripsi }}</td>
           <td>{{ penjemputan.alamat }}</td>
           <td>
-            <img v-if="penjemputan.foto" :src="`http://localhost:8000/storage/${penjemputan.foto}`" alt="Foto Penjemputan" style="width: 100px; height: auto; object-fit: cover; border-radius: 4px;" />
+            <div v-if="Array.isArray(penjemputan.foto) && penjemputan.foto.length > 0" class="flex gap-2 flex-wrap">
+              <img v-for="(f, i) in penjemputan.foto" :key="i" :src="`http://localhost:8000/storage/${f}`" alt="Foto Penjemputan" style="width: 100px; height: 100px; object-fit: cover; border-radius: 4px;" />
+            </div>
+            <img v-else-if="penjemputan.foto && !Array.isArray(penjemputan.foto)" :src="`http://localhost:8000/storage/${penjemputan.foto}`" alt="Foto Penjemputan" style="width: 100px; height: 100px; object-fit: cover; border-radius: 4px;" />
             <span v-else>Tidak ada foto</span>
           </td>
           <td>
