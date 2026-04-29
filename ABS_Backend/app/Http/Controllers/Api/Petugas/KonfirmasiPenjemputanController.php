@@ -41,12 +41,16 @@ class KonfirmasiPenjemputanController extends Controller
     {
         // Validasi agar tukang_id wajib diisi
         $request->validate([
-            'tukang_id' => 'required|exists:tukangs,tukang_id' // sesuaikan nama tabel tukang jika berbeda
+            'tukang_id' => 'required|exists:tukangs,tukang_id',
+            'jadwal' => 'nullable|date_format:Y-m-d H:i:s'
         ]);
 
         $penjemputan->status = 'proses';
         $penjemputan->petugas_id = Auth::id();
         $penjemputan->tukang_id = $request->tukang_id; // Menyimpan ID Tukang
+        if ($request->has('jadwal')) {
+            $penjemputan->jadwal = $request->jadwal;
+        }
         $penjemputan->save();
 
         return response()->json(['message' => 'Penjemputan di Proses'], 200);
@@ -79,7 +83,7 @@ class KonfirmasiPenjemputanController extends Controller
     public function show(Penjemputan $penjemputan)
     {
         // Load relasi yang mungkin Anda perlukan di frontend
-        $penjemputan->load('nasabah', 'petugas');
+        $penjemputan->load('nasabah', 'petugas', 'tukang', 'gudang');
 
         return response()->json(['data' => $penjemputan], 200);
     }
