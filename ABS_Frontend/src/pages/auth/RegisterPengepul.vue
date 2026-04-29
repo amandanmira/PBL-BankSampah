@@ -201,6 +201,9 @@
 <script setup>
 import { ref, computed, inject } from 'vue'
 import Footer from '@/components/public/Footer.vue'
+import { redirectLogin } from "@/utils";
+
+redirectLogin()
 
 const axios = inject('axios')
 

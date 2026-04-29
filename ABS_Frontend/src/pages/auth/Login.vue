@@ -156,6 +156,9 @@ import Navbar from '@/components/public/Navbar2.vue'
 import Footer from '@/components/public/Footer.vue'
 import { ref, inject } from 'vue'
 import { useRouter } from 'vue-router'
+import { redirectLogin } from "@/utils";
+
+redirectLogin()
 
 const router = useRouter()
 

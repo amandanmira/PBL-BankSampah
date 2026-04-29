@@ -171,6 +171,9 @@
 import Footer from '@/components/public/Footer.vue'
 import { ref, computed, inject, onUnmounted, nextTick } from 'vue'
 import { useRouter } from "vue-router";
+import { redirectLogin } from "@/utils";
+
+redirectLogin()
 
 const router = useRouter()
 const axios = inject('axios')

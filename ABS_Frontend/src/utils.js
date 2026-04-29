@@ -11,3 +11,12 @@ export function checkRole(approvedRole) {
     router.back()
   }
 }
+
+export function redirectLogin() {
+  const router = useRouter()
+  const role = sessionStorage.getItem('role')
+
+  if (role !== null) {
+    router.back()
+  }
+}

@@ -1,11 +1,29 @@
 <script setup>
 import { ref } from 'vue';
+import axios from 'axios'
+import { useRouter } from "vue-router";
+
+const router = useRouter()
+
+const token = sessionStorage.getItem("token")
 
 const isMenuOpen = ref(false);
 
 const toggleMenu = () => {
   isMenuOpen.value = !isMenuOpen.value;
 };
+
+const logout = async () => {
+  try {
+    const headers = { 'Authorization': `Bearer ${token}` }
+
+    const res = await axios.post("/api/logout", {}, { headers })
+    sessionStorage.clear()
+    router.push("/login")
+  } catch (error) {
+    console.log(error.response)
+  }
+}
 </script>
 
 <template>
@@ -48,7 +66,7 @@ const toggleMenu = () => {
       </div>
 
       <!-- Right Section: Auth Action -->
-      <div class="flex items-center gap-6">
+      <div v-if="token === null" class="flex items-center gap-6">
         <RouterLink to="/choose-role"
           class="hidden lg:block text-[15px] font-bold tracking-wide hover:text-white/80 transition-colors">Daftar
         </RouterLink>
@@ -56,6 +74,12 @@ const toggleMenu = () => {
           class="bg-white text-[#4A7043] text-[15px] font-bold tracking-wide px-7 py-2.5 rounded-full hover:bg-gray-50 hover:scale-105 active:scale-95 transition-all shadow-sm">
           Masuk
         </RouterLink>
+      </div>
+      <div v-else class="flex items-center gap-6">
+        <button @click="logout()"
+          class="bg-white text-[#4A7043] text-[15px] font-bold tracking-wide px-7 py-2.5 rounded-full hover:bg-gray-50 hover:scale-105 active:scale-95 transition-all shadow-sm">
+          Logout
+      </button>
       </div>
     </div>
 
