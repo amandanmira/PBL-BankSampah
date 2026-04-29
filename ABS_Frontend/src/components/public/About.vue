@@ -1,4 +1,26 @@
-<script setup></script>
+<script setup>
+import { ref, onMounted, inject } from 'vue';
+
+const axios = inject('axios');
+const config = ref({
+  quote: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Eget duis mi nunc bibendum. Tellus elementum nec lorem eget dictumst. Risus in gravida eu, enim lorem. Sed consequat ut suspendisse eros. Nunc nunc accumsan, viverra enim. Mi."
+});
+
+const fetchConfig = async () => {
+  try {
+    const res = await axios.get('/api/web-config');
+    if (res.data && res.data.quote) {
+      config.value.quote = res.data.quote;
+    }
+  } catch (err) {
+    console.error("Failed to fetch tagline config:", err);
+  }
+};
+
+onMounted(() => {
+  fetchConfig();
+});
+</script>
 
 <template>
   <section class="py-16 md:py-24 px-6 md:px-12 lg:px-20 w-full flex justify-center bg-white relative">
@@ -17,11 +39,7 @@
         <!-- Right Content -->
         <div class="flex-1 flex items-center px-6 py-10 md:px-16 lg:px-20">
           <p class="text-[#555555] text-[15px] md:text-[17px] leading-relaxed font-bold md:font-semibold text-center md:text-left">
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit. 
-            Eget duis mi nunc bibendum. Tellus elementum nec lorem 
-            eget dictumst. Risus in gravida eu, enim lorem. Sed 
-            consequat ut suspendisse eros. Nunc nunc accumsan, 
-            viverra enim. Mi.
+            {{ config.quote }}
           </p>
         </div>
 

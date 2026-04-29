@@ -142,8 +142,34 @@
             <h2 class="text-2xl font-bold text-gray-800">Quote Website</h2>
             
             <div class="space-y-6 max-w-2xl">
+              <!-- Quote Hero Atas -->
               <div class="space-y-3">
-                <label class="text-sm font-bold text-gray-500 uppercase tracking-wider">Quote/Tagline</label>
+                <label class="text-sm font-bold text-gray-500 uppercase tracking-wider">Quote Hero Atas (Heading)</label>
+                <input 
+                  v-model="form.hero_quote_top"
+                  type="text" 
+                  placeholder="Kelola Sampah, Raih Manfaat"
+                  class="w-full bg-gray-50 border border-gray-100 rounded-2xl px-6 py-4 text-gray-700 font-medium focus:outline-none focus:ring-4 focus:ring-[#4A7043]/10 focus:border-[#4A7043] transition-all placeholder:text-gray-300"
+                />
+                <p class="text-xs text-gray-400 font-medium mt-2 leading-relaxed">Quote ini akan ditampilkan sebagai judul utama di halaman Landing Page</p>
+              </div>
+
+              <!-- Quote Hero Bawah -->
+              <div class="space-y-3">
+                <label class="text-sm font-bold text-gray-500 uppercase tracking-wider">Quote Hero Bawah (Sub-heading)</label>
+                <textarea 
+                  v-model="form.hero_quote_bottom"
+                  placeholder="Kelola Sampah Menjadi Tabungan Digital yang Transparan dan Terintegrasi"
+                  rows="3"
+                  class="w-full bg-gray-50 border border-gray-100 rounded-2xl px-6 py-4 text-gray-700 font-medium focus:outline-none focus:ring-4 focus:ring-[#4A7043]/10 focus:border-[#4A7043] transition-all resize-none placeholder:text-gray-300"
+                ></textarea>
+                <p class="text-xs text-gray-400 font-medium mt-2 leading-relaxed">Quote ini akan ditampilkan sebagai sub-judul di halaman Landing Page</p>
+              </div>
+
+              <hr class="border-gray-50 my-2" />
+
+              <div class="space-y-3">
+                <label class="text-sm font-bold text-gray-500 uppercase tracking-wider">Quote Tentang Kami (Tagline)</label>
                 <input 
                   v-model="form.quote"
                   type="text" 
@@ -258,6 +284,8 @@ const tabs = [
 
 const form = ref({
   quote: "",
+  hero_quote_top: "",
+  hero_quote_bottom: "",
   instagram: "",
   facebook: "",
   linkedin: "",

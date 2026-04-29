@@ -11,6 +11,8 @@ class KonfigurasiWeb extends Model
     protected $fillable = [
         'logo',
         'quote',
+        'hero_quote_top',
+        'hero_quote_bottom',
         'instagram',
         'facebook',
         'linkedin',

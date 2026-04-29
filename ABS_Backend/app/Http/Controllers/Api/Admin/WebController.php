@@ -23,6 +23,8 @@ class WebController extends Controller
         $validated = $request->validate([
             'logo' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
             'quote' => 'nullable|string',
+            'hero_quote_top' => 'nullable|string',
+            'hero_quote_bottom' => 'nullable|string',
             'instagram' => 'nullable|string',
             'facebook' => 'nullable|string',
             'linkedin' => 'nullable|string',

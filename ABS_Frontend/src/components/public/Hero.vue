@@ -1,4 +1,49 @@
-<script setup></script>
+<script setup>
+import { ref, onMounted, inject, computed } from 'vue';
+
+const axios = inject('axios');
+const config = ref({
+  hero_quote_top: "Kelola Sampah, Raih Manfaat",
+  hero_quote_bottom: "Kelola Sampah Menjadi Tabungan Digital yang Transparan dan Terintegrasi"
+});
+
+const fetchConfig = async () => {
+  try {
+    const res = await axios.get('/api/web-config'); // Using public endpoint
+    if (res.data) {
+      config.value = {
+        ...config.value,
+        ...res.data
+      };
+    }
+  } catch (err) {
+    console.error("Failed to fetch hero config:", err);
+  }
+};
+
+const headingFontSize = computed(() => {
+  const text = config.value.hero_quote_top || "";
+  const length = text.length;
+  
+  if (length > 60) return "text-2xl sm:text-3xl lg:text-4xl";
+  if (length > 40) return "text-3xl sm:text-4xl lg:text-5xl";
+  if (length > 25) return "text-4xl sm:text-5xl lg:text-6xl";
+  return "text-4xl sm:text-5xl lg:text-[64px]";
+});
+
+const subHeadingFontSize = computed(() => {
+  const text = config.value.hero_quote_bottom || "";
+  const length = text.length;
+  
+  if (length > 150) return "text-sm sm:text-base lg:text-lg";
+  if (length > 100) return "text-base sm:text-lg lg:text-xl";
+  return "text-base sm:text-lg lg:text-[22px]";
+});
+
+onMounted(() => {
+  fetchConfig();
+});
+</script>
 
 <template>
   <section
@@ -7,15 +52,18 @@
 
       <!-- Text Content -->
       <div class="flex-1 flex flex-col gap-6 lg:gap-8 text-center lg:text-left z-10 w-full pt-8 lg:pt-0">
-        <h1 class="text-4xl sm:text-5xl lg:text-[64px] font-extrabold leading-[1.2] lg:leading-[1.1] tracking-wide">
-          Kelola Sampah,<br />
-          Raih Manfaat
+        <h1 
+          class="font-extrabold leading-[1.2] lg:leading-[1.1] tracking-wide whitespace-pre-line"
+          :class="headingFontSize"
+        >
+          {{ config.hero_quote_top }}
         </h1>
 
         <p
-          class="text-base sm:text-lg lg:text-[22px] font-medium leading-relaxed max-w-xl mx-auto lg:mx-0 text-white/95">
-          Kelola Sampah Menjadi Tabungan Digital<br class="hidden lg:block" />
-          yang Transparan dan Terintegrasi
+          class="font-medium leading-relaxed max-w-xl mx-auto lg:mx-0 text-white/95 whitespace-pre-line"
+          :class="subHeadingFontSize"
+        >
+          {{ config.hero_quote_bottom }}
         </p>
 
         <div
