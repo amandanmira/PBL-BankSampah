@@ -123,4 +123,19 @@ class ProfileController extends Controller
             'data' => $manager
         ]);
     }
+
+    public function updatePassword(Request $request, string $id)
+    {
+        $request->validate([
+            'password' => 'required|string|min:8|confirmed',
+        ]);
+
+        $user = Nasabah::findOrFail($id);
+        $user->password = bcrypt($request->password);
+        $user->save();
+
+        return response()->json([
+            'message' => 'Password berhasil diperbarui'
+        ]);
+    }
 }

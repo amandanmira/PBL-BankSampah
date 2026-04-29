@@ -48,6 +48,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
 Route::prefix('nasabah')->middleware(['auth:sanctum', 'role:nasabah'])->group(function () {
     Route::put('/edit-profile/{id}', [ProfileController::class, 'updateNasabah']);
+    Route::put('/update-password/{id}', [ProfileController::class, 'updatePassword']);
     Route::get('/profile/{id}', [ProfileController::class, 'showNasabah']);
 
     Route::get('/list-gudang', [GudangController::class, 'index']);

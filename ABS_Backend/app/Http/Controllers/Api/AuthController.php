@@ -121,6 +121,12 @@ class AuthController extends Controller
 
         $manager = Manager::where('email', $email)->first();
         if ($manager && Hash::check($password, $manager->password)) {
+            if ($manager->status !== 'aktif') {
+                return response()->json([
+                    'message' => 'Akun Anda belum aktif atau sedang dinonaktifkan. Silakan hubungi admin.'
+                ], 403);
+            }
+
             $token = $manager->createToken('api-token')->plainTextToken;
 
             return response()->json([
@@ -135,7 +141,7 @@ class AuthController extends Controller
             // Tambahkan pengecekan ini
             if (!$petugas->active) {
                 return response()->json([
-                    'message' => 'Akun Anda tidak aktif. Silakan hubungi admin.'
+                    'message' => 'Akun Anda belum aktif atau sedang dinonaktifkan. Silakan hubungi admin.'
                 ], 403); // 403 Forbidden
             }
 

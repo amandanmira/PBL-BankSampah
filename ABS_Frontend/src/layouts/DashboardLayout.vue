@@ -69,6 +69,12 @@ const handleLogout = () => {
   router.push("/login");
 };
 
+const goToProfile = () => {
+  if (role.value === 'nasabah') {
+    router.push('/dashboard-nasabah/edit-profile');
+  }
+};
+
 const user = computed(() => {
   try {
     return JSON.parse(sessionStorage.getItem("user") || "{}");
@@ -149,10 +155,10 @@ onMounted(() => {
       <!-- User Profile (Sidebar) -->
       <div :class="cn('px-4 mb-8 transition-all duration-300 flex flex-col items-center', isSidebarCollapsed ? 'gap-4' : 'gap-2')">
         <button 
-          @click="() => {}"
+          @click="goToProfile"
           :class="
             cn(
-              'bg-white/10 hover:bg-white/15 rounded-[2rem] p-4 flex items-center transition-all duration-300 overflow-hidden border border-white/5',
+              'bg-white/10 hover:bg-white/20 rounded-[2rem] p-4 flex items-center transition-all duration-300 overflow-hidden border border-white/5 cursor-pointer hover:border-[#A86444]/50 hover:shadow-[0_0_20px_rgba(168,100,68,0.15)]',
               isSidebarCollapsed ? 'bg-transparent border-none p-0 w-14 h-14 justify-center' : 'w-full gap-4 px-6'
             )
           "
