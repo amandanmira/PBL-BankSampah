@@ -1,5 +1,4 @@
 <script setup>
-import About from '@/components/public/About.vue';
 import Blog from '@/components/public/Blog.vue';
 import CallToAction from '@/components/public/CallToAction.vue';
 import Feature from '@/components/public/Feature.vue';
@@ -31,13 +30,12 @@ const logout = async () => {
 
 <template>
   <Hero />
-  <About />
+  <TrashPrice />
 
   <div id="layanan">
     <Feature />
   </div>
 
-  <TrashPrice />
 
   <div id="cara-kerja">
     <HowItWorks />
