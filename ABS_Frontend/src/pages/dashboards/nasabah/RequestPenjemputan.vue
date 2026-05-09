@@ -614,7 +614,7 @@ onMounted(() => {
             
             <div class="flex-1 min-w-[200px] relative">
               <select class="w-full bg-stone-50 border border-stone-100 rounded-xl py-3 px-5 text-xs font-bold appearance-none text-stone-600 focus:outline-none">
-                <option>Semua Wilayah (Statis)</option>
+                <option>Semua Wilayah</option>
               </select>
               <Icon icon="material-symbols:keyboard-arrow-down" class="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-stone-400 pointer-events-none" />
             </div>
@@ -731,9 +731,12 @@ onMounted(() => {
 
           <!-- Actions -->
           <div class="w-full space-y-3">
-            <button class="w-full py-4 rounded-[1.5rem] bg-[#4A7043] text-white font-black text-sm flex items-center justify-center gap-2 hover:bg-[#3d5c37] transition-colors shadow-lg shadow-green-900/20">
+            <button 
+              @click="router.push('/dashboard-nasabah/sampah-saya')"
+              class="w-full py-4 rounded-[1.5rem] bg-[#4A7043] text-white font-black text-sm flex items-center justify-center gap-2 hover:bg-[#3d5c37] transition-colors shadow-lg shadow-green-900/20"
+            >
               <Icon icon="material-symbols:local-shipping-outline" class="w-5 h-5" />
-              Lihat Tracking <span class="opacity-70 font-medium text-xs ml-1">(Statis)</span>
+              Lihat Tracking
             </button>
             <button @click="closeSuccessModal" class="w-full py-4 rounded-[1.5rem] bg-white border-2 border-stone-100 text-stone-600 font-black text-sm hover:border-stone-200 hover:bg-stone-50 transition-colors">
               Kembali ke Dashboard

@@ -29,7 +29,7 @@ class KonfirmasiPenjemputanController extends Controller
         }
 
         // Langsung panggil $user->nasabah_id tanpa relasi tambahan
-        $penjemputan = Penjemputan::with('nasabah')
+        $penjemputan = Penjemputan::with(['nasabah', 'detailPenjemputan.sampah.itemSampah', 'gudang'])
             ->where('nasabah_id', $user->nasabah_id)
             ->latest()
             ->paginate(10);

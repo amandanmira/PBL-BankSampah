@@ -71,6 +71,7 @@ import RequestPenjemputan from "@/pages/dashboards/nasabah/RequestPenjemputan.vu
 import RequestPenarikan from "@/pages/dashboards/nasabah/RequestPenarikan.vue";
 import RiwayatPenjemputan from "@/pages/dashboards/nasabah/RiwayatPenjemputan.vue";
 import KatalogSampah from "@/pages/dashboards/nasabah/KatalogSampah.vue";
+import SampahSaya from "@/pages/dashboards/nasabah/SampahSaya.vue";
 
 //Pengepul
 import RequestPembelianCreate from "@/pages/dashboards/pengepul/requestPembelian/RequestPembelianCreate.vue";
@@ -322,6 +323,10 @@ const routes = [
   {
     path: "/dashboard-nasabah/riwayatpenjemputan",
     component: RiwayatPenjemputan,
+  },
+  {
+    path: "/dashboard-nasabah/sampah-saya",
+    component: SampahSaya,
   },
   {
     path: "/dashboard-nasabah/katalog",

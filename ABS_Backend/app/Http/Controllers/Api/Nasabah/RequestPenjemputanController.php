@@ -16,6 +16,7 @@ class RequestPenjemputanController extends Controller
             'foto' => 'required|array|max:3',
             'foto.*' => 'image|mimes:jpg,jpeg,png,webp|max:4096',
             'nasabah_id' => 'required',
+            'gudang_id' => 'required',
         ]);
 
         $fotoPaths = [];
@@ -33,8 +34,8 @@ class RequestPenjemputanController extends Controller
             'estimasi_berat' => $validated['estimasi_berat'],
             'foto' => $validated['foto'],
             'status' => 'pending',
-            'nasabah_id' => $request->nasabah_id,
-            'gudang_id' => $request->gudang_id,
+            'nasabah_id' => $validated['nasabah_id'],
+            'gudang_id' => $validated['gudang_id'],
         ]);
 
         if ($request->has('detail')) {
@@ -47,6 +48,23 @@ class RequestPenjemputanController extends Controller
 
         return response()->json([
             'message' => 'Request Penjemputan Berhasil Dibuat',
+            'data' => $penjemputan
+        ], 200);
+    }
+
+    public function cancel(Penjemputan $penjemputan) {
+        if ($penjemputan->status !== 'pending') {
+            return response()->json([
+                'message' => 'Penjemputan hanya bisa dibatalkan saat status masih pending'
+            ], 422);
+        }
+
+        $penjemputan->update([
+            'status' => 'batal'
+        ]);
+
+        return response()->json([
+            'message' => 'Penjemputan berhasil dibatalkan',
             'data' => $penjemputan
         ], 200);
     }
