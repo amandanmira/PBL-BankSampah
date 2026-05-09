@@ -11,7 +11,7 @@ class KonfirmasiPenjemputanController extends Controller
 {
     public function penjemputan()
     {
-        $penjemputan = Penjemputan::with(['petugas', 'nasabah'])->whereIn('status',['pending', 'proses'])->latest()->paginate(10);
+        $penjemputan = Penjemputan::with(['petugas', 'nasabah', 'tukang'])->whereIn('status',['pending', 'proses', 'dijemput', 'perlu_input'])->latest()->paginate(10);
         return response()->json($penjemputan, 200);
     }
 
@@ -29,7 +29,14 @@ class KonfirmasiPenjemputanController extends Controller
         }
 
         // Langsung panggil $user->nasabah_id tanpa relasi tambahan
-        $penjemputan = Penjemputan::with(['nasabah', 'detailPenjemputan.sampah.itemSampah', 'gudang'])
+        $penjemputan = Penjemputan::with([
+            'nasabah', 
+            'detailPenjemputan.sampah.itemSampah', 
+            'gudang', 
+            'tukang',
+            'penimbangan.transaksi.petugas',
+            'penimbangan.sampah.itemSampah'
+        ])
             ->where('nasabah_id', $user->nasabah_id)
             ->latest()
             ->paginate(10);
@@ -77,7 +84,23 @@ class KonfirmasiPenjemputanController extends Controller
         $penjemputan->save();
 
 
-        return response()->json(['message' => 'Registrasi penjemputan$penjemputan ditolak, status diubah menjadi nonaktif, dan notifikasi email terkirim'], 200);
+        return response()->json(['message' => 'Registrasi penjemputan ditolak'], 200);
+    }
+
+    public function dijemput(Penjemputan $penjemputan)
+    {
+        $penjemputan->status = 'dijemput';
+        $penjemputan->save();
+
+        return response()->json(['message' => 'Status diubah menjadi Dijemput'], 200);
+    }
+
+    public function sampaiLokasi(Penjemputan $penjemputan)
+    {
+        $penjemputan->status = 'perlu_input';
+        $penjemputan->save();
+
+        return response()->json(['message' => 'Status diubah menjadi Perlu Input Data'], 200);
     }
 
     public function show(Penjemputan $penjemputan)

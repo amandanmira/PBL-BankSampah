@@ -137,22 +137,30 @@ const confirmSchedule = async (request) => {
 };
 
 const assignTukang = async (request) => {
-  // Sementara update status secara lokal untuk simulasi beralih ke 'dijemput'
   try {
+    loading.value = true;
+    await axios.put(`/api/petugas/penjemputan/${request.penjemputan_id}/dijemput`);
     request.status = 'dijemput';
     activeFilter.value = "Dijemput";
   } catch (err) {
     console.error("Gagal menugaskan tukang:", err);
+    alert("Gagal menugaskan tukang.");
+  } finally {
+    loading.value = false;
   }
 };
 
 const sampaiLokasi = async (request) => {
-  // Sementara update status secara lokal untuk simulasi beralih ke 'perlu input data'
   try {
+    loading.value = true;
+    await axios.put(`/api/petugas/penjemputan/${request.penjemputan_id}/sampai-lokasi`);
     request.status = 'perlu_input';
     activeFilter.value = "Perlu Input Data";
   } catch (err) {
     console.error("Gagal update status sampai lokasi:", err);
+    alert("Gagal mengupdate status sampai lokasi.");
+  } finally {
+    loading.value = false;
   }
 };
 

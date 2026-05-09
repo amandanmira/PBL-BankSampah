@@ -109,6 +109,8 @@ Route::prefix('petugas')->middleware(['auth:sanctum', 'role:petugas'])->group(fu
     Route::get('/riwayat-penjemputan/{id}', [RiwayatPenjemputanController::class, 'show']);
     Route::put('/penjemputan/{penjemputan}/terima', [KonfirmasiPenjemputanController::class, 'terima']);
     Route::put('/penjemputan/{penjemputan}/tolak', [KonfirmasiPenjemputanController::class, 'tolak']);
+    Route::put('/penjemputan/{penjemputan}/dijemput', [KonfirmasiPenjemputanController::class, 'dijemput']);
+    Route::put('/penjemputan/{penjemputan}/sampai-lokasi', [KonfirmasiPenjemputanController::class, 'sampaiLokasi']);
     Route::get('/showpenjemputan/{penjemputan}', [KonfirmasiPenjemputanController::class, 'show']);
     Route::get('/tukang', [KonfirmasiPenjemputanController::class, 'getTukang']);
 
