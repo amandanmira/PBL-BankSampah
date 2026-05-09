@@ -312,8 +312,8 @@ onMounted(() => {
         </div>
 
         <div class="p-8 space-y-6">
-          <!-- Status & Tab Switcher -->
-          <div class="flex flex-col items-center gap-6">
+          <!-- Status & Tab Switcher (Only for Selesai) -->
+          <div v-if="selectedItem.status === 'selesai'" class="flex flex-col items-center gap-6">
             <div class="bg-[#4A7043] px-6 py-2.5 rounded-full flex items-center gap-2 shadow-lg shadow-green-900/20">
               <Icon icon="material-symbols:check-circle" class="w-5 h-5 text-white" />
               <span class="text-xs font-black text-white uppercase tracking-widest">Selesai Diproses</span>
@@ -346,129 +346,188 @@ onMounted(() => {
             </div>
           </div>
 
+          <!-- Carousel (For non-Selesai statuses or Penjemputan Tab) -->
+          <div v-if="selectedItem.status !== 'selesai' || activeDetailTab === 'jemput'" class="bg-white rounded-[2rem] p-6 shadow-sm border border-gray-100 space-y-4">
+            <div class="flex items-center gap-2 mb-2">
+              <p class="text-xs font-black text-gray-400 uppercase tracking-widest">Foto Sampah</p>
+            </div>
+            
+            <div class="relative aspect-video rounded-3xl overflow-hidden bg-gray-100 group">
+              <img 
+                v-if="selectedItem.foto && selectedItem.foto.length > 0"
+                :src="`${axios.defaults.baseURL}/storage/${selectedItem.foto[currentPhotoIndex]}`" 
+                class="w-full h-full object-cover transition-all duration-500"
+              />
+              <div v-else class="w-full h-full flex flex-col items-center justify-center text-gray-300 gap-2">
+                <Icon icon="material-symbols:image-outline" class="w-12 h-12" />
+                <p class="text-xs font-bold uppercase tracking-widest">Tidak ada foto</p>
+              </div>
+
+              <template v-if="selectedItem.foto && selectedItem.foto.length > 1">
+                <button @click="currentPhotoIndex = (currentPhotoIndex - 1 + selectedItem.foto.length) % selectedItem.foto.length" class="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/20 backdrop-blur-md text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 hover:bg-white/40 transition-all">
+                  <Icon icon="material-symbols:chevron-left" class="w-6 h-6" />
+                </button>
+                <button @click="currentPhotoIndex = (currentPhotoIndex + 1) % selectedItem.foto.length" class="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/20 backdrop-blur-md text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 hover:bg-white/40 transition-all">
+                  <Icon icon="material-symbols:chevron-right" class="w-6 h-6" />
+                </button>
+              </template>
+            </div>
+            <div v-if="selectedItem.foto && selectedItem.foto.length > 1" class="flex gap-3 overflow-x-auto no-scrollbar pt-2">
+              <button 
+                v-for="(photo, idx) in selectedItem.foto" 
+                :key="idx"
+                @click="currentPhotoIndex = idx"
+                :class="cn('w-16 h-16 rounded-xl overflow-hidden shrink-0 border-2 transition-all', currentPhotoIndex === idx ? 'border-[#4A7043] scale-105' : 'border-transparent opacity-60')"
+              >
+                <img :src="`${axios.defaults.baseURL}/storage/${photo}`" class="w-full h-full object-cover" />
+              </button>
+            </div>
+          </div>
+
+          <!-- Tracking ID Card (Visible for all except Penimbangan tab) -->
+          <div v-if="activeDetailTab === 'jemput' || selectedItem.status !== 'selesai'" class="bg-[#4A7043] px-8 py-5 flex items-center justify-between rounded-[2.5rem] shadow-sm">
+            <div class="flex items-center gap-4">
+              <div class="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center text-white">
+                <Icon icon="material-symbols:local-shipping-outline" class="w-6 h-6" />
+              </div>
+              <div>
+                <p class="text-[10px] font-black text-white/60 uppercase tracking-widest">Tracking ID</p>
+                <h4 class="text-lg font-black text-white">#JMP-{{ String(selectedItem.penjemputan_id).padStart(3, '0') }}</h4>
+              </div>
+            </div>
+            <div 
+              :class="cn(
+                'px-4 py-2 rounded-full text-[10px] font-black text-white uppercase tracking-widest',
+                selectedItem.status === 'ditolak' ? 'bg-red-600' : 
+                selectedItem.status === 'batal' ? 'bg-orange-600' : 'bg-[#D97706]'
+              )"
+            >
+              {{ getStatusLabel(selectedItem.status) }}
+            </div>
+          </div>
+
           <!-- Tab Content: Penjemputan -->
-          <div v-if="activeDetailTab === 'jemput'" class="space-y-6 animate-in slide-in-from-left-4 duration-500">
-            <!-- Informasi Request Penjemputan -->
-            <div class="bg-white rounded-[2rem] p-6 shadow-sm border border-gray-100">
-              <h3 class="text-sm font-black text-gray-800 mb-6 flex items-center gap-2">
-                Informasi Request Penjemputan
-              </h3>
-              <div class="grid grid-cols-2 gap-y-6 gap-x-4">
-                <div>
-                  <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Jenis Sampah</p>
-                  <p class="font-bold text-gray-700 text-sm">{{ selectedItem.detail_penjemputan?.map(d => d.sampah?.item_sampah?.nama).join(', ') || '-' }}</p>
+          <div v-if="activeDetailTab === 'jemput' || selectedItem.status !== 'selesai'" class="space-y-6 animate-in slide-in-from-left-4 duration-500">
+            <!-- Details Grid -->
+            <div class="space-y-6 px-4">
+              <div class="flex gap-4">
+                <div class="w-10 h-10 bg-gray-50 rounded-xl flex items-center justify-center text-gray-400 shrink-0">
+                  <Icon icon="material-symbols:storefront-outline" class="w-5 h-5" />
                 </div>
                 <div>
-                  <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Alamat Penjemputan</p>
-                  <div class="flex items-center gap-2 text-[#4A7043]">
-                    <Icon icon="material-symbols:location-on-outline" class="w-4 h-4 shrink-0" />
-                    <p class="font-bold text-sm truncate">{{ selectedItem.alamat || '-' }}</p>
-                  </div>
-                </div>
-                <div>
-                  <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Waktu Request</p>
-                  <div class="flex items-center gap-2 text-gray-500">
-                    <Icon icon="material-symbols:calendar-today-outline" class="w-4 h-4 shrink-0" />
-                    <p class="font-bold text-sm">{{ formatDate(selectedItem.created_at) }}</p>
-                  </div>
-                </div>
-                <div>
-                  <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Berat Estimasi</p>
-                  <div class="flex items-center gap-2 text-gray-500">
-                    <Icon icon="material-symbols:weight-outline" class="w-4 h-4 shrink-0" />
-                    <p class="font-bold text-sm">{{ selectedItem.estimasi_berat || '-' }} kg</p>
-                  </div>
+                  <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Nama Gudang</p>
+                  <p class="font-black text-[#4A7043]">{{ selectedItem.gudang?.nama || 'Surakarta' }}</p>
                 </div>
               </div>
-            </div>
 
-            <!-- Informasi Gudang Tujuan -->
-            <div class="bg-white rounded-[2rem] p-6 shadow-sm border border-gray-100">
-              <h3 class="text-sm font-black text-gray-800 mb-6">Informasi Gudang Tujuan</h3>
-              <div class="space-y-4">
-                <div class="flex items-center gap-3">
-                  <div class="w-8 h-8 bg-gray-50 rounded-lg flex items-center justify-center text-[#4A7043]">
-                    <Icon icon="material-symbols:storefront-outline" class="w-5 h-5" />
+              <div class="flex gap-4">
+                <div class="w-10 h-10 bg-gray-50 rounded-xl flex items-center justify-center text-gray-400 shrink-0">
+                  <Icon icon="material-symbols:recycling" class="w-5 h-5" />
+                </div>
+                <div>
+                  <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Jenis Sampah</p>
+                  <p class="font-black text-gray-700">{{ selectedItem.detail_penjemputan?.map(d => d.sampah?.item_sampah?.nama).join(', ') || '-' }}</p>
+                  <p class="text-[10px] font-bold text-gray-400 mt-1">Estimasi: {{ selectedItem.estimasi_berat || '-' }} kg</p>
+                </div>
+              </div>
+
+              <div class="flex gap-4">
+                <div class="w-10 h-10 bg-gray-50 rounded-xl flex items-center justify-center text-gray-400 shrink-0">
+                  <Icon icon="material-symbols:location-on-outline" class="w-5 h-5" />
+                </div>
+                <div>
+                  <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Alamat Penjemputan</p>
+                  <p class="font-bold text-gray-600 text-sm leading-relaxed">{{ selectedItem.alamat || '-' }}</p>
+                </div>
+              </div>
+
+              <div class="flex gap-4">
+                <div class="w-10 h-10 bg-gray-50 rounded-xl flex items-center justify-center text-gray-400 shrink-0">
+                  <Icon icon="material-symbols:calendar-today-outline" class="w-5 h-5" />
+                </div>
+                <div>
+                  <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Tanggal Request</p>
+                  <p class="font-bold text-gray-700 text-sm">{{ formatDate(selectedItem.created_at, true) }}</p>
+                </div>
+              </div>
+
+              <div class="flex gap-4">
+                <div class="w-10 h-10 bg-gray-50 rounded-xl flex items-center justify-center text-gray-400 shrink-0">
+                  <Icon icon="material-symbols:notes" class="w-5 h-5" />
+                </div>
+                <div>
+                  <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Catatan</p>
+                  <p class="font-bold text-gray-500 text-sm italic">"{{ selectedItem.deskripsi || 'Tidak ada catatan' }}"</p>
+                </div>
+              </div>
+
+              <!-- Ditolak Info Box -->
+              <div v-if="selectedItem.status === 'ditolak'" class="bg-red-50 rounded-3xl p-6 border border-red-100 space-y-3 animate-in zoom-in-95">
+                <div class="flex items-center gap-3 text-red-600">
+                  <Icon icon="material-symbols:error-outline" class="w-6 h-6" />
+                  <span class="font-black text-sm uppercase tracking-wider">Request Ditolak</span>
+                </div>
+                <div>
+                  <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Alasan Penolakan:</p>
+                  <p class="text-sm font-bold text-red-700 leading-relaxed">{{ selectedItem.ket_status || 'Alasan tidak diberikan.' }}</p>
+                </div>
+                <div class="flex items-center gap-2 pt-2 border-t border-red-100/50">
+                  <Icon icon="material-symbols:history" class="w-3.5 h-3.5 text-gray-400" />
+                  <p class="text-[10px] font-bold text-gray-400">Ditolak pada: {{ formatDate(selectedItem.updated_at, true) }}</p>
+                </div>
+              </div>
+
+              <!-- Dibatalkan Info Box -->
+              <div v-if="selectedItem.status === 'batal'" class="bg-orange-50 rounded-3xl p-6 border border-orange-100 space-y-4 animate-in zoom-in-95">
+                <div class="flex items-center gap-3 text-orange-600">
+                  <Icon icon="material-symbols:cancel-outline" class="w-6 h-6" />
+                  <span class="font-black text-sm uppercase tracking-wider">Anda membatalkan request</span>
+                </div>
+                <div class="flex items-center gap-2">
+                  <Icon icon="material-symbols:history" class="w-3.5 h-3.5 text-gray-400" />
+                  <p class="text-[10px] font-bold text-gray-400">Dibatalkan pada: {{ formatDate(selectedItem.updated_at, true) }}</p>
+                </div>
+                <div class="bg-white rounded-2xl p-4 border border-orange-100 shadow-sm flex gap-3">
+                  <div class="w-8 h-8 bg-blue-50 rounded-lg flex items-center justify-center text-blue-500 shrink-0">
+                    <Icon icon="material-symbols:info-outline" class="w-5 h-5" />
                   </div>
                   <div>
-                    <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Nama Gudang</p>
-                    <p class="font-black text-[#4A7043] text-sm">{{ selectedItem.gudang?.nama || 'Surakarta' }}</p>
-                  </div>
-                </div>
-                <div class="flex items-center gap-3">
-                  <div class="w-8 h-8 bg-gray-50 rounded-lg flex items-center justify-center text-gray-400">
-                    <Icon icon="material-symbols:id-card-outline" class="w-5 h-5" />
-                  </div>
-                  <div>
-                    <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest">ID Gudang</p>
-                    <p class="font-bold text-gray-700 text-xs">GDG-{{ String(selectedItem.gudang_id).padStart(3, '0') }}</p>
-                  </div>
-                </div>
-                <div class="flex items-center gap-3">
-                  <div class="w-8 h-8 bg-gray-50 rounded-lg flex items-center justify-center text-gray-400">
-                    <Icon icon="material-symbols:location-on-outline" class="w-5 h-5" />
-                  </div>
-                  <div>
-                    <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Alamat Gudang</p>
-                    <p class="font-bold text-gray-500 text-xs">{{ selectedItem.gudang?.alamat || '-' }}</p>
+                    <p class="text-[10px] font-black text-gray-800 uppercase tracking-widest mb-1">Informasi:</p>
+                    <p class="text-[10px] font-bold text-gray-500 leading-relaxed">Request ini telah dibatalkan. Anda dapat membuat request baru kapan saja melalui menu Request Jemput/Setor Manual.</p>
                   </div>
                 </div>
               </div>
-            </div>
 
-            <!-- Photo Section -->
-            <div class="bg-white rounded-[2rem] p-6 shadow-sm border border-gray-100">
-              <h3 class="text-sm font-black text-gray-800 mb-6">Foto Sampah</h3>
-              <div class="grid grid-cols-3 gap-3">
-                <div 
-                  v-for="(photo, idx) in selectedItem.foto" 
-                  :key="idx"
-                  class="aspect-square rounded-2xl overflow-hidden bg-gray-100 border border-gray-50 group"
-                >
-                  <img :src="`${axios.defaults.baseURL}/storage/${photo}`" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+              <!-- Jadwal Penjemputan Section -->
+              <div v-if="selectedItem.jadwal && selectedItem.status !== 'ditolak' && selectedItem.status !== 'batal'" class="bg-[#EAF0F0] rounded-3xl p-5 border border-[#D1E5E5] flex items-center gap-4">
+                <div class="w-12 h-12 bg-white rounded-2xl flex items-center justify-center text-[#4A7043] shadow-sm">
+                  <Icon icon="material-symbols:calendar-month-outline" class="w-6 h-6" />
                 </div>
-                <div v-if="!selectedItem.foto?.length" class="col-span-3 py-10 flex flex-col items-center justify-center text-gray-300 gap-2 border-2 border-dashed border-gray-100 rounded-3xl">
-                  <Icon icon="material-symbols:image-outline" class="w-10 h-10" />
-                  <p class="text-[10px] font-black uppercase tracking-widest">Tidak ada foto</p>
+                <div>
+                  <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Jadwal Penjemputan</p>
+                  <h5 class="text-base font-black text-[#4A7043]">{{ formatDate(selectedItem.jadwal, true) }}</h5>
                 </div>
               </div>
-            </div>
 
-            <!-- Catatan Section -->
-            <div class="bg-[#FFFBEB] rounded-2xl p-5 border-l-4 border-[#F59E0B]">
-              <p class="text-[10px] font-black text-[#B45309] uppercase tracking-widest mb-1">Catatan</p>
-              <p class="text-sm font-medium text-[#92400E] italic">"{{ selectedItem.deskripsi || 'Tidak ada catatan tambahan' }}"</p>
-            </div>
-
-            <!-- Jadwal Penjemputan Section -->
-            <div v-if="selectedItem.jadwal" class="bg-white rounded-[2rem] p-6 shadow-sm border border-gray-100">
-              <h3 class="text-sm font-black text-gray-800 mb-4">Jadwal Penjemputan</h3>
-              <div class="flex items-center gap-3 text-gray-500">
-                <Icon icon="material-symbols:calendar-month-outline" class="w-5 h-5" />
-                <p class="font-bold text-sm">Waktu Penjadwalan: <span class="text-gray-800">{{ formatDate(selectedItem.jadwal, true) }}</span></p>
-              </div>
-            </div>
-
-            <!-- Petugas Section -->
-            <div v-if="selectedItem.tukang" class="bg-white rounded-[2rem] p-6 shadow-sm border border-gray-100">
-              <h3 class="text-sm font-black text-gray-800 mb-6">Petugas Penjemputan</h3>
-              <div class="flex items-center gap-4">
-                <div class="w-14 h-14 rounded-2xl overflow-hidden bg-gray-100 border border-gray-50 shadow-sm">
+              <!-- Tukang Section -->
+              <div v-if="selectedItem.tukang && selectedItem.status !== 'ditolak' && selectedItem.status !== 'batal'" class="bg-[#F0F2EF] rounded-3xl p-5 border border-[#E2E6E1] flex items-center gap-4">
+                <div class="w-14 h-14 rounded-2xl overflow-hidden bg-white border border-gray-100 shrink-0 shadow-sm">
                   <img v-if="selectedItem.tukang.foto" :src="`${axios.defaults.baseURL}/storage/${selectedItem.tukang.foto}`" class="w-full h-full object-cover" />
                   <div v-else class="w-full h-full flex items-center justify-center text-gray-300">
                     <Icon icon="material-symbols:person-outline" class="w-8 h-8" />
                   </div>
                 </div>
-                <div>
-                  <div class="flex items-center gap-2">
-                    <Icon icon="material-symbols:person-outline" class="w-4 h-4 text-[#4A7043]" />
-                    <p class="font-black text-gray-800">{{ selectedItem.tukang.nama }}</p>
-                  </div>
+                <div class="flex-1 min-w-0">
+                  <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Tukang</p>
+                  <h5 class="text-base font-black text-[#4A7043] truncate">{{ selectedItem.tukang.nama }}</h5>
                   <div class="flex items-center gap-2 mt-1">
-                    <Icon icon="material-symbols:call-outline" class="w-4 h-4 text-gray-400" />
-                    <p class="text-xs font-bold text-gray-500">{{ selectedItem.tukang.no_telp }}</p>
+                    <Icon icon="material-symbols:phone-android-outline-rounded" class="w-3.5 h-3.5 text-gray-400" />
+                    <span class="text-xs font-bold text-gray-500 tracking-tight">{{ selectedItem.tukang.no_telp }}</span>
                   </div>
                 </div>
+                <a :href="`https://wa.me/${selectedItem.tukang.no_telp.replace(/^0/, '62')}`" target="_blank" class="w-10 h-10 bg-[#25D366] text-white rounded-full flex items-center justify-center shadow-lg shadow-green-500/10 hover:scale-110 active:scale-95 transition-all">
+                  <Icon icon="logos:whatsapp-icon" class="w-5 h-5" />
+                </a>
               </div>
             </div>
           </div>
