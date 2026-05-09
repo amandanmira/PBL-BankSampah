@@ -23,6 +23,9 @@ const showSuccessModal = ref(false);
 const submittedTrackingId = ref("");
 const selectedItems = ref([]); // Array of selected item names
 const selectedItemsId = ref([]); // Array of selected item names
+const searchQuery = ref("");
+const statusFilter = ref("Semua");
+const showInstructions = ref(true);
 
 // Pagination for Sampah
 const currentPage = ref(1);
@@ -57,6 +60,42 @@ const totalPages = computed(() => {
   if (!selectedGudang.value || !selectedGudang.value.sampah) return 0;
   return Math.ceil(selectedGudang.value.sampah.length / itemsPerPage);
 });
+
+// Setor Manual Computed
+const filteredGudangList = computed(() => {
+  let list = gudangList.value;
+
+  // Search Filter
+  if (searchQuery.value) {
+    const q = searchQuery.value.toLowerCase();
+    list = list.filter(g => 
+      g.alamat.toLowerCase().includes(q) || 
+      (g.nama && g.nama.toLowerCase().includes(q))
+    );
+  }
+
+  // Status Filter
+  if (statusFilter.value === 'Tersedia') {
+    list = list.filter(g => {
+      const totalStok = g.sampah?.reduce((acc, s) => acc + (parseFloat(s.stok) || 0), 0) || 0;
+      return totalStok < g.kapasitas && g.active === 1;
+    });
+  }
+
+  return list;
+});
+
+const getGudangStats = (gudang) => {
+  const totalStok = gudang.sampah?.reduce((acc, s) => acc + (parseFloat(s.stok) || 0), 0) || 0;
+  const percentage = Math.min(Math.round((totalStok / gudang.kapasitas) * 100), 100);
+  const isFull = percentage >= 100 || gudang.active !== 1;
+  
+  return {
+    totalStok,
+    percentage,
+    isFull
+  };
+};
 
 // Clear selected items and reset page when gudang changes
 watch(() => form.value.gudang_id, () => {
@@ -229,8 +268,8 @@ onMounted(() => {
         </button>
       </div>
 
-      <!-- Main Form Section -->
-      <div class="bg-white rounded-[2.5rem] p-8 shadow-sm border border-stone-100 space-y-8">
+      <!-- Main Form Section (Jemput Sampah) -->
+      <div v-if="activeTab === 'Jemput Sampah'" class="bg-white rounded-[2.5rem] p-8 shadow-sm border border-stone-100 space-y-8">
         
         <!-- Gudang Selection -->
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -514,6 +553,138 @@ onMounted(() => {
         </button>
 
       </div>
+
+      <!-- Setor Manual View -->
+      <div v-else-if="activeTab === 'Setor Manual'" class="space-y-6 animate-in fade-in duration-500">
+        <!-- Instructions Accordion -->
+        <div class="bg-white rounded-[2.5rem] shadow-sm border border-stone-100 overflow-hidden">
+          <button 
+            @click="showInstructions = !showInstructions"
+            class="w-full flex items-center justify-between p-6 bg-[#4A7043] text-white font-black text-sm uppercase tracking-widest transition-all"
+          >
+            <div class="flex items-center gap-3">
+              <Icon icon="material-symbols:info-outline" class="w-5 h-5" />
+              Cara Setor Sampah ke Gudang
+            </div>
+            <Icon icon="material-symbols:keyboard-arrow-down" :class="['w-6 h-6 transition-transform duration-300', showInstructions ? 'rotate-180' : '']" />
+          </button>
+          
+          <div v-if="showInstructions" class="p-8 space-y-4 animate-in slide-in-from-top-2 duration-300">
+            <ol class="space-y-3">
+              <li v-for="(step, i) in [
+                'Pilih gudang yang tersedia sesuai lokasi terdekatmu.',
+                'Siapkan sampah yang sudah dipilah dan disusun rapi.',
+                'Datang ke gudang dan temui petugas untuk melakukan penyetoran.',
+                'Petugas akan menimbang sampahmu dan mencatat hasilnya.',
+                'Pantau status setor melalui menu \'Sampah Saya\'.'
+              ]" :key="i" class="flex gap-4 text-stone-600 font-bold text-sm leading-relaxed">
+                <span class="flex-shrink-0 w-6 h-6 bg-stone-100 rounded-full flex items-center justify-center text-[10px] font-black text-[#4A7043]">{{ i + 1 }}</span>
+                {{ step }}
+              </li>
+            </ol>
+          </div>
+        </div>
+
+        <!-- Search & Filter Bar -->
+        <div class="bg-white rounded-[2.5rem] p-6 shadow-sm border border-stone-100 space-y-4">
+          <div class="relative">
+            <Icon icon="material-symbols:search" class="absolute left-5 top-1/2 -translate-y-1/2 w-6 h-6 text-stone-400" />
+            <input 
+              v-model="searchQuery"
+              type="text" 
+              placeholder="Cari gudang..." 
+              class="w-full bg-stone-50 border border-stone-100 rounded-2xl py-4 pl-14 pr-6 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-[#4A7043]/20 transition-all"
+            />
+          </div>
+          
+          <div class="flex flex-wrap items-center gap-4">
+            <div class="flex p-1 bg-stone-50 rounded-xl border border-stone-100">
+              <button 
+                v-for="opt in ['Semua', 'Tersedia']" 
+                :key="opt"
+                @click="statusFilter = opt"
+                :class="[
+                  'px-6 py-2 rounded-lg text-xs font-black transition-all',
+                  statusFilter === opt ? 'bg-[#4A7043] text-white shadow-md' : 'text-stone-400 hover:text-stone-600'
+                ]"
+              >
+                {{ opt }} <span v-if="opt === 'Tersedia'" class="opacity-60">({{ filteredGudangList.filter(g => getGudangStats(g).percentage < 100).length }})</span>
+              </button>
+            </div>
+            
+            <div class="flex-1 min-w-[200px] relative">
+              <select class="w-full bg-stone-50 border border-stone-100 rounded-xl py-3 px-5 text-xs font-bold appearance-none text-stone-600 focus:outline-none">
+                <option>Semua Wilayah (Statis)</option>
+              </select>
+              <Icon icon="material-symbols:keyboard-arrow-down" class="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-stone-400 pointer-events-none" />
+            </div>
+          </div>
+        </div>
+
+        <!-- Warehouse Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div 
+            v-for="gudang in filteredGudangList" 
+            :key="gudang.gudang_id"
+            class="group bg-white rounded-[2rem] border border-stone-100 overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300"
+          >
+            <!-- Card Header -->
+            <div :class="['p-4 flex items-center gap-3 transition-colors', getGudangStats(gudang).isFull ? 'bg-red-500 text-white' : 'bg-[#4A7043] text-white']">
+              <div class="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center">
+                <Icon icon="material-symbols:storefront-outline" class="w-6 h-6" />
+              </div>
+              <div class="flex-1 min-w-0">
+                <h4 class="font-black text-sm truncate">Gudang {{ gudang.alamat.split(',')[0] }}</h4>
+                <div class="flex items-center gap-1 opacity-80">
+                  <Icon icon="material-symbols:location-on" class="w-3 h-3" />
+                  <p class="text-[10px] font-bold truncate">{{ gudang.alamat }}</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Card Body -->
+            <div class="p-5 space-y-5">
+              <!-- Stats -->
+              <div class="grid grid-cols-3 gap-2">
+                <div class="bg-stone-50 p-3 rounded-xl text-center">
+                  <p class="text-[14px] font-black text-stone-800 leading-none">{{ gudang.petugas?.length || 0 }}</p>
+                  <p class="text-[8px] font-black text-stone-400 uppercase tracking-tighter mt-1">Petugas</p>
+                </div>
+                <div class="bg-stone-50 p-3 rounded-xl text-center">
+                  <p class="text-[14px] font-black text-stone-800 leading-none">{{ gudang.tukang?.length || 0 }}</p>
+                  <p class="text-[8px] font-black text-stone-400 uppercase tracking-tighter mt-1">Tukang</p>
+                </div>
+                <div class="bg-stone-50 p-3 rounded-xl text-center">
+                  <p class="text-[10px] font-black text-stone-800 leading-none">{{ getGudangStats(gudang).totalStok }}/{{ gudang.kapasitas }}</p>
+                  <p class="text-[8px] font-black text-stone-400 uppercase tracking-tighter mt-1">kg</p>
+                </div>
+              </div>
+
+              <!-- Capacity Progress -->
+              <div class="space-y-2">
+                <div class="flex justify-between items-center text-[9px] font-black uppercase tracking-widest text-stone-400">
+                  <span>Kapasitas</span>
+                  <span :class="getGudangStats(gudang).isFull ? 'text-red-500' : 'text-[#4A7043]'">{{ getGudangStats(gudang).percentage }}%</span>
+                </div>
+                <div class="h-2 w-full bg-stone-100 rounded-full overflow-hidden">
+                  <div 
+                    :class="['h-full transition-all duration-1000', getGudangStats(gudang).isFull ? 'bg-red-500' : 'bg-[#4A7043]']"
+                    :style="{ width: getGudangStats(gudang).percentage + '%' }"
+                  ></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Empty State -->
+        <div v-if="filteredGudangList.length === 0" class="bg-white rounded-[2.5rem] p-12 flex flex-col items-center text-center border border-dashed border-stone-200">
+          <Icon icon="material-symbols:search-off" class="w-16 h-16 text-stone-200 mb-4" />
+          <h3 class="text-lg font-black text-stone-800">Gudang Tidak Ditemukan</h3>
+          <p class="text-sm font-bold text-stone-400 mt-1">Coba gunakan kata kunci lain atau ubah filter status.</p>
+        </div>
+      </div>
+
     </div>
     
     <!-- Image Preview Modal -->
