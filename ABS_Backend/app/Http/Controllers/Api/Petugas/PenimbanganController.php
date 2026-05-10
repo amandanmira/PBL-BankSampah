@@ -73,6 +73,11 @@ public function penimbangan(Request $request)
             $penjemputan->status = 'selesai';
             $penjemputan->save();
 
+            // Update Saldo Nasabah
+            $nasabah = $penjemputan->nasabah;
+            $nasabah->saldo += $total_semua_harga;
+            $nasabah->save();
+
             DB::commit();
 
             return response()->json([
@@ -210,7 +215,12 @@ public function listTukang(Request $request)
                 }
             }
 
-            // (Jika di sistemmu saldo nasabah bertambah saat menimbang, kamu bisa tambahkan kode penambahan saldo di sini)
+            // Update Saldo Nasabah
+            $nasabah = \App\Models\Nasabah::find($request->nasabah_id);
+            if ($nasabah) {
+                $nasabah->saldo += $total_semua_harga;
+                $nasabah->save();
+            }
 
             DB::commit();
 

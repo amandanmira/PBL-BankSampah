@@ -27,7 +27,33 @@ class Nasabah extends Authenticatable
         'no_rekening',
         'nama_bank',
         'nama_rek',
+        'saldo',
     ];
+
+    protected $appends = ['saldo_tersedia', 'completion_percentage'];
+
+    public function getSaldoTersediaAttribute()
+    {
+        $pendingPenarikan = $this->penarikan()->where('status', 'pending')->sum('jumlah');
+        return $this->saldo - $pendingPenarikan;
+    }
+
+    public function getCompletionPercentageAttribute()
+    {
+        $fields = [
+            'username', 'nama', 'email', 'no_telp', 
+            'alamat', 'nama_bank', 'no_rekening', 'nama_rek'
+        ];
+        
+        $completed = 0;
+        foreach ($fields as $field) {
+            if (!empty($this->$field)) {
+                $completed++;
+            }
+        }
+        
+        return round(($completed / count($fields)) * 100);
+    }
 
     public function penjemputan()
     {
