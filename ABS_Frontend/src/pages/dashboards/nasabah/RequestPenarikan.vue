@@ -164,7 +164,12 @@
         <button 
           @click="submitRequest"
           :disabled="isSubmitting || !isFormValid"
-          class="w-full bg-[#4A7043] text-white py-5 rounded-[2rem] font-black text-lg flex items-center justify-center gap-3 shadow-xl shadow-[#4A7043]/20 hover:bg-[#3D5C37] transition-all active:scale-[0.98] disabled:opacity-50 disabled:grayscale disabled:scale-100"
+          :class="cn(
+            'w-full py-5 rounded-[2rem] font-black text-lg flex items-center justify-center gap-3 transition-all active:scale-[0.98]',
+            isFormValid 
+              ? 'bg-[#4A7043] text-white shadow-xl shadow-[#4A7043]/20 hover:bg-[#3D5C37]' 
+              : 'bg-stone-300 text-stone-500 cursor-not-allowed shadow-none'
+          )"
         >
           <Icon v-if="isSubmitting" icon="line-md:loading-twotone-loop" class="w-6 h-6" />
           <Icon v-else icon="material-symbols:send-outline" class="w-6 h-6" />
@@ -280,7 +285,7 @@ const setTipeRekening = (tipe) => {
 };
 
 const isFormValid = computed(() => {
-  const isAmountValid = form.value.jumlah >= 50000 && form.value.jumlah <= saldoTersedia.value;
+  const isAmountValid = form.value.jumlah >= 50000;
   const isRekeningValid = form.value.nama_bank && form.value.no_rekening && form.value.nama_rek;
   
   if (tipeRekening.value === 'profil') {
