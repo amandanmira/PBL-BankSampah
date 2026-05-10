@@ -10,10 +10,44 @@ use Illuminate\Support\Facades\DB;
 
 class KonfirmasiPenarikanController extends Controller
 {
-    public function penarikan()
+    public function penarikan(Request $request)
     {
-        $penarikan = Penarikan::with('nasabah')->latest()->paginate(10);
-        return response()->json($penarikan, 200);
+        $status = $request->query('status');
+        $search = $request->query('search');
+
+        $query = Penarikan::with('nasabah')->latest();
+
+        if ($status && $status !== 'semua') {
+            if ($status === 'menunggu') {
+                $query->whereIn('status', ['pending', 'proses']);
+            } elseif ($status === 'ditolak') {
+                $query->where('status', 'tolak');
+            } else {
+                $query->where('status', $status);
+            }
+        }
+
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('penarikan_id', 'like', "%$search%")
+                  ->orWhereHas('nasabah', function ($nq) use ($search) {
+                      $nq->where('nama', 'like', "%$search%");
+                  });
+            });
+        }
+
+        $penarikan = $query->paginate(10);
+
+        // Hitung total penarikan selesai hari ini untuk limit harian petugas (5jt)
+        $todayTotal = Penarikan::where('status', 'selesai')
+            ->whereDate('updated_at', now()->toDateString())
+            ->sum('jumlah');
+
+        return response()->json([
+            'penarikan' => $penarikan,
+            'today_total' => $todayTotal,
+            'daily_limit' => 5000000
+        ], 200);
     }
 
     public function terima(Request $request, $id)
