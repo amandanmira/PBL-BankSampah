@@ -55,6 +55,7 @@ Route::prefix('nasabah')->middleware(['auth:sanctum', 'role:nasabah'])->group(fu
     Route::post('/request-penjemputan', [RequestPenjemputanController::class, 'store']);
     Route::post('/request-penarikan', [RequestPenarikanController::class, 'store']);
     Route::get('/penjemputan-nasabah', [KonfirmasiPenjemputanController::class, 'penjemputanNasabah']);
+    Route::get('/setor-manual-nasabah', [KonfirmasiPenjemputanController::class, 'setorManualNasabah']);
     Route::post('/penjemputan/{penjemputan}/cancel', [RequestPenjemputanController::class, 'cancel']);
 });
 

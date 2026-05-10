@@ -119,4 +119,30 @@ class KonfirmasiPenjemputanController extends Controller
         $tukang = \App\Models\Tukang::where('active', 1)->get();
         return response()->json(['data' => $tukang], 200);
     }
+
+    public function setorManualNasabah(Request $request)
+    {
+        $user = $request->user();
+
+        if (!$user || !$user->nasabah_id) {
+            return response()->json([
+                'message' => 'Akses ditolak. Pastikan Anda login dengan akun nasabah.'
+            ], 403);
+        }
+
+        $transactions = \App\Models\TransaksiNasabah::where('tipe_transaksi', 'antar_sendiri')
+            ->whereHas('penimbangan', function ($query) use ($user) {
+                $query->where('nasabah_id', $user->nasabah_id);
+            })
+            ->with([
+                'penimbangan.sampah.itemSampah',
+                'penimbangan.tukang.gudang',
+                'penimbangan.nasabah',
+                'petugas'
+            ])
+            ->latest('tanggal')
+            ->paginate(10);
+
+        return response()->json($transactions, 200);
+    }
 }

@@ -9,6 +9,7 @@ import Swal from "sweetalert2";
 const axios = inject('axios');
 const loading = ref(false);
 const transactions = ref([]);
+const manualTransactions = ref([]);
 const activeMainTab = ref("jemput"); // 'jemput' or 'setor'
 const activeStatusFilter = ref("pending"); // pending, proses, dijemput, selesai, tolak, batal
 const searchQuery = ref("");
@@ -20,7 +21,11 @@ const activeDetailTab = ref("jemput"); // 'jemput' or 'timbang'
 const openDetail = (item) => {
   selectedItem.value = item;
   currentPhotoIndex.value = 0;
-  activeDetailTab.value = "jemput";
+  if (activeMainTab.value === 'jemput') {
+    activeDetailTab.value = "jemput";
+  } else {
+    activeDetailTab.value = "timbang";
+  }
   showDetailModal.value = true;
 };
 
@@ -38,11 +43,30 @@ const statusFilters = [
   { label: "Dibatalkan", value: "batal", icon: "material-symbols:block" },
 ];
 
+const visibleStatusFilters = computed(() => {
+  if (activeMainTab.value === 'setor') {
+    return statusFilters.filter(f => f.value === 'selesai');
+  }
+  return statusFilters;
+});
+
+watch(activeMainTab, (newTab) => {
+  if (newTab === 'setor') {
+    activeStatusFilter.value = 'selesai';
+  } else {
+    activeStatusFilter.value = 'pending';
+  }
+});
+
 const fetchTransactions = async () => {
   loading.value = true;
   try {
-    const response = await axios.get("/api/nasabah/penjemputan-nasabah");
-    transactions.value = response.data.data || [];
+    const [penjemputanRes, manualRes] = await Promise.all([
+      axios.get("/api/nasabah/penjemputan-nasabah"),
+      axios.get("/api/nasabah/setor-manual-nasabah")
+    ]);
+    transactions.value = penjemputanRes.data.data || [];
+    manualTransactions.value = manualRes.data.data || [];
   } catch (error) {
     console.error("Failed to fetch transactions:", error);
   } finally {
@@ -59,23 +83,42 @@ const counts = computed(() => {
     tolak: 0,
     batal: 0,
   };
-  transactions.value.forEach(t => {
-    if (result[t.status] !== undefined) {
-      result[t.status]++;
-    }
-  });
+  
+  if (activeMainTab.value === 'jemput') {
+    transactions.value.forEach(t => {
+      if (result[t.status] !== undefined) {
+        result[t.status]++;
+      }
+    });
+  } else {
+    manualTransactions.value.forEach(t => {
+      if (result[t.status] !== undefined) {
+        result[t.status]++;
+      }
+    });
+  }
   return result;
 });
 
 const filteredTransactions = computed(() => {
-  return transactions.value.filter(t => {
+  const data = activeMainTab.value === 'jemput' ? transactions.value : manualTransactions.value;
+  
+  return data.filter(t => {
     const matchesStatus = t.status === activeStatusFilter.value;
-    const matchesSearch = searchQuery.value === "" || 
-      t.penjemputan_id.toString().includes(searchQuery.value) ||
-      (t.deskripsi && t.deskripsi.toLowerCase().includes(searchQuery.value.toLowerCase())) ||
-      (t.detail_penjemputan && t.detail_penjemputan.some(d => d.sampah?.item_sampah?.nama.toLowerCase().includes(searchQuery.value.toLowerCase())));
+    const query = searchQuery.value.toLowerCase();
     
-    return matchesStatus && matchesSearch;
+    if (activeMainTab.value === 'jemput') {
+      const matchesSearch = searchQuery.value === "" || 
+        t.penjemputan_id.toString().includes(query) ||
+        (t.deskripsi && t.deskripsi.toLowerCase().includes(query)) ||
+        (t.detail_penjemputan && t.detail_penjemputan.some(d => d.sampah?.item_sampah?.nama.toLowerCase().includes(query)));
+      return matchesStatus && matchesSearch;
+    } else {
+      const matchesSearch = searchQuery.value === "" || 
+        t.transaksi_id.toString().includes(query) ||
+        (t.penimbangan && t.penimbangan.some(p => p.sampah?.item_sampah?.nama.toLowerCase().includes(query)));
+      return matchesStatus && matchesSearch;
+    }
   });
 });
 
@@ -154,7 +197,7 @@ onMounted(() => {
         <!-- Status Filter Tabs -->
         <div class="flex border-b border-gray-50 overflow-x-auto no-scrollbar">
           <button
-            v-for="filter in statusFilters"
+            v-for="filter in visibleStatusFilters"
             :key="filter.value"
             @click="activeStatusFilter = filter.value"
             :class="cn(
@@ -162,7 +205,7 @@ onMounted(() => {
               activeStatusFilter === filter.value ? 'text-[#4A7043]' : 'text-gray-400 hover:text-gray-600'
             )"
           >
-            <span class="text-xs font-bold uppercase tracking-wider">{{ filter.label }}</span>
+            <span class="text-xs font-bold">{{ filter.label }}</span>
             <div 
               :class="cn(
                 'w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-black transition-all',
@@ -186,7 +229,7 @@ onMounted(() => {
             <input
               v-model="searchQuery"
               type="text"
-              placeholder="Cari berdasarkan tracking ID atau jenis sampah..."
+              :placeholder="activeMainTab === 'jemput' ? 'Cari berdasarkan tracking ID atau jenis sampah...' : 'Cari berdasarkan ID transaksi atau jenis sampah...'"
               class="w-full pl-12 pr-4 py-3 bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-[#4A7043]/20 transition-all text-sm outline-none"
             />
           </div>
@@ -212,19 +255,25 @@ onMounted(() => {
 
             <div
               v-for="item in filteredTransactions"
-              :key="item.penjemputan_id"
+              :key="activeMainTab === 'jemput' ? item.penjemputan_id : item.transaksi_id"
               class="group bg-white border border-gray-100 rounded-3xl p-5 hover:border-[#4A7043]/30 hover:shadow-xl hover:shadow-[#4A7043]/5 transition-all duration-500"
             >
               <div class="flex flex-col md:flex-row gap-6">
                 <!-- Status Icon & Image -->
                 <div class="flex gap-4">
                   <div class="w-14 h-14 bg-gray-50 rounded-2xl flex items-center justify-center shrink-0">
-                    <Icon icon="material-symbols:local-shipping-outline" class="w-7 h-7 text-gray-400" />
+                    <Icon :icon="activeMainTab === 'jemput' ? 'material-symbols:local-shipping-outline' : 'material-symbols:storefront-outline'" class="w-7 h-7 text-gray-400" />
                   </div>
                   <div class="w-24 h-24 rounded-2xl overflow-hidden bg-gray-100 shrink-0 border border-gray-50">
                     <img 
-                      v-if="item.foto && item.foto.length > 0" 
+                      v-if="activeMainTab === 'jemput' && item.foto && item.foto.length > 0" 
                       :src="`${axios.defaults.baseURL}/storage/${item.foto[0]}`" 
+                      class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" 
+                      alt="Sampah" 
+                    />
+                    <img 
+                      v-else-if="activeMainTab === 'setor' && item.penimbangan?.[0]?.foto" 
+                      :src="`${axios.defaults.baseURL}/storage/${item.penimbangan[0].foto}`" 
                       class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" 
                       alt="Sampah" 
                     />
@@ -238,9 +287,16 @@ onMounted(() => {
                 <div class="flex-1 space-y-3">
                   <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                     <div>
-                      <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest">#JMP-{{ String(item.penjemputan_id).padStart(3, '0') }}</p>
+                      <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                        {{ activeMainTab === 'jemput' ? `#JMP-${String(item.penjemputan_id).padStart(3, '0')}` : `#TR-${String(item.transaksi_id).padStart(3, '0')}` }}
+                      </p>
                       <h3 class="text-lg font-black text-gray-800 line-clamp-1">
-                        {{ item.detail_penjemputan?.map(d => d.sampah?.item_sampah?.nama).join(', ') || 'Jenis Sampah Tidak Diketahui' }}
+                        <template v-if="activeMainTab === 'jemput'">
+                          {{ item.detail_penjemputan?.map(d => d.sampah?.item_sampah?.nama).join(', ') || 'Jenis Sampah Tidak Diketahui' }}
+                        </template>
+                        <template v-else>
+                          {{ item.penimbangan?.map(p => p.sampah?.item_sampah?.nama).join(', ') || 'Jenis Sampah Tidak Diketahui' }}
+                        </template>
                       </h3>
                     </div>
                   </div>
@@ -248,15 +304,25 @@ onMounted(() => {
                   <div class="flex flex-wrap gap-y-2 gap-x-6">
                     <div class="flex items-center gap-2 text-gray-500">
                       <Icon icon="material-symbols:calendar-today-outline" class="w-4 h-4" />
-                      <span class="text-xs font-bold">{{ formatDate(item.created_at) }}</span>
+                      <span class="text-xs font-bold">{{ formatDate(activeMainTab === 'jemput' ? item.created_at : item.tanggal) }}</span>
                     </div>
                     <div class="flex items-center gap-2 text-gray-500">
                       <Icon icon="material-symbols:weight-outline" class="w-4 h-4" />
-                      <span class="text-xs font-bold">{{ item.estimasi_berat || '-' }} kg</span>
+                      <span class="text-xs font-bold">
+                        <template v-if="activeMainTab === 'jemput'">{{ item.estimasi_berat || '-' }} kg</template>
+                        <template v-else>{{ item.penimbangan?.reduce((acc, curr) => acc + parseFloat(curr.berat_timbang), 0) }} kg</template>
+                      </span>
+                    </div>
+                    <div v-if="activeMainTab === 'setor'" class="flex items-center gap-2 text-[#4A7043]">
+                      <Icon icon="material-symbols:payments-outline" class="w-4 h-4" />
+                      <span class="text-xs font-black">+ Rp {{ item.penimbangan?.reduce((acc, curr) => acc + (curr.berat_timbang * (curr.sampah?.item_sampah?.harga_beli || 0)), 0).toLocaleString('id-ID') }}</span>
                     </div>
                     <div class="flex items-center gap-2 text-[#4A7043]">
                       <Icon icon="material-symbols:location-on-outline" class="w-4 h-4" />
-                      <span class="text-xs font-black">{{ item.gudang?.alamat || 'Lokasi tidak diset' }}</span>
+                      <span class="text-xs font-black">
+                        <template v-if="activeMainTab === 'jemput'">{{ item.gudang?.nama || 'Lokasi tidak diset' }}</template>
+                        <template v-else>{{ item.penimbangan?.[0]?.tukang?.gudang?.nama || 'Lokasi tidak diset' }}</template>
+                      </span>
                     </div>
                   </div>
 
@@ -296,13 +362,13 @@ onMounted(() => {
         <div class="sticky top-0 z-10 bg-[#4A7043] px-8 py-6 flex items-center justify-between border-b border-white/10 shadow-lg">
           <div class="flex items-center gap-4">
             <div class="w-12 h-12 bg-white/10 rounded-2xl flex items-center justify-center text-white shrink-0">
-              <Icon icon="material-symbols:local-shipping-outline" class="w-7 h-7" />
+              <Icon :icon="selectedItem.penjemputan_id ? 'material-symbols:local-shipping-outline' : 'material-symbols:storefront-outline'" class="w-7 h-7" />
             </div>
             <div>
               <h2 class="text-xl font-black text-white">Detail Transaksi</h2>
               <div class="flex gap-3 mt-0.5">
-                <span class="text-[10px] font-black text-white/60 uppercase tracking-widest">#JMP-{{ String(selectedItem.penjemputan_id).padStart(3, '0') }}</span>
-                <span v-if="selectedItem.penimbangan?.[0]?.transaksi_id" class="text-[10px] font-black text-white/60 uppercase tracking-widest">#TR-{{ String(selectedItem.penimbangan[0].transaksi_id).padStart(3, '0') }}</span>
+                <span v-if="selectedItem.penjemputan_id" class="text-[10px] font-black text-white/60 uppercase tracking-widest">#JMP-{{ String(selectedItem.penjemputan_id).padStart(3, '0') }}</span>
+                <span v-if="selectedItem.transaksi_id || selectedItem.penimbangan?.[0]?.transaksi_id" class="text-[10px] font-black text-white/60 uppercase tracking-widest">#TR-{{ String(selectedItem.transaksi_id || selectedItem.penimbangan[0].transaksi_id).padStart(3, '0') }}</span>
               </div>
             </div>
           </div>
@@ -314,13 +380,19 @@ onMounted(() => {
         <div class="p-8 space-y-6">
           <!-- Status & Tab Switcher (Only for Selesai) -->
           <div v-if="selectedItem.status === 'selesai'" class="flex flex-col items-center gap-6">
-            <div class="bg-[#4A7043] px-6 py-2.5 rounded-full flex items-center gap-2 shadow-lg shadow-green-900/20">
-              <Icon icon="material-symbols:check-circle" class="w-5 h-5 text-white" />
-              <span class="text-xs font-black text-white uppercase tracking-widest">Selesai Diproses</span>
+            <div class="flex flex-col items-center gap-3">
+              <div class="bg-[#4A7043] px-6 py-2.5 rounded-full flex items-center gap-2 shadow-lg shadow-green-900/20">
+                <Icon icon="material-symbols:check-circle" class="w-5 h-5 text-white" />
+                <span class="text-xs font-black text-white uppercase tracking-widest">Selesai Diproses</span>
+              </div>
+              <div v-if="!selectedItem.penjemputan_id" class="bg-green-100 px-4 py-1.5 rounded-full flex items-center gap-2">
+                <Icon icon="material-symbols:check" class="w-4 h-4 text-green-700" />
+                <span class="text-[10px] font-black text-green-700 uppercase tracking-widest">Penimbangan Setor Manual</span>
+              </div>
             </div>
 
             <!-- Modern Compact Tabs -->
-            <div class="bg-white p-1.5 rounded-2xl shadow-sm border border-gray-100 flex gap-2 w-full max-w-md">
+            <div v-if="selectedItem.penjemputan_id" class="bg-white p-1.5 rounded-2xl shadow-sm border border-gray-100 flex gap-2 w-full max-w-md">
               <button 
                 @click="activeDetailTab = 'jemput'"
                 :class="cn(
@@ -551,19 +623,19 @@ onMounted(() => {
                 </div>
                 <div class="flex justify-between items-center text-xs">
                   <p class="font-bold text-gray-400 uppercase tracking-widest">Gudang</p>
-                  <p class="font-black text-gray-800">{{ selectedItem.gudang?.nama || 'Surakarta' }}</p>
+                  <p class="font-black text-gray-800">{{ selectedItem.gudang?.nama || selectedItem.penimbangan?.[0]?.tukang?.gudang?.nama || 'Surakarta' }}</p>
                 </div>
                 <div class="flex justify-between items-center text-xs">
                   <p class="font-bold text-gray-400 uppercase tracking-widest">Tanggal</p>
-                  <p class="font-black text-gray-800">{{ formatDate(selectedItem.penimbangan[0].created_at, true) }}</p>
+                  <p class="font-black text-gray-800">{{ formatDate(selectedItem.penimbangan[0].created_at || selectedItem.tanggal, true) }}</p>
                 </div>
                 <div class="flex justify-between items-center text-xs">
                   <p class="font-bold text-gray-400 uppercase tracking-widest">Petugas Input</p>
-                  <p class="font-black text-gray-800">{{ selectedItem.penimbangan[0].transaksi?.petugas?.nama || '-' }}</p>
+                  <p class="font-black text-gray-800">{{ selectedItem.penimbangan[0].transaksi?.petugas?.nama || selectedItem.petugas?.nama || '-' }}</p>
                 </div>
                 <div class="flex justify-between items-center text-xs">
                   <p class="font-bold text-gray-400 uppercase tracking-widest">Tukang</p>
-                  <p class="font-black text-gray-800">{{ selectedItem.tukang?.nama || '-' }}</p>
+                  <p class="font-black text-gray-800">{{ selectedItem.tukang?.nama || selectedItem.penimbangan?.[0]?.tukang?.nama || '-' }}</p>
                 </div>
               </div>
             </div>
@@ -576,9 +648,9 @@ onMounted(() => {
               </h3>
               <div class="space-y-1">
                 <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Nama Nasabah</p>
-                <p class="font-black text-gray-800 text-base">{{ selectedItem.nasabah?.nama }}</p>
+                <p class="font-black text-gray-800 text-base">{{ selectedItem.nasabah?.nama || 'Anda' }}</p>
                 <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest mt-2">ID Nasabah</p>
-                <p class="font-black text-gray-800">NSB-{{ String(selectedItem.nasabah_id).padStart(3, '0') }}</p>
+                <p class="font-black text-gray-800">NSB-{{ String(selectedItem.nasabah_id || selectedItem.penimbangan?.[0]?.nasabah_id).padStart(3, '0') }}</p>
               </div>
             </div>
 
@@ -620,11 +692,11 @@ onMounted(() => {
             <div class="bg-stone-50 rounded-[2rem] p-6 space-y-4">
               <div class="flex justify-between items-center">
                 <p class="text-xs font-bold text-gray-400 uppercase tracking-widest">Total Berat</p>
-                <p class="text-sm font-black text-gray-800">{{ selectedItem.penimbangan.reduce((acc, curr) => acc + parseFloat(curr.berat_timbang), 0) }} kg</p>
+                <p class="text-sm font-black text-gray-800">{{ selectedItem.penimbangan?.reduce((acc, curr) => acc + parseFloat(curr.berat_timbang), 0) }} kg</p>
               </div>
               <div class="flex justify-between items-center">
                 <p class="text-xs font-bold text-gray-400 uppercase tracking-widest">Total Nilai</p>
-                <p class="text-lg font-black text-[#4A7043]">Rp {{ selectedItem.penimbangan.reduce((acc, curr) => acc + (curr.berat_timbang * (curr.sampah?.item_sampah?.harga_beli || 0)), 0).toLocaleString('id-ID') }}</p>
+                <p class="text-lg font-black text-[#4A7043]">Rp {{ selectedItem.penimbangan?.reduce((acc, curr) => acc + (curr.berat_timbang * (curr.sampah?.item_sampah?.harga_beli || 0)), 0).toLocaleString('id-ID') }}</p>
               </div>
             </div>
 
@@ -633,15 +705,15 @@ onMounted(() => {
               <h3 class="text-sm font-black text-[#166534] mb-2">Informasi Saldo</h3>
               <div class="flex justify-between items-center text-xs">
                 <p class="font-bold text-gray-500">Saldo Sebelum</p>
-                <p class="font-black text-gray-700">Rp -</p>
+                <p class="font-black text-gray-700">Rp {{ (selectedItem.nasabah?.saldo || 0).toLocaleString('id-ID') }}</p>
               </div>
               <div class="flex justify-between items-center text-xs">
                 <p class="font-bold text-[#166534]">Nilai Tambahan</p>
-                <p class="font-black text-[#166534]">+ Rp {{ selectedItem.penimbangan.reduce((acc, curr) => acc + (curr.berat_timbang * (curr.sampah?.item_sampah?.harga_beli || 0)), 0).toLocaleString('id-ID') }}</p>
+                <p class="font-black text-[#166534]">+ Rp {{ selectedItem.penimbangan?.reduce((acc, curr) => acc + (curr.berat_timbang * (curr.sampah?.item_sampah?.harga_beli || 0)), 0).toLocaleString('id-ID') }}</p>
               </div>
               <div class="pt-4 border-t border-[#DCF2E7] flex justify-between items-center">
                 <p class="font-black text-[#166534] text-sm">Saldo Sesudah</p>
-                <p class="font-black text-[#166534] text-lg">Rp -</p>
+                <p class="font-black text-[#166534] text-lg">Rp {{ (parseFloat(selectedItem.nasabah?.saldo || 0) + selectedItem.penimbangan?.reduce((acc, curr) => acc + (curr.berat_timbang * (curr.sampah?.item_sampah?.harga_beli || 0)), 0)).toLocaleString('id-ID') }}</p>
               </div>
             </div>
           </div>
