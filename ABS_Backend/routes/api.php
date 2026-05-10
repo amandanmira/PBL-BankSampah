@@ -54,6 +54,8 @@ Route::prefix('nasabah')->middleware(['auth:sanctum', 'role:nasabah'])->group(fu
     Route::get('/list-gudang', [GudangController::class, 'index']);
     Route::post('/request-penjemputan', [RequestPenjemputanController::class, 'store']);
     Route::post('/request-penarikan', [RequestPenarikanController::class, 'store']);
+    Route::get('/penarikan-saya', [RequestPenarikanController::class, 'index']);
+    Route::post('/penarikan/{id}/cancel', [RequestPenarikanController::class, 'cancel']);
     Route::get('/penarikan-data', [RequestPenarikanController::class, 'getData']);
     Route::get('/penjemputan-nasabah', [KonfirmasiPenjemputanController::class, 'penjemputanNasabah']);
     Route::get('/setor-manual-nasabah', [KonfirmasiPenjemputanController::class, 'setorManualNasabah']);

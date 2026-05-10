@@ -69,6 +69,7 @@ import EditManager from "@/pages/dashboards/admin/EditManager.vue";
 // Nasabah
 import RequestPenjemputan from "@/pages/dashboards/nasabah/RequestPenjemputan.vue";
 import RequestPenarikan from "@/pages/dashboards/nasabah/RequestPenarikan.vue";
+import PenarikanNasabah from "@/pages/dashboards/nasabah/PenarikanNasabah.vue";
 import RiwayatPenjemputan from "@/pages/dashboards/nasabah/RiwayatPenjemputan.vue";
 import KatalogSampah from "@/pages/dashboards/nasabah/KatalogSampah.vue";
 import SampahSaya from "@/pages/dashboards/nasabah/SampahSaya.vue";
@@ -343,6 +344,10 @@ const routes = [
   {
     path: "/dashboard-nasabah/request-penarikan",
     component: RequestPenarikan,
+  },
+  {
+    path: "/dashboard-nasabah/penarikan-saya",
+    component: PenarikanNasabah,
   },
 ];
 

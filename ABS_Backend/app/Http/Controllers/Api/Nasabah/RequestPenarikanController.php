@@ -8,6 +8,68 @@ use App\Models\Penarikan;
 
 class RequestPenarikanController extends Controller
 {
+    public function index(Request $request)
+    {
+        $nasabah = $request->user();
+        $status = $request->query('status');
+        $search = $request->query('search');
+
+        $query = Penarikan::where('nasabah_id', $nasabah->nasabah_id)->latest();
+
+        if ($status && $status !== 'semua') {
+            if ($status === 'menunggu') {
+                $query->where('status', 'pending');
+            } elseif ($status === 'ditolak') {
+                $query->where('status', 'tolak');
+            } elseif ($status === 'dibatalkan') {
+                $query->where('status', 'batal');
+            } else {
+                $query->where('status', $status);
+            }
+        }
+
+        if ($search) {
+            $query->where('penarikan_id', 'like', "%$search%");
+        }
+
+        $penarikan = $query->paginate(10);
+
+        // Count for each status
+        $counts = [
+            'menunggu' => Penarikan::where('nasabah_id', $nasabah->nasabah_id)->where('status', 'pending')->count(),
+            'selesai' => Penarikan::where('nasabah_id', $nasabah->nasabah_id)->where('status', 'selesai')->count(),
+            'ditolak' => Penarikan::where('nasabah_id', $nasabah->nasabah_id)->where('status', 'tolak')->count(),
+            'dibatalkan' => Penarikan::where('nasabah_id', $nasabah->nasabah_id)->where('status', 'batal')->count(),
+        ];
+
+        return response()->json([
+            'penarikan' => $penarikan,
+            'counts' => $counts
+        ], 200);
+    }
+
+    public function cancel(Request $request, $id)
+    {
+        $nasabah = $request->user();
+        $penarikan = Penarikan::where('nasabah_id', $nasabah->nasabah_id)
+            ->where('penarikan_id', $id)
+            ->firstOrFail();
+
+        if ($penarikan->status !== 'pending') {
+            return response()->json([
+                'message' => 'Hanya request dengan status menunggu yang dapat dibatalkan.'
+            ], 400);
+        }
+
+        $penarikan->status = 'batal';
+        $penarikan->save();
+
+        return response()->json([
+            'message' => 'Request Penarikan Berhasil Dibatalkan',
+            'data' => $penarikan
+        ], 200);
+    }
+
     public function getData(Request $request)
     {
         $nasabah = $request->user();
