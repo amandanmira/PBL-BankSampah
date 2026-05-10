@@ -41,7 +41,7 @@ const menuItems = computed(() => {
       { name: "Request Penjemputan", path: "/dashboard-petugas/listpenjemputan", icon: "material-symbols:local-shipping-outline" },
       { name: "Setor Manual", path: "/dashboard-petugas/penimbangan", icon: "material-symbols:storefront-outline" },
       { name: "Request Penarikan", path: "/dashboard-petugas/listpenarikan", icon: "material-symbols:account-balance-wallet-outline" },
-      { name: "Riwayat", path: "/dashboard-petugas/riwayat-penjemputan", icon: "material-symbols:history" },
+      { name: "Riwayat", path: "/dashboard-petugas/riwayat", icon: "material-symbols:history" },
       { name: "Laporan Harian", path: "/dashboard-petugas/laporan-harian", icon: "material-symbols:description-outline" },
       { name: "Berita", path: "/dashboard-petugas/kelola-berita", icon: "material-symbols:article-outline" },
     ];

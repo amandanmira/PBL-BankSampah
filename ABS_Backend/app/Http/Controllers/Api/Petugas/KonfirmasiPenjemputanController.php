@@ -145,4 +145,29 @@ class KonfirmasiPenjemputanController extends Controller
 
         return response()->json($transactions, 200);
     }
+    public function riwayatSetorManual(Request $request)
+    {
+        $search = $request->query('search');
+
+        $query = \App\Models\TransaksiNasabah::where('tipe_transaksi', 'antar_sendiri')
+            ->with([
+                'penimbangan.sampah.itemSampah',
+                'penimbangan.nasabah',
+                'petugas'
+            ])
+            ->latest('tanggal');
+
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('transaksi_id', 'like', "%$search%")
+                  ->orWhereHas('penimbangan.nasabah', function ($nq) use ($search) {
+                      $nq->where('nama', 'like', "%$search%");
+                  });
+            });
+        }
+
+        $transactions = $query->paginate(10);
+
+        return response()->json($transactions, 200);
+    }
 }

@@ -46,6 +46,7 @@ import RiwayatPenarikan from "@/pages/dashboards/petugas/RiwayatPenarikan.vue";
 import ListPenjemputan from "@/pages/dashboards/petugas/ListPenjemputan.vue";
 import RequestPenjemputanPetugas from "@/pages/dashboards/petugas/RequestPenjemputan.vue";
 import RiwayatPenjemputanPetugas from "@/pages/dashboards/petugas/RiwayatPenjemputan.vue";
+import RiwayatTransaksi from "@/pages/dashboards/petugas/RiwayatTransaksi.vue";
 import Penimbangan from "@/pages/dashboards/petugas/Penimbangan.vue";
 import PenimbanganAntarSendiri from "@/pages/dashboards/petugas/PenimbanganAntarSendiri.vue";
 import NotifikasiPetugas from "@/pages/dashboards/petugas/Notifikasi.vue";
@@ -270,8 +271,8 @@ const routes = [
     component: ListPenarikan,
   },
   {
-    path: "/dashboard-petugas/riwayat-penjemputan",
-    component: RiwayatPenjemputanPetugas,
+    path: "/dashboard-petugas/riwayat",
+    component: RiwayatTransaksi,
   },
   {
     path: '/dashboard-petugas/riwayat-penarikan',

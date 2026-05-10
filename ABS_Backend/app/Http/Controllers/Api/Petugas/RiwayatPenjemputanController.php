@@ -4,16 +4,29 @@ namespace App\Http\Controllers\Api\Petugas;
 
 use App\Http\Controllers\Controller;
 use App\Models\Penjemputan;
+use Illuminate\Http\Request;
 
 
 class RiwayatPenjemputanController extends Controller
 {
-    public function riwayatPenjemputan()
+    public function riwayatPenjemputan(Request $request)
     {
-        // Menyaring data hanya untuk status 'selesai' dan 'tolak'
-        $riwayat = Penjemputan::with('nasabah')
-            ->latest()
-            ->paginate(10);
+        $search = $request->query('search');
+        
+        $query = Penjemputan::with(['nasabah', 'tukang', 'detailPenjemputan.sampah.itemSampah', 'penimbangan.transaksi'])
+            ->whereIn('status', ['selesai', 'tolak', 'batal'])
+            ->latest();
+
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('penjemputan_id', 'like', "%$search%")
+                  ->orWhereHas('nasabah', function ($nq) use ($search) {
+                      $nq->where('nama', 'like', "%$search%");
+                  });
+            });
+        }
+
+        $riwayat = $query->paginate(10);
 
         return response()->json($riwayat, 200);
     }
@@ -22,10 +35,13 @@ class RiwayatPenjemputanController extends Controller
     {
         $penjemputan = Penjemputan::with('nasabah')->findOrFail($id);
 
-        if ($penjemputan->status === 'selesai') {
+        if (in_array($penjemputan->status, ['selesai', 'tolak', 'batal'])) {
             $penjemputan->load([
+                'detailPenjemputan.sampah.itemSampah',
                 'penimbangan.sampah.itemSampah',
-                'penimbangan.transaksi' // <--- UBAH MENJADI INI
+                'penimbangan.transaksi.petugas',
+                'tukang',
+                'gudang'
             ]);
         }
 

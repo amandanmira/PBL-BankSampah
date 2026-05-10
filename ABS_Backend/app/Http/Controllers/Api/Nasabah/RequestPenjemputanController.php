@@ -52,15 +52,20 @@ class RequestPenjemputanController extends Controller
         ], 200);
     }
 
-    public function cancel(Penjemputan $penjemputan) {
+    public function cancel(Request $request, Penjemputan $penjemputan) {
         if ($penjemputan->status !== 'pending') {
             return response()->json([
                 'message' => 'Penjemputan hanya bisa dibatalkan saat status masih pending'
             ], 422);
         }
 
+        $request->validate([
+            'ket_status' => 'nullable|string'
+        ]);
+
         $penjemputan->update([
-            'status' => 'batal'
+            'status' => 'batal',
+            'ket_status' => $request->ket_status ?? 'Dibatalkan oleh nasabah'
         ]);
 
         return response()->json([

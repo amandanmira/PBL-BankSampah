@@ -14,6 +14,9 @@ class TransaksiNasabah extends Model
         'status',
         'ket_status',
         'petugas_id',
+        'saldo_sebelum',
+        'total_harga',
+        'saldo_sesudah',
     ];
 
     public function penimbangan()

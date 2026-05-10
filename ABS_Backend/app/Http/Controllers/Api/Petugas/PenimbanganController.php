@@ -37,6 +37,11 @@ public function penimbangan(Request $request)
             $transaksi->tanggal        = now();
             $transaksi->status         = 'selesai';
             $transaksi->petugas_id     = $request->user()->petugas_id;
+
+            // Simpan saldo awal nasabah
+            $nasabah = \App\Models\Nasabah::findOrFail($penjemputan->nasabah_id);
+            $transaksi->saldo_sebelum = $nasabah->saldo;
+
             $transaksi->save();
 
             $total_semua_harga = 0;
@@ -74,9 +79,13 @@ public function penimbangan(Request $request)
             $penjemputan->save();
 
             // Update Saldo Nasabah
-            $nasabah = $penjemputan->nasabah;
             $nasabah->saldo += $total_semua_harga;
             $nasabah->save();
+
+            // Update data transaksi dengan total harga dan saldo sesudah
+            $transaksi->total_harga = $total_semua_harga;
+            $transaksi->saldo_sesudah = $nasabah->saldo;
+            $transaksi->save();
 
             DB::commit();
 
@@ -176,6 +185,11 @@ public function listTukang(Request $request)
             $transaksi->tanggal        = now();
             $transaksi->status         = 'selesai';
             $transaksi->petugas_id     = $request->user()->petugas_id;
+
+            // Simpan saldo awal nasabah
+            $nasabah = \App\Models\Nasabah::findOrFail($request->nasabah_id);
+            $transaksi->saldo_sebelum = $nasabah->saldo;
+
             $transaksi->save();
 
             $total_semua_harga = 0;
@@ -216,10 +230,14 @@ public function listTukang(Request $request)
             }
 
             // Update Saldo Nasabah
-            $nasabah = \App\Models\Nasabah::find($request->nasabah_id);
             if ($nasabah) {
                 $nasabah->saldo += $total_semua_harga;
                 $nasabah->save();
+
+                // Update data transaksi dengan total harga dan saldo sesudah
+                $transaksi->total_harga = $total_semua_harga;
+                $transaksi->saldo_sesudah = $nasabah->saldo;
+                $transaksi->save();
             }
 
             DB::commit();
