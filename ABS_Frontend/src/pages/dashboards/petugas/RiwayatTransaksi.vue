@@ -279,8 +279,8 @@ onMounted(() => {
               
               <div>
                 <h3 class="text-xl font-black text-gray-800">
-                    {{ item.nasabah?.nama || "N/A" }} 
-                    <span class="text-gray-400 font-medium text-sm">(NSB-{{ item.nasabah?.nasabah_id || "-" }})</span>
+                    {{ item.nasabah?.nama || item.penimbangan?.[0]?.nasabah?.nama || "N/A" }} 
+                    <span class="text-gray-400 font-medium text-sm">(NSB-{{ item.nasabah?.nasabah_id || item.penimbangan?.[0]?.nasabah?.nasabah_id || "-" }})</span>
                 </h3>
                 <p class="text-gray-400 text-xs font-medium">{{ formatDate(item.created_at) }}</p>
               </div>
@@ -475,11 +475,13 @@ onMounted(() => {
                         <div class="grid grid-cols-2 gap-4">
                             <div>
                                 <p class="text-gray-400 text-[10px] font-bold uppercase">Nama Nasabah</p>
-                                <p class="font-bold text-gray-700">{{ selectedItem.nasabah?.nama }} (NSB-{{ selectedItem.nasabah?.nasabah_id }})</p>
+                                <p class="font-bold text-gray-700">{{ selectedItem.nasabah?.nama || selectedItem.penimbangan?.[0]?.nasabah?.nama }} (NSB-{{ selectedItem.nasabah?.nasabah_id || selectedItem.penimbangan?.[0]?.nasabah?.nasabah_id }})</p>
                             </div>
                             <div>
                                 <p class="text-gray-400 text-[10px] font-bold uppercase">Nomor Telepon</p>
-                                <p class="font-bold text-gray-700">{{ selectedItem.nasabah?.no_hp || "-" }}</p>
+                                <p class="font-bold text-gray-700">
+                                    {{ (selectedItem.nasabah?.no_hp || selectedItem.penimbangan?.[0]?.nasabah?.no_hp) || "Nasabah belum mengatur nomor telepon" }}
+                                </p>
                             </div>
                         </div>
                         <div>
@@ -611,9 +613,9 @@ onMounted(() => {
                         <span class="font-bold text-gray-700">Informasi Nasabah</span>
                     </div>
                     <p class="text-xs text-gray-400">Nama Nasabah</p>
-                    <p class="font-bold text-gray-700 text-sm">{{ selectedItem.nasabah?.nama }}</p>
+                    <p class="font-bold text-gray-700 text-sm">{{ selectedItem.nasabah?.nama || selectedItem.penimbangan?.[0]?.nasabah?.nama }}</p>
                     <p class="text-xs text-gray-400 mt-2">ID Nasabah</p>
-                    <p class="font-bold text-gray-700 text-sm">NSB-{{ selectedItem.nasabah?.nasabah_id }}</p>
+                    <p class="font-bold text-gray-700 text-sm">NSB-{{ selectedItem.nasabah?.nasabah_id || selectedItem.penimbangan?.[0]?.nasabah?.nasabah_id }}</p>
                 </div>
 
                 <!-- Foto Sampah -->

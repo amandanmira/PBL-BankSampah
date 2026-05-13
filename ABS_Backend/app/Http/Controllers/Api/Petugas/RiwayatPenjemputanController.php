@@ -13,7 +13,7 @@ class RiwayatPenjemputanController extends Controller
     {
         $search = $request->query('search');
         
-        $query = Penjemputan::with(['nasabah', 'tukang', 'detailPenjemputan.sampah.itemSampah', 'penimbangan.transaksi'])
+        $query = Penjemputan::with(['nasabah', 'tukang', 'detailPenjemputan.sampah.itemSampah', 'penimbangan.sampah.itemSampah', 'penimbangan.transaksi', 'gudang'])
             ->whereIn('status', ['selesai', 'tolak', 'batal'])
             ->latest();
 

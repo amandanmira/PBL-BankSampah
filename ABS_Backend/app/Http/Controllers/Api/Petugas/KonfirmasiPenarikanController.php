@@ -125,7 +125,7 @@ class KonfirmasiPenarikanController extends Controller
             ->latest()
             ->paginate(10);
 
-        return response()->json($riwayat, 200);
+        return response()->json(['penarikan' => $riwayat], 200);
     }
 
     public function show($id)

@@ -153,6 +153,7 @@ class KonfirmasiPenjemputanController extends Controller
             ->with([
                 'penimbangan.sampah.itemSampah',
                 'penimbangan.nasabah',
+                'penimbangan.tukang.gudang',
                 'petugas'
             ])
             ->latest('tanggal');
