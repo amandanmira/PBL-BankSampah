@@ -79,6 +79,9 @@ import SampahSaya from "@/pages/dashboards/nasabah/SampahSaya.vue";
 import RequestPembelianCreate from "@/pages/dashboards/pengepul/requestPembelian/RequestPembelianCreate.vue";
 import RequestPembelianIndex from "@/pages/dashboards/pengepul/requestPembelian/RequestPembelianIndex.vue";
 import RequestPembelianEdit from "@/pages/dashboards/pengepul/requestPembelian/RequestPembelianEdit.vue";
+import BeliSampah from "@/pages/dashboards/pengepul/BeliSampah.vue";
+import Keranjang from "@/pages/dashboards/pengepul/Keranjang.vue";
+import PesananSaya from "@/pages/dashboards/pengepul/PesananSaya.vue";
 
 //Manager
 import RiwayatPenarikanMan from "@/pages/dashboards/manager/RiwayatPenarikanMan.vue";
@@ -315,6 +318,18 @@ const routes = [
   {
     path: "/dashboard-pengepul/request-pembelian/create",
     component: RequestPembelianCreate,
+  },
+  {
+    path: "/dashboard-pengepul/beli-sampah",
+    component: BeliSampah,
+  },
+  {
+    path: "/dashboard-pengepul/keranjang",
+    component: Keranjang,
+  },
+  {
+    path: "/dashboard-pengepul/pesanan-saya",
+    component: PesananSaya,
   },
 
   // Nasabah

@@ -53,6 +53,14 @@ const menuItems = computed(() => {
       { name: "Riwayat Penarikan", path: "/dashboard-manager/riwayat-penarikan", icon: "material-symbols:account-balance-wallet-outline" },
     ];
   }
+  if (role.value === "pengepul") {
+    return [
+      { name: "Dashboard", path: "/dashboard-pengepul", icon: "material-symbols:grid-view-outline" },
+      { name: "Beli Sampah", path: "/dashboard-pengepul/beli-sampah", icon: "material-symbols:shopping-bag-outline" },
+      { name: "Keranjang", path: "/dashboard-pengepul/keranjang", icon: "material-symbols:shopping-cart-outline" },
+      { name: "Pesanan Saya", path: "/dashboard-pengepul/pesanan-saya", icon: "material-symbols:article-outline" },
+    ];
+  }
   // Default to nasabah
   return [
     { name: "Dashboard", path: "/dashboard-nasabah", icon: "material-symbols:grid-view-outline" },

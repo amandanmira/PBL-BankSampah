@@ -16,9 +16,13 @@ use App\Models\Sampah;
 class RequestPembelianController extends Controller
 {
     public function indexSampah() {
-        return response()->json(
-            KategoriSampah::with('itemSampah.sampah.gudang')->get()
-        );
+        return response()->json([
+            'sampah' => Sampah::with(['itemSampah.kategoriSampah', 'gudang'])
+                ->where('stok', '>', 0)
+                ->where('active', 1)
+                ->get(),
+            'gudang' => \App\Models\Gudang::where('active', 1)->get()
+        ]);
     }
 
     public function index($pengepul_id) {
@@ -78,9 +82,13 @@ class RequestPembelianController extends Controller
             }
         }
 
+        $config = \App\Models\KonfigurasiWeb::first();
+        $deadline = now()->addDays($config->lama_deadline ?? 1);
+
         $transaksi = TransaksiPengepul::create([
             'status' => 'pending',
             'pengepul_id' => $request->pengepul_id,
+            'deadline' => $deadline,
         ]);
 
         foreach ($request->detail as $d) {
