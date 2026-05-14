@@ -49,6 +49,10 @@ const previewPdf = async () => {
       `/api/cetak-laporan/pdf`,
       {
         headers,
+        params: {
+          start_date: date.value.start_date,
+          end_date: date.value.end_date
+        },
         responseType: 'blob', // penting
       }
     )

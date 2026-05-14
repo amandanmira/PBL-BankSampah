@@ -29,40 +29,70 @@ class LaporanController extends Controller
         return Excel::download(new LaporanPetugasExport($startDate, $endDate), 'laporan-transaksi.xlsx');
     }
 
-    public function exportPdf()
+    public function exportPdf(Request $request)
     {
-        $oneMonthAgo = Carbon::now()->subMonth();
+        $startDate = $request->start_date
+            ? Carbon::parse($request->start_date)->startOfDay()
+            : Carbon::now()->subMonth()->startOfDay();
+
+        $endDate = $request->end_date
+            ? Carbon::parse($request->end_date)->endOfDay()
+            : Carbon::now()->endOfDay();
 
         // Ambil Data
-        $pengepulData = Pengepul::whereHas('transaksiPengepul', function ($q) use ($oneMonthAgo) {
-            $q->where('created_at', '>=', $oneMonthAgo);
+        $pengepulData = Pengepul::whereHas('transaksiPengepul', function ($q) use ($startDate, $endDate) {
+            $q->whereBetween(
+                'created_at',
+                [$startDate, $endDate]
+            );
         })->with([
-            'transaksiPengepul' => function ($q) use ($oneMonthAgo) {
-                $q->where('created_at', '>=', $oneMonthAgo)
+            'transaksiPengepul' => function ($q) use ($startDate, $endDate) {
+                $q->whereBetween(
+                    'created_at',
+                    [$startDate, $endDate]
+                )
                 ->with('detailTransaksi');
             }
         ])->get();
-        $nasabahData = Nasabah::whereHas('penimbangan', function ($q) use ($oneMonthAgo) {
-            $q->where('created_at', '>=', $oneMonthAgo);
+        $nasabahData = Nasabah::whereHas('penimbangan', function ($q) use ($startDate, $endDate) {
+            $q->whereBetween(
+                'created_at',
+                [$startDate, $endDate]
+            );
         })->with([
-            'penimbangan' => function ($q) use ($oneMonthAgo) {
-                $q->where('created_at', '>=', $oneMonthAgo)
+            'penimbangan' => function ($q) use ($startDate, $endDate) {
+                $q->whereBetween(
+                    'created_at',
+                    [$startDate, $endDate]
+                )
                 ->with('transaksi');
             }
         ])->get();
-        $pembelianSampahData = Sampah::whereHas('penimbangan', function ($q) use ($oneMonthAgo) {
-            $q->where('created_at', '>=', $oneMonthAgo);
+        $pembelianSampahData = Sampah::whereHas('penimbangan', function ($q) use ($startDate, $endDate) {
+            $q->whereBetween(
+                'created_at',
+                [$startDate, $endDate]
+            );
         })->with([
-            'penimbangan' => function ($q) use ($oneMonthAgo) {
-                $q->where('created_at', '>=', $oneMonthAgo);
+            'penimbangan' => function ($q) use ($startDate, $endDate) {
+                $q->whereBetween(
+                    'created_at',
+                    [$startDate, $endDate]
+                );
             },
             'itemSampah', 'gudang'
         ])->get();
-        $penjualanSampahData = Sampah::whereHas('detailTransaksi', function ($q) use ($oneMonthAgo) {
-            $q->where('created_at', '>=', $oneMonthAgo);
+        $penjualanSampahData = Sampah::whereHas('detailTransaksi', function ($q) use ($startDate, $endDate) {
+            $q->whereBetween(
+                'created_at',
+                [$startDate, $endDate]
+            );
         })->with([
-            'detailTransaksi' => function ($q) use ($oneMonthAgo) {
-                $q->where('created_at', '>=', $oneMonthAgo);
+            'detailTransaksi' => function ($q) use ($startDate, $endDate) {
+                $q->whereBetween(
+                    'created_at',
+                    [$startDate, $endDate]
+                );
             },
             'itemSampah', 'gudang'
         ])->get();
