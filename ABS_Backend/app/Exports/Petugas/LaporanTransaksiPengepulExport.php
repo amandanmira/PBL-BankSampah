@@ -25,8 +25,6 @@ class LaporanTransaksiPengepulExport implements FromCollection, WithHeadings, Wi
     */
     public function collection()
     {
-        $oneMonthAgo = Carbon::now()->subMonth();
-
         return TransaksiPengepul::whereBetween(
                 'created_at',
                 [$this->startDate, $this->endDate]

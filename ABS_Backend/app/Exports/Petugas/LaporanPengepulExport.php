@@ -12,18 +12,31 @@ use App\Models\Pengepul;
 
 class LaporanPengepulExport implements FromCollection, WithHeadings, WithMapping, WithTitle
 {
+    protected $startDate;
+    protected $endDate;
+
+    public function __construct($startDate, $endDate)
+    {
+        $this->startDate = $startDate;
+        $this->endDate = $endDate;
+    }
+
     /**
     * @return \Illuminate\Support\Collection
     */
     public function collection()
     {
-        $oneMonthAgo = Carbon::now()->subMonth();
-
-        return Pengepul::whereHas('transaksiPengepul', function ($q) use ($oneMonthAgo) {
-            $q->where('created_at', '>=', $oneMonthAgo);
+        return Pengepul::whereHas('transaksiPengepul', function ($q) {
+            $q->whereBetween(
+                'created_at',
+                [$this->startDate, $this->endDate]
+            );
         })->with([
-            'transaksiPengepul' => function ($q) use ($oneMonthAgo) {
-                $q->where('created_at', '>=', $oneMonthAgo)
+            'transaksiPengepul' => function ($q) {
+                $q->whereBetween(
+                    'created_at',
+                    [$this->startDate, $this->endDate]
+                )
                 ->with('detailTransaksi');
             }
         ])->get();

@@ -20,13 +20,13 @@ class LaporanPetugasExport implements WithMultipleSheets
     {
         return [
             new LaporanTransaksiPengepulExport($this->startDate, $this->endDate),
-            new LaporanTransaksiNasabahExport(),
-            new LaporanDetailTransaksiExport(),
-            new LaporanPenimbanganExport(),
-            new LaporanPengepulExport(),
-            new LaporanNasabahExport(),
-            new LaporanPenjualanSampahExport(),
-            new LaporanPembelianSampahExport(),
+            new LaporanTransaksiNasabahExport($this->startDate, $this->endDate),
+            new LaporanDetailTransaksiExport($this->startDate, $this->endDate),
+            new LaporanPenimbanganExport($this->startDate, $this->endDate),
+            new LaporanPengepulExport($this->startDate, $this->endDate),
+            new LaporanNasabahExport($this->startDate, $this->endDate),
+            new LaporanPenjualanSampahExport($this->startDate, $this->endDate),
+            new LaporanPembelianSampahExport($this->startDate, $this->endDate),
         ];
     }
 }

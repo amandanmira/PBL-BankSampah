@@ -11,14 +11,24 @@ use Maatwebsite\Excel\Concerns\WithTitle;
 
 class LaporanPenimbanganExport implements FromCollection, WithHeadings, WithMapping, WithTitle
 {
+    protected $startDate;
+    protected $endDate;
+
+    public function __construct($startDate, $endDate)
+    {
+        $this->startDate = $startDate;
+        $this->endDate = $endDate;
+    }
+
     /**
     * @return \Illuminate\Support\Collection
     */
     public function collection()
     {
-        $oneMonthAgo = Carbon::now()->subMonth();
-
-        return Penimbangan::where('created_at', '>=', $oneMonthAgo)
+        return Penimbangan::whereBetween(
+                'created_at',
+                [$this->startDate, $this->endDate]
+            )
             ->whereHas('transaksi', function ($q) {
                 $q->where('status', 'selesai');
             })

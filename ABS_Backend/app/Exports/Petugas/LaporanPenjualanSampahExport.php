@@ -11,18 +11,31 @@ use Maatwebsite\Excel\Concerns\WithTitle;
 
 class LaporanPenjualanSampahExport implements FromCollection, WithHeadings, WithMapping, WithTitle
 {
+    protected $startDate;
+    protected $endDate;
+
+    public function __construct($startDate, $endDate)
+    {
+        $this->startDate = $startDate;
+        $this->endDate = $endDate;
+    }
+
     /**
     * @return \Illuminate\Support\Collection
     */
     public function collection()
     {
-        $oneMonthAgo = Carbon::now()->subMonth();
-
-        return Sampah::whereHas('detailTransaksi', function ($q) use ($oneMonthAgo) {
-            $q->where('created_at', '>=', $oneMonthAgo);
+        return Sampah::whereHas('detailTransaksi', function ($q) {
+            $q->whereBetween(
+                'created_at',
+                [$this->startDate, $this->endDate]
+            );
         })->with([
-            'detailTransaksi' => function ($q) use ($oneMonthAgo) {
-                $q->where('created_at', '>=', $oneMonthAgo);
+            'detailTransaksi' => function ($q) {
+                $q->whereBetween(
+                    'created_at',
+                    [$this->startDate, $this->endDate]
+                );
             },
             'itemSampah', 'gudang'
         ])->get();

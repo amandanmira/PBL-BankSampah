@@ -11,18 +11,31 @@ use Maatwebsite\Excel\Concerns\WithTitle;
 
 class LaporanNasabahExport implements FromCollection, WithHeadings, WithMapping, WithTitle
 {
+    protected $startDate;
+    protected $endDate;
+
+    public function __construct($startDate, $endDate)
+    {
+        $this->startDate = $startDate;
+        $this->endDate = $endDate;
+    }
+
     /**
     * @return \Illuminate\Support\Collection
     */
     public function collection()
     {
-        $oneMonthAgo = Carbon::now()->subMonth();
-
-        return Nasabah::whereHas('penimbangan', function ($q) use ($oneMonthAgo) {
-            $q->where('created_at', '>=', $oneMonthAgo);
+        return Nasabah::whereHas('penimbangan', function ($q) {
+            $q->whereBetween(
+                'created_at',
+                [$this->startDate, $this->endDate]
+            );
         })->with([
-            'penimbangan' => function ($q) use ($oneMonthAgo) {
-                $q->where('created_at', '>=', $oneMonthAgo)
+            'penimbangan' => function ($q) {
+                $q->whereBetween(
+                    'created_at',
+                    [$this->startDate, $this->endDate]
+                )
                 ->with('transaksi');
             }
         ])->get();
