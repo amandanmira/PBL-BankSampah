@@ -1,4 +1,5 @@
 <script setup>
+import { ref } from "vue";
 import { Icon } from "@iconify/vue";
 import DashboardLayout from "@/layouts/DashboardLayout.vue";
 import axios from 'axios'
@@ -11,12 +12,21 @@ if (!token) {
 
 const headers = { 'Authorization': `Bearer ${token}` }
 
+const date = ref({
+  start_date: null,
+  end_date: null,
+})
+
 const downloadExcel = async () => {
   try {
     const res = await axios.get(
       `/api/cetak-laporan/excel`,
       {
         headers,
+        params: {
+          start_date: date.value.start_date,
+          end_date: date.value.end_date
+        },
         responseType: 'blob', // penting
       }
     )
@@ -61,9 +71,22 @@ const previewPdf = async () => {
       </div>
       <h2 class="text-2xl font-black text-stone-800 mb-2">Laporan Harian</h2>
       <!-- <p class="text-stone-400 font-medium max-w-xs">Halaman ini sedang dalam tahap pengembangan. Segera Anda dapat melihat laporan harian di sini.</p> -->
-      <br />
-      <button @click="downloadExcel()" class="border-2 p-2">Cetak Laporan Excel</button><br />
-      <button @click="previewPdf()" class="border-2 p-2">Cetak Laporan Pdf</button>
+      <div>
+        <div class="flex gap-16">
+          <div>
+            <label>Dari Tanggal</label><br />
+            <input type="date" v-model="date.start_date" />
+          </div>
+          
+          <div>
+            <label>Sampai Tanggal</label><br />
+            <input type="date" v-model="date.end_date" />
+          </div>
+        </div>
+
+        <button @click="downloadExcel()" class="border-2 p-2">Cetak Laporan Excel</button><br />
+        <button @click="previewPdf()" class="border-2 p-2">Cetak Laporan Pdf</button>
+      </div>
     </div>
   </DashboardLayout>
 </template>

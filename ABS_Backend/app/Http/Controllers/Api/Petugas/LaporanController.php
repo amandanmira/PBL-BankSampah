@@ -12,12 +12,21 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use App\Models\Pengepul;
 use App\Models\Nasabah;
 use App\Models\Sampah;
+use Illuminate\Support\Facades\Log;
 
 class LaporanController extends Controller
 {
-    public function exportExcel()
+    public function exportExcel(Request $request)
     {
-        return Excel::download(new LaporanPetugasExport(), 'laporan-transaksi.xlsx');
+        $startDate = $request->start_date
+            ? Carbon::parse($request->start_date)->startOfDay()
+            : Carbon::now()->subMonth()->startOfDay();
+
+        $endDate = $request->end_date
+            ? Carbon::parse($request->end_date)->endOfDay()
+            : Carbon::now()->endOfDay();
+
+        return Excel::download(new LaporanPetugasExport($startDate, $endDate), 'laporan-transaksi.xlsx');
     }
 
     public function exportPdf()
