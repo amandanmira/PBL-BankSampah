@@ -1,36 +1,34 @@
 <script setup>
-import { ref } from 'vue';
+import { ref, onMounted, inject } from 'vue';
+import { useRouter } from 'vue-router';
+import dayjs from 'dayjs';
 
-// Data statis (dummy) ini didesain serapi mungkin dalam struktur array of objects.
-// Nantinya ketika backend/API sudah siap, Anda cukup mengganti blok array isi 'newsList' ini
-// dengan hasil fetch (misal: newsList.value = await axios.get('/api/news')).
-const newsList = ref([
-  {
-    id: 1,
-    title: 'Program Daur Ulang Tingkatkan Partisipasi Warga',
-    excerpt: 'Inisiatif baru kami berhasil meningkatkan partisipasi masyarakat dalam daur ulang hingga 45% dalam 3 bulan terakhir.',
-    date: '8 Maret 2026',
-    image: '/sample.jpg',
-    slug: 'program-daur-ulang-tingkatkan-partisipasi'
-  },
-  {
-    id: 2,
-    title: 'Workshop Edukasi Lingkungan untuk Komunitas',
-    excerpt: 'Lebih dari 200 peserta mengikuti workshop gratis tentang cara mengelola sampah rumah tangga dengan efektif.',
-    date: '5 Maret 2026',
-    image: '/sample.jpg',
-    slug: 'workshop-edukasi-lingkungan'
-  },
-  {
-    id: 3,
-    title: 'Inovasi Teknologi Pengelolaan Sampah Digital',
-    excerpt: 'Aplikasi baru kami memudahkan tracking sampah dan reward poin untuk setiap kontribusi daur ulang Anda.',
-    date: '1 Maret 2026',
-    image: '/sample.jpg',
-    slug: 'inovasi-teknologi-pengelolaan-sampah'
+const axios = inject('axios');
+const router = useRouter();
+const newsList = ref([]);
+const loading = ref(true);
+
+const fetchNews = async () => {
+  loading.value = true;
+  try {
+    const res = await axios.get('/api/berita?limit=3');
+    newsList.value = res.data;
+  } catch (error) {
+    console.error('Failed to fetch news:', error);
+  } finally {
+    loading.value = false;
   }
-]);
+};
+
+const goToDetail = (id) => {
+  router.push(`/blog/${id}`);
+};
+
+onMounted(() => {
+  fetchNews();
+});
 </script>
+
 
 <template>
   <section class="py-16 md:py-24 bg-[#FAFFF9] relative">
@@ -48,30 +46,32 @@ const newsList = ref([
       </div>
 
       <!-- Container List Berita (Grid) -->
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
-
-        <article v-for="news in newsList" :key="news.id"
-          class="bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 border border-gray-100 flex flex-col h-full">
+      <div v-if="loading" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
+        <div v-for="i in 3" :key="i" class="bg-white rounded-xl h-[400px] animate-pulse"></div>
+      </div>
+      <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
+        <article v-for="news in newsList" :key="news.berita_id"
+          class="bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 border border-gray-100 flex flex-col h-full cursor-pointer"
+          @click="goToDetail(news.berita_id)"
+        >
           <!-- Cover Gambar -->
           <div class="w-full aspect-[16/10] overflow-hidden">
-            <img :src="news.image" :alt="news.title"
+            <img :src="news.thumbnail ? `${axios.defaults.baseURL}/storage/${news.thumbnail}` : 'https://placehold.co/600x400/f3f4f6/94a3b8?text=No+Image'" :alt="news.judul"
               class="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
           </div>
 
           <!-- Konten Card -->
           <div class="p-6 md:p-8 flex flex-col flex-grow">
-
             <time class="text-[#888888] text-[13px] font-medium mb-3 block">
-              {{ news.date }}
+              {{ dayjs(news.created_at).format('D MMMM YYYY') }}
             </time>
 
-            <h3 class="text-[#555555] text-[20px] lg:text-[22px] font-bold leading-snug mb-4">
-              {{ news.title }}
+            <h3 class="text-[#555555] text-[20px] lg:text-[22px] font-bold leading-snug mb-4 line-clamp-2">
+              {{ news.judul }}
             </h3>
 
-            <!-- Teks excerpt dipaksa memanjang mengisi sisa ruang jika ada beda tinggi judul -->
-            <p class="text-[#555555] text-[14px] leading-relaxed flex-grow">
-              {{ news.excerpt }}
+            <p class="text-[#555555] text-[14px] leading-relaxed flex-grow line-clamp-3">
+              {{ news.isi.replace(/[#*`_]/g, '') }}
             </p>
 
             <div class="mt-8">
@@ -81,15 +81,15 @@ const newsList = ref([
                 <span class="transform group-hover:translate-x-1 transition-transform">→</span>
               </button>
             </div>
-
           </div>
         </article>
       </div>
 
+
       <!-- Tombol Lihat Semua -->
       <div class="text-center mt-12 md:mt-16">
         <RouterLink to="/blog"
-          class="bg-[#4A7043] text-white font-semibold text-[15px] px-8 py-3.5 rounded-md hover:bg-[#3d5d36] transition-colors shadow-sm cursor-pointer">
+          class="bg-[#4A7043] text-white font-bold text-[15px] px-10 py-3.5 rounded-lg hover:bg-[#3d5d36] hover:scale-105 active:scale-95 transition-all shadow-md cursor-pointer inline-block">
           Lihat Semua Berita
         </RouterLink>
       </div>

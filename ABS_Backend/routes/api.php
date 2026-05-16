@@ -37,6 +37,8 @@ Route::get('verify-nasabah/{token}', [AuthController::class, 'verifyEmail']);
 Route::post('verify-otp', [AuthController::class, 'verifyOtp']);
 Route::post('resend-otp', [AuthController::class, 'resendOtp']);
 Route::get('/web-config', [WebController::class, 'show']);
+Route::get('/berita', [App\Http\Controllers\Api\Public\BeritaController::class, 'index']);
+Route::get('/berita/{id}', [App\Http\Controllers\Api\Public\BeritaController::class, 'show']);
 
 // Password Reset
 Route::post('password/email', [App\Http\Controllers\Api\PasswordResetController::class, 'sendResetLinkEmail']);

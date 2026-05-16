@@ -217,13 +217,6 @@ onMounted(() => {
               <Icon icon="material-symbols:search" class="w-5 h-5" />
             </div>
           </div>
-          <!-- Date Filter (Optional Placeholder) -->
-          <div class="w-full md:w-48 relative">
-             <div class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
-                <Icon icon="material-symbols:calendar-today" class="w-5 h-5" />
-             </div>
-             <input type="text" readonly placeholder="Pilih Tanggal" class="w-full pl-12 py-4 bg-gray-50 border-none rounded-2xl text-sm cursor-not-allowed opacity-50" />
-          </div>
         </div>
 
         <!-- Filter Buttons -->
@@ -589,7 +582,7 @@ onMounted(() => {
                         </div>
                         <div class="flex justify-between border-b border-gray-100 pb-2">
                              <span class="text-gray-400">Gudang</span>
-                             <span class="font-bold text-gray-700">{{ selectedItem.gudang?.nama || selectedItem.penimbangan?.[0]?.tukang?.gudang?.nama || "-" }}</span>
+                             <span class="font-bold text-gray-700">{{ selectedItem.gudang?.alamat || selectedItem.penimbangan?.[0]?.tukang?.gudang?.alamat || "-" }}</span>
                         </div>
                         <div class="flex justify-between border-b border-gray-100 pb-2">
                              <span class="text-gray-400">Tanggal Selesai</span>

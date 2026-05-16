@@ -31,7 +31,7 @@
             <img src="/hero.svg" alt="Ilustrasi Fitur 2" class="w-full max-w-[200px] md:max-w-[260px] lg:max-w-[300px] object-contain drop-shadow-xl hover:scale-105 transition-transform duration-500" />
           </div>
           <div class="flex-1 text-center md:text-left">
-            <h3 class="text-xl md:text-[22px] lg:text-2xl font-bold text-white mb-4 leading-snug">Jemput Sampah ke Rumah</h3>
+            <h3 class="text-xl md:text-[22px] lg:text-2xl font-bold text-white mb-4 leading-snug">Jemput sampah ke rumah</h3>
             <p class="text-white/90 text-[15px] md:text-base leading-relaxed">
               Tidak sempat datang ke bank sampah? Jadwalkan penjemputan langsung dari aplikasi, dan petugas kami akan datang ke lokasimu.
             </p>
@@ -43,7 +43,7 @@
           <div class="flex-1 text-center md:text-left">
             <h3 class="text-xl md:text-[22px] lg:text-2xl font-bold text-white mb-4 leading-snug">Notifikasi Real-time</h3>
             <p class="text-white/90 text-[15px] md:text-base leading-relaxed">
-              Dapatkan pemberitahuan langsung ke perangkatmu mengenai status transaksi dan penjemputan
+              Dapatkan pemberitahuan langsung ke perangkatmu mengenai status transaksi dan penjemputan.
             </p>
           </div>
           <div class="flex-1 flex justify-center w-full">
@@ -59,7 +59,7 @@
           <div class="flex-1 text-center md:text-left">
             <h3 class="text-xl md:text-[22px] lg:text-2xl font-bold text-white mb-4 leading-snug">Pantau Saldo & Riwayat</h3>
             <p class="text-white/90 text-[15px] md:text-base leading-relaxed">
-              Cek saldo poinmu dan lihat seluruh riwayat transaksi yang pernah kamu lakukan dengan bank sampah secara lengkap
+              Cek saldo poinmu dan lihat seluruh riwayat transaksi yang pernah kamu lakukan dengan bank sampah secara lengkap.
             </p>
           </div>
         </div>

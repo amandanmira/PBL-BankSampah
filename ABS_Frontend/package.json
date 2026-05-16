@@ -21,6 +21,7 @@
     "gsap": "^3.14.2",
     "leaflet": "^1.9.4",
     "lucide-vue-next": "^1.0.0",
+    "md-editor-v3": "^6.5.0",
     "numeral": "^2.0.6",
     "pinia": "^3.0.4",
     "sweetalert2": "^11.26.24",

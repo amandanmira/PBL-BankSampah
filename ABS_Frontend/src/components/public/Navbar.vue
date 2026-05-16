@@ -57,8 +57,8 @@ const logout = async () => {
       <div class="hidden lg:flex items-center gap-6 lg:gap-10">
         <RouterLink to="/" class="text-[15px] font-semibold tracking-wide hover:text-white/80 transition-colors">
           Beranda</RouterLink>
-        <RouterLink to="/about" class="text-[15px] font-semibold tracking-wide hover:text-white/80 transition-colors">
-          Tentang</RouterLink>
+        <RouterLink :to="{ path: '/', hash: '#pricing' }" class="text-[15px] font-semibold tracking-wide hover:text-white/80 transition-colors">
+          Pricing</RouterLink>
         <RouterLink to="/blog" class="text-[15px] font-semibold tracking-wide hover:text-white/80 transition-colors">
           Blog</RouterLink>
         <RouterLink to="/faq" class="text-[15px] font-semibold tracking-wide hover:text-white/80 transition-colors">FAQ
@@ -88,8 +88,8 @@ const logout = async () => {
       class="lg:hidden absolute top-full left-0 w-full bg-[#4A7043] shadow-lg flex flex-col px-6 py-5 gap-4 border-t border-white/10">
       <RouterLink to="/" @click="isMenuOpen = false"
         class="text-base font-semibold tracking-wide hover:text-white/80 transition-colors py-1">Beranda</RouterLink>
-      <RouterLink to="/about" @click="isMenuOpen = false"
-        class="text-base font-semibold tracking-wide hover:text-white/80 transition-colors py-1">Tentang</RouterLink>
+      <RouterLink :to="{ path: '/', hash: '#pricing' }" @click="isMenuOpen = false"
+        class="text-base font-semibold tracking-wide hover:text-white/80 transition-colors py-1">Pricing</RouterLink>
       <RouterLink to="/blog" @click="isMenuOpen = false"
         class="text-base font-semibold tracking-wide hover:text-white/80 transition-colors py-1">Blog</RouterLink>
       <RouterLink to="/faq" @click="isMenuOpen = false"

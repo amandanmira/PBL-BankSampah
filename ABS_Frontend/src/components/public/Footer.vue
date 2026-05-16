@@ -79,22 +79,21 @@ onMounted(() => {
             <RouterLink to="/" class="hover:text-white hover:underline transition-colors">Beranda</RouterLink>
           </li>
           <li>
-            <RouterLink :to="{ path: '/', hash: '#layanan' }"
-              class="hover:text-white hover:underline transition-colors">Layanan</RouterLink>
-          </li>
-          <li>
-            <RouterLink :to="{ path: '/', hash: '#cara-kerja' }"
-              class="hover:text-white hover:underline transition-colors">Cara Kerja</RouterLink>
+            <RouterLink :to="{ path: '/', hash: '#pricing' }"
+              class="hover:text-white hover:underline transition-colors">Pricing</RouterLink>
           </li>
           <li>
             <RouterLink to="/blog" class="hover:text-white hover:underline transition-colors">Blog</RouterLink>
           </li>
+          <li>
+            <RouterLink to="/faq" class="hover:text-white hover:underline transition-colors">FAQ</RouterLink>
+          </li>
         </ul>
       </div>
 
-      <!-- Column 3: Tentang Kami -->
+      <!-- Column 3: Hubungi Kami -->
       <div>
-        <h3 class="font-bold text-[17px] mb-6 tracking-wide uppercase">Tentang Kami</h3>
+        <h3 class="font-bold text-[17px] mb-6 tracking-wide uppercase">Hubungi Kami</h3>
         <ul class="space-y-4 text-[15px] font-medium text-[#BBBBBB]">
           <li>
             <RouterLink to="/about" class="hover:text-white hover:underline transition-colors">Tentang</RouterLink>
@@ -109,7 +108,7 @@ onMounted(() => {
         </ul>
       </div>
 
-      <!-- Column 4: Social -->
+      <!-- Column 4: Ikuti Kami -->
       <div>
         <h3 class="font-bold text-[17px] mb-6 tracking-wide uppercase">Ikuti Kami</h3>
         <div class="flex flex-wrap gap-4">

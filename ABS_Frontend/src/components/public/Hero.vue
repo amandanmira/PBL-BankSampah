@@ -56,25 +56,25 @@ onMounted(() => {
           class="font-extrabold leading-[1.2] lg:leading-[1.1] tracking-wide whitespace-pre-line"
           :class="headingFontSize"
         >
-          {{ config.hero_quote_top }}
+          Kelola Sampah,<br>Raih Manfaat
         </h1>
 
         <p
           class="font-medium leading-relaxed max-w-xl mx-auto lg:mx-0 text-white/95 whitespace-pre-line"
           :class="subHeadingFontSize"
         >
-          {{ config.hero_quote_bottom }}
+          Kelola Sampah Jadi Tabungan Digital yang Transparan dan Terpercaya
         </p>
 
         <div
           class="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4 lg:gap-5 mt-4 text-[15px] font-bold tracking-wide">
-          <RouterLink to="/register-nasabah"
-            class="w-full sm:w-auto bg-[#F5F5F0] text-[#4A7043] px-8 py-3.5 rounded-full hover:bg-gray-50 hover:scale-105 active:scale-95 transition-all shadow-md flex justify-center items-center">
-            Jadi Nasabah
-          </RouterLink>
           <RouterLink to="/register-pengepul"
+            class="w-full sm:w-auto bg-[#F5F5F0] text-[#4A7043] px-8 py-3.5 rounded-full hover:bg-gray-50 hover:scale-105 active:scale-95 transition-all shadow-md flex justify-center items-center">
+            Beli Sampah
+          </RouterLink>
+          <RouterLink to="/register-nasabah"
             class="w-full sm:w-auto bg-transparent border border-[#F5F5F0] text-[#F5F5F0] px-8 py-3.5 rounded-full hover:bg-white/10 hover:scale-105 active:scale-95 transition-all flex justify-center items-center">
-            Jadi Pengepul
+            Setor Sampah
           </RouterLink>
         </div>
       </div>

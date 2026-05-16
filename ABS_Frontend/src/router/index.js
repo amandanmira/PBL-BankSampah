@@ -32,8 +32,6 @@ import KelolaUser from "@/pages/dashboards/admin/KelolaUser.vue";
 
 // Berita
 import BeritaIndex from "@/pages/dashboards/petugas/berita/index.vue";
-import BeritaCreate from "@/pages/dashboards/petugas/berita/Create.vue";
-import BeritaEdit from "@/pages/dashboards/petugas/berita/Edit.vue";
 import BeritaShow from "@/pages/dashboards/petugas/berita/show.vue";
 import ConfigWeb from "@/pages/dashboards/admin/managePages/ConfigWeb.vue";
 import AturDeadline from "@/pages/dashboards/admin/managePages/AturDeadline.vue";
@@ -113,7 +111,7 @@ const routes = [
         component: Blog,
       },
       {
-        path: "/blog/:slug",
+        path: "/blog/:id",
         name: "SingleBlog",
         component: OneBlog,
       },
@@ -248,17 +246,6 @@ const routes = [
   {
     path: "/dashboard-petugas/kelola-berita",
     component: BeritaIndex,
-  },
-
-  {
-    path: "/dashboard-petugas/kelola-berita/create",
-    component: BeritaCreate,
-  },
-
-  {
-    path: "/dashboard-petugas/kelola-berita/:id/edit",
-    name: "berita.edit",
-    component: BeritaEdit,
   },
   {
     path: "/dashboard-petugas/berita/:id",
