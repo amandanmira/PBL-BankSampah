@@ -2,16 +2,25 @@
   <DashboardLayout title="Beli Sampah">
     <!-- Header Section -->
     <div class="mb-6">
-      <div class="relative max-w-xl mx-auto mb-6">
-        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-          <Icon icon="material-symbols:search" class="text-gray-400 w-5 h-5" />
+      <div class="flex flex-col md:flex-row items-center gap-4 mb-8">
+        <div class="relative flex-1 w-full">
+          <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+            <Icon icon="material-symbols:search" class="text-gray-400 w-5 h-5" />
+          </div>
+          <input
+            v-model="searchQuery"
+            type="text"
+            placeholder="Cari sampah..."
+            class="w-full pl-11 pr-4 py-3 bg-white rounded-xl border-none shadow-sm focus:ring-2 focus:ring-[#4A7043] transition-all text-sm text-gray-700"
+          />
         </div>
-        <input
-          v-model="searchQuery"
-          type="text"
-          placeholder="Cari sampah..."
-          class="w-full pl-11 pr-4 py-3 bg-white rounded-xl border-none shadow-sm focus:ring-2 focus:ring-[#4A7043] transition-all text-sm text-gray-700"
-        />
+        <button
+          @click="showTataCara = true"
+          class="flex items-center gap-2 px-6 py-3 bg-white hover:bg-gray-50 text-[#4A7043] font-bold text-sm rounded-xl shadow-sm border border-gray-100 transition-all active:scale-95 shrink-0"
+        >
+          <Icon icon="material-symbols:menu-book-outline" class="w-5 h-5" />
+          Tata Cara
+        </button>
       </div>
 
       <div class="mb-4">
@@ -20,7 +29,7 @@
           <button
             @click="selectedGudang = null"
             :class="[
-              'px-4 py-1.5 rounded-full text-xs font-semibold transition-all',
+              'px-4 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer',
               selectedGudang === null
                 ? 'bg-[#4A7043] text-white shadow-md'
                 : 'bg-white text-gray-600 hover:bg-gray-100'
@@ -33,7 +42,7 @@
             :key="g.gudang_id"
             @click="selectedGudang = g.gudang_id"
             :class="[
-              'px-4 py-1.5 rounded-full text-xs font-semibold transition-all flex items-center gap-2',
+              'px-4 py-1.5 rounded-full text-xs font-semibold transition-all flex items-center gap-2 cursor-pointer',
               selectedGudang === g.gudang_id
                 ? 'bg-[#4A7043] text-white shadow-md'
                 : 'bg-white text-gray-600 hover:bg-gray-100'
@@ -61,8 +70,7 @@
         :key="item.sampah_id"
         class="bg-white rounded-[1.5rem] overflow-hidden shadow-sm border border-gray-100 hover:shadow-lg transition-all duration-300 group"
       >
-        <!-- Image Container 1:1 -->
-        <div class="relative aspect-square overflow-hidden bg-gray-50">
+        <div class="relative aspect-square overflow-hidden bg-gray-50 cursor-zoom-in" @click="previewImage(`${axios.defaults.baseURL}/storage/${item.item_sampah.foto}`, item.item_sampah.nama)">
           <img
             v-if="item.item_sampah.foto"
             :src="`${axios.defaults.baseURL}/storage/${item.item_sampah.foto}`"
@@ -89,10 +97,10 @@
         <!-- Content -->
         <div class="p-3">
           <div class="mb-2">
-            <h3 class="font-bold text-gray-800 text-sm leading-tight truncate">{{ item.item_sampah.nama }}</h3>
-            <div class="flex items-center gap-1 mt-0.5 text-blue-600">
+            <h3 class="font-bold text-gray-800 text-lg leading-tight truncate">{{ item.item_sampah.nama }}</h3>
+            <div class="flex items-center gap-1 mt-2 text-blue-600">
               <Icon icon="material-symbols:location-on" class="w-2.5 h-2.5" />
-              <span class="text-[9px] font-bold">Gudang {{ item.gudang_id }}</span>
+              <span class="text-[12px] font-bold">Gudang {{ item.gudang_id }}</span>
             </div>
           </div>
 
@@ -100,49 +108,49 @@
             <div>
               <div class="flex items-baseline gap-0.5">
                 <span class="text-sm font-black text-[#A86444]">{{ formatCurrency(item.item_sampah.harga_jual * (1 - parseFloat(item.item_sampah.diskon || 0))) }}</span>
-                <span class="text-[8px] font-bold text-gray-400">/kg</span>
+                <span class="text-[12px] font-bold text-gray-400">/kg</span>
               </div>
             </div>
             <div class="flex items-center gap-0.5 text-amber-600">
               <Icon icon="material-symbols:inventory-2-outline" class="w-2.5 h-2.5" />
-              <span class="text-[9px] font-bold">{{ item.stok }}kg</span>
+              <span class="text-[12px] font-bold">{{ item.stok }}kg</span>
             </div>
           </div>
 
           <!-- Quantity Selector Compact -->
           <div class="space-y-2">
-            <div class="flex items-center justify-between bg-white border border-gray-100 rounded-lg overflow-hidden shadow-xs h-8">
+            <div class="flex items-center justify-between bg-white border border-gray-100 rounded-lg overflow-hidden shadow-xs h-10">
               <button
                 @click="updateQty(item.sampah_id, -1)"
-                class="w-8 h-full flex items-center justify-center hover:bg-gray-50 text-gray-400 transition-colors"
+                class="w-10 h-full flex items-center justify-center bg-red-50 text-red-500 hover:bg-red-100 transition-colors cursor-pointer"
               >
-                <Icon icon="material-symbols:remove" class="w-3.5 h-3.5" />
+                <Icon icon="material-symbols:remove" class="w-4 h-4" />
               </button>
               <input
                 v-model.number="itemQuantities[item.sampah_id]"
                 type="number"
-                class="w-full text-center border-none focus:ring-0 font-bold text-xs text-gray-700 bg-transparent p-0"
+                class="w-full text-center border-none focus:ring-0 font-bold text-sm text-gray-700 bg-transparent p-0"
                 min="0"
                 :max="item.stok"
               />
               <button
                 @click="updateQty(item.sampah_id, 1, item.stok)"
-                class="w-8 h-full flex items-center justify-center hover:bg-gray-50 text-gray-400 transition-colors"
+                class="w-10 h-full flex items-center justify-center bg-green-50 text-green-500 hover:bg-green-100 transition-colors cursor-pointer"
               >
-                <Icon icon="material-symbols:add" class="w-3.5 h-3.5" />
+                <Icon icon="material-symbols:add" class="w-4 h-4" />
               </button>
             </div>
 
-            <div class="text-center text-[9px] font-bold text-gray-400">
+            <div class="text-center text-[12px] font-bold text-gray-400">
               Total: <span class="text-[#A86444]">{{ formatCurrency((item.item_sampah.harga_jual * (1 - parseFloat(item.item_sampah.diskon || 0))) * (itemQuantities[item.sampah_id] || 0)) }}</span>
             </div>
 
             <button
               @click="addToCart(item)"
               :disabled="!itemQuantities[item.sampah_id] || itemQuantities[item.sampah_id] <= 0"
-              class="w-full py-1.5 rounded-lg bg-white border border-[#4A7043] text-[#4A7043] font-bold text-[10px] hover:bg-[#4A7043] hover:text-white transition-all disabled:opacity-30 flex items-center justify-center gap-1"
+              class="w-full py-2.5 rounded-xl bg-white border-2 border-[#4A7043] text-[#4A7043] font-black text-xs hover:bg-[#4A7043] hover:text-white transition-all disabled:opacity-30 flex items-center justify-center gap-2 shadow-sm cursor-pointer"
             >
-              <Icon icon="material-symbols:shopping-cart-outline" class="w-3.5 h-3.5" />
+              <Icon icon="material-symbols:shopping-cart-outline" class="w-4 h-4" />
               Tambah
             </button>
           </div>
@@ -178,6 +186,62 @@
         </button>
       </div>
     </div>
+
+    <!-- Tata Cara Modal -->
+    <div v-if="showTataCara" class="fixed inset-0 z-[100] flex items-center justify-center p-4">
+      <!-- Backdrop -->
+      <div @click="showTataCara = false" class="absolute inset-0 bg-black/40 backdrop-blur-sm"></div>
+      
+      <!-- Modal Content -->
+      <div class="relative bg-[#F9F9F5] w-full max-w-xl max-h-[90vh] overflow-y-auto rounded-[2rem] shadow-2xl animate-in zoom-in-95 duration-300">
+        <div class="p-8">
+          <h2 class="text-2xl font-black text-gray-800 mb-2">Tata Cara Pengambilan Sampah</h2>
+          <p class="text-sm text-gray-500 mb-8">Ikuti langkah-langkah berikut untuk melakukan transaksi pembelian sampah dengan lancar.</p>
+
+          <!-- Steps -->
+          <div class="space-y-6 mb-8 relative">
+            <!-- Timeline Line -->
+            <div class="absolute left-5 top-5 bottom-5 w-[1px] bg-gray-200 z-0"></div>
+
+            <div v-for="(step, index) in steps" :key="index" class="flex gap-4 relative z-10">
+              <div class="w-10 h-10 rounded-full bg-[#4A7043] flex items-center justify-center text-white font-bold shrink-0 shadow-md">
+                {{ index + 1 }}
+              </div>
+              <div class="pt-1">
+                <h3 class="font-bold text-[#4A7043] mb-1">{{ step.title }}</h3>
+                <p class="text-sm text-gray-600 leading-relaxed">{{ step.desc }}</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Important Notes -->
+          <div class="bg-[#E6F0EE] rounded-2xl p-6 mb-6">
+            <div class="flex items-center gap-2 mb-3 text-[#3B7A77]">
+              <Icon icon="material-symbols:info-outline" class="w-5 h-5" />
+              <h4 class="font-bold">Catatan Penting</h4>
+            </div>
+            <ul class="space-y-2">
+              <li v-for="(note, index) in notes" :key="index" class="flex gap-2 text-sm text-[#3B7A77]/80 leading-relaxed">
+                <span class="mt-1.5 w-1.5 h-1.5 rounded-full bg-[#3B7A77] shrink-0"></span>
+                {{ note }}
+              </li>
+            </ul>
+          </div>
+
+
+
+          <!-- Close Button -->
+          <div class="flex justify-end">
+            <button
+              @click="showTataCara = false"
+              class="px-8 py-3 bg-[#4A7043] text-white font-black text-sm rounded-xl hover:bg-[#3D5C37] transition-all shadow-lg active:scale-95"
+            >
+              Mengerti
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
   </DashboardLayout>
 </template>
 
@@ -202,6 +266,37 @@ const warehouses = ref([])
 const searchQuery = ref('')
 const selectedGudang = ref(null)
 const itemQuantities = ref({})
+const showTataCara = ref(false)
+
+const steps = [
+  {
+    title: 'Pilih Sampah',
+    desc: 'Pilih jenis sampah dan lokasi gudang, lalu tambahkan ke Keranjang.'
+  },
+  {
+    title: 'Proses Pesanan',
+    desc: 'Cek kembali rincian di Keranjang, lalu klik "Proses Pembayaran".'
+  },
+  {
+    title: 'Bayar & Unggah Bukti',
+    desc: 'Transfer ke rekening yang tertera dan segera unggah foto bukti pembayarannya.'
+  },
+  {
+    title: 'Tunggu Verifikasi',
+    desc: 'Setelah divalidasi, lokasi dan jadwal pengambilan akan dikirim via notifikasi.'
+  },
+  {
+    title: 'Ambil di Gudang',
+    desc: 'Datang ke lokasi sesuai jadwal, tunjukkan ID Pesanan, dan bawa pulang pesananmu.'
+  }
+]
+
+const notes = [
+  'Pastikan nominal transfer sesuai dan foto bukti terlihat jelas.',
+  'Proses verifikasi membutuhkan waktu 1-2 jam kerja.',
+  'Simpan ID Pesanan untuk ditunjukkan saat pengambilan sampah.',
+  'Siapkan kendaraan yang memadai dan cek kondisi sampah sebelum dibawa pulang.'
+]
 
 const fetchData = async () => {
   try {
@@ -259,6 +354,22 @@ const formatCurrency = (val) => {
     currency: 'IDR',
     minimumFractionDigits: 0
   }).format(val)
+}
+
+const previewImage = (url, title) => {
+  Swal.fire({
+    imageUrl: url,
+    imageAlt: title,
+    background: 'transparent',
+    showConfirmButton: false,
+    showCloseButton: true,
+    width: 'auto',
+    padding: '0',
+    customClass: {
+      image: 'rounded-2xl max-h-[85vh] shadow-2xl',
+      closeButton: 'text-red-600 !bg-white hover:!bg-red-50 rounded-xl transition-all shadow-lg border-none focus:shadow-none'
+    }
+  })
 }
 
 onMounted(() => {
