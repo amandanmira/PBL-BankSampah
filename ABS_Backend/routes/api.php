@@ -14,6 +14,7 @@ use App\Http\Controllers\Api\Admin\TukangController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\Nasabah\RequestPenarikanController;
 use App\Http\Controllers\Api\Nasabah\RequestPenjemputanController;
+use App\Http\Controllers\Api\Nasabah\DashboardNasabahController;
 use App\Http\Controllers\Api\Petugas\BeritaController;
 use App\Http\Controllers\Api\Petugas\KonfirmasiPenjemputanController;
 use App\Http\Controllers\Api\Petugas\LaporanController;
@@ -62,6 +63,7 @@ Route::prefix('nasabah')->middleware(['auth:sanctum', 'role:nasabah'])->group(fu
     Route::get('/penjemputan-nasabah', [KonfirmasiPenjemputanController::class, 'penjemputanNasabah']);
     Route::get('/setor-manual-nasabah', [KonfirmasiPenjemputanController::class, 'setorManualNasabah']);
     Route::post('/penjemputan/{penjemputan}/cancel', [RequestPenjemputanController::class, 'cancel']);
+    Route::get('/dashboard-stats', [DashboardNasabahController::class, 'index']);
 });
 
 Route::prefix('manager')->middleware(['auth:sanctum', 'role:manager'])->group(function () {

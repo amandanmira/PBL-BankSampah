@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from "vue";
+import { ref, onMounted, inject } from "vue";
 import DashboardLayout from "@/layouts/DashboardLayout.vue";
 import GreetingCard from "@/components/dashboard/GreetingCard.vue";
 import StatCard from "@/components/dashboard/StatCard.vue";
@@ -11,11 +11,11 @@ import { checkRole } from "@/utils";
 // Middleware
 checkRole("nasabah");
 
+const axios = inject("axios");
 const user = ref(JSON.parse(sessionStorage.getItem("user") || "{}"));
+const loading = ref(true);
 
 // Data Statistik Ringkasan
-// TODO: Hubungkan dengan API backend untuk mengambil data asli dari database
-// Contoh: const statsData = await axios.get('/api/nasabah/stats')
 const stats = ref([
   {
     title: "Saldo Tersedia",
@@ -38,24 +38,59 @@ const stats = ref([
 ]);
 
 // Top Nasabah - Dikosongkan sementara
-// TODO: Ambil data peringkat nasabah dari tabel transaksi/poin di database
 const topNasabah = ref([]);
 
-// Aktivitas Terbaru - Dikosongkan sementara
-// TODO: Ambil riwayat aktivitas terbaru dari tabel riwayat_transaksi/aktivitas
+// Aktivitas Terbaru
 const recentActivities = ref([]);
+
+const formatRupiah = (number) => {
+  return new Intl.NumberFormat("id-ID", {
+    style: "currency",
+    currency: "IDR",
+    minimumFractionDigits: 0,
+  }).format(number);
+};
+
+const fetchData = async () => {
+  loading.value = true;
+  try {
+    const response = await axios.get("/api/nasabah/dashboard-stats");
+    const data = response.data;
+
+    if (data.user) {
+      user.value = { ...user.value, ...data.user };
+    }
+
+    stats.value[0].value = formatRupiah(data.stats.saldo_tersedia);
+    stats.value[1].value = `${data.stats.total_sampah} kg`;
+    stats.value[2].value = data.stats.total_transaksi.toString();
+
+    recentActivities.value = data.activities;
+  } catch (err) {
+    console.error("Failed to fetch dashboard stats:", err);
+  } finally {
+    loading.value = false;
+  }
+};
+
+onMounted(() => {
+  fetchData();
+});
 </script>
 
 <template>
   <DashboardLayout title="Dashboard">
     <div class="space-y-10">
-      <!-- Greeting -->
-      <GreetingCard :name="user.name || 'Nasabah'" />
+      <!-- Greeting Section -->
+      <GreetingCard :name="user.nama || user.name || 'Nasabah'" />
 
       <!-- Summary Section -->
       <section>
         <h2 class="text-xl font-bold text-stone-800 mb-6">Ringkasan</h2>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div v-if="loading" class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div v-for="i in 3" :key="i" class="h-32 bg-stone-200 animate-pulse rounded-3xl"></div>
+        </div>
+        <div v-else class="grid grid-cols-1 md:grid-cols-3 gap-6">
           <StatCard
             v-for="stat in stats"
             :key="stat.title"
@@ -76,7 +111,8 @@ const recentActivities = ref([]);
 
       <!-- Activities Section -->
       <section>
-        <ActivityList :activities="recentActivities" />
+        <div v-if="loading" class="h-64 bg-stone-200 animate-pulse rounded-3xl"></div>
+        <ActivityList v-else :activities="recentActivities" />
       </section>
     </div>
   </DashboardLayout>

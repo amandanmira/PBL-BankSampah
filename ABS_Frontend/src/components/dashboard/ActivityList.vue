@@ -25,6 +25,14 @@ const getActivityConfig = (type) => {
       icon: "material-symbols:delete-outline",
       iconBg: "bg-[#707070] text-white",
     },
+    transaksi: {
+      icon: "material-symbols:account-balance-wallet-outline",
+      iconBg: "bg-[#4CAF50] text-white",
+    },
+    laporan: {
+      icon: "material-symbols:payments-outline",
+      iconBg: "bg-[#FF9800] text-white",
+    },
     default: {
       icon: "material-symbols:notifications-outline",
       iconBg: "bg-stone-100 text-stone-600",
