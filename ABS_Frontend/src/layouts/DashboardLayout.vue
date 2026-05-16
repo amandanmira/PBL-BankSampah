@@ -69,7 +69,6 @@ const menuItems = computed(() => {
     { name: "Penarikan Uang", path: "/dashboard-nasabah/request-penarikan", icon: "material-symbols:account-balance-wallet-outline" },
     { name: "Penarikan Saya", path: "/dashboard-nasabah/penarikan-saya", icon: "material-symbols:payments-outline" },
     { name: "Sampah Saya", path: "/dashboard-nasabah/sampah-saya", icon: "material-symbols:delete-outline" },
-    { name: "Riwayat Jemput", path: "/dashboard-nasabah/riwayatpenjemputan", icon: "material-symbols:history" },
   ];
 });
 
