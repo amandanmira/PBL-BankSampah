@@ -16,6 +16,7 @@ class DashboardPetugasController extends Controller
 {
     public function index(Request $request)
     {
+        Carbon::setLocale('id');
         $user = Auth::user();
         $today = Carbon::today();
 

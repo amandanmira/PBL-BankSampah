@@ -165,7 +165,7 @@ onMounted(() => {
                     </div>
                     <div>
                       <h4 class="font-black text-stone-800 text-lg leading-none uppercase tracking-tight">{{ item.id }}</h4>
-                      <p class="text-[10px] font-bold text-stone-400 mt-2">{{ item.time }}</p>
+                      <p class="text-xs font-bold text-stone-500 mt-2">{{ item.time }}</p>
                     </div>
                   </div>
                   <span :class="['text-[10px] font-black px-4 py-2 rounded-full uppercase tracking-widest', 
@@ -247,7 +247,7 @@ onMounted(() => {
                         {{ activity.user }} <span class="mx-2 text-stone-100">•</span> {{ activity.ref }}
                       </p>
                     </div>
-                    <span class="text-[10px] font-black text-stone-300 pt-1.5 shrink-0">{{ activity.time }}</span>
+                    <span class="text-xs font-black text-stone-500 pt-1.5 shrink-0">{{ activity.time }}</span>
                   </div>
                 </div>
               </div>
