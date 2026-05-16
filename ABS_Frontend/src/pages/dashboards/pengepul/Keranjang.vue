@@ -47,11 +47,12 @@
             <!-- Details -->
             <div class="flex-1">
               <h3 class="text-lg font-bold text-gray-800">{{ item.item_sampah.nama }}</h3>
-              <p class="text-xs text-gray-500 font-medium">{{ item.item_sampah.kategori_sampah.nama_kategori }}</p>
-              
-              <div class="flex items-center gap-2 mt-2">
-                <div :class="['w-3 h-3 rounded-full', item.gudang_id % 2 === 0 ? 'bg-blue-600' : 'bg-red-600']"></div>
-                <span class="text-xs font-bold text-gray-600 uppercase tracking-wide">Gudang {{ item.gudang_id }}</span>
+              <div class="flex items-center gap-3 mt-1.5">
+                <span class="bg-gray-100 text-gray-500 text-[9px] px-2 py-0.5 rounded-md font-bold uppercase tracking-wider">{{ item.item_sampah.kategori_sampah.nama_kategori }}</span>
+                <div class="flex items-center gap-2">
+                  <div class="w-2.5 h-2.5 rounded-full bg-blue-600 shadow-sm"></div>
+                  <span class="text-[10px] font-bold text-gray-600 uppercase tracking-widest">GUDANG {{ item.gudang_id }}</span>
+                </div>
               </div>
 
               <div class="mt-3 flex items-baseline gap-2">
@@ -175,7 +176,7 @@ const cartStore = useCartStore()
 const processing = ref(false)
 
 const user = JSON.parse(sessionStorage.getItem('user') || '{}')
-const pengepul_id = user.pengepul?.pengepul_id
+const pengepul_id = user.pengepul_id || user.pengepul?.pengepul_id
 
 // Extra calculations for summary
 const totalBeforeDiscount = computed(() => {
@@ -207,58 +208,8 @@ const formatCurrency = (val) => {
   }).format(val)
 }
 
-const processCheckout = async () => {
-  if (!pengepul_id) {
-    Swal.fire('Error', 'Data pengepul tidak ditemukan. Silakan login kembali.', 'error')
-    return
-  }
-
-  const result = await Swal.fire({
-    title: 'Konfirmasi Pembelian',
-    text: 'Apakah Anda yakin ingin memproses pembelian ini?',
-    icon: 'question',
-    showCancelButton: true,
-    confirmButtonColor: '#4A7043',
-    cancelButtonColor: '#d33',
-    confirmButtonText: 'Ya, Proses!',
-    cancelButtonText: 'Batal'
-  })
-
-  if (result.isConfirmed) {
-    processing.value = true
-    try {
-      const payload = {
-        pengepul_id: pengepul_id,
-        detail: cartStore.items.map(item => ({
-          sampah_id: item.sampah_id,
-          berat: item.quantity,
-          harga: item.item_sampah.harga_jual * (1 - (parseFloat(item.item_sampah.diskon) || 0))
-        }))
-      }
-
-      await axios.post('/api/pengepul/request-pembelian', payload)
-      
-      cartStore.clearCart()
-      
-      await Swal.fire({
-        title: 'Berhasil!',
-        text: 'Permintaan pembelian Anda telah berhasil dibuat. Silakan lakukan pembayaran.',
-        icon: 'success',
-        confirmButtonColor: '#4A7043'
-      })
-
-      router.push('/dashboard-pengepul/pesanan-saya')
-    } catch (err) {
-      console.error('Checkout error:', err)
-      Swal.fire({
-        title: 'Gagal',
-        text: err.response?.data?.message || 'Terjadi kesalahan saat memproses pembelian.',
-        icon: 'error'
-      })
-    } finally {
-      processing.value = false
-    }
-  }
+const processCheckout = () => {
+  router.push('/dashboard-pengepul/ringkasan-pembelian')
 }
 </script>
 

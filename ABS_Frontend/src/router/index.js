@@ -79,6 +79,8 @@ import RequestPembelianIndex from "@/pages/dashboards/pengepul/requestPembelian/
 import RequestPembelianEdit from "@/pages/dashboards/pengepul/requestPembelian/RequestPembelianEdit.vue";
 import BeliSampah from "@/pages/dashboards/pengepul/BeliSampah.vue";
 import Keranjang from "@/pages/dashboards/pengepul/Keranjang.vue";
+import RingkasanPembelian from "@/pages/dashboards/pengepul/RingkasanPembelian.vue";
+import DetailPesanan from "@/pages/dashboards/pengepul/DetailPesanan.vue";
 import PesananSaya from "@/pages/dashboards/pengepul/PesananSaya.vue";
 
 //Manager
@@ -313,6 +315,14 @@ const routes = [
   {
     path: "/dashboard-pengepul/keranjang",
     component: Keranjang,
+  },
+  {
+    path: "/dashboard-pengepul/ringkasan-pembelian",
+    component: RingkasanPembelian,
+  },
+  {
+    path: "/dashboard-pengepul/pesanan/:id",
+    component: DetailPesanan,
   },
   {
     path: "/dashboard-pengepul/pesanan-saya",

@@ -16,7 +16,7 @@
         </div>
         <button
           @click="showTataCara = true"
-          class="flex items-center gap-2 px-6 py-3 bg-white hover:bg-gray-50 text-[#4A7043] font-bold text-sm rounded-xl shadow-sm border border-gray-100 transition-all active:scale-95 shrink-0"
+          class="flex items-center gap-2 px-6 py-3 bg-[#4A7043] hover:bg-[#3D5C37] text-white font-bold text-sm rounded-xl shadow-md transition-all active:scale-95 shrink-0 cursor-pointer"
         >
           <Icon icon="material-symbols:menu-book-outline" class="w-5 h-5" />
           Tata Cara
@@ -99,9 +99,9 @@
         <div class="p-3">
           <div class="mb-2">
             <h3 class="font-bold text-gray-800 text-lg leading-tight truncate">{{ item.item_sampah.nama }}</h3>
-            <div class="flex items-center gap-1 mt-2 text-blue-600">
-              <Icon icon="material-symbols:location-on" class="w-2.5 h-2.5" />
-              <span class="text-[12px] font-bold">Gudang {{ item.gudang_id }}</span>
+            <div class="flex items-center gap-2 mt-2">
+              <div class="w-2 h-2 rounded-full bg-blue-600 shadow-sm"></div>
+              <span class="text-[10px] font-bold text-gray-600 uppercase tracking-widest">GUDANG {{ item.gudang_id }}</span>
             </div>
           </div>
 
@@ -211,15 +211,24 @@
             <span class="text-sm font-bold">{{ cartStore.totalWeight }} kg</span>
           </div>
         </div>
-        <button
-          @click="router.push('/dashboard-pengepul/keranjang')"
-          class="bg-white text-[#4A7043] px-6 py-2.5 rounded-xl font-black text-xs flex items-center gap-2 hover:bg-[#F5F5F0] transition-all hover:scale-105 active:scale-95 shadow-lg"
-        >
-          KERANJANG
-          <div class="bg-[#4A7043] text-white w-5 h-5 rounded-full flex items-center justify-center text-[9px]">
-            {{ cartStore.totalItems }}
-          </div>
-        </button>
+        <div class="flex items-center gap-3">
+          <button
+            @click="showAlurPembelian = true"
+            class="bg-white/10 hover:bg-white/20 text-white px-4 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2 transition-all active:scale-95 border border-white/10"
+          >
+            <Icon icon="material-symbols:info-outline" class="w-4 h-4" />
+            Alur Pembelian
+          </button>
+          <button
+            @click="router.push('/dashboard-pengepul/keranjang')"
+            class="bg-white text-[#4A7043] px-6 py-2.5 rounded-xl font-black text-xs flex items-center gap-2 hover:bg-[#F5F5F0] transition-all hover:scale-105 active:scale-95 shadow-lg"
+          >
+            KERANJANG
+            <div class="bg-[#4A7043] text-white w-5 h-5 rounded-full flex items-center justify-center text-[9px]">
+              {{ cartStore.totalItems }}
+            </div>
+          </button>
+        </div>
       </div>
     </div>
 
@@ -278,6 +287,39 @@
         </div>
       </div>
     </div>
+    <!-- Alur Pembelian Modal -->
+    <div v-if="showAlurPembelian" class="fixed inset-0 z-[100] flex items-center justify-center p-4">
+      <div @click="showAlurPembelian = false" class="absolute inset-0 bg-black/40 backdrop-blur-sm"></div>
+      <div class="relative bg-white w-full max-w-lg rounded-[2rem] shadow-2xl animate-in zoom-in-95 duration-300 overflow-hidden">
+        <div class="p-8">
+          <div class="flex items-center gap-3 mb-8 text-[#1E40AF]">
+            <Icon icon="material-symbols:info-outline" class="w-6 h-6" />
+            <h2 class="text-xl font-black">Alur Pembelian</h2>
+          </div>
+
+          <div class="space-y-8">
+            <div v-for="(alur, index) in alurPembelian" :key="index" class="flex gap-4">
+              <div class="w-8 h-8 rounded-full bg-[#2563EB] flex items-center justify-center text-white font-bold shrink-0 text-sm shadow-sm">
+                {{ index + 1 }}
+              </div>
+              <div>
+                <h4 class="font-bold text-gray-800 text-sm mb-1">{{ alur.title }}</h4>
+                <p class="text-xs text-gray-500 leading-relaxed">{{ alur.desc }}</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="mt-10 flex justify-end">
+            <button
+              @click="showAlurPembelian = false"
+              class="px-8 py-2.5 bg-[#2563EB] text-white font-bold text-sm rounded-xl hover:bg-[#1E40AF] transition-all shadow-lg active:scale-95 cursor-pointer"
+            >
+              Mengerti
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
   </DashboardLayout>
 </template>
 
@@ -303,8 +345,28 @@ const searchQuery = ref('')
 const selectedGudang = ref(null)
 const itemQuantities = ref({})
 const showTataCara = ref(false)
+const showAlurPembelian = ref(false)
 const currentPage = ref(1)
 const itemsPerPage = 8
+
+const alurPembelian = [
+  {
+    title: 'Pesanan Dibuat',
+    desc: 'Dengan menekan tombol "Proses Pembayaran" Anda akan diarahkan ke halaman pembayaran'
+  },
+  {
+    title: 'Pembayaran (24 Jam)',
+    desc: 'Lakukan pembayaran di luar sistem, lalu upload bukti pembayaran'
+  },
+  {
+    title: 'Validasi Pembayaran',
+    desc: 'Petugas akan validasi bukti pembayaran Anda'
+  },
+  {
+    title: 'Ambil Barang',
+    desc: 'Setelah validasi, ambil barang di gudang sampah'
+  }
+]
 
 // Reset page to 1 when filters change
 watch([searchQuery, selectedGudang], () => {
