@@ -18,6 +18,7 @@ use App\Http\Controllers\Api\Nasabah\DashboardNasabahController;
 use App\Http\Controllers\Api\Petugas\BeritaController;
 use App\Http\Controllers\Api\Petugas\KonfirmasiPenjemputanController;
 use App\Http\Controllers\Api\Petugas\LaporanController;
+use App\Http\Controllers\Api\Petugas\DashboardPetugasController;
 use App\Http\Controllers\Api\ProfileController;
 
 use App\Http\Controllers\Api\Admin\SampahGudangController;
@@ -136,6 +137,9 @@ Route::prefix('petugas')->middleware(['auth:sanctum', 'role:petugas'])->group(fu
     // API Laporan
     Route::get('/cetak-laporan/excel', [LaporanController::class, 'exportExcel']);
     Route::get('/cetak-laporan/pdf', [LaporanController::class, 'exportPdf']);
+
+    // Dashboard Stats
+    Route::get('/dashboard-stats', [DashboardPetugasController::class, 'index']);
 });
 
 // Route Admin

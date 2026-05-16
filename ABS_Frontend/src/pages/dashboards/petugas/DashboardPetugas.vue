@@ -1,11 +1,14 @@
 <script setup>
-import { ref, onMounted, computed } from "vue";
+import { ref, onMounted, computed, inject } from "vue";
 import { Icon } from "@iconify/vue";
 import DashboardLayout from "@/layouts/DashboardLayout.vue";
 import { checkRole } from "@/utils";
 
 // Security check
 checkRole("petugas");
+
+const axios = inject("axios");
+const loading = ref(true);
 
 const user = computed(() => {
   try {
@@ -16,20 +19,20 @@ const user = computed(() => {
 });
 
 const stats = ref({
-  pickup_requests: "X",
-  withdrawal_requests: "X",
-  today_transactions: "X",
-  today_waste: "X",
+  pickup_requests: 0,
+  withdrawal_requests: 0,
+  pengepul_requests: 0,
+  total_finished: 0,
+  today_waste: 0,
 });
 
 const reportSummary = ref({
-  pickup: { count: "X", value: "X" },
-  manual_deposit: { count: "X", value: "X" },
-  withdrawal: { count: "X", value: "X" },
+  pickup: { count: 0, value: "0" },
+  manual_deposit: { count: 0, value: "0" },
+  withdrawal: { count: 0, value: "0" },
 });
 
 const activities = ref([]);
-
 const attentionItems = ref([]);
 
 const today = computed(() => {
@@ -37,248 +40,310 @@ const today = computed(() => {
   return new Date().toLocaleDateString('id-ID', options);
 });
 
+const fetchData = async () => {
+  loading.value = true;
+  try {
+    const response = await axios.get("/api/petugas/dashboard-stats");
+    const data = response.data;
+    
+    stats.value = data.stats;
+    attentionItems.value = data.attention_items;
+    activities.value = data.activities;
+    reportSummary.value = data.report_summary;
+  } catch (err) {
+    console.error("Failed to fetch petugas dashboard stats:", err);
+  } finally {
+    loading.value = false;
+  }
+};
+
+onMounted(() => {
+  fetchData();
+});
+
 </script>
 
 <template>
   <DashboardLayout title="Dashboard Petugas">
-    <div class="space-y-8 animate-in fade-in duration-700 pb-10">
+    <div class="space-y-12 animate-in fade-in duration-1000 pb-20 px-4 lg:px-10">
       
       <!-- Welcome Card -->
-      <div class="bg-[#4A7043] rounded-[2rem] p-8 text-white relative overflow-hidden shadow-xl shadow-green-900/10">
+      <div class="bg-[#4A7043] rounded-[1.5rem] p-12 text-white relative overflow-hidden shadow-2xl shadow-green-900/20">
         <div class="relative z-10">
-          <h2 class="text-3xl font-black mb-2">Selamat Datang, {{ user.name?.split(' ')[0] || 'Petugas' }}!</h2>
-          <p class="text-white/80 font-medium">Kelola semua permintaan nasabah dan pengepul</p>
+          <h2 class="text-4xl font-black mb-3 tracking-tight">Selamat Datang, {{ user.name?.split(' ')[0] || 'Petugas' }}!</h2>
+          <p class="text-white/70 text-lg font-medium">Kelola semua operasional bank sampah hari ini</p>
         </div>
         <!-- Decorative background elements -->
-        <div class="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -mr-20 -mt-20 blur-3xl"></div>
-        <div class="absolute bottom-0 left-0 w-40 h-40 bg-black/10 rounded-full -ml-10 -mb-10 blur-2xl"></div>
+        <div class="absolute top-0 right-0 w-80 h-80 bg-white/5 rounded-full -mr-32 -mt-32 blur-3xl"></div>
+        <div class="absolute bottom-0 left-0 w-64 h-64 bg-black/10 rounded-full -ml-20 -mb-20 blur-2xl"></div>
       </div>
 
       <!-- Stats Grid -->
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
         <!-- Pickup Request -->
-        <div class="bg-[#3D5A35] rounded-[2rem] p-6 text-white shadow-lg flex flex-col justify-between aspect-square lg:aspect-auto h-48">
+        <router-link to="/dashboard-petugas/listpenjemputan" class="bg-[#3D5A35] rounded-[1.5rem] p-10 text-white shadow-xl flex flex-col justify-between h-72 transition-all hover:-translate-y-2 hover:shadow-2xl group">
           <div class="flex justify-between items-start">
-            <div class="p-2.5 bg-white/10 rounded-xl">
-              <Icon icon="material-symbols:local-shipping-outline" class="w-6 h-6" />
+            <div class="p-4 bg-white/10 rounded-2xl backdrop-blur-md group-hover:scale-110 transition-transform">
+              <Icon icon="material-symbols:local-shipping-outline" class="w-10 h-10" />
             </div>
-            <Icon icon="material-symbols:trending-up" class="w-5 h-5 text-white/40" />
+            <Icon icon="material-symbols:trending-up" class="w-7 h-7 text-white/30" />
           </div>
           <div>
-            <h3 class="text-4xl font-black mb-1">{{ stats.pickup_requests }}</h3>
-            <p class="text-xs font-bold text-white/70 uppercase tracking-wider">Request Penjemputan</p>
+            <h3 v-if="loading" class="h-14 w-24 bg-white/10 animate-pulse rounded-xl mb-3"></h3>
+            <h3 v-else class="text-6xl font-black mb-2 tracking-tighter">{{ stats.pickup_requests }}</h3>
+            <p class="text-sm font-bold text-white/60 uppercase tracking-widest">Penjemputan Hari Ini</p>
           </div>
-        </div>
+        </router-link>
 
         <!-- Withdrawal Request -->
-        <div class="bg-[#5FA09B] rounded-[2rem] p-6 text-white shadow-lg flex flex-col justify-between h-48">
+        <router-link to="/dashboard-petugas/listpenarikan" class="bg-[#5FA09B] rounded-[1.5rem] p-10 text-white shadow-xl flex flex-col justify-between h-72 transition-all hover:-translate-y-2 hover:shadow-2xl group">
           <div class="flex justify-between items-start">
-            <div class="p-2.5 bg-white/10 rounded-xl">
-              <Icon icon="material-symbols:account-balance-wallet-outline" class="w-6 h-6" />
+            <div class="p-4 bg-white/10 rounded-2xl backdrop-blur-md group-hover:scale-110 transition-transform">
+              <Icon icon="material-symbols:account-balance-wallet-outline" class="w-10 h-10" />
             </div>
-            <Icon icon="material-symbols:trending-up" class="w-5 h-5 text-white/40" />
+            <Icon icon="material-symbols:trending-up" class="w-7 h-7 text-white/30" />
           </div>
           <div>
-            <h3 class="text-4xl font-black mb-1">{{ stats.withdrawal_requests }}</h3>
-            <p class="text-xs font-bold text-white/70 uppercase tracking-wider">Request Penarikan</p>
+            <h3 v-if="loading" class="h-14 w-24 bg-white/10 animate-pulse rounded-xl mb-3"></h3>
+            <h3 v-else class="text-6xl font-black mb-2 tracking-tighter">{{ stats.withdrawal_requests }}</h3>
+            <p class="text-sm font-bold text-white/60 uppercase tracking-widest">Penarikan Hari Ini</p>
           </div>
-        </div>
+        </router-link>
 
-        <!-- Transactions Today -->
-        <div class="bg-[#8C5230] rounded-[2rem] p-6 text-white shadow-lg flex flex-col justify-between h-48">
+        <!-- Pengepul Request -->
+        <router-link to="/dashboard-petugas/penimbangan" class="bg-[#8C5230] rounded-[1.5rem] p-10 text-white shadow-xl flex flex-col justify-between h-72 transition-all hover:-translate-y-2 hover:shadow-2xl group">
           <div class="flex justify-between items-start">
-            <div class="p-2.5 bg-white/10 rounded-xl">
-              <Icon icon="material-symbols:receipt-long-outline" class="w-6 h-6" />
+            <div class="p-4 bg-white/10 rounded-2xl backdrop-blur-md group-hover:scale-110 transition-transform">
+              <Icon icon="material-symbols:package-2-outline" class="w-10 h-10" />
             </div>
-            <Icon icon="material-symbols:trending-up" class="w-5 h-5 text-white/40" />
+            <Icon icon="material-symbols:trending-up" class="w-7 h-7 text-white/30" />
           </div>
           <div>
-            <h3 class="text-4xl font-black mb-1">{{ stats.today_transactions }}</h3>
-            <p class="text-xs font-bold text-white/70 uppercase tracking-wider">Transaksi Hari Ini</p>
+            <h3 v-if="loading" class="h-14 w-24 bg-white/10 animate-pulse rounded-xl mb-3"></h3>
+            <h3 v-else class="text-6xl font-black mb-2 tracking-tighter">{{ stats.pengepul_requests }}</h3>
+            <p class="text-sm font-bold text-white/60 uppercase tracking-widest">Pesanan Pengepul</p>
           </div>
-        </div>
+        </router-link>
 
-        <!-- Total Waste Today -->
-        <div class="bg-[#6B6B6B] rounded-[2rem] p-6 text-white shadow-lg flex flex-col justify-between h-48">
+        <!-- Total Finished -->
+        <div class="bg-[#6B6B6B] rounded-[1.5rem] p-10 text-white shadow-xl flex flex-col justify-between h-72 group border border-white/5">
           <div class="flex justify-between items-start">
-            <div class="p-2.5 bg-white/10 rounded-xl">
-              <Icon icon="material-symbols:delete-outline" class="w-6 h-6" />
+            <div class="p-4 bg-white/10 rounded-2xl backdrop-blur-md group-hover:rotate-12 transition-transform">
+              <Icon icon="material-symbols:check-circle-outline" class="w-10 h-10" />
             </div>
-            <Icon icon="material-symbols:trending-up" class="w-5 h-5 text-white/40" />
+            <Icon icon="material-symbols:verified-outline" class="w-7 h-7 text-white/30" />
           </div>
           <div>
-            <div class="flex items-baseline gap-2">
-              <h3 class="text-4xl font-black mb-1">{{ stats.today_waste }}</h3>
-              <span class="text-xl font-bold opacity-60">kg</span>
-            </div>
-            <p class="text-xs font-bold text-white/70 uppercase tracking-wider">Total Sampah Hari Ini</p>
+            <h3 v-if="loading" class="h-14 w-24 bg-white/10 animate-pulse rounded-xl mb-3"></h3>
+            <h3 v-else class="text-6xl font-black mb-2 tracking-tighter">{{ stats.total_finished }}</h3>
+            <p class="text-sm font-bold text-white/60 uppercase tracking-widest leading-tight">Total Transaksi Selesai</p>
           </div>
         </div>
       </div>
 
       <!-- Main Section: Attention & Activities -->
-      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
         
         <!-- Left Column: Yang Perlu Perhatian -->
-        <div class="lg:col-span-7 space-y-6">
-          <div class="flex justify-between items-center">
-            <h3 class="text-xl font-black text-stone-800">Yang Perlu Perhatian</h3>
-            <span class="text-xs font-bold text-stone-400 uppercase tracking-widest">{{ attentionItems.length }} items</span>
+        <div class="space-y-8">
+          <div class="flex justify-between items-end px-4">
+            <h3 class="text-2xl font-black text-stone-800">Yang Perlu Perhatian</h3>
+            <span v-if="!loading" class="text-sm font-bold text-stone-400 uppercase tracking-widest">{{ attentionItems.length }} items</span>
           </div>
 
-          <div class="space-y-4">
-            <div v-for="item in attentionItems" :key="item.id" class="bg-white rounded-[2rem] p-6 shadow-sm border border-stone-100 flex flex-col gap-4">
-              <div class="flex justify-between items-start">
-                <div class="flex items-center gap-3">
-                  <div class="p-2 bg-stone-50 rounded-xl text-stone-400">
-                    <Icon v-if="item.type.includes('pickup')" icon="material-symbols:local-shipping-outline" class="w-5 h-5" />
-                    <Icon v-else icon="material-symbols:account-balance-wallet-outline" class="w-5 h-5" />
-                  </div>
-                  <div>
-                    <h4 class="font-black text-stone-800 leading-none">{{ item.id }}</h4>
-                    <p class="text-[10px] font-bold text-stone-400 mt-1 uppercase">{{ item.time }}</p>
-                  </div>
-                </div>
-                <span :class="['text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-wider', 
-                  item.status === 'Menunggu' ? 'bg-orange-50 text-orange-600' : 'bg-red-50 text-red-600']">
-                  {{ item.status }}
-                </span>
-              </div>
-
-              <div>
-                <p class="font-bold text-stone-800 text-sm">{{ item.name }}</p>
-                <div class="flex items-center gap-1.5 mt-1 text-stone-400">
-                  <Icon icon="material-symbols:location-on-outline" class="w-3.5 h-3.5" />
-                  <p class="text-[11px] font-medium truncate">{{ item.address }}</p>
-                </div>
-              </div>
-
-              <div class="flex gap-2">
-                <button :class="['flex-1 py-3 rounded-2xl text-white text-xs font-black transition-transform active:scale-95 shadow-md', item.color]">
-                  {{ item.action }}
-                </button>
-                <button v-if="item.type === 'withdrawal'" class="px-5 py-3 rounded-2xl bg-stone-50 text-stone-400 text-xs font-black border border-stone-200">
-                  Detail
-                </button>
-              </div>
-            </div>
+          <div class="space-y-6">
+            <div v-if="loading" v-for="i in 3" :key="i" class="h-64 bg-white animate-pulse rounded-[1.5rem] border border-stone-100 shadow-sm"></div>
             
-            <div v-if="attentionItems.length === 0" class="bg-white rounded-[2rem] p-12 shadow-sm border border-stone-100 flex flex-col items-center justify-center text-center opacity-60">
-              <div class="w-16 h-16 bg-stone-50 rounded-full flex items-center justify-center mb-4">
-                <Icon icon="material-symbols:check-circle-outline" class="w-8 h-8 text-stone-300" />
+            <template v-else>
+              <div v-for="item in attentionItems" :key="item.id" class="bg-white rounded-[1.5rem] p-10 shadow-sm border border-stone-100 flex flex-col gap-8 transition-all hover:shadow-xl hover:-translate-y-1">
+                <!-- Header: Icon, ID, Time & Badge -->
+                <div class="flex justify-between items-start">
+                  <div class="flex items-center gap-5">
+                    <div class="w-16 h-16 bg-stone-50 rounded-xl flex items-center justify-center text-stone-300 shadow-inner">
+                      <Icon v-if="item.type === 'pickup'" icon="material-symbols:local-shipping-outline" class="w-8 h-8" />
+                      <Icon v-else icon="material-symbols:account-balance-wallet-outline" class="w-8 h-8" />
+                    </div>
+                    <div>
+                      <h4 class="font-black text-stone-800 text-xl leading-none uppercase tracking-tight">{{ item.id }}</h4>
+                      <p class="text-xs font-bold text-stone-400 mt-2.5">{{ item.time }}</p>
+                    </div>
+                  </div>
+                  <span :class="['text-[12px] font-black px-6 py-2.5 rounded-full uppercase tracking-widest', 
+                    item.status === 'Menunggu' ? 'bg-[#FFF9E6] text-[#D9A300]' : 'bg-[#FFF2EB] text-[#E67E22]']">
+                    {{ item.status }}
+                  </span>
+                </div>
+
+                <!-- Content: Name & Info -->
+                <div class="px-2">
+                  <p class="font-black text-stone-800 text-2xl leading-tight">{{ item.name }}</p>
+                  <div class="flex items-center gap-3 mt-3 text-stone-400">
+                    <Icon v-if="item.type === 'pickup'" icon="material-symbols:location-on-outline" class="w-5 h-5 shrink-0" />
+                    <Icon v-else icon="material-symbols:payments-outline" class="w-5 h-5 shrink-0" />
+                    <p class="text-base font-medium truncate">{{ item.address }}</p>
+                  </div>
+                </div>
+
+                <!-- Actions -->
+                <div class="flex gap-4 pt-2">
+                  <router-link 
+                    :to="item.type === 'pickup' ? '/dashboard-petugas/listpenjemputan' : '/dashboard-petugas/listpenarikan'"
+                    :class="['flex-1 py-5 rounded-xl text-white text-base text-center font-black transition-all active:scale-95 shadow-xl shadow-stone-200', item.color]"
+                  >
+                    {{ item.action }} <span class="ml-2 text-white/50">›</span>
+                  </router-link>
+                  <router-link 
+                    v-if="item.type === 'withdrawal'" 
+                    to="/dashboard-petugas/listpenarikan"
+                    class="px-12 py-5 rounded-xl bg-white text-stone-400 text-base font-black border border-stone-200 text-center hover:bg-stone-50 transition-colors"
+                  >
+                    Detail
+                  </router-link>
+                </div>
               </div>
-              <p class="text-stone-400 font-bold text-sm">Tidak ada yang memerlukan perhatian saat ini.</p>
-            </div>
+              
+              <div v-if="attentionItems.length === 0" class="bg-white rounded-[1.5rem] p-24 shadow-sm border border-stone-100 flex flex-col items-center justify-center text-center">
+                <div class="w-24 h-24 bg-stone-50 rounded-full flex items-center justify-center mb-8">
+                  <Icon icon="material-symbols:check-circle-outline" class="w-12 h-12 text-stone-200" />
+                </div>
+                <p class="text-stone-400 text-lg font-bold">Semua beres! Tidak ada yang perlu perhatian.</p>
+              </div>
+            </template>
           </div>
         </div>
 
         <!-- Right Column: Aktivitas Terkini -->
-        <div class="lg:col-span-5 bg-white rounded-[2.5rem] p-8 shadow-sm border border-stone-100 flex flex-col h-fit">
-          <div class="flex items-center gap-3 mb-8">
-            <div class="w-1.5 h-6 bg-[#4A7043] rounded-full"></div>
-            <h3 class="text-xl font-black text-stone-800">Aktivitas Terkini</h3>
+        <div class="bg-white rounded-[2rem] p-12 shadow-xl shadow-stone-200/50 border border-stone-50 flex flex-col">
+          <div class="flex items-center gap-4 mb-12 px-2">
+            <div class="w-1.5 h-8 bg-[#5FA09B] rounded-full"></div>
+            <h3 class="text-2xl font-black text-stone-800 uppercase tracking-tighter">Aktivitas Terkini</h3>
           </div>
 
-          <div class="space-y-8 relative">
+          <div class="flex-1 space-y-12 relative px-2">
             <!-- Timeline Line -->
-            <div v-if="activities.length > 0" class="absolute left-[22px] top-2 bottom-2 w-0.5 bg-stone-100"></div>
+            <div v-if="activities.length > 0 && !loading" class="absolute left-8 top-6 bottom-6 w-[1.5px] bg-stone-50"></div>
 
-            <div v-for="activity in activities" :key="activity.id" class="relative flex gap-5 group">
-              <div :class="['w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 z-10 transition-transform group-hover:scale-110 shadow-sm', activity.iconBg]">
-                <Icon :icon="activity.icon" class="w-6 h-6" />
+            <div v-if="loading" v-for="i in 6" :key="i" class="flex gap-8">
+              <div class="w-14 h-14 bg-stone-50 animate-pulse rounded-full shrink-0"></div>
+              <div class="flex-1 space-y-4">
+                <div class="h-6 w-3/4 bg-stone-50 animate-pulse rounded-lg"></div>
+                <div class="h-4 w-1/2 bg-stone-50 animate-pulse rounded-lg"></div>
               </div>
-              <div class="flex-1 pt-1">
-                <div class="flex justify-between items-start mb-1">
-                  <h4 class="font-black text-stone-800 text-sm leading-tight group-hover:text-[#4A7043] transition-colors">{{ activity.title }}</h4>
-                  <span class="text-[10px] font-bold text-stone-400 uppercase tracking-tighter">{{ activity.time }}</span>
+            </div>
+
+            <template v-else>
+              <div v-for="activity in activities" :key="activity.id" class="relative flex gap-10 group">
+                <!-- Icon Circle -->
+                <div :class="['w-14 h-14 rounded-full flex items-center justify-center shrink-0 z-10 transition-all group-hover:scale-110 shadow-md border-[6px] border-white', 
+                  activity.iconBg.replace('rounded-2xl', 'rounded-full')]">
+                  <Icon :icon="activity.icon" class="w-7 h-7" />
                 </div>
-                <p class="text-[11px] font-bold text-stone-400 uppercase tracking-widest leading-none">
-                  {{ activity.user }} <span class="mx-1">•</span> {{ activity.ref }}
-                </p>
+                <!-- Content -->
+                <div class="flex-1 min-w-0">
+                  <div class="flex justify-between items-start gap-6">
+                    <div class="pt-1">
+                      <h4 class="font-black text-stone-800 text-xl leading-tight group-hover:text-[#4A7043] transition-colors truncate">{{ activity.title }}</h4>
+                      <p class="text-sm font-bold text-stone-400 mt-2 uppercase tracking-[0.1em]">
+                        {{ activity.user }} <span class="mx-3 text-stone-100">•</span> {{ activity.ref }}
+                      </p>
+                    </div>
+                    <span class="text-[12px] font-black text-stone-300 pt-2 shrink-0">{{ activity.time }}</span>
+                  </div>
+                </div>
               </div>
-            </div>
 
-            <div v-if="activities.length === 0" class="py-10 flex flex-col items-center justify-center text-center opacity-60">
-              <div class="w-16 h-16 bg-stone-50 rounded-full flex items-center justify-center mb-4">
-                <Icon icon="material-symbols:history" class="w-8 h-8 text-stone-300" />
+              <div v-if="activities.length === 0" class="py-24 flex flex-col items-center justify-center text-center opacity-30">
+                <Icon icon="material-symbols:history" class="w-16 h-16 text-stone-100 mb-6" />
+                <p class="text-stone-400 text-lg font-bold">Belum ada aktivitas hari ini.</p>
               </div>
-              <p class="text-stone-400 font-bold text-sm">Belum ada aktivitas hari ini.</p>
-            </div>
+            </template>
           </div>
 
-          <button class="mt-10 w-full py-4 rounded-2xl bg-stone-50 text-stone-400 text-xs font-black border border-stone-100 hover:bg-stone-100 transition-colors uppercase tracking-widest">
+          <router-link to="/dashboard-petugas/riwayat" class="mt-16 w-full py-6 rounded-2xl bg-stone-50 text-stone-400 text-xs font-black border border-stone-100 hover:bg-stone-100 hover:text-stone-700 transition-all uppercase tracking-[0.3em] text-center shadow-inner">
             Lihat Semua Aktivitas
-          </button>
+          </router-link>
         </div>
       </div>
 
       <!-- Bottom Section: Ringkasan Laporan -->
-      <div class="bg-[#4A7043] rounded-[2.5rem] p-8 text-white shadow-2xl shadow-green-900/20">
-        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-10">
-          <div class="flex items-center gap-4">
-            <div class="p-3 bg-white/10 rounded-2xl">
-              <Icon icon="material-symbols:description-outline" class="w-7 h-7" />
+      <div class="bg-[#4A7043] rounded-[2.5rem] p-10 text-white shadow-2xl shadow-green-900/20">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-12">
+          <div class="flex items-center gap-5">
+            <div class="p-4 bg-white/10 rounded-2xl backdrop-blur-md border border-white/5">
+              <Icon icon="material-symbols:description-outline" class="w-8 h-8 text-white/80" />
             </div>
             <div>
-              <h3 class="text-xl font-black leading-none">Ringkasan Laporan Hari Ini</h3>
-              <p class="text-[11px] font-bold text-white/60 mt-1 uppercase tracking-widest flex items-center gap-1.5">
-                <Icon icon="material-symbols:calendar-today-outline" class="w-3.5 h-3.5" />
+              <h3 class="text-2xl font-black leading-none">Ringkasan Laporan Hari Ini</h3>
+              <p class="text-xs font-bold text-white/40 mt-2 uppercase tracking-widest flex items-center gap-2">
+                <Icon icon="material-symbols:calendar-today-outline" class="w-4 h-4" />
                 {{ today }}
               </p>
             </div>
           </div>
-          <button class="px-6 py-3.5 bg-white text-[#4A7043] rounded-2xl text-xs font-black flex items-center gap-2 shadow-xl hover:-translate-y-1 transition-all">
+          <router-link to="/dashboard-petugas/laporan-harian" class="px-8 py-4 bg-white text-[#4A7043] rounded-2xl text-sm font-black flex items-center gap-2 shadow-xl hover:-translate-y-1 transition-all">
             Lihat Laporan Lengkap
-            <Icon icon="material-symbols:arrow-forward-rounded" class="w-4 h-4" />
-          </button>
+            <Icon icon="material-symbols:arrow-forward-rounded" class="w-5 h-5" />
+          </router-link>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
           <!-- Pickup Summary -->
-          <div class="bg-white/10 rounded-[2rem] p-7 border border-white/10 hover:bg-white/15 transition-colors">
-            <div class="flex items-center gap-3 mb-6">
-              <Icon icon="material-symbols:local-shipping-outline" class="w-5 h-5 text-white/40" />
-              <p class="text-[10px] font-black uppercase tracking-widest text-white/40">Penjemputan</p>
+          <div class="bg-white/5 rounded-[2rem] p-8 border border-white/10 backdrop-blur-md transition-all hover:bg-white/10">
+            <div class="flex items-center gap-3 mb-8">
+              <div class="p-2 bg-white/10 rounded-xl">
+                <Icon icon="material-symbols:local-shipping-outline" class="w-5 h-5 text-white/60" />
+              </div>
+              <p class="text-xs font-black uppercase tracking-widest text-white/40">Penjemputan</p>
             </div>
-            <div class="mb-6">
-              <h4 class="text-4xl font-black mb-1">{{ reportSummary.pickup.count }}</h4>
-              <p class="text-[10px] font-bold text-white/40 uppercase">transaksi selesai</p>
+            <div class="mb-8">
+              <h4 v-if="loading" class="h-12 w-20 bg-white/10 animate-pulse rounded-lg mb-2"></h4>
+              <h4 v-else class="text-5xl font-black mb-1">{{ reportSummary.pickup.count }}</h4>
+              <p class="text-xs font-bold text-white/30 uppercase tracking-tighter">transaksi selesai</p>
             </div>
-            <div class="pt-6 border-t border-white/10">
-              <p class="text-[10px] font-black uppercase tracking-widest text-white/40 mb-1">Total Nilai</p>
-              <h5 class="text-xl font-black">Rp {{ reportSummary.pickup.value }}</h5>
+            <div class="pt-8 border-t border-white/10">
+              <p class="text-xs font-black uppercase tracking-widest text-white/40 mb-2">Total Nilai</p>
+              <h5 v-if="loading" class="h-8 w-32 bg-white/10 animate-pulse rounded-lg"></h5>
+              <h5 v-else class="text-2xl font-black">Rp {{ reportSummary.pickup.value }}</h5>
             </div>
           </div>
 
           <!-- Manual Deposit Summary -->
-          <div class="bg-white/10 rounded-[2rem] p-7 border border-white/10 hover:bg-white/15 transition-colors">
-            <div class="flex items-center gap-3 mb-6">
-              <Icon icon="material-symbols:delete-outline" class="w-5 h-5 text-white/40" />
-              <p class="text-[10px] font-black uppercase tracking-widest text-white/40">Setor Manual</p>
+          <div class="bg-white/5 rounded-[2rem] p-8 border border-white/10 backdrop-blur-md transition-all hover:bg-white/10">
+            <div class="flex items-center gap-3 mb-8">
+              <div class="p-2 bg-white/10 rounded-xl">
+                <Icon icon="material-symbols:storefront-outline" class="w-5 h-5 text-white/60" />
+              </div>
+              <p class="text-xs font-black uppercase tracking-widest text-white/40">Setor Manual</p>
             </div>
-            <div class="mb-6">
-              <h4 class="text-4xl font-black mb-1">{{ reportSummary.manual_deposit.count }}</h4>
-              <p class="text-[10px] font-bold text-white/40 uppercase">transaksi selesai</p>
+            <div class="mb-8">
+              <h4 v-if="loading" class="h-12 w-20 bg-white/10 animate-pulse rounded-lg mb-2"></h4>
+              <h4 v-else class="text-5xl font-black mb-1">{{ reportSummary.manual_deposit.count }}</h4>
+              <p class="text-xs font-bold text-white/30 uppercase tracking-tighter">transaksi selesai</p>
             </div>
-            <div class="pt-6 border-t border-white/10">
-              <p class="text-[10px] font-black uppercase tracking-widest text-white/40 mb-1">Total Nilai</p>
-              <h5 class="text-xl font-black">Rp {{ reportSummary.manual_deposit.value }}</h5>
+            <div class="pt-8 border-t border-white/10">
+              <p class="text-xs font-black uppercase tracking-widest text-white/40 mb-2">Total Nilai</p>
+              <h5 v-if="loading" class="h-8 w-32 bg-white/10 animate-pulse rounded-lg"></h5>
+              <h5 v-else class="text-2xl font-black">Rp {{ reportSummary.manual_deposit.value }}</h5>
             </div>
           </div>
 
           <!-- Withdrawal Summary -->
-          <div class="bg-white/10 rounded-[2rem] p-7 border border-white/10 hover:bg-white/15 transition-colors">
-            <div class="flex items-center gap-3 mb-6">
-              <Icon icon="material-symbols:account-balance-wallet-outline" class="w-5 h-5 text-white/40" />
-              <p class="text-[10px] font-black uppercase tracking-widest text-white/40">Penarikan</p>
+          <div class="bg-white/5 rounded-[2rem] p-8 border border-white/10 backdrop-blur-md transition-all hover:bg-white/10">
+            <div class="flex items-center gap-3 mb-8">
+              <div class="p-2 bg-white/10 rounded-xl">
+                <Icon icon="material-symbols:account-balance-wallet-outline" class="w-5 h-5 text-white/60" />
+              </div>
+              <p class="text-xs font-black uppercase tracking-widest text-white/40">Penarikan</p>
             </div>
-            <div class="mb-6">
-              <h4 class="text-4xl font-black mb-1">{{ reportSummary.withdrawal.count }}</h4>
-              <p class="text-[10px] font-bold text-white/40 uppercase">request disetujui</p>
+            <div class="mb-8">
+              <h4 v-if="loading" class="h-12 w-20 bg-white/10 animate-pulse rounded-lg mb-2"></h4>
+              <h4 v-else class="text-5xl font-black mb-1">{{ reportSummary.withdrawal.count }}</h4>
+              <p class="text-xs font-bold text-white/30 uppercase tracking-tighter">request disetujui</p>
             </div>
-            <div class="pt-6 border-t border-white/10">
-              <p class="text-[10px] font-black uppercase tracking-widest text-white/40 mb-1">Total Nilai</p>
-              <h5 class="text-xl font-black">Rp {{ reportSummary.withdrawal.value }}</h5>
+            <div class="pt-8 border-t border-white/10">
+              <p class="text-xs font-black uppercase tracking-widest text-white/40 mb-2">Total Nilai</p>
+              <h5 v-if="loading" class="h-8 w-32 bg-white/10 animate-pulse rounded-lg"></h5>
+              <h5 v-else class="text-2xl font-black">Rp {{ reportSummary.withdrawal.value }}</h5>
             </div>
           </div>
         </div>

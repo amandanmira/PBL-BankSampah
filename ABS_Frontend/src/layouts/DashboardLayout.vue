@@ -260,8 +260,8 @@ onMounted(() => {
       <!-- Main Scroll Area -->
       <main class="flex-1 overflow-y-auto bg-[#F5F5F0] flex flex-col">
         <!-- Content Wrapper -->
-        <div class="flex-1 flex justify-center py-10 px-6 lg:px-10">
-          <div class="w-full max-w-5xl">
+        <div class="flex-1 flex justify-center py-10 px-4 lg:px-16">
+          <div class="w-full max-w-[1650px]">
             <slot />
           </div>
         </div>
