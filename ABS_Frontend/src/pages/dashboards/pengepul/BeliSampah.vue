@@ -64,12 +64,13 @@
       <p class="text-sm">Tidak ada sampah yang tersedia.</p>
     </div>
 
-    <div v-else class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-32">
-      <div
-        v-for="item in filteredSampah"
-        :key="item.sampah_id"
-        class="bg-white rounded-[1.5rem] overflow-hidden shadow-sm border border-gray-100 hover:shadow-lg transition-all duration-300 group"
-      >
+    <div v-else>
+      <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-12">
+        <div
+          v-for="item in paginatedSampah"
+          :key="item.sampah_id"
+          class="bg-white rounded-[1.5rem] overflow-hidden shadow-sm border border-gray-100 hover:shadow-lg transition-all duration-300 group"
+        >
         <div class="relative aspect-square overflow-hidden bg-gray-50 cursor-zoom-in" @click="previewImage(`${axios.defaults.baseURL}/storage/${item.item_sampah.foto}`, item.item_sampah.nama)">
           <img
             v-if="item.item_sampah.foto"
@@ -155,6 +156,41 @@
             </button>
           </div>
         </div>
+        </div>
+      </div>
+      <!-- Pagination Controls -->
+      <div v-if="totalPages > 1" class="flex justify-center items-center gap-2 mb-32">
+        <button
+          @click="currentPage > 1 && (currentPage--)"
+          :disabled="currentPage === 1"
+          class="p-2 rounded-xl bg-white border border-gray-100 text-gray-400 disabled:opacity-30 hover:bg-gray-50 transition-all cursor-pointer shadow-sm"
+        >
+          <Icon icon="material-symbols:chevron-left" class="w-6 h-6" />
+        </button>
+        
+        <div class="flex items-center gap-1">
+          <button
+            v-for="page in totalPages"
+            :key="page"
+            @click="currentPage = page"
+            :class="[
+              'w-10 h-10 rounded-xl font-bold text-sm transition-all cursor-pointer shadow-sm flex items-center justify-center',
+              currentPage === page
+                ? 'bg-[#4A7043] text-white'
+                : 'bg-white text-gray-500 border border-gray-100 hover:bg-gray-50'
+            ]"
+          >
+            {{ page }}
+          </button>
+        </div>
+
+        <button
+          @click="currentPage < totalPages && (currentPage++)"
+          :disabled="currentPage === totalPages"
+          class="p-2 rounded-xl bg-white border border-gray-100 text-gray-400 disabled:opacity-30 hover:bg-gray-50 transition-all cursor-pointer shadow-sm"
+        >
+          <Icon icon="material-symbols:chevron-right" class="w-6 h-6" />
+        </button>
       </div>
     </div>
 
@@ -246,7 +282,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, inject } from 'vue'
+import { ref, computed, onMounted, inject, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import DashboardLayout from '@/layouts/DashboardLayout.vue'
 import { Icon } from '@iconify/vue'
@@ -267,6 +303,13 @@ const searchQuery = ref('')
 const selectedGudang = ref(null)
 const itemQuantities = ref({})
 const showTataCara = ref(false)
+const currentPage = ref(1)
+const itemsPerPage = 8
+
+// Reset page to 1 when filters change
+watch([searchQuery, selectedGudang], () => {
+  currentPage.value = 1
+})
 
 const steps = [
   {
@@ -316,12 +359,27 @@ const fetchData = async () => {
 }
 
 const filteredSampah = computed(() => {
-  return sampahList.value.filter(item => {
+  const filtered = sampahList.value.filter(item => {
     const matchesSearch = item.item_sampah.nama.toLowerCase().includes(searchQuery.value.toLowerCase())
     const matchesGudang = selectedGudang.value === null || item.gudang_id === selectedGudang.value
     return matchesSearch && matchesGudang
   })
+
+  // Sort by discount (descending)
+  return filtered.sort((a, b) => {
+    const diskonA = parseFloat(a.item_sampah.diskon || 0)
+    const diskonB = parseFloat(b.item_sampah.diskon || 0)
+    return diskonB - diskonA
+  })
 })
+
+const paginatedSampah = computed(() => {
+  const start = (currentPage.value - 1) * itemsPerPage
+  const end = start + itemsPerPage
+  return filteredSampah.value.slice(start, end)
+})
+
+const totalPages = computed(() => Math.ceil(filteredSampah.value.length / itemsPerPage))
 
 const updateQty = (id, delta, max = 9999) => {
   const current = itemQuantities.value[id] || 0
