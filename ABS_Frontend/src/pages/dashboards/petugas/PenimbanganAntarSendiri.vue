@@ -72,20 +72,14 @@
           <p class="text-white/70 text-xs font-bold mb-1">Nama Nasabah:</p>
           <h3 class="text-xl font-black">{{ selectedNasabahData?.nama }} <span class="text-white/60 text-base font-bold">(NSB-{{ String(selectedNasabahData?.nasabah_id).padStart(3, '0') }})</span></h3>
         </div>
-        <div class="text-right">
-          <button @click="step = 1" class="flex flex-col items-center gap-1 opacity-70 hover:opacity-100 transition-opacity">
-            <Icon icon="material-symbols:edit-document-outline" class="w-6 h-6" />
-            <span class="text-[10px] font-black uppercase tracking-widest">Edit</span>
-          </button>
-        </div>
       </div>
 
       <!-- Method Display -->
       <div class="bg-white rounded-[1.5rem] p-6 shadow-sm border border-stone-100 space-y-2">
         <p class="text-sm font-black text-[#4A7043]">Metode Setor:</p>
-        <div class="w-full bg-[#F5F7F5] rounded-xl p-4 text-stone-600 font-black flex items-center justify-between">
+        <div class="w-full bg-[#F5F7F5] rounded-xl p-4 text-stone-600 font-black flex items-center gap-3">
+          <Icon icon="material-symbols:move-to-inbox-outline" class="w-5 h-5 text-[#4A7043]" />
           <span>Setor Manual</span>
-          <Icon icon="material-symbols:keyboard-arrow-down" class="w-6 h-6 text-stone-400 opacity-50" />
         </div>
       </div>
 
@@ -96,12 +90,24 @@
         <button 
           v-if="!selectedTukang"
           @click="openWorkerModal"
-          class="w-full py-10 rounded-2xl border-2 border-dashed border-stone-200 bg-stone-50 flex flex-col items-center justify-center gap-2 hover:border-[#4A7043] hover:bg-green-50 transition-all group"
+          class="w-full group cursor-pointer bg-stone-50/50 border-2 border-dashed border-stone-200 rounded-[2rem] p-10 transition-all hover:bg-white hover:border-[#4A7043] hover:shadow-2xl hover:shadow-green-900/10 active:scale-[0.98] flex flex-col items-center gap-5 relative overflow-hidden"
         >
-          <div class="w-12 h-12 rounded-full bg-white flex items-center justify-center shadow-sm text-stone-400 group-hover:text-[#4A7043]">
-            <Icon icon="material-symbols:person-add-outline" class="w-6 h-6" />
+          <div class="w-20 h-20 bg-white rounded-[1.5rem] flex items-center justify-center text-stone-400 group-hover:text-[#4A7043] group-hover:bg-[#EAF0EB] shadow-sm group-hover:shadow-md transition-all duration-500 relative z-10">
+            <Icon icon="material-symbols:person-add-rounded" class="w-10 h-10 group-hover:scale-110 transition-transform" />
           </div>
-          <span class="text-sm font-black text-stone-500 group-hover:text-[#4A7043]">Pilih Tukang Penimbang</span>
+          
+          <div class="text-center relative z-10">
+            <h4 class="text-lg font-black text-stone-800 group-hover:text-[#4A7043] transition-colors">Pilih Tukang Penimbang</h4>
+            <div class="flex items-center justify-center gap-2 mt-2">
+              <span class="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse"></span>
+              <p class="text-[10px] font-black text-stone-400 uppercase tracking-[0.2em]">Wajib diisi untuk melanjutkan</p>
+            </div>
+          </div>
+
+          <!-- Hover Indicator -->
+          <div class="absolute bottom-4 opacity-0 group-hover:opacity-100 transition-all transform translate-y-2 group-hover:translate-y-0">
+            <Icon icon="material-symbols:keyboard-arrow-down-rounded" class="w-6 h-6 text-[#4A7043] animate-bounce" />
+          </div>
         </button>
 
         <div v-else class="flex flex-col md:flex-row gap-6 relative">

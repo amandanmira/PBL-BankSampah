@@ -80,6 +80,7 @@ class KonfirmasiPenarikanController extends Controller
             // 3. Update Data Penarikan
             $penarikan->bukti_tf = $fotoPath;
             $penarikan->status   = 'selesai'; // Langsung diubah menjadi selesai
+            $penarikan->petugas_id = Auth::id(); // Mengisi ID petugas yang sedang login
             $penarikan->save();
 
             // 4. Kurangi Saldo Nasabah

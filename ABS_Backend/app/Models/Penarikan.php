@@ -17,10 +17,16 @@ class Penarikan extends Model
         'no_rekening',
         'nama_bank',
         'nama_rek',
+        'petugas_id',
     ];
 
     public function nasabah()
     {
         return $this->belongsTo(Nasabah::class,'nasabah_id','nasabah_id');
+    }
+
+    public function petugas()
+    {
+        return $this->belongsTo(Petugas::class,'petugas_id','petugas_id');
     }
 }
