@@ -1,66 +1,46 @@
 <script setup>
-import { ref } from "vue";
+import { computed } from "vue";
 import VueApexCharts from "vue3-apexcharts";
 
-const apexchart = VueApexCharts;
-
-const chartOptions = ref({
-  chart: {
-    type: "line",
-    toolbar: {
-      show: false,
-    },
-    zoom: {
-      enabled: false,
-    },
+const props = defineProps({
+  series: {
+    type: Array,
+    default: () => [
+      { name: "Volume (kg)", data: [0, 0, 0, 0, 0, 0] },
+      { name: "Pendapatan (Rp)", data: [0, 0, 0, 0, 0, 0] },
+    ],
   },
-  colors: ["#4A7043", "#8BA783"],
-  dataLabels: {
-    enabled: false,
-  },
-  stroke: {
-    curve: "smooth",
-    width: 3,
-  },
-  xaxis: {
-    categories: ["Sep", "Okt", "Nov", "Des", "Jan", "Feb"],
-    axisBorder: {
-      show: false,
-    },
-    axisTicks: {
-      show: false,
-    },
-  },
-  yaxis: {
-    labels: {
-      formatter: (val) => `${val}k`,
-    },
-  },
-  grid: {
-    borderColor: "#f1f1f1",
-  },
-  legend: {
-    position: "bottom",
-    horizontalAlign: "center",
-  },
-  tooltip: {
-    theme: "light",
+  categories: {
+    type: Array,
+    default: () => ["-", "-", "-", "-", "-", "-"],
   },
 });
 
-// Data Seri Chart
-// TODO: Hubungkan dengan data historis transaksi dari database (misal: 6 bulan terakhir)
-// Data ini nantinya akan diisi secara dinamis melalui props atau fetch API
-const series = ref([
-  {
-    name: "Volume (kg)",
-    data: [0, 0, 0, 0, 0, 0],
+const apexchart = VueApexCharts;
+
+const chartOptions = computed(() => ({
+  chart: {
+    type: "line",
+    toolbar: { show: false },
+    zoom: { enabled: false },
   },
-  {
-    name: "Pendapatan (Rp)",
-    data: [0, 0, 0, 0, 0, 0],
+  colors: ["#4A7043", "#8BA783"],
+  dataLabels: { enabled: false },
+  stroke: { curve: "smooth", width: 3 },
+  xaxis: {
+    categories: props.categories,
+    axisBorder: { show: false },
+    axisTicks: { show: false },
   },
-]);
+  yaxis: {
+    labels: {
+      formatter: (val) => val >= 1000 ? `${(val / 1000).toFixed(0)}k` : val,
+    },
+  },
+  grid: { borderColor: "#f1f1f1" },
+  legend: { position: "bottom", horizontalAlign: "center" },
+  tooltip: { theme: "light" },
+}));
 </script>
 
 <template>

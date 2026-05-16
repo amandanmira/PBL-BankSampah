@@ -37,8 +37,15 @@ const stats = ref([
   },
 ]);
 
-// Top Nasabah - Dikosongkan sementara
+// Top Nasabah
 const topNasabah = ref([]);
+
+// Chart Data
+const chartSeries = ref([
+  { name: "Volume (kg)", data: [0, 0, 0, 0, 0, 0] },
+  { name: "Pendapatan (Rp)", data: [0, 0, 0, 0, 0, 0] },
+]);
+const chartCategories = ref(["-", "-", "-", "-", "-", "-"]);
 
 // Aktivitas Terbaru
 const recentActivities = ref([]);
@@ -64,6 +71,18 @@ const fetchData = async () => {
     stats.value[0].value = formatRupiah(data.stats.saldo_tersedia);
     stats.value[1].value = `${data.stats.total_sampah} kg`;
     stats.value[2].value = data.stats.total_transaksi.toString();
+
+    // Chart Data
+    if (data.chart_data) {
+      chartCategories.value = data.chart_data.map(d => d.month);
+      chartSeries.value = [
+        { name: "Volume (kg)", data: data.chart_data.map(d => d.volume) },
+        { name: "Pendapatan (Rp)", data: data.chart_data.map(d => d.income) },
+      ];
+    }
+
+    // Top Nasabah
+    topNasabah.value = data.top_nasabah || [];
 
     recentActivities.value = data.activities;
   } catch (err) {
@@ -101,12 +120,14 @@ onMounted(() => {
 
       <!-- Chart Section -->
       <section>
-        <TransactionChart />
+        <div v-if="loading" class="h-80 bg-stone-200 animate-pulse rounded-3xl"></div>
+        <TransactionChart v-else :series="chartSeries" :categories="chartCategories" />
       </section>
 
       <!-- Leaderboard Section -->
       <section>
-        <LeaderboardTable :data="topNasabah" />
+        <div v-if="loading" class="h-80 bg-stone-200 animate-pulse rounded-3xl"></div>
+        <LeaderboardTable v-else :data="topNasabah" />
       </section>
 
       <!-- Activities Section -->

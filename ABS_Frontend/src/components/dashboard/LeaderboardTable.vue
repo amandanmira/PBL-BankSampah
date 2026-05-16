@@ -33,27 +33,28 @@ const getRankIcon = (rank) => {
           </tr>
         </thead>
         <tbody class="divide-y divide-stone-50">
-          <tr v-for="(item, index) in data" :key="item.id" class="hover:bg-stone-50/30 transition-colors">
+          <tr v-for="item in data" :key="item.rank" class="hover:bg-stone-50/30 transition-colors">
             <td class="px-6 py-4">
               <div class="flex items-center gap-3">
-                <Icon :icon="getRankIcon(index + 1).icon" class="w-6 h-6" />
-                <span class="font-bold text-stone-600">#{{ index + 1 }}</span>
+                <Icon :icon="getRankIcon(item.rank).icon" class="w-6 h-6" />
+                <span class="font-bold text-stone-600">#{{ item.rank }}</span>
               </div>
             </td>
             <td class="px-6 py-4">
               <div class="flex items-center gap-3">
-                <Avatar :src="item.avatar" :alt="item.name" size="md" />
+                <div class="w-10 h-10 rounded-full bg-stone-100 flex items-center justify-center text-stone-400">
+                  <Icon icon="material-symbols:person" class="w-6 h-6" />
+                </div>
                 <div class="flex items-center gap-2">
-                  <span class="font-bold text-stone-700">{{ item.name }}</span>
-                  <span v-if="item.isCurrent" class="px-2 py-0.5 bg-[#4A7043] text-white text-[10px] rounded-full font-bold">Anda</span>
+                  <span class="font-bold text-stone-700">{{ item.nama }}</span>
                 </div>
               </div>
             </td>
             <td class="px-6 py-4 text-center font-bold text-[#4A7043]">
-              {{ numeral(item.totalWaste).format('0,0.[0]') }} kg
+              {{ numeral(item.total_sampah).format('0,0.[0]') }} kg
             </td>
             <td class="px-6 py-4 text-center font-medium text-stone-600">
-              {{ item.transactions }}x
+              {{ item.total_transaksi }}x
             </td>
           </tr>
         </tbody>

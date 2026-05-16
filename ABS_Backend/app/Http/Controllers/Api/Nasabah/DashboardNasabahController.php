@@ -100,6 +100,67 @@ class DashboardNasabahController extends Controller
         });
         $activities = array_slice($activities, 0, 10);
 
+        // Chart Data (Last 6 Months)
+        $chartData = [];
+        for ($i = 5; $i >= 0; $i--) {
+            $month = now()->subMonths($i);
+            $monthLabel = $month->translatedFormat('M');
+            
+            $monthlyVolume = Penimbangan::where('nasabah_id', $nasabah->nasabah_id)
+                ->whereHas('transaksi', function($q) {
+                    $q->where('status', 'selesai');
+                })
+                ->whereMonth('created_at', $month->month)
+                ->whereYear('created_at', $month->year)
+                ->sum('berat_timbang');
+
+            // Income is sum of (berat * harga_beli)
+            $monthlyIncome = Penimbangan::where('nasabah_id', $nasabah->nasabah_id)
+                ->whereHas('transaksi', function($q) {
+                    $q->where('status', 'selesai');
+                })
+                ->whereMonth('created_at', $month->month)
+                ->whereYear('created_at', $month->year)
+                ->with(['sampah.itemSampah'])
+                ->get()
+                ->sum(function($p) {
+                    return $p->berat_timbang * ($p->sampah->itemSampah->harga_beli ?? 0);
+                });
+
+            $chartData[] = [
+                'month' => $monthLabel,
+                'volume' => (float)$monthlyVolume,
+                'income' => (float)$monthlyIncome,
+            ];
+        }
+
+        // Top Nasabah (Current Month)
+        $topNasabah = \App\Models\Nasabah::withCount(['penimbangan as total_transaksi' => function($q) {
+                $q->whereMonth('created_at', now()->month)
+                  ->whereYear('created_at', now()->year)
+                  ->whereHas('transaksi', function($t) {
+                      $t->where('status', 'selesai');
+                  });
+            }])
+            ->withSum(['penimbangan as total_sampah' => function($q) {
+                $q->whereMonth('created_at', now()->month)
+                  ->whereYear('created_at', now()->year)
+                  ->whereHas('transaksi', function($t) {
+                      $t->where('status', 'selesai');
+                  });
+            }], 'berat_timbang')
+            ->orderByDesc('total_sampah')
+            ->take(5)
+            ->get()
+            ->map(function($n, $index) {
+                return [
+                    'rank' => $index + 1,
+                    'nama' => $n->nama,
+                    'total_transaksi' => $n->total_transaksi ?? 0,
+                    'total_sampah' => (float)($n->total_sampah ?? 0),
+                ];
+            });
+
         return response()->json([
             'stats' => [
                 'saldo_tersedia' => $saldoTersedia,
@@ -110,6 +171,8 @@ class DashboardNasabahController extends Controller
                 'nama' => $nasabah->nama,
                 'username' => $nasabah->username,
             ],
+            'chart_data' => $chartData,
+            'top_nasabah' => $topNasabah,
             'activities' => $activities
         ]);
     }
