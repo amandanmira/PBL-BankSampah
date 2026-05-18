@@ -54,7 +54,7 @@
                 <div class="flex items-center gap-3 mb-1">
                   <span class="text-xs font-black text-gray-800">#{{ order.transaksi_id }}</span>
                   <span :class="['text-[9px] font-black uppercase px-2 py-0.5 rounded-full tracking-wider', getStatusClass(order.status)]">
-                    {{ order.status }}
+                    {{ order.status === 'tolak' ? 'ditolak' : order.status }}
                   </span>
                 </div>
                 <p class="text-[10px] text-gray-400 font-medium">

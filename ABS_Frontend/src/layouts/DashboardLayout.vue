@@ -41,6 +41,7 @@ const menuItems = computed(() => {
       { name: "Request Penjemputan", path: "/dashboard-petugas/listpenjemputan", icon: "material-symbols:local-shipping-outline" },
       { name: "Setor Manual", path: "/dashboard-petugas/penimbangan", icon: "material-symbols:storefront-outline" },
       { name: "Request Penarikan", path: "/dashboard-petugas/listpenarikan", icon: "material-symbols:account-balance-wallet-outline" },
+      { name: "Pesanan Pengepul", path: "/dashboard-petugas/pesanan-pengepul", icon: "material-symbols:shopping-bag-outline" },
       { name: "Riwayat", path: "/dashboard-petugas/riwayat", icon: "material-symbols:history" },
       { name: "Laporan Harian", path: "/dashboard-petugas/laporan-harian", icon: "material-symbols:description-outline" },
       { name: "Berita", path: "/dashboard-petugas/kelola-berita", icon: "material-symbols:article-outline" },
@@ -212,7 +213,7 @@ onMounted(() => {
             cn(
               'flex items-center rounded-2xl transition-all duration-200 group overflow-hidden',
               isSidebarCollapsed ? 'justify-center w-12 h-12 mx-auto' : 'px-4 py-3.5 gap-4',
-              route.path === item.path
+              (route.path === item.path || (item.path === '/dashboard-pengepul/keranjang' && route.path === '/dashboard-pengepul/ringkasan-pembelian') || (item.path === '/dashboard-pengepul/pesanan-saya' && route.path.startsWith('/dashboard-pengepul/pesanan/')))
                 ? 'bg-[#A86444] text-white shadow-lg' 
                 : 'text-white/70 hover:bg-white/10 hover:text-white'
             )

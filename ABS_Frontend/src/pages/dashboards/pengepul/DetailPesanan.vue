@@ -8,9 +8,12 @@
       <!-- Header Info -->
       <div class="mb-8 flex items-center justify-between">
         <div>
-          <button @click="router.back()" class="flex items-center gap-2 text-gray-500 hover:text-gray-800 transition-all mb-2">
+          <button 
+            @click="router.push('/dashboard-pengepul/pesanan-saya')" 
+            class="flex items-center gap-2 text-gray-500 hover:text-gray-800 transition-all mb-2"
+          >
             <Icon icon="material-symbols:arrow-back" class="w-5 h-5" />
-            <span class="text-base font-bold">Kembali</span>
+            <span class="text-base font-bold">Kembali Ke Daftar Pesanan</span>
           </button>
           <h1 class="text-3xl font-black text-gray-800">Detail Pesanan</h1>
           <p class="text-base text-gray-400 font-medium">#{{ order.transaksi_id }}</p>
@@ -23,63 +26,76 @@
           <!-- Connector Line -->
           <div class="absolute top-5 left-[12%] right-[12%] h-0.5 bg-gray-100 z-0">
             <div 
+              v-if="!isEnded"
               class="h-full bg-[#8B5E3C] transition-all duration-500"
               :style="{ width: stepperProgress + '%' }"
             ></div>
           </div>
 
-          <!-- Step 1 -->
-          <div class="relative z-10 flex flex-col items-center gap-3 text-center w-1/4">
-            <div :class="['w-10 h-10 rounded-full flex items-center justify-center font-bold text-base shadow-sm transition-all', currentStep >= 1 ? 'bg-[#8B5E3C] text-white' : 'bg-gray-100 text-gray-400']">
-              <Icon v-if="currentStep > 1" icon="material-symbols:check" class="w-6 h-6" />
-              <span v-else>1</span>
+          <!-- Dynamic Steps -->
+          <div 
+            v-for="(step, idx) in steps" 
+            :key="idx"
+            class="relative z-10 flex flex-col items-center gap-3 text-center w-1/4"
+          >
+            <div :class="['w-10 h-10 rounded-full flex items-center justify-center font-bold text-base shadow-sm transition-all', isEnded ? 'bg-gray-100 text-gray-400' : (currentStep >= (idx + 1) ? 'bg-[#8B5E3C] text-white' : 'bg-gray-100 text-gray-400')]">
+              <Icon v-if="!isEnded && currentStep > (idx + 1)" icon="material-symbols:check" class="w-6 h-6" />
+              <span v-else>{{ step.number }}</span>
             </div>
             <div>
-              <p :class="['text-sm font-bold uppercase tracking-wider mb-1', currentStep >= 1 ? 'text-[#8B5E3C]' : 'text-gray-400']">Request Dibuat</p>
-              <p class="text-xs text-gray-400 leading-tight">Lakukan pembayaran dan upload bukti</p>
+              <p :class="['text-sm font-bold uppercase tracking-wider mb-1', isEnded ? 'text-gray-400' : (currentStep >= (idx + 1) ? 'text-[#8B5E3C]' : 'text-gray-400')]">{{ step.title }}</p>
+              <p class="text-xs text-gray-400 leading-tight">{{ step.desc }}</p>
             </div>
           </div>
+        </div>
 
-          <!-- Step 2 -->
-          <div class="relative z-10 flex flex-col items-center gap-3 text-center w-1/4">
-            <div :class="['w-10 h-10 rounded-full flex items-center justify-center font-bold text-base shadow-sm transition-all', currentStep >= 2 ? 'bg-[#8B5E3C] text-white' : 'bg-gray-100 text-gray-400']">
-              <Icon v-if="currentStep > 2" icon="material-symbols:check" class="w-6 h-6" />
-              <span v-else>2</span>
-            </div>
-            <div>
-              <p :class="['text-sm font-bold uppercase tracking-wider mb-1', currentStep >= 2 ? 'text-[#8B5E3C]' : 'text-gray-400']">Validasi Pembayaran</p>
-              <p class="text-xs text-gray-400 leading-tight">Petugas memvalidasi pembayaran</p>
-            </div>
-          </div>
-
-          <!-- Step 3 -->
-          <div class="relative z-10 flex flex-col items-center gap-3 text-center w-1/4">
-            <div :class="['w-10 h-10 rounded-full flex items-center justify-center font-bold text-base shadow-sm transition-all', currentStep >= 3 ? 'bg-[#8B5E3C] text-white' : 'bg-gray-100 text-gray-400']">
-              <Icon v-if="currentStep > 3" icon="material-symbols:check" class="w-6 h-6" />
-              <span v-else>3</span>
-            </div>
-            <div>
-              <p :class="['text-sm font-bold uppercase tracking-wider mb-1', currentStep >= 3 ? 'text-[#8B5E3C]' : 'text-gray-400']">Siap Diambil</p>
-              <p class="text-xs text-gray-400 leading-tight">Barang siap diambil di gudang</p>
-            </div>
-          </div>
-
-          <!-- Step 4 -->
-          <div class="relative z-10 flex flex-col items-center gap-3 text-center w-1/4">
-            <div :class="['w-10 h-10 rounded-full flex items-center justify-center font-bold text-base shadow-sm transition-all', currentStep >= 4 ? 'bg-[#8B5E3C] text-white' : 'bg-gray-100 text-gray-400']">
-              <Icon v-if="currentStep === 4" icon="material-symbols:check" class="w-6 h-6" />
-              <span v-else>4</span>
-            </div>
-            <div>
-              <p :class="['text-sm font-bold uppercase tracking-wider mb-1', currentStep >= 4 ? 'text-[#8B5E3C]' : 'text-gray-400']">Selesai</p>
-              <p class="text-xs text-gray-400 leading-tight">Transaksi selesai dilakukan</p>
-            </div>
-          </div>
+        <!-- Stepper bottom status message -->
+        <div v-if="isEnded" class="text-center mt-6">
+          <span class="text-red-600 font-bold text-sm md:text-base">
+            Pesanan {{ order.status === 'tolak' ? 'Ditolak' : 'Dibatalkan' }}
+          </span>
         </div>
       </div>
 
       <!-- Status Info Message -->
-      <div v-if="order.status === 'proses' && !order.bukti_transfer" class="bg-blue-50 border border-blue-100 rounded-3xl p-6 mb-6">
+      <!-- Ditolak (Rejected) State Alert Box -->
+      <div v-if="order.status === 'tolak'" class="bg-red-50 border border-red-100 rounded-3xl p-6 mb-6">
+        <div class="flex gap-4 items-start">
+          <div class="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center text-red-600 shrink-0">
+            <Icon icon="material-symbols:cancel-outline" class="w-5 h-5" />
+          </div>
+          <div>
+            <h3 class="font-black text-red-600 text-base mb-1">Ditolak</h3>
+            <p class="text-xs font-bold text-red-500 uppercase tracking-wider mt-2.5">Alasan Ditolak:</p>
+            <p class="text-sm text-stone-600 font-medium mt-1 leading-relaxed">{{ order.ket_status || 'Pembayaran tidak valid' }}</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Dibatalkan (Cancelled) State Alert Box -->
+      <div v-else-if="order.status === 'batal'" class="bg-stone-50 border border-stone-150 rounded-3xl p-6 mb-6">
+        <div class="flex gap-4 items-center">
+          <div class="w-8 h-8 rounded-full bg-stone-100 flex items-center justify-center text-stone-500 shrink-0">
+            <Icon icon="material-symbols:cancel-outline" class="w-5 h-5" />
+          </div>
+          <div>
+            <h3 class="font-black text-stone-600 text-base">Dibatalkan</h3>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pending State (Waiting for Officer Approval) -->
+      <div v-else-if="order.status === 'pending'" class="bg-amber-50 border border-amber-100 rounded-3xl p-6 mb-6">
+        <div class="flex gap-4">
+          <Icon icon="material-symbols:hourglass-empty" class="w-6 h-6 text-amber-600 shrink-0" />
+          <div>
+            <h3 class="font-bold text-amber-700 text-base mb-1">Menunggu Persetujuan</h3>
+            <p class="text-sm text-amber-600 leading-relaxed">Pesanan Anda sedang menunggu persetujuan dan konfirmasi dari petugas kami.</p>
+          </div>
+        </div>
+      </div>
+
+      <div v-else-if="order.status === 'proses' && !order.bukti_transfer" class="bg-blue-50 border border-blue-100 rounded-3xl p-6 mb-6">
         <div class="flex gap-4">
           <Icon icon="material-symbols:info-outline" class="w-6 h-6 text-blue-600 shrink-0" />
           <div>
@@ -90,7 +106,7 @@
               <Icon icon="material-symbols:timer-outline" class="w-4 h-4" />
               <span class="font-black text-base">{{ countdown }}</span>
             </div>
-            <p class="text-xs text-gray-400 mt-2">*Pesanan akan otomatis dibatalkan jika tidak dibayar dalam 24 jam</p>
+            <p class="text-xs text-gray-400 mt-2">*Pesan akan otomatis dibatalkan jika tidak dibayar dalam kurun waktu yang sudah ditentukan</p>
           </div>
         </div>
       </div>
@@ -279,8 +295,8 @@
         </div>
       </div>
 
-      <!-- Cancel Warning Box Stage 1 -->
-      <div v-if="order.status === 'proses' && !order.bukti_transfer" class="bg-white rounded-3xl border border-red-50 p-4 flex items-center justify-between">
+      <!-- Cancel Warning Box Stage 1 & Pending -->
+      <div v-if="(order.status === 'proses' && !order.bukti_transfer) || order.status === 'pending'" class="bg-white rounded-3xl border border-red-50 p-4 flex items-center justify-between">
         <div class="flex items-center gap-3">
           <div class="w-8 h-8 rounded-full bg-red-50 flex items-center justify-center text-red-500">
             <Icon icon="material-symbols:warning-outline" class="w-4 h-4" />
@@ -323,17 +339,51 @@ const banks = [
   { name: 'Bank BNI', number: '5555666677', code: 'BNI' }
 ]
 
-const paymentSteps = [
-  'Transfer <strong>TEPAT {{ formatCurrency(order?.total_harga) }}</strong> ke salah satu rekening di atas',
+const paymentSteps = computed(() => [
+  `Transfer <strong>TEPAT ${formatCurrency(order.value?.total_harga)}</strong> ke salah satu rekening di atas`,
   'Screenshot atau foto bukti transfer yang jelas',
   'Upload bukti transfer di form di bawah',
   'Tunggu validasi petugas (biasanya 1-2 jam)',
   'Setelah valid, ambil barang di gudang'
-]
+])
+
+const isEnded = computed(() => {
+  return order.value?.status === 'tolak' || order.value?.status === 'batal'
+})
+
+const steps = computed(() => {
+  if (order.value?.status === 'tolak') {
+    return [
+      { number: '1', title: 'Request Dibuat', desc: 'Menunggu konfirmasi petugas' },
+      { number: '3', title: 'Validasi Pembayaran', desc: 'Petugas memvalidasi' },
+      { number: '4', title: 'Siap Diambil', desc: 'Barang siap diambil' },
+      { number: '5', title: 'Selesai', desc: 'Transaksi selesai' }
+    ]
+  } else if (order.value?.status === 'batal') {
+    return [
+      { number: '1', title: 'Request Dibuat', desc: 'Lakukan pembayaran dan upload bukti' },
+      { number: '2', title: 'Validasi Pembayaran', desc: 'Petugas memvalidasi' },
+      { number: '3', title: 'Siap Diambil', desc: 'Barang siap diambil' },
+      { number: '4', title: 'Selesai', desc: 'Transaksi selesai' }
+    ]
+  } else {
+    return [
+      { 
+        number: '1', 
+        title: 'Request Dibuat', 
+        desc: order.value?.status === 'pending' ? 'Menunggu konfirmasi petugas' : 'Lakukan pembayaran dan upload bukti' 
+      },
+      { number: '2', title: 'Validasi Pembayaran', desc: 'Petugas memvalidasi pembayaran' },
+      { number: '3', title: 'Siap Diambil', desc: 'Barang siap diambil di gudang' },
+      { number: '4', title: 'Selesai', desc: 'Transaksi selesai dilakukan' }
+    ]
+  }
+})
 
 const currentStep = computed(() => {
   if (!order.value) return 1
   switch (order.value.status) {
+    case 'pending': return 1
     case 'proses': return order.value.bukti_transfer ? 2 : 1
     case 'validasi': return 2
     case 'siap_diambil': return 3
@@ -350,6 +400,12 @@ const mockedLogs = computed(() => {
   if (!order.value) return []
   const logs = []
   
+  if (order.value.status === 'tolak') {
+    logs.push({ title: 'Pesanan ditolak oleh petugas', date: dayjs(order.value.updated_at).format('DD MMMM YYYY pukul HH:mm') })
+  }
+  if (order.value.status === 'batal') {
+    logs.push({ title: 'Pesanan dibatalkan', date: dayjs(order.value.updated_at).format('DD MMMM YYYY pukul HH:mm') })
+  }
   if (order.value.status === 'selesai') {
     logs.push({ title: 'Barang diambil', date: dayjs(order.value.updated_at).format('DD MMMM YYYY pukul HH:mm') })
   }
@@ -360,8 +416,11 @@ const mockedLogs = computed(() => {
     logs.push({ title: 'Bukti pembayaran diupload', date: dayjs(order.value.updated_at).subtract(2, 'hour').format('DD MMMM YYYY pukul HH:mm') })
   }
   
-  // Always show these
-  logs.push({ title: 'Disetujui petugas', date: dayjs(order.value.created_at).add(30, 'minute').format('DD MMMM YYYY pukul HH:mm') })
+  // Show "Disetujui petugas" only if the request has reached approved/proses/beyond state and wasn't rejected in pending state
+  if (order.value.status !== 'pending' && !(order.value.status === 'tolak' && !order.value.bukti_transfer)) {
+    logs.push({ title: 'Disetujui petugas', date: dayjs(order.value.created_at).add(30, 'minute').format('DD MMMM YYYY pukul HH:mm') })
+  }
+  
   logs.push({ title: 'Request dibuat', date: dayjs(order.value.created_at).format('DD MMMM YYYY pukul HH:mm') })
   
   return logs
@@ -481,12 +540,17 @@ const cancelOrder = async () => {
 
   if (result.isConfirmed) {
     try {
-      // Mocking cancel as reject by pengepul side
-      // In real scenario, you might need a specific endpoint or update status to 'batal'
-      Swal.fire('Berhasil', 'Pesanan Anda telah dibatalkan.', 'success')
-      router.push('/dashboard-pengepul/pesanan-saya')
+      await axios.put(`/api/pengepul/request-pembelian/cancel/${order.value.transaksi_id}`)
+      await Swal.fire({
+        title: 'Berhasil!',
+        text: 'Pesanan Anda telah dibatalkan.',
+        icon: 'success',
+        confirmButtonColor: '#4A7043'
+      })
+      fetchOrder()
     } catch (err) {
-      Swal.fire('Gagal', 'Gagal membatalkan pesanan.', 'error')
+      console.error('Cancel order error:', err)
+      Swal.fire('Gagal', err.response?.data?.message || 'Gagal membatalkan pesanan.', 'error')
     }
   }
 }

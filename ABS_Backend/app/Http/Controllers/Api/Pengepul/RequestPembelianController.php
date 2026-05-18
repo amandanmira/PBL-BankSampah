@@ -47,7 +47,10 @@ class RequestPembelianController extends Controller
 
     public function show(string $id)
     {
-        $transaksi = TransaksiPengepul::with('detailTransaksi')->findOrFail($id);
+        $transaksi = TransaksiPengepul::with([
+            'detailTransaksi.sampah.itemSampah',
+            'detailTransaksi.sampah.gudang'
+        ])->findOrFail($id);
 
         $transaksi->where('status', 'proses')
             ->where('deadline', '<', now())
@@ -83,12 +86,13 @@ class RequestPembelianController extends Controller
         }
 
         $config = \App\Models\KonfigurasiWeb::first();
-        $deadline = now()->addDays($config->lama_deadline ?? 1);
+        $deadline = now()->addHours($config->lama_deadline ?? 24);
 
         $transaksi = TransaksiPengepul::create([
-            'status' => 'pending',
+            'status' => 'proses',
             'pengepul_id' => $request->pengepul_id,
             'deadline' => $deadline,
+            'ket_status' => 'Pesanan dibuat. Silakan lakukan pembayaran dan upload bukti transfer.'
         ]);
 
         foreach ($request->detail as $d) {
@@ -96,6 +100,7 @@ class RequestPembelianController extends Controller
                 'sampah_id' => $d['sampah_id'],
                 'berat' => $d['berat'] ?? 0,
                 'harga' => $d['harga'] ?? 0,
+                'status' => 'setuju',
             ]);
         }
 
@@ -140,5 +145,36 @@ class RequestPembelianController extends Controller
         $pdf = Pdf::loadView('pdf.transaksi-pengepul', compact('transaksi'));
 
         return $pdf->stream();
+    }
+
+    public function cancel(string $id)
+    {
+        $transaksi = TransaksiPengepul::with('detailTransaksi')->findOrFail($id);
+
+        if ($transaksi->status !== 'proses' && $transaksi->status !== 'pending') {
+            return response()->json([
+                'message' => 'Pesanan hanya dapat dibatalkan jika status pending atau proses.'
+            ], 400);
+        }
+
+        // Return stock back to warehouse since order is cancelled
+        foreach ($transaksi->detailTransaksi as $d) {
+            $sampah = Sampah::find($d->sampah_id);
+            if ($sampah) {
+                $sampah->update([
+                    'stok' => $sampah->stok + $d->berat,
+                ]);
+            }
+        }
+
+        $transaksi->update([
+            'status' => 'batal',
+            'ket_status' => 'Dibatalkan oleh pengepul'
+        ]);
+
+        return response()->json([
+            'message' => 'Pesanan berhasil dibatalkan',
+            'data' => $transaksi
+        ]);
     }
 }
