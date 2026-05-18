@@ -21,9 +21,18 @@ const currentPage = ref(1);
 // Modal States
 const isRejectModalOpen = ref(false);
 const isDocModalOpen = ref(false);
+const isImagePreviewOpen = ref(false);
+const previewImageSrc = ref("");
+const previewImageTitle = ref("");
 const isSubmitting = ref(false);
 const selectedPengepul = ref(null);
 const rejectionReason = ref("");
+
+const openImagePreview = (src, title) => {
+  previewImageSrc.value = src;
+  previewImageTitle.value = title;
+  isImagePreviewOpen.value = true;
+};
 
 // Fetch Data
 const fetchData = async () => {
@@ -213,9 +222,6 @@ const getFileUrl = (path) => {
                 <!-- Identitas -->
                 <td class="px-6 py-6">
                   <div class="flex items-start gap-3">
-                    <div class="p-2 bg-[#4A7043]/10 rounded-lg text-[#4A7043]">
-                      <Icon icon="material-symbols:business-outline" class="w-6 h-6" />
-                    </div>
                     <div class="flex flex-col">
                       <span class="font-bold text-gray-800 text-base">{{ pengepul.nama_lembaga }}</span>
                       <span class="text-xs text-[#4A7043] font-medium">@{{ pengepul.username }}</span>
@@ -333,34 +339,34 @@ const getFileUrl = (path) => {
       v-if="isRejectModalOpen"
       class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300"
     >
-      <div class="bg-white w-full max-w-lg rounded-[32px] overflow-hidden shadow-2xl animate-in zoom-in-95 duration-300">
+      <div class="bg-white w-full max-w-xl rounded-[32px] overflow-hidden shadow-2xl animate-in zoom-in-95 duration-300">
         <div class="p-8 space-y-6">
-          <h2 class="text-2xl font-bold text-gray-800">Tolak Pendaftaran</h2>
-          <p class="text-gray-600">
-            Anda akan menolak pendaftaran <span class="font-bold text-gray-800">{{ selectedPengepul?.nama_lembaga }}</span>
+          <h2 class="text-2xl font-black text-gray-800">Tolak Pendaftaran</h2>
+          <p class="text-base text-gray-500 font-medium leading-relaxed">
+            Anda akan menolak pendaftaran <span class="font-extrabold text-gray-800">{{ selectedPengepul?.nama_lembaga }}</span>
           </p>
           
-          <div class="space-y-1.5">
-            <label class="text-xs font-bold text-gray-500 uppercase tracking-wider ml-1">Alasan Penolakan *</label>
+          <div class="space-y-2">
+            <label class="text-xs font-black text-gray-400 uppercase tracking-widest ml-1">Alasan Penolakan *</label>
             <textarea 
               v-model="rejectionReason"
               placeholder="Jelaskan alasan penolakan (wajib diisi)"
               rows="4"
-              class="w-full bg-gray-50 border-none rounded-2xl p-4 focus:ring-2 focus:ring-[#7A3E3E] outline-none transition-all placeholder:text-gray-300 text-sm resize-none"
+              class="w-full bg-gray-50 border border-gray-100 rounded-3xl p-5 focus:ring-2 focus:ring-[#7A3E3E] outline-none transition-all placeholder:text-gray-400 text-base text-gray-700 resize-none shadow-inner"
             ></textarea>
           </div>
 
           <div class="flex gap-4">
             <button 
               @click="isRejectModalOpen = false"
-              class="flex-1 bg-gray-500 text-white py-4 rounded-2xl font-bold hover:bg-gray-600 transition-colors shadow-sm"
+              class="flex-1 bg-gray-500 text-white py-4 rounded-2xl font-black text-base hover:bg-gray-600 transition-colors shadow-sm"
             >
               Batal
             </button>
             <button 
               @click="handleReject"
               :disabled="isSubmitting || !rejectionReason.trim()"
-              class="flex-1 bg-[#7A3E3E] text-white py-4 rounded-2xl font-bold hover:bg-[#633232] transition-all shadow-md disabled:opacity-50"
+              class="flex-1 bg-[#7A3E3E] text-white py-4 rounded-2xl font-black text-base hover:bg-[#633232] transition-all shadow-md disabled:opacity-50"
             >
               {{ isSubmitting ? 'Memproses...' : 'Tolak Pendaftaran' }}
             </button>
@@ -374,65 +380,113 @@ const getFileUrl = (path) => {
       v-if="isDocModalOpen"
       class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300"
     >
-      <div class="bg-white w-full max-w-2xl rounded-[32px] overflow-hidden shadow-2xl animate-in zoom-in-95 duration-300">
+      <div class="bg-white w-full max-w-3xl rounded-[32px] overflow-hidden shadow-2xl animate-in zoom-in-95 duration-300">
         <div class="p-8 space-y-6">
           <div>
-            <h2 class="text-2xl font-bold text-gray-800">Dokumen Pendukung</h2>
-            <p class="text-gray-600">
+            <h2 class="text-2xl font-black text-gray-800">Dokumen Pendukung</h2>
+            <p class="text-gray-500 font-medium">
               Dokumen untuk <span class="font-bold text-gray-800">{{ selectedPengepul?.nama_lembaga }}</span>
             </p>
           </div>
           
           <div class="space-y-4">
             <!-- KTP -->
-            <div class="bg-gray-50 rounded-2xl p-6 flex items-center justify-between group hover:bg-gray-100 transition-colors">
-              <div class="flex items-center gap-4">
-                <div class="p-3 bg-white rounded-xl shadow-sm text-[#4A7043]">
+            <div class="bg-gray-50 rounded-2xl p-6 flex items-center justify-between group hover:bg-gray-100 transition-colors border border-gray-100">
+              <div class="flex items-center gap-4 min-w-0 flex-1 mr-4">
+                <div class="p-3 bg-white rounded-xl shadow-sm text-[#4A7043] shrink-0">
                   <Icon icon="material-symbols:badge-outline" class="w-8 h-8" />
                 </div>
-                <div class="flex flex-col">
-                  <span class="font-bold text-gray-800 text-lg uppercase">KTP</span>
-                  <span class="text-sm text-gray-400 italic">{{ selectedPengepul?.ktp || 'Tidak ada file' }}</span>
+                <div class="flex flex-col min-w-0">
+                  <span class="font-extrabold text-gray-800 text-base uppercase">KTP (Kartu Tanda Penduduk)</span>
+                  <span class="text-xs text-gray-400 mt-1 truncate" :title="selectedPengepul?.ktp">
+                    {{ selectedPengepul?.ktp || 'Tidak ada file' }}
+                  </span>
                 </div>
               </div>
-              <a 
+              <button 
                 v-if="selectedPengepul?.ktp"
-                :href="getFileUrl(selectedPengepul.ktp)" 
-                target="_blank"
-                class="bg-[#4A7043] text-white px-6 py-2.5 rounded-xl font-bold hover:bg-[#3d5d37] transition-all shadow-sm"
+                @click="openImagePreview(getFileUrl(selectedPengepul.ktp), 'KTP')"
+                class="bg-[#4A7043] text-white px-6 py-3 rounded-xl font-bold hover:bg-[#3d5d37] transition-all shadow-sm shrink-0 whitespace-nowrap"
               >
                 Lihat Dokumen
-              </a>
+              </button>
             </div>
 
             <!-- NPWP -->
-            <div class="bg-gray-50 rounded-2xl p-6 flex items-center justify-between group hover:bg-gray-100 transition-colors">
-              <div class="flex items-center gap-4">
-                <div class="p-3 bg-white rounded-xl shadow-sm text-[#4A7043]">
+            <div class="bg-gray-50 rounded-2xl p-6 flex items-center justify-between group hover:bg-gray-100 transition-colors border border-gray-100">
+              <div class="flex items-center gap-4 min-w-0 flex-1 mr-4">
+                <div class="p-3 bg-white rounded-xl shadow-sm text-[#4A7043] shrink-0">
                   <Icon icon="material-symbols:description-outline" class="w-8 h-8" />
                 </div>
-                <div class="flex flex-col">
-                  <span class="font-bold text-gray-800 text-lg uppercase">NPWP</span>
-                  <span class="text-sm text-gray-400 italic">{{ selectedPengepul?.npwp || 'Tidak ada file' }}</span>
+                <div class="flex flex-col min-w-0">
+                  <span class="font-extrabold text-gray-800 text-base uppercase">NPWP</span>
+                  <span class="text-xs text-gray-400 mt-1 truncate" :title="selectedPengepul?.npwp">
+                    {{ selectedPengepul?.npwp || 'Tidak ada file' }}
+                  </span>
                 </div>
               </div>
-              <a 
+              <button 
                 v-if="selectedPengepul?.npwp"
-                :href="getFileUrl(selectedPengepul.npwp)" 
-                target="_blank"
-                class="bg-[#4A7043] text-white px-6 py-2.5 rounded-xl font-bold hover:bg-[#3d5d37] transition-all shadow-sm"
+                @click="openImagePreview(getFileUrl(selectedPengepul.npwp), 'NPWP')"
+                class="bg-[#4A7043] text-white px-6 py-3 rounded-xl font-bold hover:bg-[#3d5d37] transition-all shadow-sm shrink-0 whitespace-nowrap"
               >
                 Lihat Dokumen
-              </a>
+              </button>
             </div>
           </div>
 
           <button 
             @click="isDocModalOpen = false"
-            class="w-full bg-gray-500 text-white py-4 rounded-2xl font-bold hover:bg-gray-600 transition-colors shadow-sm mt-4"
+            class="w-full bg-gray-500 text-white py-4 rounded-2xl font-black hover:bg-gray-600 transition-colors shadow-sm mt-4"
           >
             Tutup
           </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Image Preview Modal -->
+    <div 
+      v-if="isImagePreviewOpen"
+      class="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-300"
+      @click="isImagePreviewOpen = false"
+    >
+      <div 
+        class="relative bg-white max-w-4xl w-full rounded-[32px] overflow-hidden shadow-2xl p-6 flex flex-col items-center justify-center gap-4 animate-in zoom-in-95 duration-300"
+        @click.stop
+      >
+        <!-- Header -->
+        <div class="w-full flex items-center justify-between border-b border-gray-100 pb-4">
+          <h3 class="text-xl font-black text-gray-800">Pratinjau Dokumen - {{ previewImageTitle }}</h3>
+          <button 
+            @click="isImagePreviewOpen = false"
+            class="p-2 hover:bg-gray-100 rounded-full transition-colors text-gray-500 hover:text-gray-800"
+          >
+            <Icon icon="material-symbols:close" class="w-6 h-6" />
+          </button>
+        </div>
+
+        <!-- Image Content -->
+        <div class="w-full max-h-[70vh] flex items-center justify-center bg-gray-50 rounded-2xl overflow-hidden border border-gray-100 p-2">
+          <!-- If image -->
+          <img 
+            v-if="isImage(previewImageSrc.split('/').pop())"
+            :src="previewImageSrc" 
+            class="max-w-full max-h-[65vh] object-contain rounded-xl shadow-sm" 
+            alt="Preview Dokumen" 
+          />
+          <!-- If not image (e.g. PDF) -->
+          <div v-else class="flex flex-col items-center gap-4 py-20 text-gray-500">
+            <Icon icon="material-symbols:picture-as-pdf-outline" class="w-20 h-20 text-red-500" />
+            <p class="font-bold text-lg">Format dokumen tidak mendukung pratinjau langsung.</p>
+            <a 
+              :href="previewImageSrc" 
+              target="_blank" 
+              class="bg-[#4A7043] text-white px-6 py-3 rounded-xl font-bold hover:bg-[#3d5d37] transition-all shadow-sm"
+            >
+              Unduh / Buka di Tab Baru
+            </a>
+          </div>
         </div>
       </div>
     </div>

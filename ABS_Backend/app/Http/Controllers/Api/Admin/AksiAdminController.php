@@ -96,9 +96,15 @@ class AksiAdminController extends Controller
         $pengepul->save();
 
         // Kirim Email Diterima
-        Mail::to($pengepul->email)->send(new PengepulDiterima($pengepul));
+        try {
+            Mail::to($pengepul->email)->send(new PengepulDiterima($pengepul));
+            $emailStatus = 'dan notifikasi email terkirim';
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error("Gagal mengirim email terima pengepul: " . $e->getMessage());
+            $emailStatus = 'namun gagal mengirim notifikasi email';
+        }
 
-        return response()->json(['message' => 'Registrasi pengepul diterima dan notifikasi email terkirim'], 200);
+        return response()->json(['message' => 'Registrasi pengepul diterima ' . $emailStatus], 200);
     }
 
     /**
@@ -117,8 +123,14 @@ class AksiAdminController extends Controller
         $pengepul->save();
 
         // 3. Kirim Email Ditolak dengan menyertakan alasan
-        Mail::to($pengepul->email)->send(new PengepulDitolak($pengepul->nama, $pengepul->ket_status));
+        try {
+            Mail::to($pengepul->email)->send(new PengepulDitolak($pengepul->nama, $pengepul->ket_status));
+            $emailStatus = 'dan notifikasi email terkirim';
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error("Gagal mengirim email tolak pengepul: " . $e->getMessage());
+            $emailStatus = 'namun gagal mengirim notifikasi email';
+        }
 
-        return response()->json(['message' => 'Registrasi pengepul ditolak, status diubah menjadi nonaktif, dan notifikasi email terkirim'], 200);
+        return response()->json(['message' => 'Registrasi pengepul ditolak, status diubah menjadi nonaktif, ' . $emailStatus], 200);
     }
 }

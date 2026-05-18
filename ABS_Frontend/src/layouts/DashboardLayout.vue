@@ -80,6 +80,8 @@ const handleLogout = () => {
 const goToProfile = () => {
   if (role.value === 'nasabah') {
     router.push('/dashboard-nasabah/edit-profile');
+  } else if (role.value === 'pengepul') {
+    router.push('/dashboard-pengepul/edit-profile');
   }
 };
 
@@ -181,10 +183,10 @@ onMounted(() => {
             :class="cn('flex-1 text-left overflow-hidden transition-all duration-300 whitespace-nowrap', isSidebarCollapsed ? 'max-w-0 opacity-0' : 'max-w-xs opacity-100')"
           >
             <p class="font-black text-sm leading-tight truncate">
-              {{ role === 'nasabah' ? (user.username || 'Username') : (user.nama || user.name || 'Nama User') }}
+              {{ (role === 'nasabah' || role === 'pengepul') ? (user.username || 'Username') : (user.nama || user.name || 'Nama User') }}
             </p>
             <p class="text-[10px] font-bold text-white/60 mt-0.5">
-              {{ role === 'nasabah' ? (user.nama || 'Nama Nasabah') : (role === 'admin' ? 'Administrator' : (role ? role.charAt(0).toUpperCase() + role.slice(1) : 'Role')) }}
+              {{ (role === 'nasabah' || role === 'pengepul') ? (user.nama || 'Nama Lengkap') : (role === 'admin' ? 'Administrator' : (role ? role.charAt(0).toUpperCase() + role.slice(1) : 'Role')) }}
             </p>
           </div>
         </button>

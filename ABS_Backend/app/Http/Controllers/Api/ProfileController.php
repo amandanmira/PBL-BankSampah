@@ -138,4 +138,63 @@ class ProfileController extends Controller
             'message' => 'Password berhasil diperbarui'
         ]);
     }
+
+    public function updatePasswordPengepul(Request $request, string $id)
+    {
+        $request->validate([
+            'password' => 'required|string|min:6|confirmed',
+        ]);
+
+        $user = Pengepul::findOrFail($id);
+        $user->password = bcrypt($request->password);
+        $user->save();
+
+        return response()->json([
+            'message' => 'Password berhasil diperbarui'
+        ]);
+    }
+
+    public function uploadKtp(Request $request, string $id)
+    {
+        $request->validate([
+            'ktp' => 'required|file|mimes:jpg,jpeg,png,webp,pdf|max:5120',
+        ]);
+
+        $pengepul = Pengepul::findOrFail($id);
+
+        if ($request->hasFile('ktp')) {
+            $pathKtp = $request->file('ktp')->store('foto-ktp', 'public');
+            $pengepul->ktp = $pathKtp;
+            $pengepul->save();
+
+            return response()->json([
+                'message' => 'KTP berhasil diunggah',
+                'data' => $pengepul
+            ]);
+        }
+
+        return response()->json(['message' => 'File tidak ditemukan'], 400);
+    }
+
+    public function uploadNpwp(Request $request, string $id)
+    {
+        $request->validate([
+            'npwp' => 'required|file|mimes:jpg,jpeg,png,webp,pdf|max:5120',
+        ]);
+
+        $pengepul = Pengepul::findOrFail($id);
+
+        if ($request->hasFile('npwp')) {
+            $pathNpwp = $request->file('npwp')->store('foto-npwp', 'public');
+            $pengepul->npwp = $pathNpwp;
+            $pengepul->save();
+
+            return response()->json([
+                'message' => 'NPWP berhasil diunggah',
+                'data' => $pengepul
+            ]);
+        }
+
+        return response()->json(['message' => 'File tidak ditemukan'], 400);
+    }
 }

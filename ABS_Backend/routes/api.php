@@ -84,6 +84,9 @@ Route::prefix('manager')->middleware(['auth:sanctum', 'role:manager'])->group(fu
 Route::prefix('pengepul')->middleware(['auth:sanctum', 'role:pengepul'])->group(function () {
     Route::put('/edit-profile/{id}', [ProfileController::class, 'updatePengepul']);
     Route::get('/profile/{id}', [ProfileController::class, 'showPengepul']);
+    Route::put('/update-password/{id}', [ProfileController::class, 'updatePasswordPengepul']);
+    Route::post('/upload-ktp/{id}', [ProfileController::class, 'uploadKtp']);
+    Route::post('/upload-npwp/{id}', [ProfileController::class, 'uploadNpwp']);
 
     Route::get('/daftar-sampah', [RequestPembelianController::class, 'indexSampah']);
     Route::get('/request-pembelian/{pengepul_id}', [RequestPembelianController::class, 'index']);
