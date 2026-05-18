@@ -3,7 +3,7 @@
     <div class="max-w-4xl mx-auto pb-20">
       <!-- Detail Pembelian Section -->
       <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 mb-6">
-        <h3 class="text-sm font-bold text-gray-500 mb-6 flex items-center gap-2">
+        <h3 class="text-base font-bold text-gray-500 mb-6 flex items-center gap-2">
           Detail Pembelian ({{ cartStore.totalItems }} item)
         </h3>
         
@@ -25,29 +25,29 @@
             <div class="flex-1">
               <div class="flex items-start justify-between mb-1">
                 <div>
-                  <h4 class="font-bold text-gray-800 text-lg leading-tight">{{ item.item_sampah.nama }}</h4>
+                  <h4 class="font-bold text-gray-800 text-xl leading-tight">{{ item.item_sampah.nama }}</h4>
                   <div class="flex items-center gap-3 mt-1.5">
-                    <span class="bg-gray-100 text-gray-500 text-[9px] px-2 py-0.5 rounded-md font-bold uppercase tracking-wider">{{ item.item_sampah.kategori_sampah.nama_kategori }}</span>
+                    <span class="bg-gray-100 text-gray-500 text-xs px-2 py-0.5 rounded-md font-bold uppercase tracking-wider">{{ item.item_sampah.kategori_sampah.nama_kategori }}</span>
                     <div class="flex items-center gap-2">
                       <div class="w-2 h-2 rounded-full bg-blue-600 shadow-sm"></div>
-                      <span class="text-[10px] font-bold text-gray-600 uppercase tracking-widest">GUDANG {{ item.gudang_id }}</span>
+                      <span class="text-xs font-bold text-gray-600 uppercase tracking-widest">GUDANG {{ item.gudang_id }}</span>
                     </div>
                   </div>
                 </div>
               </div>
 
-              <div class="mt-2 text-xs text-gray-400 font-medium">
+              <div class="mt-2 text-sm text-gray-400 font-medium">
                 <span class="text-[#4A7043] font-bold">{{ formatCurrency(item.item_sampah.harga_jual * (1 - (parseFloat(item.item_sampah.diskon) || 0))) }}</span>
                 <span v-if="item.item_sampah.diskon && parseFloat(item.item_sampah.diskon) > 0" class="line-through ml-1">{{ formatCurrency(item.item_sampah.harga_jual) }}</span>
                 <span> /kg × {{ item.quantity }} kg</span>
               </div>
 
-              <div v-if="item.item_sampah.diskon && parseFloat(item.item_sampah.diskon) > 0" class="mt-1 flex items-center gap-1 text-[10px] font-bold text-red-500">
+              <div v-if="item.item_sampah.diskon && parseFloat(item.item_sampah.diskon) > 0" class="mt-1 flex items-center gap-1 text-xs font-bold text-red-500">
                 <Icon icon="material-symbols:sell-outline" class="w-3 h-3" />
                 Diskon {{ parseFloat(item.item_sampah.diskon) * 100 }}% - Hemat {{ formatCurrency(item.item_sampah.harga_jual * parseFloat(item.item_sampah.diskon) * item.quantity) }}
               </div>
 
-              <div class="mt-4 flex justify-between items-center text-sm">
+              <div class="mt-4 flex justify-between items-center text-base">
                 <span class="text-gray-400 font-medium">Subtotal:</span>
                 <span class="font-black text-gray-700">{{ formatCurrency((item.item_sampah.harga_jual * (1 - (parseFloat(item.item_sampah.diskon) || 0))) * item.quantity) }}</span>
               </div>
@@ -58,25 +58,25 @@
 
       <!-- Ringkasan Pembayaran Section -->
       <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 mb-6">
-        <h3 class="text-sm font-bold text-gray-500 mb-6">Ringkasan Pembayaran</h3>
+        <h3 class="text-base font-bold text-gray-500 mb-6">Ringkasan Pembayaran</h3>
         
         <div class="space-y-4">
-          <div class="flex justify-between text-sm text-gray-500">
+          <div class="flex justify-between text-base text-gray-500">
             <span>Total Harga</span>
             <span class="font-bold text-gray-700">{{ formatCurrency(totalBeforeDiscount) }}</span>
           </div>
-          <div class="flex justify-between text-sm text-red-500">
+          <div class="flex justify-between text-base text-red-500">
             <span>Total Diskon</span>
             <span class="font-bold">- {{ formatCurrency(totalSavings) }}</span>
           </div>
-          <div class="flex justify-between text-sm text-gray-500">
+          <div class="flex justify-between text-base text-gray-500">
             <span>Total Berat</span>
             <span class="font-bold text-gray-700">{{ cartStore.totalWeight }} kg</span>
           </div>
           
           <div class="pt-6 mt-2 border-t border-gray-100 flex justify-between items-center">
-            <h4 class="text-lg font-black text-gray-800">Total Pembayaran</h4>
-            <span class="text-2xl font-black text-[#A86444]">{{ formatCurrency(cartStore.totalPrice) }}</span>
+            <h4 class="text-xl font-black text-gray-800">Total Pembayaran</h4>
+            <span class="text-3xl font-black text-[#A86444]">{{ formatCurrency(cartStore.totalPrice) }}</span>
           </div>
         </div>
       </div>
@@ -85,17 +85,17 @@
       <div class="bg-blue-50 rounded-3xl p-8 mb-10 border border-blue-100/50">
         <div class="flex items-center gap-3 mb-8 text-[#1E40AF]">
           <Icon icon="material-symbols:info-outline" class="w-6 h-6" />
-          <h2 class="text-xl font-black">Alur Pembelian</h2>
+          <h2 class="text-2xl font-black">Alur Pembelian</h2>
         </div>
 
         <div class="space-y-6">
           <div v-for="(alur, index) in alurPembelian" :key="index" class="flex gap-4">
-            <div class="w-8 h-8 rounded-full bg-[#2563EB] flex items-center justify-center text-white font-bold shrink-0 text-sm shadow-sm">
+            <div class="w-8 h-8 rounded-full bg-[#2563EB] flex items-center justify-center text-white font-bold shrink-0 text-base shadow-sm">
               {{ index + 1 }}
             </div>
             <div>
-              <h4 class="font-bold text-gray-800 text-base mb-1">{{ alur.title }}</h4>
-              <p class="text-sm text-[#1E40AF]/70 leading-relaxed">{{ alur.desc }}</p>
+              <h4 class="font-bold text-gray-800 text-lg mb-1">{{ alur.title }}</h4>
+              <p class="text-base text-[#1E40AF]/70 leading-relaxed">{{ alur.desc }}</p>
             </div>
           </div>
         </div>
@@ -105,14 +105,14 @@
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <button
           @click="router.back()"
-          class="py-4 rounded-xl border-2 border-red-500 text-red-500 font-black text-sm hover:bg-red-50 transition-all flex items-center justify-center cursor-pointer"
+          class="py-4 rounded-xl border-2 border-red-500 text-red-500 font-black text-base hover:bg-red-50 transition-all flex items-center justify-center cursor-pointer"
         >
           Batal
         </button>
         <button
           @click="processFinalPayment"
           :disabled="processing"
-          class="py-4 rounded-xl bg-[#4A7043] text-white font-black text-sm hover:bg-[#3D5C37] transition-all flex items-center justify-center gap-2 shadow-lg shadow-[#4A7043]/20 disabled:opacity-50 cursor-pointer"
+          class="py-4 rounded-xl bg-[#4A7043] text-white font-black text-base hover:bg-[#3D5C37] transition-all flex items-center justify-center gap-2 shadow-lg shadow-[#4A7043]/20 disabled:opacity-50 cursor-pointer"
         >
           <Icon icon="material-symbols:account-balance-wallet-outline" class="w-5 h-5" />
           <span v-if="processing">Memproses...</span>

@@ -11,12 +11,12 @@
             v-model="searchQuery"
             type="text"
             placeholder="Cari sampah..."
-            class="w-full pl-11 pr-4 py-3 bg-white rounded-xl border-none shadow-sm focus:ring-2 focus:ring-[#4A7043] transition-all text-sm text-gray-700"
+            class="w-full pl-11 pr-4 py-3 bg-white rounded-xl border-none shadow-sm focus:ring-2 focus:ring-[#4A7043] transition-all text-base text-gray-700"
           />
         </div>
         <button
           @click="showTataCara = true"
-          class="flex items-center gap-2 px-6 py-3 bg-[#4A7043] hover:bg-[#3D5C37] text-white font-bold text-sm rounded-xl shadow-md transition-all active:scale-95 shrink-0 cursor-pointer"
+          class="flex items-center gap-2 px-6 py-3 bg-[#4A7043] hover:bg-[#3D5C37] text-white font-bold text-base rounded-xl shadow-md transition-all active:scale-95 shrink-0 cursor-pointer"
         >
           <Icon icon="material-symbols:menu-book-outline" class="w-5 h-5" />
           Tata Cara
@@ -24,12 +24,12 @@
       </div>
 
       <div class="mb-4">
-        <h2 class="text-lg font-bold text-gray-800 mb-3">Daftar Sampah Tersedia</h2>
+        <h2 class="text-xl font-bold text-gray-800 mb-3">Daftar Sampah Tersedia</h2>
         <div class="flex flex-wrap gap-2">
           <button
             @click="selectedGudang = null"
             :class="[
-              'px-4 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer',
+              'px-4 py-1.5 rounded-full text-sm font-semibold transition-all cursor-pointer',
               selectedGudang === null
                 ? 'bg-[#4A7043] text-white shadow-md'
                 : 'bg-white text-gray-600 hover:bg-gray-100'
@@ -42,7 +42,7 @@
             :key="g.gudang_id"
             @click="selectedGudang = g.gudang_id"
             :class="[
-              'px-4 py-1.5 rounded-full text-xs font-semibold transition-all flex items-center gap-2 cursor-pointer',
+              'px-4 py-1.5 rounded-full text-sm font-semibold transition-all flex items-center gap-2 cursor-pointer',
               selectedGudang === g.gudang_id
                 ? 'bg-[#4A7043] text-white shadow-md'
                 : 'bg-white text-gray-600 hover:bg-gray-100'
@@ -61,7 +61,7 @@
 
     <div v-else-if="filteredSampah.length === 0" class="flex flex-col items-center justify-center py-20 text-gray-500 bg-white rounded-[2rem] shadow-sm border border-gray-100">
       <Icon icon="material-symbols:inventory-2-outline" class="w-12 h-12 mb-3 opacity-20" />
-      <p class="text-sm">Tidak ada sampah yang tersedia.</p>
+      <p class="text-base">Tidak ada sampah yang tersedia.</p>
     </div>
 
     <div v-else>
@@ -81,15 +81,15 @@
           />
           <div v-else class="w-full h-full flex flex-col items-center justify-center text-gray-300 scale-75">
             <Icon icon="material-symbols:image-not-supported-outline" class="w-10 h-10 mb-1" />
-            <span class="text-[9px]">No Image</span>
+            <span class="text-xs">No Image</span>
           </div>
 
           <!-- Discount Badge (Top Right) -->
-          <div v-if="item.item_sampah.diskon && parseFloat(item.item_sampah.diskon) > 0" class="absolute top-0 right-0 bg-red-600 text-white px-4 py-2 rounded-bl-2xl text-xs font-black shadow-lg z-10">
+          <div v-if="item.item_sampah.diskon && parseFloat(item.item_sampah.diskon) > 0" class="absolute top-0 right-0 bg-red-600 text-white px-4 py-2 rounded-bl-2xl text-sm font-black shadow-lg z-10">
             {{ parseFloat(item.item_sampah.diskon) * 100 }}% OFF
           </div>
           <div class="absolute bottom-2 left-2">
-            <span class="bg-white/90 backdrop-blur-sm text-[#A86444] text-[8px] font-bold px-2 py-0.5 rounded-full border border-[#A86444]/10">
+            <span class="bg-white/90 backdrop-blur-sm text-[#A86444] text-[11px] font-bold px-2 py-0.5 rounded-full border border-[#A86444]/10">
               {{ item.item_sampah.kategori_sampah.nama_kategori }}
             </span>
           </div>
@@ -98,23 +98,23 @@
         <!-- Content -->
         <div class="p-3">
           <div class="mb-2">
-            <h3 class="font-bold text-gray-800 text-lg leading-tight truncate">{{ item.item_sampah.nama }}</h3>
+            <h3 class="font-bold text-gray-800 text-xl leading-tight truncate">{{ item.item_sampah.nama }}</h3>
             <div class="flex items-center gap-2 mt-2">
               <div class="w-2 h-2 rounded-full bg-blue-600 shadow-sm"></div>
-              <span class="text-[10px] font-bold text-gray-600 uppercase tracking-widest">GUDANG {{ item.gudang_id }}</span>
+              <span class="text-xs font-bold text-gray-600 uppercase tracking-widest">GUDANG {{ item.gudang_id }}</span>
             </div>
           </div>
 
           <div class="bg-gray-50 rounded-xl p-2 mb-3 flex justify-between items-center">
             <div>
               <div class="flex items-baseline gap-0.5">
-                <span class="text-sm font-black text-[#A86444]">{{ formatCurrency(item.item_sampah.harga_jual * (1 - parseFloat(item.item_sampah.diskon || 0))) }}</span>
-                <span class="text-[12px] font-bold text-gray-400">/kg</span>
+                <span class="text-base font-black text-[#A86444]">{{ formatCurrency(item.item_sampah.harga_jual * (1 - parseFloat(item.item_sampah.diskon || 0))) }}</span>
+                <span class="text-sm font-bold text-gray-400">/kg</span>
               </div>
             </div>
             <div class="flex items-center gap-0.5 text-amber-600">
               <Icon icon="material-symbols:inventory-2-outline" class="w-2.5 h-2.5" />
-              <span class="text-[12px] font-bold">{{ item.stok }}kg</span>
+              <span class="text-sm font-bold">{{ item.stok }}kg</span>
             </div>
           </div>
 
@@ -130,7 +130,7 @@
               <input
                 v-model.number="itemQuantities[item.sampah_id]"
                 type="number"
-                class="w-full text-center border-none focus:ring-0 font-bold text-sm text-gray-700 bg-transparent p-0"
+                class="w-full text-center border-none focus:ring-0 font-bold text-base text-gray-700 bg-transparent p-0"
                 min="0"
                 :max="item.stok"
               />
@@ -142,14 +142,14 @@
               </button>
             </div>
 
-            <div class="text-center text-[12px] font-bold text-gray-400">
+            <div class="text-center text-sm font-bold text-gray-400">
               Total: <span class="text-[#A86444]">{{ formatCurrency((item.item_sampah.harga_jual * (1 - parseFloat(item.item_sampah.diskon || 0))) * (itemQuantities[item.sampah_id] || 0)) }}</span>
             </div>
 
             <button
               @click="addToCart(item)"
               :disabled="!itemQuantities[item.sampah_id] || itemQuantities[item.sampah_id] <= 0"
-              class="w-full py-2.5 rounded-xl bg-white border-2 border-[#4A7043] text-[#4A7043] font-black text-xs hover:bg-[#4A7043] hover:text-white transition-all disabled:opacity-30 flex items-center justify-center gap-2 shadow-sm cursor-pointer"
+              class="w-full py-2.5 rounded-xl bg-white border-2 border-[#4A7043] text-[#4A7043] font-black text-sm hover:bg-[#4A7043] hover:text-white transition-all disabled:opacity-30 flex items-center justify-center gap-2 shadow-sm cursor-pointer"
             >
               <Icon icon="material-symbols:shopping-cart-outline" class="w-4 h-4" />
               Tambah
@@ -174,7 +174,7 @@
             :key="page"
             @click="currentPage = page"
             :class="[
-              'w-10 h-10 rounded-xl font-bold text-sm transition-all cursor-pointer shadow-sm flex items-center justify-center',
+              'w-10 h-10 rounded-xl font-bold text-base transition-all cursor-pointer shadow-sm flex items-center justify-center',
               currentPage === page
                 ? 'bg-[#4A7043] text-white'
                 : 'bg-white text-gray-500 border border-gray-100 hover:bg-gray-50'
@@ -202,29 +202,29 @@
       <div class="bg-[#4A7043]/95 backdrop-blur-md rounded-2xl p-4 shadow-2xl flex items-center justify-between text-white border border-white/10">
         <div class="flex items-center gap-4">
           <div class="flex flex-col">
-            <span class="text-[9px] font-bold uppercase tracking-wider text-white/60">Total</span>
-            <span class="text-xl font-black">{{ formatCurrency(cartStore.totalPrice) }}</span>
+            <span class="text-xs font-bold uppercase tracking-wider text-white/60">Total</span>
+            <span class="text-2xl font-black">{{ formatCurrency(cartStore.totalPrice) }}</span>
           </div>
           <div class="h-8 w-[1px] bg-white/20"></div>
           <div class="flex flex-col">
-            <span class="text-[9px] font-bold uppercase tracking-wider text-white/60">Berat</span>
-            <span class="text-sm font-bold">{{ cartStore.totalWeight }} kg</span>
+            <span class="text-xs font-bold uppercase tracking-wider text-white/60">Berat</span>
+            <span class="text-base font-bold">{{ cartStore.totalWeight }} kg</span>
           </div>
         </div>
         <div class="flex items-center gap-3">
           <button
             @click="showAlurPembelian = true"
-            class="bg-white/10 hover:bg-white/20 text-white px-4 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2 transition-all active:scale-95 border border-white/10"
+            class="bg-white/10 hover:bg-white/20 text-white px-4 py-2.5 rounded-xl font-bold text-sm flex items-center gap-2 transition-all active:scale-95 border border-white/10"
           >
             <Icon icon="material-symbols:info-outline" class="w-4 h-4" />
             Alur Pembelian
           </button>
           <button
             @click="router.push('/dashboard-pengepul/keranjang')"
-            class="bg-white text-[#4A7043] px-6 py-2.5 rounded-xl font-black text-xs flex items-center gap-2 hover:bg-[#F5F5F0] transition-all hover:scale-105 active:scale-95 shadow-lg"
+            class="bg-white text-[#4A7043] px-6 py-2.5 rounded-xl font-black text-sm flex items-center gap-2 hover:bg-[#F5F5F0] transition-all hover:scale-105 active:scale-95 shadow-lg"
           >
             KERANJANG
-            <div class="bg-[#4A7043] text-white w-5 h-5 rounded-full flex items-center justify-center text-[9px]">
+            <div class="bg-[#4A7043] text-white w-5 h-5 rounded-full flex items-center justify-center text-xs">
               {{ cartStore.totalItems }}
             </div>
           </button>
@@ -240,8 +240,8 @@
       <!-- Modal Content -->
       <div class="relative bg-[#F9F9F5] w-full max-w-xl max-h-[90vh] overflow-y-auto rounded-[2rem] shadow-2xl animate-in zoom-in-95 duration-300">
         <div class="p-8">
-          <h2 class="text-2xl font-black text-gray-800 mb-2">Tata Cara Pengambilan Sampah</h2>
-          <p class="text-sm text-gray-500 mb-8">Ikuti langkah-langkah berikut untuk melakukan transaksi pembelian sampah dengan lancar.</p>
+          <h2 class="text-3xl font-black text-gray-800 mb-2">Tata Cara Pengambilan Sampah</h2>
+          <p class="text-base text-gray-500 mb-8">Ikuti langkah-langkah berikut untuk melakukan transaksi pembelian sampah dengan lancar.</p>
 
           <!-- Steps -->
           <div class="space-y-6 mb-8 relative">
@@ -254,7 +254,7 @@
               </div>
               <div class="pt-1">
                 <h3 class="font-bold text-[#4A7043] mb-1">{{ step.title }}</h3>
-                <p class="text-sm text-gray-600 leading-relaxed">{{ step.desc }}</p>
+                <p class="text-base text-gray-600 leading-relaxed">{{ step.desc }}</p>
               </div>
             </div>
           </div>
@@ -266,7 +266,7 @@
               <h4 class="font-bold">Catatan Penting</h4>
             </div>
             <ul class="space-y-2">
-              <li v-for="(note, index) in notes" :key="index" class="flex gap-2 text-sm text-[#3B7A77]/80 leading-relaxed">
+              <li v-for="(note, index) in notes" :key="index" class="flex gap-2 text-base text-[#3B7A77]/80 leading-relaxed">
                 <span class="mt-1.5 w-1.5 h-1.5 rounded-full bg-[#3B7A77] shrink-0"></span>
                 {{ note }}
               </li>
@@ -279,7 +279,7 @@
           <div class="flex justify-end">
             <button
               @click="showTataCara = false"
-              class="px-8 py-3 bg-[#4A7043] text-white font-black text-sm rounded-xl hover:bg-[#3D5C37] transition-all shadow-lg active:scale-95"
+              class="px-8 py-3 bg-[#4A7043] text-white font-black text-base rounded-xl hover:bg-[#3D5C37] transition-all shadow-lg active:scale-95"
             >
               Mengerti
             </button>
@@ -294,17 +294,17 @@
         <div class="p-8">
           <div class="flex items-center gap-3 mb-8 text-[#1E40AF]">
             <Icon icon="material-symbols:info-outline" class="w-6 h-6" />
-            <h2 class="text-xl font-black">Alur Pembelian</h2>
+            <h2 class="text-2xl font-black">Alur Pembelian</h2>
           </div>
 
           <div class="space-y-8">
             <div v-for="(alur, index) in alurPembelian" :key="index" class="flex gap-4">
-              <div class="w-8 h-8 rounded-full bg-[#2563EB] flex items-center justify-center text-white font-bold shrink-0 text-sm shadow-sm">
+              <div class="w-8 h-8 rounded-full bg-[#2563EB] flex items-center justify-center text-white font-bold shrink-0 text-base shadow-sm">
                 {{ index + 1 }}
               </div>
               <div>
-                <h4 class="font-bold text-gray-800 text-sm mb-1">{{ alur.title }}</h4>
-                <p class="text-xs text-gray-500 leading-relaxed">{{ alur.desc }}</p>
+                <h4 class="font-bold text-gray-800 text-base mb-1">{{ alur.title }}</h4>
+                <p class="text-sm text-gray-500 leading-relaxed">{{ alur.desc }}</p>
               </div>
             </div>
           </div>
@@ -312,7 +312,7 @@
           <div class="mt-10 flex justify-end">
             <button
               @click="showAlurPembelian = false"
-              class="px-8 py-2.5 bg-[#2563EB] text-white font-bold text-sm rounded-xl hover:bg-[#1E40AF] transition-all shadow-lg active:scale-95 cursor-pointer"
+              class="px-8 py-2.5 bg-[#2563EB] text-white font-bold text-base rounded-xl hover:bg-[#1E40AF] transition-all shadow-lg active:scale-95 cursor-pointer"
             >
               Mengerti
             </button>
