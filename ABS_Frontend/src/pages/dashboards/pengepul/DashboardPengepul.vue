@@ -1,148 +1,195 @@
 <template>
   <DashboardLayout title="Dashboard">
     <div class="space-y-6">
-      <!-- Info Header -->
-      <div class="flex items-center justify-between">
-        <div class="bg-amber-100 border-l-4 border-amber-500 text-amber-700 p-4 rounded-r-lg w-full">
-          <p class="font-bold">*Statis</p>
-          <p class="text-sm">Halaman ini saat ini menggunakan data statis untuk keperluan demo tampilan.</p>
-        </div>
+      
+      <!-- Loading State -->
+      <div v-if="loading" class="flex flex-col items-center justify-center py-32 bg-white rounded-[2rem] border border-stone-100 shadow-xs">
+        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-[#4A7043]"></div>
+        <p class="text-sm font-semibold text-stone-500 mt-4">Memuat data dashboard...</p>
       </div>
 
-      <!-- Top Stats Cards -->
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <!-- Total Pengeluaran -->
-        <div class="bg-white p-6 rounded-[2rem] shadow-sm border border-gray-100 flex flex-col gap-4">
-          <div class="flex justify-between items-start">
-            <div class="w-12 h-12 rounded-full bg-[#E8F0E5] flex items-center justify-center">
-              <Icon icon="material-symbols:attach-money" class="w-6 h-6 text-[#4A7043]" />
-            </div>
-            <Icon icon="material-symbols:trending-up" class="w-6 h-6 text-[#4CAF50]" />
-          </div>
-          <div>
-            <p class="text-gray-500 text-sm font-medium">Total Pengeluaran</p>
-            <p class="text-2xl font-bold text-gray-800">Rp 21.600</p>
-          </div>
-        </div>
-
-        <!-- Total Sampah Terkumpul -->
-        <div class="bg-white p-6 rounded-[2rem] shadow-sm border border-gray-100 flex flex-col gap-4">
-          <div class="flex justify-between items-start">
-            <div class="w-12 h-12 rounded-full bg-[#E8F0E5] flex items-center justify-center">
-              <Icon icon="material-symbols:inventory-2" class="w-6 h-6 text-[#4A7043]" />
-            </div>
-            <Icon icon="material-symbols:trending-up" class="w-6 h-6 text-[#4CAF50]" />
-          </div>
-          <div>
-            <p class="text-gray-500 text-sm font-medium">Total Sampah Terkumpul</p>
-            <p class="text-2xl font-bold text-gray-800">8.00 kg</p>
-          </div>
-        </div>
-
-        <!-- Pesanan Aktif -->
-        <div class="bg-white p-6 rounded-[2rem] shadow-sm border border-gray-100 flex flex-col gap-4">
-          <div class="flex justify-between items-start">
-            <div class="w-12 h-12 rounded-full bg-[#F5E6E0] flex items-center justify-center">
-              <Icon icon="material-symbols:shopping-cart" class="w-6 h-6 text-[#A86444]" />
-            </div>
-          </div>
-          <div>
-            <p class="text-gray-500 text-sm font-medium">Pesanan Aktif</p>
-            <p class="text-2xl font-bold text-gray-800">2 Pesanan</p>
-          </div>
-        </div>
-      </div>
-
-      <!-- Chart and Status Active Orders -->
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <!-- Bar Chart -->
-        <div class="lg:col-span-2 bg-white p-8 rounded-[2rem] shadow-sm border border-gray-100">
-          <h3 class="text-lg font-bold text-gray-800 mb-6">Tren Pembelian (Bulan Ini) dalam kg</h3>
-          <div class="h-64">
-            <apexchart
-              type="bar"
-              :options="chartOptions"
-              :series="chartSeries"
-              height="100%"
-            />
-          </div>
-        </div>
-
-        <!-- Status Pesanan Aktif -->
-        <div class="bg-white p-8 rounded-[2rem] shadow-sm border border-gray-100 flex flex-col">
-          <h3 class="text-lg font-bold text-gray-800 mb-6">Status Pesanan Aktif</h3>
-          <div class="space-y-4 flex-1">
-            <div class="p-4 rounded-2xl border border-gray-100 space-y-2">
-              <div class="flex justify-between items-center">
-                <span class="font-bold text-sm text-gray-700">#1713456789012</span>
-                <span class="px-3 py-1 bg-green-100 text-green-700 text-[10px] font-bold rounded-full">Diproses</span>
-              </div>
-              <div class="text-xs text-gray-500">
-                <p>Plastik PET</p>
-                <p>35 kg</p>
-              </div>
-            </div>
-            <div class="p-4 rounded-2xl border border-gray-100 space-y-2">
-              <div class="flex justify-between items-center">
-                <span class="font-bold text-sm text-gray-700">#1713256789014</span>
-                <span class="px-3 py-1 bg-amber-100 text-amber-700 text-[10px] font-bold rounded-full">Siap Diambil</span>
-              </div>
-              <div class="text-xs text-gray-500">
-                <p>Botol Kaca</p>
-                <p>80 kg</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Market Insights -->
-      <div class="bg-white p-8 rounded-[2rem] shadow-sm border border-gray-100">
-        <h3 class="text-lg font-bold text-gray-800 mb-6">Peluang Pembelian & Market Insights</h3>
+      <div v-else class="space-y-6 animate-in fade-in duration-500">
+        <!-- Top Stats Cards -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <!-- Card 1 -->
-          <div class="bg-[#F2F6F1] p-6 rounded-2xl border-l-4 border-[#4A7043] flex flex-col gap-4">
-            <div class="flex items-center gap-2">
-              <Icon icon="material-symbols:trending-up" class="w-4 h-4 text-[#4A7043]" />
-              <span class="text-[10px] font-bold text-[#4A7043] uppercase">Ketersediaan Tinggi</span>
+          <!-- Total Pengeluaran -->
+          <div class="bg-white p-6 rounded-[2rem] shadow-sm border border-gray-100 flex flex-col gap-4">
+            <div class="flex justify-between items-start">
+              <div class="w-12 h-12 rounded-full bg-[#E8F0E5] flex items-center justify-center">
+                <Icon icon="material-symbols:attach-money" class="w-6 h-6 text-[#4A7043]" />
+              </div>
+              <Icon icon="material-symbols:trending-up" class="w-6 h-6 text-[#4CAF50]" />
             </div>
             <div>
-              <h4 class="font-bold text-gray-800">Kertas HVS</h4>
-              <p class="text-xs text-gray-500 mt-1">Gudang 1 - 800kg</p>
+              <p class="text-gray-500 text-sm font-medium">Total Pengeluaran</p>
+              <p class="text-2xl font-bold text-gray-800">{{ formatCurrency(dashboardData.total_pengeluaran || 0) }}</p>
             </div>
-            <button class="text-xs font-bold text-[#4A7043] flex items-center gap-1 hover:gap-2 transition-all cursor-pointer">
-              Beli Sekarang <Icon icon="material-symbols:arrow-forward" />
-            </button>
           </div>
 
-          <!-- Card 2 -->
-          <div class="bg-[#FFF5F5] p-6 rounded-2xl border-l-4 border-red-500 flex flex-col gap-4">
-            <div class="flex items-center gap-2">
-              <Icon icon="material-symbols:warning-outline" class="w-4 h-4 text-red-500" />
-              <span class="text-[10px] font-bold text-red-500 uppercase">Stok Menipis</span>
+          <!-- Total Sampah Terkumpul -->
+          <div class="bg-white p-6 rounded-[2rem] shadow-sm border border-gray-100 flex flex-col gap-4">
+            <div class="flex justify-between items-start">
+              <div class="w-12 h-12 rounded-full bg-[#E8F0E5] flex items-center justify-center">
+                <Icon icon="material-symbols:inventory-2" class="w-6 h-6 text-[#4A7043]" />
+              </div>
+              <Icon icon="material-symbols:trending-up" class="w-6 h-6 text-[#4CAF50]" />
             </div>
             <div>
-              <h4 class="font-bold text-gray-800">Kaleng Aluminium</h4>
-              <p class="text-xs text-gray-500 mt-1">Sisa: 50kg</p>
+              <p class="text-gray-500 text-sm font-medium">Total Sampah Terkumpul</p>
+              <p class="text-2xl font-bold text-gray-800">{{ (dashboardData.total_sampah || 0).toFixed(2) }} kg</p>
             </div>
-            <button class="text-xs font-bold text-red-500 flex items-center gap-1 hover:gap-2 transition-all cursor-pointer">
-              Beli Sekarang <Icon icon="material-symbols:arrow-forward" />
-            </button>
           </div>
 
-          <!-- Card 3 -->
-          <div class="bg-[#F1F6F7] p-6 rounded-2xl border-l-4 border-cyan-500 flex flex-col gap-4">
-            <div class="flex items-center gap-2">
-              <Icon icon="material-symbols:trending-down" class="w-4 h-4 text-cyan-500" />
-              <span class="text-[10px] font-bold text-cyan-500 uppercase">Harga Turun</span>
+          <!-- Pesanan Aktif -->
+          <div class="bg-white p-6 rounded-[2rem] shadow-sm border border-gray-100 flex flex-col gap-4">
+            <div class="flex justify-between items-start">
+              <div class="w-12 h-12 rounded-full bg-[#F5E6E0] flex items-center justify-center">
+                <Icon icon="material-symbols:shopping-cart" class="w-6 h-6 text-[#A86444]" />
+              </div>
             </div>
             <div>
-              <h4 class="font-bold text-gray-800">Botol Kaca</h4>
-              <p class="text-xs text-gray-500 mt-1">Turun Rp 200/kg</p>
+              <p class="text-gray-500 text-sm font-medium">Pesanan Aktif</p>
+              <p class="text-2xl font-bold text-gray-800">{{ dashboardData.pesanan_aktif_count || 0 }} Pesanan</p>
             </div>
-            <button class="text-xs font-bold text-cyan-500 flex items-center gap-1 hover:gap-2 transition-all cursor-pointer">
-              Beli Sekarang <Icon icon="material-symbols:arrow-forward" />
-            </button>
+          </div>
+        </div>
+
+        <!-- Chart and Status Active Orders -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <!-- Bar Chart -->
+          <div class="lg:col-span-2 bg-white p-8 rounded-[2rem] shadow-sm border border-gray-100">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-3">
+              <h3 class="text-lg font-bold text-gray-800">
+                Tren Pembelian (Bulan Ini) <span class="text-sm font-normal text-gray-400">dalam {{ activeFilter === 'berat' ? 'kg' : 'item' }}</span>
+              </h3>
+              
+              <!-- Weight/Item Filter Toggle Buttons -->
+              <div class="flex bg-stone-100 p-1 rounded-xl shrink-0 self-start">
+                <button
+                  @click="activeFilter = 'berat'"
+                  :class="[
+                    'px-4 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer',
+                    activeFilter === 'berat'
+                      ? 'bg-white text-[#4A7043] shadow-xs'
+                      : 'text-stone-500 hover:text-stone-800 bg-transparent'
+                  ]"
+                >
+                  Berat (kg)
+                </button>
+                <button
+                  @click="activeFilter = 'item'"
+                  :class="[
+                    'px-4 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer',
+                    activeFilter === 'item'
+                      ? 'bg-white text-[#4A7043] shadow-xs'
+                      : 'text-stone-500 hover:text-stone-800 bg-transparent'
+                  ]"
+                >
+                  Item (Qty)
+                </button>
+              </div>
+            </div>
+
+            <div class="h-64">
+              <apexchart
+                :key="activeFilter"
+                type="bar"
+                :options="chartOptions"
+                :series="chartSeries"
+                height="100%"
+              />
+            </div>
+          </div>
+
+          <!-- Status Pesanan Aktif -->
+          <div class="bg-white p-8 rounded-[2rem] shadow-sm border border-gray-100 flex flex-col">
+            <h3 class="text-lg font-bold text-gray-800 mb-6">Status Pesanan Aktif</h3>
+            <div class="space-y-4 flex-1 overflow-y-auto max-h-[300px] pr-1">
+              <div 
+                v-for="order in dashboardData.pesanan_aktif" 
+                :key="order.transaksi_id"
+                @click="router.push(`/dashboard-pengepul/request-pembelian/show/${order.transaksi_id}`)"
+                class="p-4 rounded-2xl border border-gray-100 space-y-2 hover:border-[#4A7043]/30 hover:shadow-xs transition-all cursor-pointer group"
+              >
+                <div class="flex justify-between items-center">
+                  <span class="font-bold text-sm text-gray-700 group-hover:text-[#4A7043] transition-colors">
+                    PSN-{{ String(order.transaksi_id).padStart(3, '0') }}
+                  </span>
+                  <span :class="[
+                    'px-2.5 py-0.5 text-[9px] font-extrabold rounded-full border tracking-wide uppercase',
+                    order.status === 'pending' ? 'bg-amber-50 text-amber-700 border-amber-200' :
+                    order.status === 'proses' ? (order.bukti_transfer ? 'bg-sky-50 text-sky-700 border-sky-200' : 'bg-orange-50 text-orange-700 border-orange-200') :
+                    'bg-green-50 text-green-700 border-green-200'
+                  ]">
+                    {{ formatStatus(order.status, order.bukti_transfer) }}
+                  </span>
+                </div>
+                <div class="text-xs text-gray-500 space-y-1">
+                  <p class="truncate font-medium text-stone-600">{{ order.items_summary || 'Tidak ada deskripsi item' }}</p>
+                  <p class="font-bold text-[#A86444]">{{ order.total_berat }} kg</p>
+                </div>
+              </div>
+
+              <!-- Empty State -->
+              <div v-if="!dashboardData.pesanan_aktif || dashboardData.pesanan_aktif.length === 0" class="flex flex-col items-center justify-center py-16 text-stone-400">
+                <Icon icon="material-symbols:shopping-cart-outline" class="w-12 h-12 opacity-20 mb-2" />
+                <p class="text-xs font-semibold">Tidak ada pesanan aktif</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Market Insights (Static Section with Badge) -->
+        <div class="bg-white p-8 rounded-[2rem] shadow-sm border border-gray-100">
+          <div class="flex items-center mb-6">
+            <h3 class="text-lg font-bold text-gray-800">Peluang Pembelian & Market Insights</h3>
+            <span class="bg-amber-50 text-amber-700 text-[10px] font-extrabold px-2.5 py-0.5 rounded-full ml-3 tracking-wider uppercase border border-amber-200/60 shadow-2xs">*Statis</span>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <!-- Card 1 -->
+            <div class="bg-[#F2F6F1] p-6 rounded-2xl border-l-4 border-[#4A7043] flex flex-col gap-4">
+              <div class="flex items-center gap-2">
+                <Icon icon="material-symbols:trending-up" class="w-4 h-4 text-[#4A7043]" />
+                <span class="text-[10px] font-bold text-[#4A7043] uppercase">Ketersediaan Tinggi</span>
+              </div>
+              <div>
+                <h4 class="font-bold text-gray-800">Kertas HVS</h4>
+                <p class="text-xs text-gray-500 mt-1">Gudang 1 - 800kg</p>
+              </div>
+              <button @click="router.push('/dashboard-pengepul/beli-sampah')" class="text-xs font-bold text-[#4A7043] flex items-center gap-1 hover:gap-2 transition-all cursor-pointer">
+                Beli Sekarang <Icon icon="material-symbols:arrow-forward" />
+              </button>
+            </div>
+
+            <!-- Card 2 -->
+            <div class="bg-[#FFF5F5] p-6 rounded-2xl border-l-4 border-red-500 flex flex-col gap-4">
+              <div class="flex items-center gap-2">
+                <Icon icon="material-symbols:warning-outline" class="w-4 h-4 text-red-500" />
+                <span class="text-[10px] font-bold text-red-500 uppercase">Stok Menipis</span>
+              </div>
+              <div>
+                <h4 class="font-bold text-gray-800">Kaleng Aluminium</h4>
+                <p class="text-xs text-gray-500 mt-1">Sisa: 50kg</p>
+              </div>
+              <button @click="router.push('/dashboard-pengepul/beli-sampah')" class="text-xs font-bold text-red-500 flex items-center gap-1 hover:gap-2 transition-all cursor-pointer">
+                Beli Sekarang <Icon icon="material-symbols:arrow-forward" />
+              </button>
+            </div>
+
+            <!-- Card 3 -->
+            <div class="bg-[#F1F6F7] p-6 rounded-2xl border-l-4 border-cyan-500 flex flex-col gap-4">
+              <div class="flex items-center gap-2">
+                <Icon icon="material-symbols:trending-down" class="w-4 h-4 text-cyan-500" />
+                <span class="text-[10px] font-bold text-cyan-500 uppercase">Harga Turun</span>
+              </div>
+              <div>
+                <h4 class="font-bold text-gray-800">Botol Kaca</h4>
+                <p class="text-xs text-gray-500 mt-1">Turun Rp 200/kg</p>
+              </div>
+              <button @click="router.push('/dashboard-pengepul/beli-sampah')" class="text-xs font-bold text-cyan-500 flex items-center gap-1 hover:gap-2 transition-all cursor-pointer">
+                Beli Sekarang <Icon icon="material-symbols:arrow-forward" />
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -151,7 +198,8 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, computed, onMounted, inject } from 'vue'
+import { useRouter } from 'vue-router'
 import DashboardLayout from '@/layouts/DashboardLayout.vue'
 import { Icon } from '@iconify/vue'
 import VueApexCharts from 'vue3-apexcharts'
@@ -162,44 +210,148 @@ checkRole('pengepul')
 
 // Register component locally
 const apexchart = VueApexCharts
+const router = useRouter()
+const axios = inject('axios')
 
-const chartOptions = {
-  chart: {
-    toolbar: { show: false },
-    fontFamily: 'Inter, sans-serif'
-  },
-  plotOptions: {
-    bar: {
-      borderRadius: 10,
-      columnWidth: '60%',
-      distributed: true
-    }
-  },
-  dataLabels: { enabled: false },
-  legend: { show: false },
-  colors: ['#BFCAB8', '#4A7043', '#BFCAB8', '#BFCAB8'],
-  xaxis: {
-    categories: ['Minggu 1', 'Minggu 2', 'Minggu 3', 'Minggu 4'],
-    axisBorder: { show: false },
-    axisTicks: { show: false }
-  },
-  yaxis: {
-    labels: {
-      style: { colors: '#9CA3AF' }
-    }
-  },
-  grid: {
-    borderColor: '#F3F4F6',
-    strokeDashArray: 4,
-    xaxis: { lines: { show: false } }
-  },
-  tooltip: {
-    theme: 'light'
+const loading = ref(true)
+const dashboardData = ref({})
+const activeFilter = ref('berat') // 'berat' or 'item'
+
+// User info
+const user = computed(() => {
+  try {
+    return JSON.parse(sessionStorage.getItem("user") || "{}")
+  } catch (e) {
+    return {}
+  }
+})
+
+const fetchDashboardStats = async () => {
+  try {
+    const id = user.value.pengepul_id
+    if (!id) return
+    const res = await axios.get(`/api/pengepul/dashboard/${id}`)
+    dashboardData.value = res.data
+  } catch (err) {
+    console.error("Gagal memuat statistik dashboard:", err)
+  } finally {
+    loading.value = false
   }
 }
 
-const chartSeries = [{
-  name: 'Berat (kg)',
-  data: [25, 58, 38, 48]
-}]
+const formatCurrency = (val) => {
+  return new Intl.NumberFormat('id-ID', {
+    style: 'currency',
+    currency: 'IDR',
+    minimumFractionDigits: 0
+  }).format(val)
+}
+
+const formatStatus = (status, buktiTransfer) => {
+  if (status === 'pending') return 'Menunggu Konfirmasi'
+  if (status === 'proses') {
+    return buktiTransfer ? 'Menunggu Validasi' : 'Menunggu Pembayaran'
+  }
+  if (status === 'siap_diambil') return 'Siap Diambil'
+  if (status === 'selesai') return 'Selesai'
+  if (status === 'tolak') return 'Ditolak'
+  if (status === 'batal') return 'Batal'
+  return status
+}
+
+onMounted(() => {
+  fetchDashboardStats()
+})
+
+const chartOptions = computed(() => {
+  const isBerat = activeFilter.value === 'berat'
+
+  return {
+    chart: {
+      toolbar: { show: false },
+      fontFamily: 'Outfit, Inter, sans-serif'
+    },
+    plotOptions: {
+      bar: {
+        borderRadius: 6,
+        borderRadiusApplication: 'end',
+        columnWidth: isBerat ? '50%' : '65%',
+        distributed: isBerat
+      }
+    },
+    dataLabels: { enabled: false },
+    legend: {
+      show: !isBerat,
+      position: 'top',
+      horizontalAlign: 'right',
+      fontSize: '11px',
+      fontFamily: 'Outfit, Inter, sans-serif',
+      fontWeight: 600,
+      labels: { colors: '#4B5563' }
+    },
+    colors: isBerat
+      ? ['#BFCAB8', '#4A7043', '#BFCAB8', '#BFCAB8']
+      : ['#4A7043', '#83A77C', '#BFCAB8'],
+    xaxis: {
+      categories: dashboardData.value.chart_data?.categories || ['Minggu 1', 'Minggu 2', 'Minggu 3', 'Minggu 4'],
+      axisBorder: { show: false },
+      axisTicks: { show: false },
+      labels: {
+        style: {
+          colors: '#6B7280',
+          fontWeight: 600
+        }
+      }
+    },
+    yaxis: {
+      labels: {
+        style: { colors: '#9CA3AF' }
+      }
+    },
+    grid: {
+      borderColor: '#F3F4F6',
+      strokeDashArray: 4,
+      xaxis: { lines: { show: false } }
+    },
+    tooltip: {
+      theme: 'light',
+      y: {
+        formatter: (val) => `${val.toFixed(2)} kg`
+      }
+    }
+  }
+})
+
+const chartSeries = computed(() => {
+  if (activeFilter.value === 'berat') {
+    return [{
+      name: 'Berat (kg)',
+      data: dashboardData.value.chart_data?.berat || [0, 0, 0, 0]
+    }]
+  } else {
+    return dashboardData.value.chart_data?.top_items_weekly || [
+      { name: 'Item 1', data: [0, 0, 0, 0] },
+      { name: 'Item 2', data: [0, 0, 0, 0] },
+      { name: 'Item 3', data: [0, 0, 0, 0] }
+    ]
+  }
+})
 </script>
+
+<style scoped>
+/* Smooth transition effects */
+.animate-in {
+  animation: fadeIn 0.4s ease-out forwards;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+</style>

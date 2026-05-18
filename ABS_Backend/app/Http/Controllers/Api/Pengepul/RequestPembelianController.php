@@ -177,4 +177,150 @@ class RequestPembelianController extends Controller
             'data' => $transaksi
         ]);
     }
+
+    public function dashboardStats($pengepul_id)
+    {
+        $pengepulId = $pengepul_id;
+
+        // 1. Total Pengeluaran (Total Expenses for this specific Pengepul)
+        $totalPengeluaran = TransaksiPengepul::where('pengepul_id', $pengepulId)
+            ->whereNotIn('transaksi_pengepuls.status', ['tolak', 'batal'])
+            ->join('detail_transaksis', 'transaksi_pengepuls.transaksi_id', '=', 'detail_transaksis.transaksi_id')
+            ->sum(\Illuminate\Support\Facades\DB::raw('detail_transaksis.harga * detail_transaksis.berat'));
+
+        // 2. Total Sampah Terkumpul (for this specific Pengepul)
+        $totalSampah = TransaksiPengepul::where('pengepul_id', $pengepulId)
+            ->whereNotIn('transaksi_pengepuls.status', ['tolak', 'batal'])
+            ->join('detail_transaksis', 'transaksi_pengepuls.transaksi_id', '=', 'detail_transaksis.transaksi_id')
+            ->sum('detail_transaksis.berat');
+
+        // 3. Pesanan Aktif (for this specific Pengepul)
+        $pesananAktifCount = TransaksiPengepul::where('pengepul_id', $pengepulId)
+            ->whereIn('status', ['pending', 'proses', 'siap_diambil'])
+            ->count();
+
+        // 4. Status Pesanan Aktif (List for this specific Pengepul)
+        $pesananAktif = TransaksiPengepul::with('detailTransaksi.sampah.itemSampah')
+            ->where('pengepul_id', $pengepulId)
+            ->whereIn('status', ['pending', 'proses', 'siap_diambil'])
+            ->latest()
+            ->take(5)
+            ->get()
+            ->map(function ($t) {
+                return [
+                    'transaksi_id' => $t->transaksi_id,
+                    'status' => $t->status,
+                    'bukti_transfer' => $t->bukti_transfer,
+                    'items_summary' => $t->detailTransaksi->map(function ($d) {
+                        return $d->sampah->itemSampah->nama ?? 'Sampah';
+                    })->unique()->values()->implode(', '),
+                    'total_berat' => (float)$t->detailTransaksi->sum('berat')
+                ];
+            });
+
+        // 5. Tren Pembelian (Mingguan - Seluruh Pengepul Bulan Ini)
+        $startOfMonth = now()->startOfMonth();
+        $endOfMonth = now()->endOfMonth();
+
+        $allTransactions = TransaksiPengepul::with(['detailTransaksi.sampah.itemSampah'])
+            ->whereNotIn('transaksi_pengepuls.status', ['tolak', 'batal'])
+            ->whereBetween('created_at', [$startOfMonth, $endOfMonth])
+            ->get();
+
+        $weeks = [
+            'Minggu 1' => 0,
+            'Minggu 2' => 0,
+            'Minggu 3' => 0,
+            'Minggu 4' => 0,
+        ];
+
+        foreach ($allTransactions as $t) {
+            $day = $t->created_at->day;
+            if ($day <= 7) {
+                $weekKey = 'Minggu 1';
+            } elseif ($day <= 14) {
+                $weekKey = 'Minggu 2';
+            } elseif ($day <= 21) {
+                $weekKey = 'Minggu 3';
+            } else {
+                $weekKey = 'Minggu 4';
+            }
+
+            foreach ($t->detailTransaksi as $detail) {
+                $weeks[$weekKey] += (float)$detail->berat;
+            }
+        }
+
+        // 6. Top 3 Items Dipesan dengan Distribusi Per Minggu (Grouped Bar Chart)
+        $topItems = \App\Models\DetailTransaksi::join('transaksi_pengepuls', 'detail_transaksis.transaksi_id', '=', 'transaksi_pengepuls.transaksi_id')
+            ->join('sampahs', 'detail_transaksis.sampah_id', '=', 'sampahs.sampah_id')
+            ->join('item_sampahs', 'sampahs.item_id', '=', 'item_sampahs.item_id')
+            ->whereNotIn('transaksi_pengepuls.status', ['tolak', 'batal'])
+            ->select('item_sampahs.nama', 'item_sampahs.item_id', \Illuminate\Support\Facades\DB::raw('SUM(detail_transaksis.berat) as total_berat'))
+            ->groupBy('item_sampahs.nama', 'item_sampahs.item_id')
+            ->orderBy('total_berat', 'desc')
+            ->take(3)
+            ->get();
+
+        $itemTrends = [];
+        foreach ($topItems as $item) {
+            $itemTrends[$item->nama] = [
+                'Minggu 1' => 0.0,
+                'Minggu 2' => 0.0,
+                'Minggu 3' => 0.0,
+                'Minggu 4' => 0.0,
+            ];
+        }
+
+        while (count($itemTrends) < 3) {
+            $itemTrends['N/A ' . (count($itemTrends) + 1)] = [
+                'Minggu 1' => 0.0,
+                'Minggu 2' => 0.0,
+                'Minggu 3' => 0.0,
+                'Minggu 4' => 0.0,
+            ];
+        }
+
+        foreach ($allTransactions as $t) {
+            $day = $t->created_at->day;
+            if ($day <= 7) {
+                $weekKey = 'Minggu 1';
+            } elseif ($day <= 14) {
+                $weekKey = 'Minggu 2';
+            } elseif ($day <= 21) {
+                $weekKey = 'Minggu 3';
+            } else {
+                $weekKey = 'Minggu 4';
+            }
+
+            foreach ($t->detailTransaksi as $detail) {
+                $itemName = $detail->sampah->itemSampah->nama ?? null;
+                if ($itemName && isset($itemTrends[$itemName])) {
+                    $itemTrends[$itemName][$weekKey] += (float)$detail->berat;
+                }
+            }
+        }
+
+        $formattedTopItemsWeekly = [];
+        foreach ($itemTrends as $name => $weekValues) {
+            $formattedTopItemsWeekly[] = [
+                'name' => $name,
+                'data' => array_values($weekValues)
+            ];
+        }
+
+        $chartData = [
+            'categories' => array_keys($weeks),
+            'berat' => array_values($weeks),
+            'top_items_weekly' => $formattedTopItemsWeekly
+        ];
+
+        return response()->json([
+            'total_pengeluaran' => (float)$totalPengeluaran,
+            'total_sampah' => (float)$totalSampah,
+            'pesanan_aktif_count' => $pesananAktifCount,
+            'pesanan_aktif' => $pesananAktif,
+            'chart_data' => $chartData
+        ]);
+    }
 }

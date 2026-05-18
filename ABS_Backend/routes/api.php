@@ -88,6 +88,7 @@ Route::prefix('pengepul')->middleware(['auth:sanctum', 'role:pengepul'])->group(
     Route::post('/upload-ktp/{id}', [ProfileController::class, 'uploadKtp']);
     Route::post('/upload-npwp/{id}', [ProfileController::class, 'uploadNpwp']);
 
+    Route::get('/dashboard/{pengepul_id}', [RequestPembelianController::class, 'dashboardStats']);
     Route::get('/daftar-sampah', [RequestPembelianController::class, 'indexSampah']);
     Route::get('/request-pembelian/{pengepul_id}', [RequestPembelianController::class, 'index']);
     Route::get('/request-pembelian/show/{id}', [RequestPembelianController::class, 'show']);
