@@ -97,39 +97,55 @@
 </p> --}}
 
 {{-- Isi Laporan --}}
-<h2>Laporan Pengepul</h2>
+<h2>Laporan Top 5 Pengepul</h2>
 
-<h3>Top 5 Pengepul (Jumlah Transaksi)</h3>
-<ol>
+<h3>Jumlah Transaksi</h3>
+<table width="100%">
     @foreach ($pengepul->sortByDesc('jumlah_transaksi')->take(5)->values() as $d)
-    <li>{{ $d["nama"] . " ( " . $d["lembaga"] . " ): " . $d["jumlah_transaksi"] }}</li>
+    <tr>
+        <td width="5%" valign="top">{{ $loop->iteration }}.</td>
+        <td width="45%" valign="top">{{ $d["nama"] . " (" . $d["lembaga"] . ")" }}</td>
+        <td width="50%" valign="top">{{ ": " . $d["jumlah_transaksi"] }}</td>
+    </tr>
     @endforeach
-</ol>
+</table>
 
-<h3>Top 5 Pengepul (Total Harga)</h3>
-<ol>
+<h3>Total Harga (Rp)</h3>
+<table width="100%">
     @foreach ($pengepul->sortByDesc('total_harga')->take(5)->values() as $d)
-    <li>{{ $d["nama"] . " ( " . $d["lembaga"] . " ): " . $d["total_harga"] }}</li>
+    <tr>
+        <td width="5%" valign="top">{{ $loop->iteration }}.</td>
+        <td width="45%" valign="top">{{ $d["nama"] . " (" . $d["lembaga"] . ")" }}</td>
+        <td width="50%" valign="top">{{ ": " . $d["total_harga"] }}</td>
+    </tr>
     @endforeach
-</ol>
+</table>
 
-<h3>Top 5 Pengepul (Total Berat)</h3>
-<ol>
+<h3>Total Berat (Kg)</h3>
+<table width="100%">
     @foreach ($pengepul->sortByDesc('total_berat')->take(5)->values() as $d)
-    <li>{{ $d["nama"] . " ( " . $d["lembaga"] . " ): " . $d["total_berat"] }}</li>
+    <tr>
+        <td width="5%" valign="top">{{ $loop->iteration }}.</td>
+        <td width="45%" valign="top">{{ $d["nama"] . " (" . $d["lembaga"] . ")" }}</td>
+        <td width="50%" valign="top">{{ ": " . $d["total_berat"] }}</td>
+    </tr>
     @endforeach
-</ol>
+</table>
 
 <div style="page-break-after: always;"></div>
 
-<h2>Laporan Nasabah</h2>
+<h2>Laporan Top 5 Nasabah</h2>
 
-<h3>Top 5 Nasabah (Jumlah Transaksi)</h3>
-<ol>
+<h3>Jumlah Transaksi</h3>
+<table width="100%">
     @foreach ($nasabah->sortByDesc('jumlah_transaksi')->take(5)->values() as $d)
-    <li>{{ $d["nama"] . ": " . $d["jumlah_transaksi"] }}</li>
+    <tr>
+        <td width="5%" valign="top">{{ $loop->iteration }}.</td>
+        <td width="45%" valign="top">{{ $d["nama"] }}</td>
+        <td width="50%" valign="top">{{ ": " . $d["jumlah_transaksi"] }}</td>
+    </tr>
     @endforeach
-</ol>
+</table>
 
 {{-- <h3>Top 5 Pengepul (Total Harga)</h3>
 <ol>
@@ -138,28 +154,36 @@
     @endforeach
 </ol> --}}
 
-<h3>Top 5 Nasabah (Total Berat)</h3>
-<ol>
+<h3>Total Berat (Kg)</h3>
+<table width="100%">
     @foreach ($pengepul->sortByDesc('total_berat')->take(5)->values() as $d)
-    <li>{{ $d["nama"] . ": " . $d["total_berat"] }}</li>
+    <tr>
+        <td width="5%" valign="top">{{ $loop->iteration }}.</td>
+        <td width="45%" valign="top">{{ $d["nama"] }}</td>
+        <td width="50%" valign="top">{{ ": " . $d["total_berat"] }}</td>
+    </tr>
     @endforeach
-</ol>
+</table>
 
 <div style="page-break-after: always;"></div>
 
-<h2>Laporan Sampah</h2>
+<h2>Laporan Top 5 Sampah</h2>
 
 <table width="100%">
     <tr>
         <td width="50%" valign="top">
-            <h2>Laporan Pembelian Sampah</h2>
+            <h2>Pembelian Sampah</h2>
 
-            <h3>Top 5 Sampah (Jumlah Transaksi)</h3>
-            <ol>
+            <h3>Jumlah Transaksi</h3>
+            <table width="100%">
                 @foreach ($pembelianSampah->sortByDesc('jumlah_transaksi')->take(5)->values() as $d)
-                <li>{{ $d["nama"] . " ( " . $d["gudang"] . " ): " . $d["jumlah_transaksi"] }}</li>
+                <tr>
+                    <td width="5%" valign="top">{{ $loop->iteration }}.</td>
+                    <td width="65%" valign="top">{{ $d["nama"] . " (" . $d["gudang"] . ")" }}</td>
+                    <td width="30%" valign="top">{{ ": " . $d["jumlah_transaksi"] }}</td>
+                </tr>
                 @endforeach
-            </ol>
+            </table>
 
             {{-- <h3>Top 5 Sampah (Total Harga)</h3>
             <ol>
@@ -169,35 +193,51 @@
             </ol> --}}
 
             <h3>Top 5 Sampah (Total Berat)</h3>
-            <ol>
+            <table width="100%">
                 @foreach ($pembelianSampah->sortByDesc('total_berat')->take(5)->values() as $d)
-                <li>{{ $d["nama"] . " ( " . $d["gudang"] . " ): " . $d["total_berat"] }}</li>
+                <tr>
+                    <td width="5%" valign="top">{{ $loop->iteration }}.</td>
+                    <td width="65%" valign="top">{{ $d["nama"] . " (" . $d["gudang"] . ")" }}</td>
+                    <td width="30%" valign="top">{{ ": " . $d["total_berat"] }}</td>
+                </tr>
                 @endforeach
-            </ol>
+            </table>
         </td>
         <td width="50%" valign="top">
-            <h2>Laporan Penjualan Sampah</h2>
+            <h2>Penjualan Sampah</h2>
 
-            <h3>Top 5 Sampah (Jumlah Transaksi)</h3>
-            <ol>
+            <h3>Jumlah Transaksi</h3>
+            <table width="100%">
                 @foreach ($penjualanSampah->sortByDesc('jumlah_transaksi')->take(5)->values() as $d)
-                <li>{{ $d["nama"] . " ( " . $d["gudang"] . " ): " . $d["jumlah_transaksi"] }}</li>
+                <tr>
+                    <td width="5%" valign="top">{{ $loop->iteration }}.</td>
+                    <td width="65%" valign="top">{{ $d["nama"] . " (" . $d["gudang"] . ")" }}</td>
+                    <td width="30%" valign="top">{{ ": " . $d["jumlah_transaksi"] }}</td>
+                </tr>
                 @endforeach
-            </ol>
+            </table>
 
-            <h3>Top 5 Sampah (Total Harga)</h3>
-            <ol>
+            <h3>Total Harga (Rp)</h3>
+            <table width="100%">
                 @foreach ($penjualanSampah->sortByDesc('total_harga')->take(5)->values() as $d)
-                <li>{{ $d["nama"] . " ( " . $d["gudang"] . " ): " . $d["total_harga"] }}</li>
+                <tr>
+                    <td width="5%" valign="top">{{ $loop->iteration }}.</td>
+                    <td width="65%" valign="top">{{ $d["nama"] . " (" . $d["gudang"] . ")" }}</td>
+                    <td width="30%" valign="top">{{ ": " . $d["total_harga"] }}</td>
+                </tr>
                 @endforeach
-            </ol>
+            </table>
 
-            <h3>Top 5 Sampah (Total Berat)</h3>
-            <ol>
+            <h3>Total Berat (Kg)</h3>
+            <table width="100%">
                 @foreach ($penjualanSampah->sortByDesc('total_berat')->take(5)->values() as $d)
-                <li>{{ $d["nama"] . " ( " . $d["gudang"] . " ): " . $d["total_berat"] }}</li>
+                <tr>
+                    <td width="5%" valign="top">{{ $loop->iteration }}.</td>
+                    <td width="65%" valign="top">{{ $d["nama"] . " (" . $d["gudang"] . ")" }}</td>
+                    <td width="30%" valign="top">{{ ": " . $d["total_berat"] }}</td>
+                </tr>
                 @endforeach
-            </ol>
+            </table>
         </td>
     </tr>
 </table>
