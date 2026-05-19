@@ -73,14 +73,14 @@
     <div id="kop-surat">
         <div class="logo">
             {{-- Gambar harus path absolut atau base64 --}}
-            {{-- <img src="{{ public_path('logo.png') }}"> --}}
-            Logo
+            <img src="{{ storage_path('app/public/' . $config->logo) ?? public_path('logo.png') }}">
+            {{-- Logo --}}
         </div>
 
         <div class="info">
-            <h2>PT. Nama Perusahaan</h2>
-            <p>Jl. Contoh Alamat No. 123, Surakarta, Jawa Tengah 57100</p>
-            <p>Telp: (0271) 123456 | Email: info@perusahaan.com | www.perusahaan.com</p>
+            <h2>Aplikasi Bank Sampah</h2>
+            <p>{{ $config->alamat }}</p>
+            <p>Telp: {{ $config->no_telp }} | Email: {{ $config->email }}</p>
         </div>
 
         <div style="clear:both;"></div>
@@ -93,7 +93,7 @@
 
 {{-- Debug --}}
 {{-- <p>
-    {{$pengepul->sortByDesc('jumlah_transaksi')->take(5)->values()}}
+    {{ $config->logo }}
 </p> --}}
 
 {{-- Isi Laporan --}}

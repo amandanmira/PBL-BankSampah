@@ -12,6 +12,7 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use App\Models\Pengepul;
 use App\Models\Nasabah;
 use App\Models\Sampah;
+use App\Models\KonfigurasiWeb;
 use Illuminate\Support\Facades\Log;
 
 class LaporanController extends Controller
@@ -143,7 +144,9 @@ class LaporanController extends Controller
             ];
         });
 
-        $pdf = Pdf::loadView('pdf.laporan-petugas', compact(['pengepul', 'nasabah', 'pembelianSampah', 'penjualanSampah']));
+        $config = KonfigurasiWeb::firstOrCreate([]);
+
+        $pdf = Pdf::loadView('pdf.laporan-petugas', compact(['pengepul', 'nasabah', 'pembelianSampah', 'penjualanSampah', 'config']));
 
         return $pdf->stream();
     }
