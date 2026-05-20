@@ -13,11 +13,13 @@ class LaporanNasabahExport implements FromCollection, WithHeadings, WithMapping,
 {
     protected $startDate;
     protected $endDate;
+    protected $gudangId;
 
-    public function __construct($startDate, $endDate)
+    public function __construct($startDate, $endDate, $gudangId)
     {
         $this->startDate = $startDate;
         $this->endDate = $endDate;
+        $this->gudangId = $gudangId;
     }
 
     /**
@@ -29,13 +31,23 @@ class LaporanNasabahExport implements FromCollection, WithHeadings, WithMapping,
             $q->whereBetween(
                 'created_at',
                 [$this->startDate, $this->endDate]
-            );
+            )
+            ->when($this->gudangId, function ($q) {          // ← tambah ini
+                $q->whereHas('sampah.gudang', function ($q) {
+                    $q->where('gudang_id', $this->gudangId);
+                });
+            });
         })->with([
             'penimbangan' => function ($q) {
                 $q->whereBetween(
                     'created_at',
                     [$this->startDate, $this->endDate]
                 )
+                ->when($this->gudangId, function ($q) {          // ← tambah ini
+                    $q->whereHas('sampah.gudang', function ($q) {
+                        $q->where('gudang_id', $this->gudangId);
+                    });
+                })
                 ->with('transaksi');
             }
         ])->get();

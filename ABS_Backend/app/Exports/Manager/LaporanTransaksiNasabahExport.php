@@ -13,11 +13,13 @@ class LaporanTransaksiNasabahExport implements FromCollection, WithHeadings, Wit
 {
     protected $startDate;
     protected $endDate;
+    protected $gudangId;
 
-    public function __construct($startDate, $endDate)
+    public function __construct($startDate, $endDate, $gudangId)
     {
         $this->startDate = $startDate;
         $this->endDate = $endDate;
+        $this->gudangId = $gudangId;
     }
 
     /**
@@ -29,7 +31,11 @@ class LaporanTransaksiNasabahExport implements FromCollection, WithHeadings, Wit
                 'created_at',
                 [$this->startDate, $this->endDate]
             )
-            ->where('status', 'selesai')
+            ->when($this->gudangId, function ($query) {         // ← tambah ini
+                $query->whereHas('penimbangan.sampah.gudang', function ($q) {
+                    $q->where('gudang_id', $this->gudangId);
+                });
+            })
             ->with([
                 'penimbangan' => function ($q) {
                     $q->with(['sampah.itemSampah', 'nasabah']);
@@ -51,6 +57,7 @@ class LaporanTransaksiNasabahExport implements FromCollection, WithHeadings, Wit
 
         return [
             $transaksi->transaksi_id,
+            $transaksi->status,
             $transaksi->tipe_transaksi,
             $transaksi->tanggal,
             $nasabah->nama,
@@ -60,7 +67,7 @@ class LaporanTransaksiNasabahExport implements FromCollection, WithHeadings, Wit
 
     public function headings(): array
     {
-        return ['ID', 'Tipe Transaksi', 'Tanggal Transaksi', 'Nasabah', 'Detail Transaksi'];
+        return ['ID', 'Status', 'Tipe Transaksi', 'Tanggal Transaksi', 'Nasabah', 'Detail Transaksi'];
     }
 
     public function title(): string

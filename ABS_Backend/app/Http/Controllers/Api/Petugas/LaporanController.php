@@ -23,14 +23,12 @@ class LaporanController extends Controller
     public function exportExcel(Request $request)
     {
         $startDate = $request->start_date
-            ? Carbon::parse($request->start_date)->startOfDay()
+            ? Carbon::now()->subDays($request->start_date)->startOfDay()
             : Carbon::now()->subMonth()->startOfDay();
 
-        $endDate = $request->end_date
-            ? Carbon::parse($request->end_date)->endOfDay()
-            : Carbon::now()->endOfDay();
+        $endDate = Carbon::now()->endOfDay();
 
-        return Excel::download(new LaporanPetugasExport($startDate, $endDate), 'laporan-transaksi.xlsx');
+        return Excel::download(new LaporanPetugasExport($startDate, $endDate, $request->gudang_id), 'laporan-transaksi.xlsx');
     }
 
     public function exportPdf(Request $request)

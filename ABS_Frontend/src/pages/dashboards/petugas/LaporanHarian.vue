@@ -13,8 +13,8 @@ if (!token) {
 const headers = { 'Authorization': `Bearer ${token}` }
 
 const date = ref({
-  start_date: null,
-  end_date: null,
+  start_date: 30,
+  gudang_id: null,
 })
 
 const downloadExcel = async () => {
@@ -25,7 +25,7 @@ const downloadExcel = async () => {
         headers,
         params: {
           start_date: date.value.start_date,
-          end_date: date.value.end_date
+          gudang_id: date.value.gudang_id,
         },
         responseType: 'blob', // penting
       }
@@ -50,8 +50,7 @@ const previewPdf = async () => {
       {
         headers,
         params: {
-          start_date: date.value.start_date,
-          end_date: date.value.end_date
+          start_date: date.value.start_date
         },
         responseType: 'blob', // penting
       }
@@ -76,15 +75,15 @@ const previewPdf = async () => {
       <h2 class="text-2xl font-black text-stone-800 mb-2">Laporan Harian</h2>
       <!-- <p class="text-stone-400 font-medium max-w-xs">Halaman ini sedang dalam tahap pengembangan. Segera Anda dapat melihat laporan harian di sini.</p> -->
       <div>
-        <div class="flex gap-16">
+        <div>
           <div>
-            <label>Dari Tanggal</label><br />
-            <input type="date" v-model="date.start_date" />
+            <label>Periode (Hari)</label><br />
+            <input type="number" v-model="date.start_date" />
           </div>
           
           <div>
-            <label>Sampai Tanggal</label><br />
-            <input type="date" v-model="date.end_date" />
+            <label>Gudang</label><br />
+            <input type="number" v-model="date.gudang_id" />
           </div>
         </div>
 

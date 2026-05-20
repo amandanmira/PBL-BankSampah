@@ -13,11 +13,13 @@ class LaporanPenimbanganExport implements FromCollection, WithHeadings, WithMapp
 {
     protected $startDate;
     protected $endDate;
+    protected $gudangId;
 
-    public function __construct($startDate, $endDate)
+    public function __construct($startDate, $endDate, $gudangId)
     {
         $this->startDate = $startDate;
         $this->endDate = $endDate;
+        $this->gudangId = $gudangId;
     }
 
     /**
@@ -31,6 +33,11 @@ class LaporanPenimbanganExport implements FromCollection, WithHeadings, WithMapp
             )
             ->whereHas('transaksi', function ($q) {
                 $q->where('status', 'selesai');
+            })
+            ->when($this->gudangId, function ($q) {
+                $q->whereHas('sampah.gudang', function ($q) {
+                    $q->where('gudang_id', $this->gudangId);
+                });
             })
             ->with(['nasabah', 'sampah.itemSampah'])->get();
     }

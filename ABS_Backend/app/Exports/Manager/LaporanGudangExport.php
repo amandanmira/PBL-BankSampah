@@ -14,11 +14,13 @@ class LaporanGudangExport implements FromCollection, WithHeadings, WithMapping, 
 {
     protected $startDate;
     protected $endDate;
+    protected $gudangId;
 
-    public function __construct($startDate, $endDate)
+    public function __construct($startDate, $endDate, $gudangId)
     {
         $this->startDate = $startDate;
         $this->endDate = $endDate;
+        $this->gudangId = $gudangId;
     }
 
     /**
@@ -31,6 +33,9 @@ class LaporanGudangExport implements FromCollection, WithHeadings, WithMapping, 
             ->join('detail_transaksis', 'sampahs.sampah_id', '=', 'detail_transaksis.sampah_id')
             ->join('transaksi_pengepuls', 'detail_transaksis.transaksi_id', '=', 'transaksi_pengepuls.transaksi_id')
             ->whereBetween('transaksi_pengepuls.created_at', [$this->startDate, $this->endDate])
+            ->when($this->gudangId, function ($query) {  // ← jika ada, filter. jika null, dilewati
+                $query->where('gudangs.gudang_id', $this->gudangId);
+            })
             ->select(
                 'gudangs.alamat as alamat',
                 DB::raw('COUNT(DISTINCT transaksi_pengepuls.transaksi_id) as jumlah_transaksi'),
