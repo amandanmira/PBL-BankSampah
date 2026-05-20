@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\Api\Petugas;
 
-use App\Exports\Petugas\LaporanPetugasExport;
+use App\Exports\Manager\LaporanPetugasExport;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Carbon\Carbon;

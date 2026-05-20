@@ -1,15 +1,15 @@
 <?php
 
-namespace App\Exports\Petugas;
+namespace App\Exports\Manager;
 
 use Carbon\Carbon;
-use App\Models\Sampah;
+use App\Models\Nasabah;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
 use Maatwebsite\Excel\Concerns\WithTitle;
 
-class LaporanPenjualanSampahExport implements FromCollection, WithHeadings, WithMapping, WithTitle
+class LaporanNasabahExport implements FromCollection, WithHeadings, WithMapping, WithTitle
 {
     protected $startDate;
     protected $endDate;
@@ -25,49 +25,50 @@ class LaporanPenjualanSampahExport implements FromCollection, WithHeadings, With
     */
     public function collection()
     {
-        return Sampah::whereHas('detailTransaksi', function ($q) {
+        return Nasabah::whereHas('penimbangan', function ($q) {
             $q->whereBetween(
                 'created_at',
                 [$this->startDate, $this->endDate]
             );
         })->with([
-            'detailTransaksi' => function ($q) {
+            'penimbangan' => function ($q) {
                 $q->whereBetween(
                     'created_at',
                     [$this->startDate, $this->endDate]
-                );
-            },
-            'itemSampah', 'gudang'
+                )
+                ->with('transaksi');
+            }
         ])->get();
     }
 
-    public function map($sampah): array
+    public function map($nasabah): array
     {
         // jumlah transaksi
-        $jumlahTransaksi = $sampah->detailTransaksi->count();
+        $jumlahTransaksi = $nasabah->penimbangan
+            ->pluck('transaksi')
+            ->unique('transaksi_id')
+            ->count();
 
         // total harga
-        $totalHarga = $sampah->detailTransaksi->sum('harga');
+        //$totalHarga = $penimbangan->sum('harga');
 
         // total berat
-        $totalBerat = $sampah->detailTransaksi->sum('berat'); // atau 'qty' kalau itu berat
+        $totalBerat = $nasabah->penimbangan->sum('berat_timbang'); // atau 'qty' kalau itu berat
 
         return [
-            $sampah->itemSampah->nama,
-            $sampah->gudang->alamat,
+            $nasabah->nama,
             $jumlahTransaksi,
-            $totalHarga,
             $totalBerat,
         ];
     }
 
     public function headings(): array
     {
-        return ['Sampah', 'Gudang', 'Jumlah Transaksi', 'Total Harga', 'Total Berat'];
+        return ['Nasabah', 'Jumlah Transaksi', 'Total Berat'];
     }
 
     public function title(): string
     {
-        return 'Penjualan Sampah';
+        return 'Nasabah';
     }
 }

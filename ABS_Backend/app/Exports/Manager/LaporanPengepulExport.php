@@ -1,15 +1,16 @@
 <?php
 
-namespace App\Exports\Petugas;
+namespace App\Exports\Manager;
 
 use Carbon\Carbon;
-use App\Models\Nasabah;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
 use Maatwebsite\Excel\Concerns\WithTitle;
 
-class LaporanNasabahExport implements FromCollection, WithHeadings, WithMapping, WithTitle
+use App\Models\Pengepul;
+
+class LaporanPengepulExport implements FromCollection, WithHeadings, WithMapping, WithTitle
 {
     protected $startDate;
     protected $endDate;
@@ -25,50 +26,54 @@ class LaporanNasabahExport implements FromCollection, WithHeadings, WithMapping,
     */
     public function collection()
     {
-        return Nasabah::whereHas('penimbangan', function ($q) {
+        return Pengepul::whereHas('transaksiPengepul', function ($q) {
             $q->whereBetween(
                 'created_at',
                 [$this->startDate, $this->endDate]
             );
         })->with([
-            'penimbangan' => function ($q) {
+            'transaksiPengepul' => function ($q) {
                 $q->whereBetween(
                     'created_at',
                     [$this->startDate, $this->endDate]
                 )
-                ->with('transaksi');
+                ->with('detailTransaksi');
             }
         ])->get();
     }
 
-    public function map($nasabah): array
+    public function map($pengepul): array
     {
         // jumlah transaksi
-        $jumlahTransaksi = $nasabah->penimbangan
-            ->pluck('transaksi')
-            ->unique('transaksi_id')
-            ->count();
+        $jumlahTransaksi = $pengepul->transaksiPengepul->count();
+
+        // ambil semua detail dari semua transaksi
+        $details = $pengepul->transaksiPengepul->flatMap(function ($transaksi) {
+            return $transaksi->detailTransaksi;
+        });
 
         // total harga
-        //$totalHarga = $penimbangan->sum('harga');
+        $totalHarga = $details->sum('harga');
 
         // total berat
-        $totalBerat = $nasabah->penimbangan->sum('berat_timbang'); // atau 'qty' kalau itu berat
+        $totalBerat = $details->sum('berat'); // atau 'qty' kalau itu berat
 
         return [
-            $nasabah->nama,
+            $pengepul->nama,
+            $pengepul->nama_lembaga,
             $jumlahTransaksi,
+            $totalHarga,
             $totalBerat,
         ];
     }
 
     public function headings(): array
     {
-        return ['Nasabah', 'Jumlah Transaksi', 'Total Berat'];
+        return ['Pengepul', 'Lembaga', 'Jumlah Transaksi', 'Total Harga', 'Total Berat'];
     }
 
     public function title(): string
     {
-        return 'Nasabah';
+        return 'Pengepul';
     }
 }

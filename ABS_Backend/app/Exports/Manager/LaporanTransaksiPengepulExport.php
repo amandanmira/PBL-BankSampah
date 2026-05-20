@@ -1,15 +1,15 @@
 <?php
 
-namespace App\Exports\Petugas;
+namespace App\Exports\Manager;
 
 use Carbon\Carbon;
-use App\Models\TransaksiNasabah;
+use App\Models\TransaksiPengepul;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
 use Maatwebsite\Excel\Concerns\WithTitle;
 
-class LaporanTransaksiNasabahExport implements FromCollection, WithHeadings, WithMapping, WithTitle
+class LaporanTransaksiPengepulExport implements FromCollection, WithHeadings, WithMapping, WithTitle
 {
     protected $startDate;
     protected $endDate;
@@ -25,46 +25,40 @@ class LaporanTransaksiNasabahExport implements FromCollection, WithHeadings, Wit
     */
     public function collection()
     {
-        return TransaksiNasabah::whereBetween(
+        return TransaksiPengepul::whereBetween(
                 'created_at',
                 [$this->startDate, $this->endDate]
             )
             ->where('status', 'selesai')
-            ->with([
-                'penimbangan' => function ($q) {
-                    $q->with(['sampah.itemSampah', 'nasabah']);
-                }
-            ])->get();
+            ->with(['detailTransaksi.sampah.itemSampah', 'pengepul'])->get();
     }
 
     public function map($transaksi): array
     {
         // gabungkan detail transaksi jadi 1 kolom
-        $penimbangan = $transaksi->penimbangan->map(function ($item) {
-            return $item->sampah->itemSampah->nama . ' (' . $item->berat_timbang . ' KG )';
+        $detail = $transaksi->detailTransaksi->map(function ($item) {
+            return $item->sampah->itemSampah->nama . ' (' . $item->berat . ' KG )';
         })->implode(', ');
 
-        $nasabah = $transaksi->penimbangan
-            ->first()->nasabah;
-
-        //$total = $transaksi->detailTransaksi->sum('harga');
+        $total = $transaksi->detailTransaksi->sum('harga');
 
         return [
             $transaksi->transaksi_id,
-            $transaksi->tipe_transaksi,
-            $transaksi->tanggal,
-            $nasabah->nama,
-            $penimbangan,
+            $transaksi->deadline,
+            $transaksi->created_at,
+            $transaksi->pengepul->nama,
+            $detail,
+            $total,
         ];
     }
 
     public function headings(): array
     {
-        return ['ID', 'Tipe Transaksi', 'Tanggal Transaksi', 'Nasabah', 'Detail Transaksi'];
+        return ['ID', 'Deadline', 'Tanggal Transaksi', 'Pengepul', 'Detail Transaksi', 'Total'];
     }
 
     public function title(): string
     {
-        return 'Transaksi Nasabah';
+        return 'Transaksi Pengepul';
     }
 }

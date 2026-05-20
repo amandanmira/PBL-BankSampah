@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Exports\Petugas;
+namespace App\Exports\Manager;
 
 use Carbon\Carbon;
 use App\Models\Sampah;
@@ -9,7 +9,7 @@ use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
 use Maatwebsite\Excel\Concerns\WithTitle;
 
-class LaporanPembelianSampahExport implements FromCollection, WithHeadings, WithMapping, WithTitle
+class LaporanPenjualanSampahExport implements FromCollection, WithHeadings, WithMapping, WithTitle
 {
     protected $startDate;
     protected $endDate;
@@ -25,13 +25,13 @@ class LaporanPembelianSampahExport implements FromCollection, WithHeadings, With
     */
     public function collection()
     {
-        return Sampah::whereHas('penimbangan', function ($q) {
+        return Sampah::whereHas('detailTransaksi', function ($q) {
             $q->whereBetween(
                 'created_at',
                 [$this->startDate, $this->endDate]
             );
         })->with([
-            'penimbangan' => function ($q) {
+            'detailTransaksi' => function ($q) {
                 $q->whereBetween(
                     'created_at',
                     [$this->startDate, $this->endDate]
@@ -44,29 +44,30 @@ class LaporanPembelianSampahExport implements FromCollection, WithHeadings, With
     public function map($sampah): array
     {
         // jumlah transaksi
-        $jumlahTransaksi = $sampah->penimbangan->count();
+        $jumlahTransaksi = $sampah->detailTransaksi->count();
 
         // total harga
-        // $totalHarga = $sampah->penimbangan->sum('harga');
+        $totalHarga = $sampah->detailTransaksi->sum('harga');
 
         // total berat
-        $totalBerat = $sampah->penimbangan->sum('berat_timbang'); // atau 'qty' kalau itu berat
+        $totalBerat = $sampah->detailTransaksi->sum('berat'); // atau 'qty' kalau itu berat
 
         return [
             $sampah->itemSampah->nama,
             $sampah->gudang->alamat,
             $jumlahTransaksi,
+            $totalHarga,
             $totalBerat,
         ];
     }
 
     public function headings(): array
     {
-        return ['Sampah', 'Gudang', 'Jumlah Transaksi', 'Total Berat'];
+        return ['Sampah', 'Gudang', 'Jumlah Transaksi', 'Total Harga', 'Total Berat'];
     }
 
     public function title(): string
     {
-        return 'Pembelian Sampah';
+        return 'Penjualan Sampah';
     }
 }

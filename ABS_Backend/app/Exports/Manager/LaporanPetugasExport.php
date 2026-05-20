@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Exports\Petugas;
+namespace App\Exports\Manager;
 
 use Carbon\Carbon;
 use Maatwebsite\Excel\Concerns\WithMultipleSheets;
@@ -27,6 +27,8 @@ class LaporanPetugasExport implements WithMultipleSheets
             new LaporanNasabahExport($this->startDate, $this->endDate),
             new LaporanPenjualanSampahExport($this->startDate, $this->endDate),
             new LaporanPembelianSampahExport($this->startDate, $this->endDate),
+            new LaporanGudangExport($this->startDate, $this->endDate),
+            new LaporanSampahExport($this->startDate, $this->endDate),
         ];
     }
 }

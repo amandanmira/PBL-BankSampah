@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Exports\Petugas;
+namespace App\Exports\Manager;
 
 use Carbon\Carbon;
 use App\Models\DetailTransaksi;
