@@ -44,14 +44,24 @@ class AuthController extends Controller
         $nasabah->save();
 
         // Kirim email verifikasi
-        Mail::to($nasabah->email)->send(new VerifikasiEmailNasabah($nasabah, $otp));
+        try {
+            Mail::to($nasabah->email)->send(new VerifikasiEmailNasabah($nasabah, $otp));
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error("Gagal mengirim email verifikasi nasabah: " . $e->getMessage());
+        }
 
-        return response()->json([
+        $responseData = [
             'message' => 'Registrasi berhasil. Silakan cek email Anda untuk kode verifikasi.',
             'data' => [
                 'email' => $nasabah->email
             ]
-        ]);
+        ];
+
+        if (app()->environment('local')) {
+            $responseData['data']['otp'] = $otp;
+        }
+
+        return response()->json($responseData);
     }
 
     public function registerPengepul(Request $request)
@@ -280,8 +290,18 @@ class AuthController extends Controller
         $nasabah->save();
 
         // Send Email
-        Mail::to($nasabah->email)->send(new VerifikasiEmailNasabah($nasabah, $otp));
+        try {
+            Mail::to($nasabah->email)->send(new VerifikasiEmailNasabah($nasabah, $otp));
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error("Gagal mengirim ulang email verifikasi nasabah: " . $e->getMessage());
+        }
 
-        return response()->json(['message' => 'Kode verifikasi baru telah dikirim ke email Anda.']);
+        $responseData = ['message' => 'Kode verifikasi baru telah dikirim ke email Anda.'];
+
+        if (app()->environment('local')) {
+            $responseData['otp'] = $otp;
+        }
+
+        return response()->json($responseData);
     }
 }

@@ -116,6 +116,15 @@
             <span class="font-bold">{{ form.email }}</span>
         </p>
 
+        <!-- Developer Mode OTP display -->
+        <div v-if="localOtp" class="mb-6 p-4 bg-[#F0F7F0] border border-[#D5ECD5] rounded-2xl text-left text-[#3D5E37] text-[14px] shadow-sm">
+            <div class="flex items-center gap-2 mb-1">
+                <span class="text-base">🛠️</span>
+                <span class="font-bold">Mode Developer</span>
+            </div>
+            <p>Kode verifikasi Anda adalah <span class="font-mono font-bold text-lg select-all bg-[#D5ECD5] px-2 py-0.5 rounded text-[#22401C]">{{ localOtp }}</span> (muncul karena APP_ENV=local).</p>
+        </div>
+
         <div class="flex justify-between gap-2 mb-8">
             <input 
                 v-for="(digit, index) in 6" 
@@ -196,6 +205,7 @@ const showConfirm = ref(false)
 const isLoading = ref(false)
 const serverError = ref('')
 const emailError = ref('')
+const localOtp = ref('')
 
 const passwordMismatch = computed(() => {
   return form.value.password && form.value.confirmPassword && form.value.password !== form.value.confirmPassword;
@@ -282,6 +292,10 @@ const register = async () => {
             password: form.value.password
         })
 
+        if (res.data && res.data.data && res.data.data.otp) {
+            localOtp.value = res.data.data.otp
+        }
+
         step.value = 2
         startCountdown()
         // Wait for next tick to focus first OTP input
@@ -328,10 +342,13 @@ const resendOtp = async () => {
     serverError.value = ''
 
     try {
-        await axios.post('/api/resend-otp', {
+        const res = await axios.post('/api/resend-otp', {
             email: form.value.email
         })
         startCountdown()
+        if (res.data && res.data.otp) {
+            localOtp.value = res.data.otp
+        }
         alert("Kode baru telah dikirim!")
     } catch (err) {
         serverError.value = err.response?.data?.message || 'Gagal mengirim ulang kode.'
