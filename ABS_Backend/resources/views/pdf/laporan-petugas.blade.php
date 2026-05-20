@@ -92,11 +92,50 @@
 </div>
 
 {{-- Debug --}}
-{{-- <p>
-    {{ $config->logo }}
+{{-- <p style="word-wrap: break-word;">
+    {{ $dataStatistik['total_stok'] }}
 </p> --}}
 
 {{-- Isi Laporan --}}
+<h2>Ringkasan</h2>
+
+<table width="100%">
+    <tr>
+        <td width="25%" valign="top">Total Transaksi: {{ $dataStatistik['total_transaksi'] }}</td>
+        <td width="25%" valign="top">Total Stok: {{ $dataStatistik['total_stok'] }}</td>
+        <td width="25%" valign="top">Total Terverifikasi: {{ $dataStatistik['total_transaksi_selesai'] }}</td>
+        <td width="25%" valign="top">Total Pending: {{ $dataStatistik['total_transaksi_pending'] }}</td>
+    </tr>
+</table>
+
+<h3>Info Gudang</h3>
+<table width="100%">
+    @foreach ($gudang->sortByDesc('total_stok')->take(5)->values() as $g)
+    <tr>
+        <td width="5%" valign="top">{{ $loop->iteration }}.</td>
+        <td valign="top">{{ $g["alamat"] }}</tdidth=>
+        <td valign="top">{{ $g["jumlah_transaksi"] }}</td>
+        <td valign="top">{{ $g["total_stok"] }}</td>
+        <td valign="top">{{ $g["jumlah_transaksi_selesai"] }}</td>
+        <td valign="top">{{ $g["jumlah_transaksi_pending"] }}</td>
+    </tr>
+    @endforeach
+</table>
+
+<h3>Distribusi Sampah</h3>
+<table width="100%">
+    @foreach ($totalStokItem->sortByDesc('stok')->take(10)->values() as $s)
+    <tr>
+        <td width="5%" valign="top">{{ $loop->iteration }}.</td>
+        <td valign="top">{{ $s["nama"] }}</tdidth=>
+        <td valign="top">{{ $s["stok"] }}</tdidth=>
+        <td valign="top">{{ $s["persentase"] }}</tdidth=>
+    </tr>
+    @endforeach
+</table>
+
+<div style="page-break-after: always;"></div>
+
 <h2>Laporan Top 5 Pengepul</h2>
 
 <h3>Jumlah Transaksi</h3>
