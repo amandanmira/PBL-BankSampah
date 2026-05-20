@@ -25,7 +25,6 @@ class LaporanController extends Controller
         $startDate = $request->start_date
             ? Carbon::now()->subDays($request->start_date)->startOfDay()
             : Carbon::now()->subMonth()->startOfDay();
-
         $endDate = Carbon::now()->endOfDay();
 
         return Excel::download(new LaporanPetugasExport($startDate, $endDate, $request->gudang_id), 'laporan-transaksi.xlsx');
@@ -34,67 +33,110 @@ class LaporanController extends Controller
     public function exportPdf(Request $request)
     {
         $startDate = $request->start_date
-            ? Carbon::parse($request->start_date)->startOfDay()
+            ? Carbon::now()->subDays($request->start_date)->startOfDay()
             : Carbon::now()->subMonth()->startOfDay();
-
-        $endDate = $request->end_date
-            ? Carbon::parse($request->end_date)->endOfDay()
-            : Carbon::now()->endOfDay();
+        $endDate = Carbon::now()->endOfDay();
+        $gudangId = $request->gudang_id;
 
         // Ambil Data
-        $pengepulData = Pengepul::whereHas('transaksiPengepul', function ($q) use ($startDate, $endDate) {
+        $pengepulData = Pengepul::whereHas('transaksiPengepul', function ($q) use ($startDate, $endDate, $gudangId) {
             $q->whereBetween(
                 'created_at',
                 [$startDate, $endDate]
-            );
+            )
+            ->where('status', 'selesai')
+            ->when($gudangId, function ($q) use ($gudangId) {
+                $q->whereHas('detailTransaksi.sampah.gudang', function ($q) use ($gudangId) {
+                    $q->where('gudang_id', $gudangId);
+                });
+            });
         })->with([
-            'transaksiPengepul' => function ($q) use ($startDate, $endDate) {
+            'transaksiPengepul' => function ($q) use ($startDate, $endDate, $gudangId) {
                 $q->whereBetween(
                     'created_at',
                     [$startDate, $endDate]
                 )
+                ->when($gudangId, function ($q) use ($gudangId) {
+                    $q->whereHas('detailTransaksi.sampah.gudang', function ($q) use ($gudangId) {
+                        $q->where('gudang_id', $gudangId);
+                    });
+                })
                 ->with('detailTransaksi');
             }
         ])->get();
-        $nasabahData = Nasabah::whereHas('penimbangan', function ($q) use ($startDate, $endDate) {
+        $nasabahData = Nasabah::whereHas('penimbangan', function ($q) use ($startDate, $endDate, $gudangId) {
             $q->whereBetween(
                 'created_at',
                 [$startDate, $endDate]
-            );
+            )
+            ->when($gudangId, function ($q) use ($gudangId) {
+                $q->whereHas('sampah.gudang', function ($q) use ($gudangId) {
+                    $q->where('gudang_id', $gudangId);
+                });
+            });
         })->with([
-            'penimbangan' => function ($q) use ($startDate, $endDate) {
+            'penimbangan' => function ($q) use ($startDate, $endDate, $gudangId) {
                 $q->whereBetween(
                     'created_at',
                     [$startDate, $endDate]
                 )
-                ->with('transaksi');
+                ->when($gudangId, function ($q) use ($gudangId) {
+                    $q->whereHas('sampah.gudang', function ($q) use ($gudangId) {
+                        $q->where('gudang_id', $gudangId);
+                    });
+                })
+                ->with([
+                    'transaksi' => function ($q) {
+                        $q->where('status', 'selesai');
+                    }
+                ]);
             }
         ])->get();
-        $pembelianSampahData = Sampah::whereHas('penimbangan', function ($q) use ($startDate, $endDate) {
+        $pembelianSampahData = Sampah::whereHas('penimbangan', function ($q) use ($startDate, $endDate, $gudangId) {
             $q->whereBetween(
                 'created_at',
                 [$startDate, $endDate]
-            );
+            )
+            ->when($gudangId, function ($q) use ($gudangId) {
+                $q->whereHas('sampah.gudang', function ($q) use ($gudangId) {
+                    $q->where('gudang_id', $gudangId);
+                });
+            });
         })->with([
-            'penimbangan' => function ($q) use ($startDate, $endDate) {
+            'penimbangan' => function ($q) use ($startDate, $endDate, $gudangId) {
                 $q->whereBetween(
                     'created_at',
                     [$startDate, $endDate]
-                );
+                )
+                ->when($gudangId, function ($q) use ($gudangId) {
+                    $q->whereHas('sampah.gudang', function ($q) use ($gudangId) {
+                        $q->where('gudang_id', $gudangId);
+                    });
+                });
             },
             'itemSampah', 'gudang'
         ])->get();
-        $penjualanSampahData = Sampah::whereHas('detailTransaksi', function ($q) use ($startDate, $endDate) {
+        $penjualanSampahData = Sampah::whereHas('detailTransaksi', function ($q) use ($startDate, $endDate, $gudangId) {
             $q->whereBetween(
                 'created_at',
                 [$startDate, $endDate]
-            );
+            )
+            ->when($gudangId, function ($q) use ($gudangId) {
+                $q->whereHas('sampah.gudang', function ($q) use ($gudangId) {
+                    $q->where('gudang_id', $gudangId);
+                });
+            });
         })->with([
-            'detailTransaksi' => function ($q) use ($startDate, $endDate) {
+            'detailTransaksi' => function ($q) use ($startDate, $endDate, $gudangId) {
                 $q->whereBetween(
                     'created_at',
                     [$startDate, $endDate]
-                );
+                )
+                ->when($gudangId, function ($q) use ($gudangId) {
+                    $q->whereHas('sampah.gudang', function ($q) use ($gudangId) {
+                        $q->where('gudang_id', $gudangId);
+                    });
+                });
             },
             'itemSampah', 'gudang'
         ])->get();
@@ -103,6 +145,9 @@ class LaporanController extends Controller
             ->join('detail_transaksis', 'sampahs.sampah_id', '=', 'detail_transaksis.sampah_id')
             ->join('transaksi_pengepuls', 'detail_transaksis.transaksi_id', '=', 'transaksi_pengepuls.transaksi_id')
             ->whereBetween('transaksi_pengepuls.created_at', [$startDate, $endDate])
+            ->when($gudangId, function ($query) use ($gudangId) {  // ← jika ada, filter. jika null, dilewati
+                $query->where('gudangs.gudang_id', $gudangId);
+            })
             ->select(
                 'gudangs.alamat as alamat',
                 DB::raw('COUNT(DISTINCT transaksi_pengepuls.transaksi_id) as jumlah_transaksi'),
@@ -118,6 +163,11 @@ class LaporanController extends Controller
             ->get();
         $transaksiPengepulData = TransaksiPengepul::whereBetween('created_at', [$startDate, $endDate])
                 ->where('status', 'selesai')
+                ->when($gudangId, function ($query) use ($gudangId) {         // ← tambah ini
+                    $query->whereHas('detailTransaksi.sampah.gudang', function ($q) use ($gudangId) {
+                        $q->where('gudang_id', $gudangId);
+                    });
+                })
                 ->get();
         $itemSampahData = ItemSampah::wherehas('sampah')->withSum('sampah', 'stok')->get();
 

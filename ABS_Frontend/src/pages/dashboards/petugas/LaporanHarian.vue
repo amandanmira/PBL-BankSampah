@@ -50,7 +50,8 @@ const previewPdf = async () => {
       {
         headers,
         params: {
-          start_date: date.value.start_date
+          start_date: date.value.start_date,
+          gudang_id: date.value.gudang_id,
         },
         responseType: 'blob', // penting
       }
