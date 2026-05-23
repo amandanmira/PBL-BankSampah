@@ -195,7 +195,7 @@
 
 <h3>Total Berat (Kg)</h3>
 <table width="100%">
-    @foreach ($pengepul->sortByDesc('total_berat')->take(5)->values() as $d)
+    @foreach ($nasabah->sortByDesc('total_berat')->take(5)->values() as $d)
     <tr>
         <td width="5%" valign="top">{{ $loop->iteration }}.</td>
         <td width="45%" valign="top">{{ $d["nama"] }}</td>
