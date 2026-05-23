@@ -15,12 +15,14 @@ class LaporanDetailTransaksiExport implements FromCollection, WithMapping, WithH
     protected $startDate;
     protected $endDate;
     protected $gudangId;
+    protected $sampah;
 
-    public function __construct($startDate, $endDate, $gudangId)
+    public function __construct($startDate, $endDate, $gudangId, $sampah)
     {
         $this->startDate = $startDate;
         $this->endDate = $endDate;
         $this->gudangId = $gudangId;
+        $this->sampah = collect($sampah)->pluck('sampah_id')->toArray();
     }
 
     /**
@@ -35,9 +37,14 @@ class LaporanDetailTransaksiExport implements FromCollection, WithMapping, WithH
             ->whereHas('transaksiPengepul', function ($q) {
                 $q->where('status', 'selesai');
             })
-            ->when($this->gudangId, function ($query) {         // ← tambah ini
+            ->when($this->gudangId, function ($query) {
                 $query->whereHas('sampah.gudang', function ($q) {
                     $q->where('gudang_id', $this->gudangId);
+                });
+            })
+            ->when($this->sampah, function ($query) {
+                $query->whereHas('sampah', function ($q) {
+                    $q->whereIn('item_id', $this->sampah);
                 });
             })
             ->with(['transaksiPengepul.pengepul', 'sampah.itemSampah'])->get();

@@ -14,12 +14,14 @@ class LaporanPenjualanSampahExport implements FromCollection, WithHeadings, With
     protected $startDate;
     protected $endDate;
     protected $gudangId;
+    protected $sampah;
 
-    public function __construct($startDate, $endDate, $gudangId)
+    public function __construct($startDate, $endDate, $gudangId, $sampah)
     {
         $this->startDate = $startDate;
         $this->endDate = $endDate;
         $this->gudangId = $gudangId;
+        $this->sampah = collect($sampah)->pluck('sampah_id')->toArray();
     }
 
     /**
@@ -32,9 +34,14 @@ class LaporanPenjualanSampahExport implements FromCollection, WithHeadings, With
                 'created_at',
                 [$this->startDate, $this->endDate]
             )
-            ->when($this->gudangId, function ($query) {         // ← tambah ini
+            ->when($this->gudangId, function ($query) {
                 $query->whereHas('sampah.gudang', function ($q) {
                     $q->where('gudang_id', $this->gudangId);
+                });
+            })
+            ->when($this->sampah, function ($query) {
+                $query->whereHas('sampah', function ($q) {
+                    $q->whereIn('item_id', $this->sampah);
                 });
             });
         })->with([
@@ -43,9 +50,14 @@ class LaporanPenjualanSampahExport implements FromCollection, WithHeadings, With
                     'created_at',
                     [$this->startDate, $this->endDate]
                 )
-                ->when($this->gudangId, function ($query) {         // ← tambah ini
+                ->when($this->gudangId, function ($query) {
                     $query->whereHas('sampah.gudang', function ($q) {
                         $q->where('gudang_id', $this->gudangId);
+                    });
+                })
+                ->when($this->sampah, function ($query) {
+                    $query->whereHas('sampah', function ($q) {
+                        $q->whereIn('item_id', $this->sampah);
                     });
                 });
             },

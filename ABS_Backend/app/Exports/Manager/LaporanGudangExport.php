@@ -15,12 +15,14 @@ class LaporanGudangExport implements FromCollection, WithHeadings, WithMapping, 
     protected $startDate;
     protected $endDate;
     protected $gudangId;
+    protected $sampah;
 
-    public function __construct($startDate, $endDate, $gudangId)
+    public function __construct($startDate, $endDate, $gudangId, $sampah)
     {
         $this->startDate = $startDate;
         $this->endDate = $endDate;
         $this->gudangId = $gudangId;
+        $this->sampah = collect($sampah)->pluck('sampah_id')->toArray();
     }
 
     /**
@@ -33,8 +35,11 @@ class LaporanGudangExport implements FromCollection, WithHeadings, WithMapping, 
             ->join('detail_transaksis', 'sampahs.sampah_id', '=', 'detail_transaksis.sampah_id')
             ->join('transaksi_pengepuls', 'detail_transaksis.transaksi_id', '=', 'transaksi_pengepuls.transaksi_id')
             ->whereBetween('transaksi_pengepuls.created_at', [$this->startDate, $this->endDate])
-            ->when($this->gudangId, function ($query) {  // ← jika ada, filter. jika null, dilewati
+            ->when($this->gudangId, function ($query) {
                 $query->where('gudangs.gudang_id', $this->gudangId);
+            })
+            ->when($this->sampah, function ($query) {
+                $query->whereIn('sampahs.item_id', $this->sampah);
             })
             ->select(
                 'gudangs.alamat as alamat',
@@ -45,6 +50,7 @@ class LaporanGudangExport implements FromCollection, WithHeadings, WithMapping, 
                     SELECT SUM(s.stok)
                     FROM sampahs s
                     WHERE s.gudang_id = gudangs.gudang_id
+                    ' . ($this->sampah ? 'AND s.item_id IN (' . implode(',', $this->sampah) . ')' : '') . '
                 ) as total_stok'),
             )
             ->groupBy('gudangs.gudang_id', 'gudangs.alamat')

@@ -14,12 +14,14 @@ class LaporanTransaksiPengepulExport implements FromCollection, WithHeadings, Wi
     protected $startDate;
     protected $endDate;
     protected $gudangId;
+    protected $sampah;
 
-    public function __construct($startDate, $endDate, $gudangId)
+    public function __construct($startDate, $endDate, $gudangId, $sampah)
     {
         $this->startDate = $startDate;
         $this->endDate = $endDate;
         $this->gudangId = $gudangId;
+        $this->sampah = collect($sampah)->pluck('sampah_id')->toArray();
     }
 
     /**
@@ -31,9 +33,14 @@ class LaporanTransaksiPengepulExport implements FromCollection, WithHeadings, Wi
                 'created_at',
                 [$this->startDate, $this->endDate]
             )
-            ->when($this->gudangId, function ($query) {         // ← tambah ini
+            ->when($this->gudangId, function ($query) {
                 $query->whereHas('detailTransaksi.sampah.gudang', function ($q) {
                     $q->where('gudang_id', $this->gudangId);
+                });
+            })
+            ->when($this->sampah, function ($query) {
+                $query->whereHas('detailTransaksi.sampah', function ($q) {
+                    $q->whereIn('item_id', $this->sampah);
                 });
             })
             ->with(['detailTransaksi.sampah.itemSampah', 'pengepul'])->get();

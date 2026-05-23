@@ -14,12 +14,14 @@ class LaporanPenimbanganExport implements FromCollection, WithHeadings, WithMapp
     protected $startDate;
     protected $endDate;
     protected $gudangId;
+    protected $sampah;
 
-    public function __construct($startDate, $endDate, $gudangId)
+    public function __construct($startDate, $endDate, $gudangId, $sampah)
     {
         $this->startDate = $startDate;
         $this->endDate = $endDate;
         $this->gudangId = $gudangId;
+        $this->sampah = collect($sampah)->pluck('sampah_id')->toArray();
     }
 
     /**
@@ -37,6 +39,11 @@ class LaporanPenimbanganExport implements FromCollection, WithHeadings, WithMapp
             ->when($this->gudangId, function ($q) {
                 $q->whereHas('sampah.gudang', function ($q) {
                     $q->where('gudang_id', $this->gudangId);
+                });
+            })
+            ->when($this->sampah, function ($query) {
+                $query->whereHas('sampah', function ($q) {
+                    $q->whereIn('item_id', $this->sampah);
                 });
             })
             ->with(['nasabah', 'sampah.itemSampah'])->get();

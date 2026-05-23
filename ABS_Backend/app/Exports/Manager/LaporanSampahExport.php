@@ -5,6 +5,7 @@ namespace App\Exports\Manager;
 use Carbon\Carbon;
 use App\Models\ItemSampah;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
@@ -14,11 +15,15 @@ class LaporanSampahExport implements FromCollection, WithHeadings, WithMapping, 
 {
     protected $startDate;
     protected $endDate;
+    protected $gudangId;
+    protected $sampah;
 
-    public function __construct($startDate, $endDate)
+    public function __construct($startDate, $endDate, $gudangId, $sampah)
     {
         $this->startDate = $startDate;
         $this->endDate = $endDate;
+        $this->gudangId = $gudangId;
+        $this->sampah = collect($sampah)->pluck('sampah_id')->toArray();
     }
 
     /**
@@ -26,7 +31,23 @@ class LaporanSampahExport implements FromCollection, WithHeadings, WithMapping, 
     */
     public function collection()
     {
-        return ItemSampah::wherehas('sampah')->withSum('sampah', 'stok')->get();
+        return ItemSampah::whereHas('sampah', function ($q) {
+            $q->when($this->sampah, function ($q) {
+                $q->whereIn('item_id', $this->sampah);
+            })
+            ->when($this->gudangId, function ($q) {
+                $q->where('gudang_id', $this->gudangId);
+            });
+        })
+        ->withSum(['sampah' => function ($q) {
+            $q->when($this->sampah, function ($q) {
+                $q->whereIn('item_id', $this->sampah);
+            })
+            ->when($this->gudangId, function ($q) {
+                $q->where('gudang_id', $this->gudangId);
+            });
+        }], 'stok')
+        ->get();
     }
 
     public function map($sampah): array

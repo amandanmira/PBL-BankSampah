@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from "vue";
+import { ref, onMounted } from "vue";
 import { Icon } from "@iconify/vue";
 import DashboardLayout from "@/layouts/DashboardLayout.vue";
 import axios from 'axios'
@@ -12,10 +12,24 @@ if (!token) {
 
 const headers = { 'Authorization': `Bearer ${token}` }
 
-const date = ref({
+const listSampah = ref([]);
+const listGudang = ref([]);
+
+const data = ref({
   start_date: 30,
-  gudang_id: null,
+  gudang_id: "",
+  sampah: [],
 })
+
+const addSampah = () => {
+  data.value.sampah.push({
+    sampah_id: "",
+  });
+};
+
+const removeSampah = (index) => {
+  data.value.sampah.splice(index, 1);
+};
 
 const downloadExcel = async () => {
   try {
@@ -24,8 +38,9 @@ const downloadExcel = async () => {
       {
         headers,
         params: {
-          start_date: date.value.start_date,
-          gudang_id: date.value.gudang_id,
+          start_date: data.value.start_date,
+          gudang_id: data.value.gudang_id,
+          sampah: data.value.sampah,
         },
         responseType: 'blob', // penting
       }
@@ -50,8 +65,9 @@ const previewPdf = async () => {
       {
         headers,
         params: {
-          start_date: date.value.start_date,
-          gudang_id: date.value.gudang_id,
+          start_date: data.value.start_date,
+          gudang_id: data.value.gudang_id,
+          sampah: data.value.sampah,
         },
         responseType: 'blob', // penting
       }
@@ -65,6 +81,22 @@ const previewPdf = async () => {
     console.error(err)
   }
 }
+
+const fetchData = async () => {
+  try {
+    const response = await axios.get("http://localhost:8000/api/laporan/list-sampah", { headers });
+    listSampah.value = response.data;
+    
+    const responseG = await axios.get("http://localhost:8000/api/laporan/list-gudang", { headers });
+    listGudang.value = responseG.data;
+  } catch (err) {
+    console.error("Gagal mengambil data:", err);
+  }
+};
+
+onMounted(async () => {
+  fetchData();
+});
 </script>
 
 <template>
@@ -79,12 +111,50 @@ const previewPdf = async () => {
         <div>
           <div>
             <label>Periode (Hari)</label><br />
-            <input type="number" v-model="date.start_date" />
+            <input type="number" v-model="data.start_date" />
           </div>
           
           <div>
             <label>Gudang</label><br />
-            <input type="number" v-model="date.gudang_id" />
+            <select v-model="data.gudang_id">
+                <option value="">
+                  -- Pilih Gudang --
+                </option>
+                <option
+                  v-for="item in listGudang"
+                  :key="item.gudang_id"
+                  :value="item.gudang_id"
+                >
+                  {{ item.alamat }}
+                </option>
+              </select>
+          </div>
+
+          <button @click="addSampah">+ Tambah Sampah</button>
+          <div
+            v-for="(s, index) in data.sampah"
+            :key="index"
+            style="border:1px solid #ccc; padding:10px; margin-top:10px;"
+          >
+            <div>
+              <label>Sampah</label><br />
+              <select v-model="s.sampah_id">
+                <option value="">
+                  -- Pilih Item Sampah --
+                </option>
+                <option
+                  v-for="item in listSampah"
+                  :key="item.item_id"
+                  :value="item.item_id"
+                >
+                  {{ item.nama }}
+                </option>
+              </select>
+            </div>
+
+            <button @click="removeSampah(index)">
+              Hapus Sampah
+            </button>
           </div>
         </div>
 

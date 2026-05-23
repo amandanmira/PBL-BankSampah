@@ -15,11 +15,26 @@ use App\Models\Sampah;
 use App\Models\KonfigurasiWeb;
 use App\Models\TransaksiPengepul;
 use App\Models\ItemSampah;
+use App\Models\Gudang;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class LaporanController extends Controller
 {
+    public function indexSampah()
+    {
+        return response()->json(
+            ItemSampah::all()
+        );
+    }
+
+    public function indexGudang()
+    {
+        return response()->json(
+            Gudang::all()
+        );
+    }
+
     public function exportExcel(Request $request)
     {
         $startDate = $request->start_date
@@ -27,7 +42,7 @@ class LaporanController extends Controller
             : Carbon::now()->subMonth()->startOfDay();
         $endDate = Carbon::now()->endOfDay();
 
-        return Excel::download(new LaporanPetugasExport($startDate, $endDate, $request->gudang_id), 'laporan-transaksi.xlsx');
+        return Excel::download(new LaporanPetugasExport($startDate, $endDate, $request->gudang_id, $request->sampah), 'laporan-transaksi.xlsx');
     }
 
     public function exportPdf(Request $request)
@@ -169,7 +184,17 @@ class LaporanController extends Controller
                     });
                 })
                 ->get();
-        $itemSampahData = ItemSampah::wherehas('sampah')->withSum('sampah', 'stok')->get();
+        $itemSampahData = ItemSampah::whereHas('sampah', function ($q) use ($gudangId) {
+            $q->when($gudangId, function ($q) use ($gudangId) {
+                $q->where('gudang_id', $gudangId);
+            });
+        })
+        ->withSum(['sampah' => function ($q) use ($gudangId) {
+            $q->when($gudangId, function ($q) use ($gudangId) {
+                $q->where('gudang_id', $gudangId);
+            });
+        }], 'stok')
+        ->get();
 
         // Olah Data
         $pengepul = $pengepulData->map(function ($item) {
@@ -229,7 +254,10 @@ class LaporanController extends Controller
             'total_transaksi' => $transaksiPengepulData->count(),
             'total_transaksi_selesai' => $transaksiPengepulData->where('status', 'selesai')->count(),
             'total_transaksi_pending' => $transaksiPengepulData->where('status', 'pending')->count(),
-            'total_stok' => Sampah::sum('stok'),
+            'total_stok' => Sampah::when($gudangId, function ($q) use ($gudangId) {
+                $q->where('gudang_id', $gudangId);
+            })
+            ->sum('stok'),
         ];
         $totalStokItem = $itemSampahData->map(function ($item) use ($dataStatistik) {
             $persentaseItem = $item->sampah_sum_stok / $dataStatistik['total_stok'];
