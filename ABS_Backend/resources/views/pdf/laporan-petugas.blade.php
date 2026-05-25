@@ -73,7 +73,12 @@
     <div id="kop-surat">
         <div class="logo">
             {{-- Gambar harus path absolut atau base64 --}}
-            <img src="{{ storage_path('app/public/' . $config->logo) ?? public_path('logo.png') }}">
+            @php
+                $logoPath = $config->logo && file_exists(storage_path('app/public/' . $config->logo)) 
+                            ? storage_path('app/public/' . $config->logo) 
+                            : public_path('logo.png');
+            @endphp
+            <img src="{{ $logoPath }}">
             {{-- Logo --}}
         </div>
 

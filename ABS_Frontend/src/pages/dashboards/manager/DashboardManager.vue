@@ -1,321 +1,317 @@
 <script setup>
-import { ref, onMounted, computed } from "vue";
+import { ref, onMounted } from "vue";
 import { Icon } from "@iconify/vue";
 import DashboardLayout from "@/layouts/DashboardLayout.vue";
-import { checkRole } from "@/utils";
-import axios from "axios";
 import VueApexCharts from "vue3-apexcharts";
+import axios from "axios";
 
 const apexchart = VueApexCharts;
 
-// Security check
-checkRole("manager");
-
-const user = computed(() => {
-  try {
-    return JSON.parse(sessionStorage.getItem("user") || "{}");
-  } catch (e) {
-    return {};
-  }
-});
-
-const token = sessionStorage.getItem('token')
-
-if (!token) {
-  throw new Error('Otentikasi diperlukan.')
-}
-
-const headers = { 'Authorization': `Bearer ${token}` }
-
-const stats = ref({
-  total_petugas: 0,
-  total_sampah: 0,
-  nasabah_verifikasi: 0,
-  transaksi_bulan_ini: 0,
-});
-
-const activities = ref([]);
-const loading = ref(true);
+// Reactive data based on the image and API
+const topStats = ref([
+  {
+    id: "petugas",
+    title: "Total Petugas Aktif",
+    value: "12",
+    increase: "+2 bulan ini",
+    icon: "material-symbols:group-outline",
+    bgClass: "bg-[#4A7043]",
+    iconBgClass: "bg-white/20",
+    increaseClass: "bg-white/20 text-white",
+  },
+  {
+    id: "sampah",
+    title: "Total Sampah (Kg)",
+    value: "1,280",
+    increase: "+12.4%",
+    icon: "material-symbols:recycling",
+    bgClass: "bg-[#5FA09B]",
+    iconBgClass: "bg-white/20",
+    increaseClass: "bg-white/20 text-white",
+  },
+  {
+    id: "nasabah",
+    title: "Nasabah Terverifikasi",
+    value: "156",
+    increase: "+8 minggu ini",
+    icon: "material-symbols:person-outline",
+    bgClass: "bg-[#A86444]",
+    iconBgClass: "bg-white/20",
+    increaseClass: "bg-white/20 text-white",
+  },
+  {
+    id: "transaksi",
+    title: "Transaksi Bulan Ini",
+    value: "70",
+    increase: "-3.1%",
+    icon: "material-symbols:receipt-long-outline",
+    bgClass: "bg-[#7A7A7A]",
+    iconBgClass: "bg-white/20",
+    increaseClass: "bg-white/20 text-white",
+  },
+  {
+    id: "gudang",
+    title: "Total Gudang Aktif",
+    value: "4",
+    increase: "4 dari 4 online",
+    icon: "material-symbols:warehouse-outline",
+    bgClass: "bg-[#3D5A35]",
+    iconBgClass: "bg-white/20",
+    increaseClass: "bg-white/20 text-white",
+  },
+]);
 
 const fetchDashboardData = async () => {
   try {
-    const response = await axios.get("http://localhost:8000/api/manager/dashboard-stats", headers);
-    stats.value = response.data.stats;
-    activities.value = response.data.activities;
+    const token = sessionStorage.getItem('token');
+    const response = await axios.get("http://localhost:8000/api/manager/dashboard-stats", {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+    
+    const data = response.data.stats;
+    
+    // Fungsi untuk update nilai stat spesifik jika nilainya tidak "X" dan terdefinisi
+    const updateStat = (id, newValue) => {
+      const stat = topStats.value.find(s => s.id === id);
+      if (stat && newValue !== "X" && newValue !== undefined) {
+        stat.value = typeof newValue === 'number' ? newValue.toLocaleString('id-ID') : newValue;
+      }
+    };
+
+    updateStat('petugas', data.total_petugas);
+    updateStat('sampah', data.total_sampah);
+    updateStat('nasabah', data.nasabah_verifikasi);
+    updateStat('transaksi', data.transaksi_bulan_ini);
+    
   } catch (error) {
     console.error("Error fetching dashboard data:", error);
-  } finally {
-    loading.value = false;
   }
 };
-
-const downloadExcel = async () => {
-  try {
-    const res = await axios.get(
-      `/api/cetak-laporan/excel`,
-      {
-        headers,
-        responseType: 'blob', // penting
-      }
-    )
-
-    const url = window.URL.createObjectURL(new Blob([res.data]))
-    const link = document.createElement('a')
-    link.href = url
-    link.setAttribute('download', 'transaksi.xlsx') // nama file
-    document.body.appendChild(link)
-    link.click()
-    link.remove()
-  } catch (err) {
-    console.error(err)
-  }
-}
-
-const previewPdf = async () => {
-  try {
-    const response = await axios.get(
-      `/api/cetak-laporan/pdf`,
-      {
-        headers,
-        responseType: 'blob', // penting
-      }
-    )
-
-    const file = new Blob([response.data], { type: 'application/pdf' })
-    const fileURL = URL.createObjectURL(file)
-
-    window.open(fileURL)
-  } catch (err) {
-    console.error(err)
-  }
-}
 
 onMounted(() => {
   fetchDashboardData();
 });
 
-// Chart Options
-const trashChartOptions = {
+// Area chart (Trend Sampah)
+const trendChartOptions = {
+  chart: {
+    type: 'area',
+    toolbar: { show: false },
+    zoom: { enabled: false },
+    fontFamily: 'Inter, sans-serif'
+  },
+  colors: ['#4A7043', '#5FA09B', '#A86444', '#F59E0B'],
+  dataLabels: { enabled: false },
+  stroke: { curve: 'smooth', width: 2 },
+  fill: {
+    type: 'gradient',
+    gradient: {
+      shadeIntensity: 1,
+      opacityFrom: 0.4,
+      opacityTo: 0.05,
+      stops: [0, 90, 100]
+    }
+  },
+  xaxis: {
+    categories: ['Jan', 'Feb', 'Mar', 'Apr', 'Mei'],
+    labels: { style: { colors: '#A8A29E', fontSize: '12px' } },
+    axisBorder: { show: false },
+    axisTicks: { show: false },
+  },
+  yaxis: {
+    min: 0,
+    max: 600,
+    tickAmount: 4,
+    labels: { style: { colors: '#A8A29E', fontSize: '12px' } }
+  },
+  grid: {
+    borderColor: '#f3f4f6',
+    strokeDashArray: 4,
+    yaxis: { lines: { show: true } }
+  },
+  legend: {
+    position: 'bottom',
+    horizontalAlign: 'center',
+    markers: { radius: 12, size: 6 },
+    itemMargin: { horizontal: 10, vertical: 0 }
+  }
+};
+
+const trendChartSeries = [
+  { name: 'Organik', data: [280, 310, 360, 420, 500] },
+  { name: 'Plastik PET', data: [180, 220, 250, 280, 320] },
+  { name: 'Kertas', data: [140, 160, 180, 200, 230] },
+  { name: 'Logam', data: [60, 70, 80, 90, 120] }
+];
+
+// Line chart (Pertumbuhan Total Sampah)
+const growthChartOptions = {
   chart: {
     type: 'line',
     toolbar: { show: false },
-    zoom: { enabled: false }
+    zoom: { enabled: false },
+    fontFamily: 'Inter, sans-serif'
   },
-  colors: ['#5FA09B', '#8C5230', '#3D5A35'],
-  stroke: { curve: 'smooth', width: 3 },
-  xaxis: {
-    categories: ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun'],
-    labels: { style: { colors: '#A8A29E', fontWeight: 600 } }
-  },
-  yaxis: {
-    labels: { style: { colors: '#A8A29E', fontWeight: 600 } }
-  },
-  grid: { borderColor: '#F5F5F4', strokeDashArray: 4 },
-  legend: { position: 'bottom', fontWeight: 600 },
-  markers: { size: 4 }
-};
-
-const trashChartSeries = [
-  { name: 'Organik', data: [350, 420, 500, 480, 550, 600] },
-  { name: 'Anorganik', data: [200, 250, 300, 280, 320, 350] },
-  { name: 'Total', data: [550, 670, 800, 760, 870, 950] }
-];
-
-const transactionChartOptions = {
-  chart: {
-    type: 'bar',
-    toolbar: { show: false }
-  },
-  colors: ['#5FA09B'],
-  plotOptions: {
-    bar: {
-      borderRadius: 8,
-      columnWidth: '50%',
-    }
-  },
+  colors: ['#4A7043'],
   dataLabels: { enabled: false },
+  stroke: { curve: 'straight', width: 2 },
+  markers: {
+    size: 5,
+    colors: ['#4A7043'],
+    strokeColors: '#fff',
+    strokeWidth: 2,
+    hover: { size: 7 }
+  },
   xaxis: {
-    categories: ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun'],
-    labels: { style: { colors: '#A8A29E', fontWeight: 600 } }
+    categories: ['Jan', 'Feb', 'Mar', 'Apr', 'Mei'],
+    labels: { style: { colors: '#A8A29E', fontSize: '12px' } },
+    axisBorder: { show: false },
+    axisTicks: { show: false },
   },
   yaxis: {
-    labels: { style: { colors: '#A8A29E', fontWeight: 600 } }
+    min: 0,
+    max: 1400,
+    tickAmount: 4,
+    labels: { style: { colors: '#A8A29E', fontSize: '12px' } }
   },
-  grid: { borderColor: '#F5F5F4', strokeDashArray: 4 }
+  grid: {
+    borderColor: '#f3f4f6',
+    strokeDashArray: 4,
+  }
 };
 
-const transactionChartSeries = [
-  { name: 'Transaksi', data: [45, 52, 60, 55, 65, 70] }
+const growthChartSeries = [
+  { name: 'Total', data: [660, 760, 870, 990, 1170] }
 ];
 
-const getIconBg = (type) => {
-  switch (type) {
-    case 'nasabah': return 'bg-green-100 text-green-600';
-    case 'transaksi': return 'bg-blue-100 text-blue-600';
-    case 'gudang': return 'bg-orange-100 text-orange-600';
-    case 'laporan': return 'bg-purple-100 text-purple-600';
-    default: return 'bg-stone-100 text-stone-600';
-  }
-};
+// Progress bar data
+const gudangStatus = [
+  { name: 'Gudang Pusat', percentage: 92, text: 'Hampir Penuh', value: '412 kg tersimpan', colorClass: 'bg-red-500', textClass: 'text-red-500' },
+  { name: 'Gudang Timur', percentage: 65, text: 'Normal', value: '298 kg tersimpan', colorClass: 'bg-[#4A7043]', textClass: 'text-[#4A7043]' },
+  { name: 'Gudang Barat', percentage: 48, text: 'Normal', value: '225 kg tersimpan', colorClass: 'bg-[#4A7043]', textClass: 'text-[#4A7043]' },
+  { name: 'Gudang Selatan', percentage: 78, text: 'Tinggi', value: '344 kg tersimpan', colorClass: 'bg-orange-500', textClass: 'text-orange-500' },
+];
 
-const getIcon = (type) => {
-  switch (type) {
-    case 'nasabah': return 'material-symbols:person-check-outline';
-    case 'transaksi': return 'material-symbols:receipt-long-outline';
-    case 'gudang': return 'material-symbols:warehouse-outline';
-    case 'laporan': return 'material-symbols:description-outline';
-    default: return 'material-symbols:notifications-outline';
-  }
-};
+const distribusiSaatIni = [
+  { name: 'Organik', value: '540 kg', percentage: 80, colorClass: 'bg-[#4A7043]', dotClass: 'bg-[#4A7043]' },
+  { name: 'Plastik PET', value: '340 kg', percentage: 60, colorClass: 'bg-[#5FA09B]', dotClass: 'bg-[#5FA09B]' },
+  { name: 'Kertas', value: '245 kg', percentage: 40, colorClass: 'bg-[#A86444]', dotClass: 'bg-[#A86444]' },
+  { name: 'Logam', value: '128 kg', percentage: 20, colorClass: 'bg-[#F59E0B]', dotClass: 'bg-[#F59E0B]' },
+];
 
+const selectedPeriod = ref('6 Bulan');
+const periods = ['1 Bulan', '3 Bulan', '6 Bulan'];
 </script>
 
 <template>
   <DashboardLayout title="Dashboard">
-    <div class="space-y-8 animate-in fade-in duration-700 pb-10">
-      
-      <!-- Header Section -->
-      <div class="flex justify-between items-center">
-        <h2 class="text-2xl font-black text-stone-800">Ringkasan Dashboard</h2>
-        <div class="flex items-center gap-2 bg-white px-4 py-2 rounded-2xl shadow-sm border border-stone-100">
-          <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-          <span class="text-xs font-bold text-stone-500 uppercase tracking-wider">Live System</span>
-        </div>
-      </div>
+    <div class="space-y-6 animate-in fade-in duration-700 pb-10 font-['Inter']">
 
-      <!-- Stats Grid -->
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
-        <!-- Total Petugas -->
-        <div class="bg-[#3D5A35] rounded-[2.5rem] p-8 text-white shadow-xl shadow-green-900/10 flex flex-col justify-between h-56 relative overflow-hidden group">
-          <div class="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -mr-10 -mt-10 blur-2xl group-hover:scale-150 transition-transform duration-700"></div>
-          <div class="flex justify-between items-start relative z-10">
-            <div class="p-3 bg-white/10 rounded-2xl backdrop-blur-md">
-              <Icon icon="material-symbols:group-outline" class="w-8 h-8" />
+      <!-- Top Stats Row -->
+      <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
+        <div v-for="(stat, idx) in topStats" :key="idx"
+          class="rounded-2xl p-5 text-white shadow-sm flex flex-col justify-between h-36 relative overflow-hidden group transition-all duration-300 hover:shadow-md hover:-translate-y-1"
+          :class="stat.bgClass"
+        >
+          <div class="flex justify-between items-start z-10">
+            <Icon :icon="stat.icon" class="w-7 h-7" />
+            <div class="px-2.5 py-1 rounded-full text-[10px] font-bold flex items-center gap-1" :class="stat.increaseClass">
+              <Icon v-if="stat.increase.includes('+')" icon="material-symbols:trending-up" class="w-3 h-3" />
+              <Icon v-else-if="stat.increase.includes('-')" icon="material-symbols:trending-down" class="w-3 h-3" />
+              <Icon v-else icon="material-symbols:check-circle-outline" class="w-3 h-3" />
+              {{ stat.increase }}
             </div>
           </div>
-          <div class="relative z-10">
-            <h3 class="text-5xl font-black mb-1">{{ stats.total_petugas }}</h3>
-            <p class="text-sm font-bold text-white/70 uppercase tracking-widest">Total Petugas Aktif</p>
-          </div>
-        </div>
-
-        <!-- Total Sampah -->
-        <div class="bg-[#5FA09B] rounded-[2.5rem] p-8 text-white shadow-xl shadow-teal-900/10 flex flex-col justify-between h-56 relative overflow-hidden group">
-          <div class="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -mr-10 -mt-10 blur-2xl group-hover:scale-150 transition-transform duration-700"></div>
-          <div class="flex justify-between items-start relative z-10">
-            <div class="p-3 bg-white/10 rounded-2xl backdrop-blur-md">
-              <Icon icon="material-symbols:inventory-2-outline" class="w-8 h-8" />
-            </div>
-          </div>
-          <div class="relative z-10">
-            <div class="flex items-baseline gap-2">
-              <h3 class="text-5xl font-black mb-1">{{ typeof stats.total_sampah === 'number' ? stats.total_sampah.toLocaleString('id-ID') : stats.total_sampah }}</h3>
-              <span class="text-2xl font-bold opacity-60">Kg</span>
-            </div>
-            <p class="text-sm font-bold text-white/70 uppercase tracking-widest">Total Sampah (Kg)</p>
-          </div>
-        </div>
-
-        <!-- Nasabah Verifikasi -->
-        <div class="bg-[#8C5230] rounded-[2.5rem] p-8 text-white shadow-xl shadow-orange-900/10 flex flex-col justify-between h-56 relative overflow-hidden group">
-          <div class="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -mr-10 -mt-10 blur-2xl group-hover:scale-150 transition-transform duration-700"></div>
-          <div class="flex justify-between items-start relative z-10">
-            <div class="p-3 bg-white/10 rounded-2xl backdrop-blur-md">
-              <Icon icon="material-symbols:trending-up" class="w-8 h-8" />
-            </div>
-          </div>
-          <div class="relative z-10">
-            <h3 class="text-5xl font-black mb-1">{{ stats.nasabah_verifikasi }}</h3>
-            <p class="text-sm font-bold text-white/70 uppercase tracking-widest">Nasabah Terverifikasi</p>
-          </div>
-        </div>
-
-        <!-- Transaksi Bulan Ini -->
-        <div class="bg-[#6B6B6B] rounded-[2.5rem] p-8 text-white shadow-xl shadow-stone-900/10 flex flex-col justify-between h-56 relative overflow-hidden group">
-          <div class="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -mr-10 -mt-10 blur-2xl group-hover:scale-150 transition-transform duration-700"></div>
-          <div class="flex justify-between items-start relative z-10">
-            <div class="p-3 bg-white/10 rounded-2xl backdrop-blur-md">
-              <Icon icon="material-symbols:attach-money" class="w-8 h-8" />
-            </div>
-          </div>
-          <div class="relative z-10">
-            <h3 class="text-5xl font-black mb-1">{{ stats.transaksi_bulan_ini }}</h3>
-            <p class="text-sm font-bold text-white/70 uppercase tracking-widest">Transaksi Bulan Ini</p>
+          <div class="z-10 mt-auto">
+            <h3 class="text-3xl font-bold mb-0.5 leading-none">{{ stat.value }}</h3>
+            <p class="text-xs font-medium text-white/90">{{ stat.title }}</p>
           </div>
         </div>
       </div>
 
-      <!-- Charts Section -->
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <!-- Trash Statistics -->
-        <div class="bg-white rounded-[2.5rem] p-8 shadow-sm border border-stone-100">
-          <div class="flex items-center gap-3 mb-8">
-            <div class="w-1.5 h-6 bg-[#5FA09B] rounded-full"></div>
-            <h3 class="text-xl font-black text-stone-800">Statistik Sampah (6 Bulan)</h3>
+      <!-- Middle Row -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Trend Sampah Chart -->
+        <div class="lg:col-span-2 bg-white rounded-[1.5rem] p-6 shadow-sm border border-stone-100">
+          <div class="flex justify-between items-start mb-2">
+            <div>
+              <h3 class="text-lg font-bold text-stone-800">Trend Sampah</h3>
+              <p class="text-xs text-stone-400">Total 5,615 kg pada periode terpilih</p>
+            </div>
+            <div class="flex bg-stone-100 rounded-lg p-1">
+              <button v-for="period in periods" :key="period"
+                @click="selectedPeriod = period"
+                class="px-3 py-1.5 text-xs font-bold rounded-md transition-colors cursor-pointer"
+                :class="selectedPeriod === period ? 'bg-[#4A7043] text-white shadow-sm' : 'text-stone-500 hover:text-stone-700'"
+              >
+                {{ period }}
+              </button>
+            </div>
           </div>
-          <apexchart 
-            type="line" 
-            height="300" 
-            :options="trashChartOptions" 
-            :series="trashChartSeries" 
-          />
-          <p class="text-[10px] text-stone-400 mt-4 font-medium italic">* Data statistik di atas masih bersifat statis</p>
+          <div class="mt-4 -ml-2">
+            <apexchart type="area" height="300" :options="trendChartOptions" :series="trendChartSeries" />
+          </div>
         </div>
 
-        <!-- Transaction Statistics -->
-        <div class="bg-white rounded-[2.5rem] p-8 shadow-sm border border-stone-100">
-          <div class="flex items-center gap-3 mb-8">
-            <div class="w-1.5 h-6 bg-[#3D5A35] rounded-full"></div>
-            <h3 class="text-xl font-black text-stone-800">Statistik Transaksi</h3>
+        <!-- Status Gudang -->
+        <div class="bg-white rounded-[1.5rem] p-6 shadow-sm border border-stone-100 flex flex-col">
+          <div class="flex justify-between items-center mb-6">
+            <h3 class="text-lg font-bold text-stone-800">Status Gudang</h3>
+            <a href="#" class="text-xs text-stone-500 hover:text-stone-800 flex items-center gap-1 font-bold transition-colors">
+              Detail <Icon icon="material-symbols:arrow-outward" class="w-3.5 h-3.5" />
+            </a>
           </div>
-          <apexchart 
-            type="bar" 
-            height="300" 
-            :options="transactionChartOptions" 
-            :series="transactionChartSeries" 
-          />
-          <p class="text-[10px] text-stone-400 mt-4 font-medium italic">* Data statistik di atas masih bersifat statis</p>
-        </div>
-      </div>
-
-      <!-- Recent Activity -->
-      <div class="bg-white rounded-[2.5rem] p-8 shadow-sm border border-stone-100">
-        <div class="flex justify-between items-center mb-8">
-          <div class="flex items-center gap-3">
-            <div class="w-1.5 h-6 bg-stone-800 rounded-full"></div>
-            <h3 class="text-xl font-black text-stone-800">Aktivitas Terkini</h3>
-          </div>
-          <button class="text-xs font-bold text-[#4A7043] uppercase tracking-widest hover:underline transition-all">Lihat Semua</button>
-        </div>
-
-        <div class="space-y-4">
-          <div v-for="activity in activities" :key="activity.id" 
-               class="bg-stone-50 rounded-2xl p-5 flex items-center justify-between group hover:bg-stone-100 transition-colors border border-transparent hover:border-stone-200">
-            <div class="flex items-center gap-5">
-              <div :class="['w-12 h-12 rounded-xl flex items-center justify-center transition-transform group-hover:scale-110 shadow-sm', getIconBg(activity.type)]">
-                <Icon :icon="getIcon(activity.type)" class="w-6 h-6" />
+          <div class="space-y-6 flex-1 flex flex-col justify-center">
+            <div v-for="(gudang, index) in gudangStatus" :key="index" class="space-y-2">
+              <div class="flex justify-between items-end">
+                <span class="text-sm font-bold text-stone-700">{{ gudang.name }}</span>
+                <span class="text-xs font-bold" :class="gudang.textClass">{{ gudang.percentage }}%</span>
               </div>
-              <div>
-                <h4 class="font-black text-stone-800 text-sm leading-tight">{{ activity.title }}</h4>
-                <p class="text-xs font-bold text-stone-400 mt-0.5">{{ activity.description }}</p>
+              <div class="w-full bg-stone-100 rounded-full h-2 overflow-hidden">
+                <div class="h-2 rounded-full transition-all duration-1000" :class="gudang.colorClass" :style="{ width: `${gudang.percentage}%` }"></div>
+              </div>
+              <div class="flex justify-between items-center">
+                <span class="text-xs font-medium text-stone-400">{{ gudang.value }}</span>
+                <span class="text-[10px] font-bold" :class="gudang.textClass">{{ gudang.text }}</span>
               </div>
             </div>
-            <div class="text-right">
-              <p class="text-xs font-black text-stone-800">{{ activity.time }}</p>
-              <p class="text-[10px] font-bold text-stone-400 uppercase mt-0.5">{{ activity.date }}</p>
-            </div>
-          </div>
-
-          <div v-if="activities.length === 0" class="py-12 flex flex-col items-center justify-center text-center opacity-40">
-            <Icon icon="material-symbols:history" class="w-12 h-12 text-stone-300 mb-2" />
-            <p class="text-stone-500 font-bold text-sm">Belum ada aktivitas terbaru.</p>
           </div>
         </div>
       </div>
 
-      <div>
-        <button @click="downloadExcel()" class="border-2 p-2">Cetak Laporan Excel</button><br />
-        <button @click="previewPdf()" class="border-2 p-2">Cetak Laporan Pdf</button>
+      <!-- Bottom Row -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Pertumbuhan Total Sampah Chart -->
+        <div class="lg:col-span-2 bg-white rounded-[1.5rem] p-6 shadow-sm border border-stone-100">
+          <div class="mb-2">
+            <h3 class="text-lg font-bold text-stone-800">Pertumbuhan Total Sampah</h3>
+            <p class="text-xs text-stone-400">Akumulasi bulanan seluruh gudang</p>
+          </div>
+          <div class="mt-4 -ml-2">
+            <apexchart type="line" height="280" :options="growthChartOptions" :series="growthChartSeries" />
+          </div>
+        </div>
+
+        <!-- Distribusi Saat Ini -->
+        <div class="bg-white rounded-[1.5rem] p-6 shadow-sm border border-stone-100 flex flex-col">
+          <h3 class="text-lg font-bold text-stone-800 mb-6">Distribusi Saat Ini</h3>
+          <div class="space-y-6 flex-1 flex flex-col justify-center">
+            <div v-for="(item, index) in distribusiSaatIni" :key="index" class="space-y-2 group">
+              <div class="flex justify-between items-center">
+                <div class="flex items-center gap-2">
+                  <div class="w-2.5 h-2.5 rounded-full" :class="item.dotClass"></div>
+                  <span class="text-sm font-bold text-stone-600">{{ item.name }}</span>
+                </div>
+                <span class="text-sm font-bold text-stone-800">{{ item.value }}</span>
+              </div>
+              <div class="w-full bg-stone-100 rounded-full h-2 overflow-hidden">
+                <div class="h-2 rounded-full transition-all duration-1000 group-hover:opacity-80" :class="item.colorClass" :style="{ width: `${item.percentage}%` }"></div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
     </div>

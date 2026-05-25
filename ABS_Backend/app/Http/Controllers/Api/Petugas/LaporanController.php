@@ -316,7 +316,8 @@ class LaporanController extends Controller
             ->sum('stok'),
         ];
         $totalStokItem = $itemSampahData->map(function ($item) use ($dataStatistik) {
-            $persentaseItem = $item->sampah_sum_stok / $dataStatistik['total_stok'];
+            $total = $dataStatistik['total_stok'];
+            $persentaseItem = $total > 0 ? ($item->sampah_sum_stok / $total) : 0;
 
             return [
                 'nama' => $item->nama,
@@ -329,6 +330,13 @@ class LaporanController extends Controller
 
         $pdf = Pdf::loadView('pdf.laporan-petugas', compact(['pengepul', 'nasabah', 'pembelianSampah', 'penjualanSampah', 'config', 'dataStatistik', 'gudang', 'totalStokItem']));
 
-        return $pdf->stream();
+        $pdfBase64 = base64_encode($pdf->output());
+
+        return response()->json([
+            'status' => 'success',
+            'data' => [
+                'pdf_base64' => $pdfBase64
+            ]
+        ]);
     }
 }
