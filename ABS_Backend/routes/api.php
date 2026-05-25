@@ -80,6 +80,9 @@ Route::prefix('manager')->middleware(['auth:sanctum', 'role:manager'])->group(fu
     // Dashboard Stats & Charts
     Route::get('/dashboard-stats', [DashboardManagerController::class, 'index']);
     Route::get('/dashboard-charts', [DashboardManagerController::class, 'charts']);
+    // Audit Data (SSP)
+    Route::get('/audit-data', [App\Http\Controllers\Api\Manager\ManagerAuditController::class, 'index']);
+    Route::get('/audit-summary', [App\Http\Controllers\Api\Manager\ManagerAuditController::class, 'summary']);
 });
 
 Route::prefix('pengepul')->middleware(['auth:sanctum', 'role:pengepul'])->group(function () {

@@ -1,10 +1,10 @@
 <script setup>
-import { ref, computed, onMounted } from "vue";
+import { ref, computed, onMounted, watch } from "vue";
 import { Icon } from "@iconify/vue";
 import DashboardLayout from "@/layouts/DashboardLayout.vue";
 import Swal from 'sweetalert2';
 import dayjs from 'dayjs';
-import { getListGudang, getListSampah, fetchAllRiwayatPenjemputan, exportLaporanExcel, exportLaporanPdf } from '@/lib/api/manager/auditApi';
+import { getListGudang, getListSampah, getAuditData, getAuditSummary, exportLaporanExcel, exportLaporanPdf } from '@/lib/api/manager/auditApi';
 
 const activeTab = ref('Riwayat Sampah');
 const isGroupedByGudang = ref(true);
@@ -13,19 +13,31 @@ const isFilterModalOpen = ref(false);
 const isLaporanModalOpen = ref(false);
 
 const isLoading = ref(false);
+const isLoadingSummary = ref(false);
 const loadingProgress = ref(0);
 const isExportingExcel = ref(false);
 const isExportingPdf = ref(false);
 
 const gudangOptions = ref([]);
 const jenisSampahOptions = ref([]);
-const rawRiwayatData = ref([]);
+const tableData = ref([]);
 
 const filterForm = ref({ gudang: 'Semua Gudang', durasi: 'Semua Waktu', jenisSampah: [] });
 const appliedFilter = ref({ gudang: 'Semua Gudang', durasi: 'Semua Waktu', jenisSampah: [] });
 
 const currentPage = ref(1);
+const totalPages = ref(1);
 const itemsPerPage = ref(10);
+const searchQuery = ref('');
+
+const laporanStats = ref({
+  totalTransaksi: 0,
+  totalBerat: 0,
+  verifiedCount: 0,
+  pendingCount: 0,
+  perGudangList: [],
+  jenisSampahList: []
+});
 
 const toggleJenisSampah = (jenis) => {
   const index = filterForm.value.jenisSampah.indexOf(jenis);
@@ -46,6 +58,7 @@ const terapkanFilter = () => {
   appliedFilter.value = JSON.parse(JSON.stringify(filterForm.value));
   currentPage.value = 1;
   isFilterModalOpen.value = false;
+  fetchData();
 };
 
 const removeFilter = (type, value = null) => {
@@ -53,47 +66,41 @@ const removeFilter = (type, value = null) => {
   if (type === 'durasi') appliedFilter.value.durasi = 'Semua Waktu';
   if (type === 'jenisSampah') appliedFilter.value.jenisSampah = appliedFilter.value.jenisSampah.filter(j => j !== value);
   currentPage.value = 1;
+  fetchData();
 };
 
 const clearAllFilters = () => {
   appliedFilter.value = { gudang: 'Semua Gudang', durasi: 'Semua Waktu', jenisSampah: [] };
   currentPage.value = 1;
+  fetchData();
 };
 
 const hasActiveFilters = computed(() => {
   return appliedFilter.value.gudang !== 'Semua Gudang' || appliedFilter.value.durasi !== 'Semua Waktu' || appliedFilter.value.jenisSampah.length > 0;
 });
 
+let searchTimeout = null;
+const handleSearch = () => {
+  clearTimeout(searchTimeout);
+  searchTimeout = setTimeout(() => {
+    currentPage.value = 1;
+    fetchData();
+  }, 500);
+};
+
 const fetchData = async () => {
   try {
     isLoading.value = true;
-    loadingProgress.value = 0;
 
-    // Fake progress interval to make it feel alive while waiting for the first request
-    const fakeProgressInterval = setInterval(() => {
-      if (loadingProgress.value < 45) {
-        loadingProgress.value += Math.floor(Math.random() * 5) + 1;
-      }
-    }, 400);
+    const params = {
+      ...appliedFilter.value,
+      search: searchQuery.value
+    };
 
-    const [gudangRes, sampahRes] = await Promise.all([
-      getListGudang(),
-      getListSampah()
-    ]);
-    gudangOptions.value = gudangRes.data;
-    const sampahList = sampahRes.data.data ? sampahRes.data.data : sampahRes.data; 
-    jenisSampahOptions.value = [...new Set(sampahList.map(s => s.item_sampah?.nama || s.nama).filter(Boolean))];
-    if(jenisSampahOptions.value.length === 0) jenisSampahOptions.value = ['Organik', 'Plastik PET', 'Kertas', 'Logam']; 
-
-    const riwayat = await fetchAllRiwayatPenjemputan((progress) => {
-      // Real progress overrides fake progress
-      loadingProgress.value = Math.max(loadingProgress.value, progress);
-    });
+    const response = await getAuditData(currentPage.value, params, itemsPerPage.value);
     
-    clearInterval(fakeProgressInterval);
-    loadingProgress.value = 100;
-    
-    rawRiwayatData.value = riwayat;
+    tableData.value = response.data.data;
+    totalPages.value = response.data.last_page || 1;
   } catch (error) {
     console.error("Error fetching audit data:", error);
     Swal.fire({
@@ -103,57 +110,55 @@ const fetchData = async () => {
       confirmButtonColor: '#4A7043'
     });
   } finally {
-    // Add small delay so user can see 100%
-    setTimeout(() => {
-      isLoading.value = false;
-    }, 300);
+    isLoading.value = false;
   }
 };
 
+const fetchSummary = async () => {
+  try {
+    isLoadingSummary.value = true;
+    const params = {
+      ...appliedFilter.value,
+      search: searchQuery.value
+    };
+    const response = await getAuditSummary(params);
+    laporanStats.value = response.data;
+  } catch (error) {
+    console.error("Error fetching audit summary:", error);
+  } finally {
+    isLoadingSummary.value = false;
+  }
+};
+
+const openLaporanModal = async () => {
+  isLaporanModalOpen.value = true;
+  await fetchSummary();
+};
+
 onMounted(() => {
+  // Ambil opsi filter (gudang dan jenis sampah) dan data tabel secara bersamaan agar tidak saling tunggu (paralel)
   fetchData();
-});
-
-const flatTableData = computed(() => {
-  const flat = [];
-  rawRiwayatData.value.forEach(penjemputan => {
-    if (penjemputan.penimbangan && Array.isArray(penjemputan.penimbangan)) {
-      penjemputan.penimbangan.forEach(p => {
-        flat.push({
-          tanggal: dayjs(penjemputan.created_at).format('DD MMM YYYY'),
-          nasabah: penjemputan.nasabah?.nama || 'Unknown',
-          gudang: penjemputan.gudang?.alamat || penjemputan.gudang?.nama_gudang || 'Unknown Gudang',
-          jenis: p.sampah?.item_sampah?.nama || 'Unknown',
-          berat: parseFloat(p.berat_timbang) || 0,
-          petugas: penjemputan.tukang?.nama || 'Unknown',
-          status: p.transaksi?.status === 'selesai' ? 'Verified' : 'Pending',
-          rawDate: dayjs(penjemputan.created_at)
-        });
-      });
-    }
+  
+  Promise.all([
+    getListGudang(),
+    getListSampah()
+  ]).then(([gudangRes, sampahRes]) => {
+    gudangOptions.value = gudangRes.data;
+    const sampahList = sampahRes.data.data ? sampahRes.data.data : sampahRes.data; 
+    jenisSampahOptions.value = [...new Set(sampahList.map(s => s.item_sampah?.nama || s.nama).filter(Boolean))];
+    if (jenisSampahOptions.value.length === 0) jenisSampahOptions.value = ['Organik', 'Plastik PET', 'Kertas', 'Logam']; 
+  }).catch(e => {
+    console.error("Gagal memuat filter opsi:", e);
   });
-  return flat;
 });
 
-const filteredFlatDataAll = computed(() => {
-  return flatTableData.value.filter(row => {
-    if (appliedFilter.value.gudang !== 'Semua Gudang' && row.gudang !== appliedFilter.value.gudang) return false;
-    if (appliedFilter.value.jenisSampah.length > 0 && !appliedFilter.value.jenisSampah.includes(row.jenis)) return false;
-
-    if (appliedFilter.value.durasi !== 'Semua Waktu') {
-      const now = dayjs();
-      if (appliedFilter.value.durasi === '1 Minggu Terakhir' && row.rawDate.isBefore(now.subtract(1, 'week'))) return false;
-      if (appliedFilter.value.durasi === '1 Bulan Terakhir' && row.rawDate.isBefore(now.subtract(1, 'month'))) return false;
-      if (appliedFilter.value.durasi === '3 Bulan Terakhir' && row.rawDate.isBefore(now.subtract(3, 'month'))) return false;
-    }
-
-    return true;
-  }).sort((a, b) => b.rawDate.valueOf() - a.rawDate.valueOf());
+const filteredFlatData = computed(() => {
+  return tableData.value;
 });
 
-const filteredGroupedDataAll = computed(() => {
+const filteredGroupedData = computed(() => {
   const groups = {};
-  filteredFlatDataAll.value.forEach(row => {
+  tableData.value.forEach(row => {
     if (!groups[row.gudang]) {
       groups[row.gudang] = { gudangName: row.gudang, rows: [], totalBerat: 0 };
     }
@@ -167,61 +172,18 @@ const filteredGroupedDataAll = computed(() => {
   })).sort((a, b) => a.gudangName.localeCompare(b.gudangName));
 });
 
-const totalPages = computed(() => Math.ceil((isGroupedByGudang.value ? filteredGroupedDataAll.value.length : filteredFlatDataAll.value.length) / itemsPerPage.value) || 1);
-
-const filteredFlatData = computed(() => {
-  const start = (currentPage.value - 1) * itemsPerPage.value;
-  return filteredFlatDataAll.value.slice(start, start + itemsPerPage.value);
-});
-
-const filteredGroupedData = computed(() => {
-  const start = (currentPage.value - 1) * itemsPerPage.value;
-  return filteredGroupedDataAll.value.slice(start, start + itemsPerPage.value);
-});
-
-const prevPage = () => { if (currentPage.value > 1) currentPage.value--; };
-const nextPage = () => { if (currentPage.value < totalPages.value) currentPage.value++; };
-
-const laporanStats = computed(() => {
-  let totalTransaksi = 0;
-  let totalBerat = 0;
-  let verifiedCount = 0;
-  let pendingCount = 0;
-
-  const perGudangMap = {};
-  const jenisSampahMap = {
-    'Organik': { berat: 0 },
-    'Plastik PET': { berat: 0 },
-    'Kertas': { berat: 0 },
-    'Logam': { berat: 0 }
-  };
-
-  filteredFlatDataAll.value.forEach(row => {
-    totalTransaksi++;
-    totalBerat += row.berat;
-    if (row.status === 'Verified') verifiedCount++; else pendingCount++;
-
-    if (!perGudangMap[row.gudang]) {
-      perGudangMap[row.gudang] = { gudang: row.gudang, transaksi: 0, berat: 0, verified: 0, pending: 0 };
-    }
-    perGudangMap[row.gudang].transaksi++;
-    perGudangMap[row.gudang].berat += row.berat;
-    if (row.status === 'Verified') perGudangMap[row.gudang].verified++; else perGudangMap[row.gudang].pending++;
-
-    if (jenisSampahMap[row.jenis]) jenisSampahMap[row.jenis].berat += row.berat;
-    else jenisSampahMap[row.jenis] = { berat: row.berat };
-  });
-
-  const perGudangList = Object.values(perGudangMap).sort((a,b) => b.berat - a.berat);
-
-  const jenisSampahList = Object.keys(jenisSampahMap).map(key => {
-    const berat = jenisSampahMap[key].berat;
-    const percentage = totalBerat > 0 ? (berat / totalBerat) * 100 : 0;
-    return { name: key, berat, percentage };
-  }).sort((a,b) => b.berat - a.berat).filter(j => j.berat > 0 || ['Organik','Plastik PET','Kertas','Logam'].includes(j.name));
-
-  return { totalTransaksi, totalBerat, verifiedCount, pendingCount, perGudangList, jenisSampahList };
-});
+const prevPage = () => { 
+  if (currentPage.value > 1) {
+    currentPage.value--;
+    fetchData();
+  }
+};
+const nextPage = () => { 
+  if (currentPage.value < totalPages.value) {
+    currentPage.value++;
+    fetchData();
+  }
+};
 
 const generateTimeText = computed(() => dayjs().format('DD MMM YYYY pukul HH.mm'));
 
@@ -325,12 +287,7 @@ const handlePrintPdf = async () => {
 
       <!-- TAB: RIWAYAT SAMPAH -->
       <div v-if="activeTab === 'Riwayat Sampah'" class="space-y-6 relative">
-        <!-- Loading Overlay -->
-        <div v-if="isLoading" class="absolute inset-0 z-50 bg-white/70 backdrop-blur-sm flex flex-col items-center justify-center rounded-2xl">
-          <Icon icon="line-md:loading-twotone-loop" class="w-10 h-10 text-[#4A7043] mb-2" />
-          <p class="text-sm font-bold text-stone-600">Memuat Data...</p>
-          <p class="text-xs font-medium text-stone-500 mt-1">{{ loadingProgress }}%</p>
-        </div>
+
         <!-- Toolbar -->
         <div class="bg-white p-4 rounded-2xl shadow-sm border border-stone-100 flex flex-row gap-2 justify-between items-center overflow-x-auto">
           <!-- Left Controls -->
@@ -340,6 +297,8 @@ const handlePrintPdf = async () => {
               <Icon icon="material-symbols:search" class="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400 w-4 h-4" />
               <input
                 type="text"
+                v-model="searchQuery"
+                @input="handleSearch"
                 placeholder="Cari data..."
                 class="w-full pl-9 pr-3 py-1.5 bg-white border border-stone-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-[#4A7043]/20 focus:border-[#4A7043] transition-colors text-stone-700"
               />
@@ -371,11 +330,11 @@ const handlePrintPdf = async () => {
 
           <!-- Right Controls -->
           <div class="flex flex-row gap-2 w-auto shrink-0">
-            <button @click="isLaporanModalOpen = true" class="px-3 py-1.5 bg-[#4A7043] hover:bg-[#3D5A35] text-white rounded-lg text-xs font-bold transition-colors flex items-center gap-1.5 shadow-sm shrink-0 cursor-pointer">
+            <button @click="openLaporanModal" :disabled="isLoading" class="px-3 py-1.5 bg-[#4A7043] hover:bg-[#3D5A35] text-white rounded-lg text-xs font-bold transition-colors flex items-center gap-1.5 shadow-sm shrink-0 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
               <Icon icon="material-symbols:description-outline" class="w-3.5 h-3.5" />
               Lihat Laporan
             </button>
-            <button @click="handleExportExcel" :disabled="isExportingExcel" class="px-3 py-1.5 bg-[#4A7043] hover:bg-[#3D5A35] text-white rounded-lg text-xs font-bold transition-colors flex items-center gap-1.5 shadow-sm shrink-0 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
+            <button @click="handleExportExcel" :disabled="isExportingExcel || isLoading" class="px-3 py-1.5 bg-[#4A7043] hover:bg-[#3D5A35] text-white rounded-lg text-xs font-bold transition-colors flex items-center gap-1.5 shadow-sm shrink-0 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
               <Icon v-if="isExportingExcel" icon="line-md:loading-twotone-loop" class="w-3.5 h-3.5" />
               <Icon v-else icon="material-symbols:download" class="w-3.5 h-3.5" />
               {{ isExportingExcel ? 'Mengekspor...' : 'Export Excel' }}
@@ -415,7 +374,22 @@ const handlePrintPdf = async () => {
 
       <!-- Table Container -->
       <div class="bg-white rounded-2xl shadow-sm border border-stone-100 overflow-hidden">
-        <div class="overflow-x-auto">
+        
+        <!-- Skeleton Loader -->
+        <div v-if="isLoading" class="p-6">
+          <!-- Skeleton Table Header -->
+          <div class="grid grid-cols-8 gap-4 mb-4 pb-4 border-b border-stone-100">
+            <div v-for="i in 8" :key="`th-${i}`" class="h-3 bg-stone-200 rounded animate-pulse"></div>
+          </div>
+          <!-- Skeleton Table Rows -->
+          <div class="space-y-4">
+            <div v-for="r in 10" :key="`tr-${r}`" class="grid grid-cols-8 gap-4 items-center">
+              <div v-for="i in 8" :key="`td-${r}-${i}`" class="h-3 bg-stone-100 rounded animate-pulse"></div>
+            </div>
+          </div>
+        </div>
+
+        <div v-else class="overflow-x-auto">
           <table class="w-full text-left border-collapse min-w-[900px]">
             <thead>
               <tr class="bg-[#F5F5F0] border-b border-stone-200">
@@ -510,7 +484,7 @@ const handlePrintPdf = async () => {
       </div>
 
       <!-- Pagination -->
-      <div class="bg-white p-4 rounded-2xl shadow-sm border border-stone-100 flex flex-col sm:flex-row justify-between items-center gap-4">
+      <div v-if="!isLoading" class="bg-white p-4 rounded-2xl shadow-sm border border-stone-100 flex flex-col sm:flex-row justify-between items-center gap-4">
         <div class="flex items-center gap-3">
           <span class="text-sm font-medium text-stone-500">Tampilkan</span>
           <div class="bg-stone-50 border border-stone-200 rounded-lg px-3 py-1.5 text-sm font-bold text-stone-600 flex items-center justify-between w-16 shadow-sm">
@@ -638,7 +612,7 @@ const handlePrintPdf = async () => {
             <p class="text-xs text-stone-500 mt-1">Periode: 30 Hari Terakhir</p>
           </div>
           <div id="laporan-actions" class="flex items-center gap-3">
-            <button @click="handlePrintPdf" :disabled="isExportingPdf" class="px-4 py-2 bg-[#4A7043] hover:bg-[#3D5A35] text-white rounded-lg text-sm font-bold transition-colors flex items-center gap-2 shadow-sm cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
+            <button @click="handlePrintPdf" :disabled="isExportingPdf || isLoadingSummary" class="px-4 py-2 bg-[#4A7043] hover:bg-[#3D5A35] text-white rounded-lg text-sm font-bold transition-colors flex items-center gap-2 shadow-sm cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
               <Icon v-if="isExportingPdf" icon="line-md:loading-twotone-loop" class="w-4 h-4" />
               <Icon v-else icon="material-symbols:print-outline" class="w-4 h-4" />
               {{ isExportingPdf ? 'Mencetak...' : 'Print' }}

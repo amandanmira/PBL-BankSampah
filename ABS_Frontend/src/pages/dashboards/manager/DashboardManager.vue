@@ -62,6 +62,7 @@ const topStats = ref([
 ]);
 
 const fetchDashboardData = async () => {
+  isLoadingStats.value = true;
   try {
     const token = sessionStorage.getItem('token');
     const response = await axios.get("http://localhost:8000/api/manager/dashboard-stats", {
@@ -87,14 +88,19 @@ const fetchDashboardData = async () => {
     
   } catch (error) {
     console.error("Error fetching dashboard data:", error);
+  } finally {
+    isLoadingStats.value = false;
   }
 };
 
 const selectedPeriod = ref('6 Bulan');
 const periods = ['1 Bulan', '3 Bulan', '6 Bulan'];
 const totalSampahPeriode = ref(0);
+const isLoadingStats = ref(true);
+const isLoadingCharts = ref(true);
 
 const fetchChartsData = async () => {
+  isLoadingCharts.value = true;
   try {
     const token = sessionStorage.getItem('token');
     const response = await axios.get(`http://localhost:8000/api/manager/dashboard-charts?period=${selectedPeriod.value}`, {
@@ -168,6 +174,8 @@ const fetchChartsData = async () => {
     
   } catch (error) {
     console.error("Error fetching charts data:", error);
+  } finally {
+    isLoadingCharts.value = false;
   }
 };
 
@@ -276,106 +284,179 @@ const distribusiSaatIni = ref([]);
 
       <!-- Top Stats Row -->
       <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
-        <div v-for="(stat, idx) in topStats" :key="idx"
-          class="rounded-2xl p-5 text-white shadow-sm flex flex-col justify-between h-36 relative overflow-hidden group transition-all duration-300 hover:shadow-md hover:-translate-y-1"
-          :class="stat.bgClass"
-        >
-          <div class="flex justify-between items-start z-10">
-            <Icon :icon="stat.icon" class="w-7 h-7" />
-            <div class="px-2.5 py-1 rounded-full text-[10px] font-bold flex items-center gap-1" :class="stat.increaseClass">
-              <Icon v-if="stat.increase.includes('+')" icon="material-symbols:trending-up" class="w-3 h-3" />
-              <Icon v-else-if="stat.increase.includes('-')" icon="material-symbols:trending-down" class="w-3 h-3" />
-              <Icon v-else icon="material-symbols:check-circle-outline" class="w-3 h-3" />
-              {{ stat.increase }}
+        <template v-if="isLoadingStats">
+          <div v-for="i in 5" :key="`stat-skel-${i}`" class="rounded-2xl p-5 h-36 bg-stone-100 animate-pulse border border-stone-200">
+            <div class="flex justify-between items-start">
+              <div class="w-10 h-10 rounded-full bg-stone-200"></div>
+              <div class="w-16 h-5 rounded-full bg-stone-200"></div>
+            </div>
+            <div class="mt-8">
+              <div class="w-20 h-8 rounded bg-stone-200 mb-2"></div>
+              <div class="w-24 h-4 rounded bg-stone-200"></div>
             </div>
           </div>
-          <div class="z-10 mt-auto">
-            <h3 class="text-3xl font-bold mb-0.5 leading-none">{{ stat.value }}</h3>
-            <p class="text-xs font-medium text-white/90">{{ stat.title }}</p>
+        </template>
+        <template v-else>
+          <div v-for="(stat, idx) in topStats" :key="idx"
+            class="rounded-2xl p-5 text-white shadow-sm flex flex-col justify-between h-36 relative overflow-hidden group transition-all duration-300 hover:shadow-md hover:-translate-y-1"
+            :class="stat.bgClass"
+          >
+            <div class="flex justify-between items-start z-10">
+              <Icon :icon="stat.icon" class="w-7 h-7" />
+              <div class="px-2.5 py-1 rounded-full text-[10px] font-bold flex items-center gap-1" :class="stat.increaseClass">
+                <Icon v-if="stat.increase.includes('+')" icon="material-symbols:trending-up" class="w-3 h-3" />
+                <Icon v-else-if="stat.increase.includes('-')" icon="material-symbols:trending-down" class="w-3 h-3" />
+                <Icon v-else icon="material-symbols:check-circle-outline" class="w-3 h-3" />
+                {{ stat.increase }}
+              </div>
+            </div>
+            <div class="z-10 mt-auto">
+              <h3 class="text-3xl font-bold mb-0.5 leading-none">{{ stat.value }}</h3>
+              <p class="text-xs font-medium text-white/90">{{ stat.title }}</p>
+            </div>
           </div>
-        </div>
+        </template>
       </div>
 
       <!-- Middle Row -->
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <!-- Trend Sampah Chart -->
-        <div class="lg:col-span-2 bg-white rounded-[1.5rem] p-6 shadow-sm border border-stone-100">
-          <div class="flex justify-between items-start mb-2">
-            <div>
-              <h3 class="text-lg font-bold text-stone-800">Trend Sampah</h3>
-              <p class="text-xs text-stone-400">Total {{ totalSampahPeriode.toLocaleString('id-ID') }} kg pada periode terpilih</p>
+        <div class="lg:col-span-2 bg-white rounded-[1.5rem] p-6 shadow-sm border border-stone-100 min-h-[400px]">
+          <template v-if="isLoadingCharts">
+            <div class="flex justify-between items-start mb-6">
+              <div class="space-y-2">
+                <div class="h-6 w-32 bg-stone-200 rounded animate-pulse"></div>
+                <div class="h-4 w-48 bg-stone-100 rounded animate-pulse"></div>
+              </div>
+              <div class="h-8 w-40 bg-stone-100 rounded-lg animate-pulse"></div>
             </div>
-            <div class="flex bg-stone-100 rounded-lg p-1">
-              <button v-for="period in periods" :key="period"
-                @click="selectedPeriod = period"
-                class="px-3 py-1.5 text-xs font-bold rounded-md transition-colors cursor-pointer"
-                :class="selectedPeriod === period ? 'bg-[#4A7043] text-white shadow-sm' : 'text-stone-500 hover:text-stone-700'"
-              >
-                {{ period }}
-              </button>
+            <div class="h-[300px] w-full bg-stone-50 rounded-xl animate-pulse"></div>
+          </template>
+          <template v-else>
+            <div class="flex justify-between items-start mb-2">
+              <div>
+                <h3 class="text-lg font-bold text-stone-800">Trend Sampah</h3>
+                <p class="text-xs text-stone-400">Total {{ totalSampahPeriode.toLocaleString('id-ID') }} kg pada periode terpilih</p>
+              </div>
+              <div class="flex bg-stone-100 rounded-lg p-1">
+                <button v-for="period in periods" :key="period"
+                  @click="selectedPeriod = period"
+                  class="px-3 py-1.5 text-xs font-bold rounded-md transition-colors cursor-pointer"
+                  :class="selectedPeriod === period ? 'bg-[#4A7043] text-white shadow-sm' : 'text-stone-500 hover:text-stone-700'"
+                >
+                  {{ period }}
+                </button>
+              </div>
             </div>
-          </div>
-          <div class="mt-4 -ml-2">
-            <apexchart type="area" height="300" :options="trendChartOptions" :series="trendChartSeries" />
-          </div>
+            <div class="mt-4 -ml-2">
+              <apexchart type="area" height="300" :options="trendChartOptions" :series="trendChartSeries" />
+            </div>
+          </template>
         </div>
 
         <!-- Status Gudang -->
-        <div class="bg-white rounded-[1.5rem] p-6 shadow-sm border border-stone-100 flex flex-col">
-          <div class="flex justify-between items-center mb-6">
-            <h3 class="text-lg font-bold text-stone-800">Status Gudang</h3>
-            <a href="#" class="text-xs text-stone-500 hover:text-stone-800 flex items-center gap-1 font-bold transition-colors">
-              Detail <Icon icon="material-symbols:arrow-outward" class="w-3.5 h-3.5" />
-            </a>
-          </div>
-          <div class="space-y-6 flex-1 flex flex-col justify-center">
-            <div v-for="(gudang, index) in gudangStatus" :key="index" class="space-y-2">
-              <div class="flex justify-between items-end">
-                <span class="text-sm font-bold text-stone-700">{{ gudang.name }}</span>
-                <span class="text-xs font-bold" :class="gudang.textClass">{{ gudang.percentage }}%</span>
-              </div>
-              <div class="w-full bg-stone-100 rounded-full h-2 overflow-hidden">
-                <div class="h-2 rounded-full transition-all duration-1000" :class="gudang.colorClass" :style="{ width: `${gudang.percentage}%` }"></div>
-              </div>
-              <div class="flex justify-between items-center">
-                <span class="text-xs font-medium text-stone-400">{{ gudang.value }}</span>
-                <span class="text-[10px] font-bold" :class="gudang.textClass">{{ gudang.text }}</span>
+        <div class="bg-white rounded-[1.5rem] p-6 shadow-sm border border-stone-100 flex flex-col min-h-[400px]">
+          <template v-if="isLoadingCharts">
+            <div class="flex justify-between items-center mb-6">
+              <div class="h-6 w-32 bg-stone-200 rounded animate-pulse"></div>
+              <div class="h-4 w-12 bg-stone-100 rounded animate-pulse"></div>
+            </div>
+            <div class="space-y-6 flex-1 flex flex-col justify-center">
+              <div v-for="i in 4" :key="`gudang-skel-${i}`" class="space-y-2">
+                <div class="flex justify-between">
+                  <div class="h-4 w-24 bg-stone-200 rounded animate-pulse"></div>
+                  <div class="h-4 w-8 bg-stone-200 rounded animate-pulse"></div>
+                </div>
+                <div class="w-full bg-stone-100 rounded-full h-2"></div>
+                <div class="flex justify-between">
+                  <div class="h-3 w-20 bg-stone-100 rounded animate-pulse"></div>
+                  <div class="h-3 w-16 bg-stone-100 rounded animate-pulse"></div>
+                </div>
               </div>
             </div>
-          </div>
+          </template>
+          <template v-else>
+            <div class="flex justify-between items-center mb-6">
+              <h3 class="text-lg font-bold text-stone-800">Status Gudang</h3>
+              <a href="#" class="text-xs text-stone-500 hover:text-stone-800 flex items-center gap-1 font-bold transition-colors">
+                Detail <Icon icon="material-symbols:arrow-outward" class="w-3.5 h-3.5" />
+              </a>
+            </div>
+            <div class="space-y-6 flex-1 flex flex-col justify-center">
+              <div v-for="(gudang, index) in gudangStatus" :key="index" class="space-y-2">
+                <div class="flex justify-between items-end">
+                  <span class="text-sm font-bold text-stone-700">{{ gudang.name }}</span>
+                  <span class="text-xs font-bold" :class="gudang.textClass">{{ gudang.percentage }}%</span>
+                </div>
+                <div class="w-full bg-stone-100 rounded-full h-2 overflow-hidden">
+                  <div class="h-2 rounded-full transition-all duration-1000" :class="gudang.colorClass" :style="{ width: `${gudang.percentage}%` }"></div>
+                </div>
+                <div class="flex justify-between items-center">
+                  <span class="text-xs font-medium text-stone-400">{{ gudang.value }}</span>
+                  <span class="text-[10px] font-bold" :class="gudang.textClass">{{ gudang.text }}</span>
+                </div>
+              </div>
+            </div>
+          </template>
         </div>
       </div>
 
       <!-- Bottom Row -->
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <!-- Pertumbuhan Total Sampah Chart -->
-        <div class="lg:col-span-2 bg-white rounded-[1.5rem] p-6 shadow-sm border border-stone-100">
-          <div class="mb-2">
-            <h3 class="text-lg font-bold text-stone-800">Pertumbuhan Total Sampah</h3>
-            <p class="text-xs text-stone-400">Akumulasi bulanan seluruh gudang</p>
-          </div>
-          <div class="mt-4 -ml-2">
-            <apexchart type="line" height="280" :options="growthChartOptions" :series="growthChartSeries" />
-          </div>
+        <div class="lg:col-span-2 bg-white rounded-[1.5rem] p-6 shadow-sm border border-stone-100 min-h-[380px]">
+          <template v-if="isLoadingCharts">
+            <div class="mb-6 space-y-2">
+              <div class="h-6 w-48 bg-stone-200 rounded animate-pulse"></div>
+              <div class="h-4 w-56 bg-stone-100 rounded animate-pulse"></div>
+            </div>
+            <div class="h-[280px] w-full bg-stone-50 rounded-xl animate-pulse"></div>
+          </template>
+          <template v-else>
+            <div class="mb-2">
+              <h3 class="text-lg font-bold text-stone-800">Pertumbuhan Total Sampah</h3>
+              <p class="text-xs text-stone-400">Akumulasi bulanan seluruh gudang</p>
+            </div>
+            <div class="mt-4 -ml-2">
+              <apexchart type="line" height="280" :options="growthChartOptions" :series="growthChartSeries" />
+            </div>
+          </template>
         </div>
 
         <!-- Distribusi Saat Ini -->
-        <div class="bg-white rounded-[1.5rem] p-6 shadow-sm border border-stone-100 flex flex-col">
-          <h3 class="text-lg font-bold text-stone-800 mb-6">Distribusi Saat Ini</h3>
-          <div class="space-y-6 flex-1 flex flex-col justify-center">
-            <div v-for="(item, index) in distribusiSaatIni" :key="index" class="space-y-2 group">
-              <div class="flex justify-between items-center">
-                <div class="flex items-center gap-2">
-                  <div class="w-2.5 h-2.5 rounded-full" :class="item.dotClass"></div>
-                  <span class="text-sm font-bold text-stone-600">{{ item.name }}</span>
+        <div class="bg-white rounded-[1.5rem] p-6 shadow-sm border border-stone-100 flex flex-col min-h-[380px]">
+          <template v-if="isLoadingCharts">
+            <div class="h-6 w-40 bg-stone-200 rounded animate-pulse mb-6"></div>
+            <div class="space-y-6 flex-1 flex flex-col justify-center">
+              <div v-for="i in 4" :key="`dist-skel-${i}`" class="space-y-2">
+                <div class="flex justify-between items-center">
+                  <div class="flex items-center gap-2">
+                    <div class="w-2.5 h-2.5 rounded-full bg-stone-200 animate-pulse"></div>
+                    <div class="h-4 w-16 bg-stone-200 rounded animate-pulse"></div>
+                  </div>
+                  <div class="h-4 w-12 bg-stone-200 rounded animate-pulse"></div>
                 </div>
-                <span class="text-sm font-bold text-stone-800">{{ item.value }}</span>
-              </div>
-              <div class="w-full bg-stone-100 rounded-full h-2 overflow-hidden">
-                <div class="h-2 rounded-full transition-all duration-1000 group-hover:opacity-80" :class="item.colorClass" :style="{ width: `${item.percentage}%` }"></div>
+                <div class="w-full bg-stone-100 rounded-full h-2"></div>
               </div>
             </div>
-          </div>
+          </template>
+          <template v-else>
+            <h3 class="text-lg font-bold text-stone-800 mb-6">Distribusi Saat Ini</h3>
+            <div class="space-y-6 flex-1 flex flex-col justify-center">
+              <div v-for="(item, index) in distribusiSaatIni" :key="index" class="space-y-2 group">
+                <div class="flex justify-between items-center">
+                  <div class="flex items-center gap-2">
+                    <div class="w-2.5 h-2.5 rounded-full" :class="item.dotClass"></div>
+                    <span class="text-sm font-bold text-stone-600">{{ item.name }}</span>
+                  </div>
+                  <span class="text-sm font-bold text-stone-800">{{ item.value }}</span>
+                </div>
+                <div class="w-full bg-stone-100 rounded-full h-2 overflow-hidden">
+                  <div class="h-2 rounded-full transition-all duration-1000 group-hover:opacity-80" :class="item.colorClass" :style="{ width: `${item.percentage}%` }"></div>
+                </div>
+              </div>
+            </div>
+          </template>
         </div>
       </div>
 
