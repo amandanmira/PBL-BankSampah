@@ -30,6 +30,24 @@ export const getAuditSummary = async (filters = {}) => {
   return await axios.get('/api/manager/audit-summary', { params });
 };
 
+export const getAuditPenarikanData = async (page = 1, filters = {}, perPage = 10) => {
+  const params = {
+    page,
+    per_page: perPage,
+    durasi: filters.durasi,
+    search: filters.search
+  };
+  return await axios.get('/api/manager/audit-penarikan-data', { params });
+};
+
+export const getAuditPenarikanSummary = async (filters = {}) => {
+  const params = {
+    durasi: filters.durasi,
+    search: filters.search
+  };
+  return await axios.get('/api/manager/audit-penarikan-summary', { params });
+};
+
 export const exportLaporanExcel = async (params) => {
   return await axios.get('/api/cetak-laporan/excel', {
     params,

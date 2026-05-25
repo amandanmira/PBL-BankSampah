@@ -178,4 +178,95 @@ class ManagerAuditController extends Controller
             'jenisSampahList' => $jenisSampahList
         ], 200);
     }
+
+    private function buildPenarikanQuery(Request $request)
+    {
+        $durasi = $request->query('durasi');
+        $search = $request->query('search');
+
+        $query = \App\Models\Penarikan::with('nasabah')->latest();
+
+        // Filter by Durasi
+        if ($durasi && $durasi !== 'Semua Waktu') {
+            if ($durasi === '1 Minggu Terakhir') {
+                $query->where('created_at', '>=', now()->subWeek());
+            } elseif ($durasi === '1 Bulan Terakhir') {
+                $query->where('created_at', '>=', now()->subMonth());
+            } elseif ($durasi === '3 Bulan Terakhir') {
+                $query->where('created_at', '>=', now()->subMonths(3));
+            }
+        }
+
+        // Filter by Search (Nasabah Name or Penarikan ID)
+        if ($search) {
+            $query->where(function($q) use ($search) {
+                $q->where('penarikan_id', 'like', "%$search%")
+                  ->orWhereHas('nasabah', function($nq) use ($search) {
+                      $nq->where('nama', 'like', "%$search%");
+                  });
+            });
+        }
+
+        return $query;
+    }
+
+    public function penarikanData(Request $request)
+    {
+        $query = $this->buildPenarikanQuery($request);
+        
+        $perPage = $request->query('per_page', 10);
+        $data = $query->paginate($perPage);
+
+        // Transform data
+        $data->getCollection()->transform(function ($p) {
+            $created_at = Carbon::parse($p->created_at);
+            
+            $statusStr = 'Diproses';
+            if ($p->status === 'selesai') $statusStr = 'Selesai';
+            elseif ($p->status === 'tolak') $statusStr = 'Ditolak';
+
+            return [
+                // Prefix with WD- and pad with zeros to match design
+                'id' => 'WD-2026-' . str_pad($p->penarikan_id, 4, '0', STR_PAD_LEFT),
+                'tanggal' => $created_at->translatedFormat('d M Y'),
+                'nasabah' => $p->nasabah->nama ?? 'Unknown',
+                'nominal' => 'Rp ' . number_format($p->jumlah, 0, ',', '.'),
+                'status' => $statusStr,
+                'rawDate' => $p->created_at,
+            ];
+        });
+
+        return response()->json($data, 200);
+    }
+
+    public function penarikanSummary(Request $request)
+    {
+        $query = $this->buildPenarikanQuery($request);
+        
+        $allData = $query->get();
+
+        $selesai = 0;
+        $diproses = 0;
+        $ditolak = 0;
+
+        foreach ($allData as $row) {
+            if ($row->status === 'selesai') {
+                $selesai++;
+            } elseif ($row->status === 'tolak') {
+                $ditolak++;
+            } else {
+                $diproses++;
+            }
+        }
+
+        // Sum all requested nominals
+        $totalNominalAll = $allData->sum('jumlah');
+
+        return response()->json([
+            'totalNominal' => 'Rp ' . number_format($totalNominalAll, 0, ',', '.'),
+            'selesai' => $selesai,
+            'diproses' => $diproses,
+            'ditolak' => $ditolak
+        ], 200);
+    }
 }

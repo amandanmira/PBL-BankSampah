@@ -83,6 +83,8 @@ Route::prefix('manager')->middleware(['auth:sanctum', 'role:manager'])->group(fu
     // Audit Data (SSP)
     Route::get('/audit-data', [App\Http\Controllers\Api\Manager\ManagerAuditController::class, 'index']);
     Route::get('/audit-summary', [App\Http\Controllers\Api\Manager\ManagerAuditController::class, 'summary']);
+    Route::get('/audit-penarikan-data', [App\Http\Controllers\Api\Manager\ManagerAuditController::class, 'penarikanData']);
+    Route::get('/audit-penarikan-summary', [App\Http\Controllers\Api\Manager\ManagerAuditController::class, 'penarikanSummary']);
 });
 
 Route::prefix('pengepul')->middleware(['auth:sanctum', 'role:pengepul'])->group(function () {
