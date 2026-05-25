@@ -139,8 +139,9 @@ class RequestPembelianController extends Controller
 
     public function exportPdf($transaksi_id)
     {
-        $transaksi = TransaksiPengepul::with('detailTransaksi.sampah.itemSampah')
-                        ->findOrFail($transaksi_id);
+        $transaksi = TransaksiPengepul::with(['detailTransaksi.sampah.itemSampah', 'pengepul'])
+            ->withSum('detailTransaksi', 'harga')
+            ->findOrFail($transaksi_id);
 
         $pdf = Pdf::loadView('pdf.transaksi-pengepul', compact('transaksi'));
 

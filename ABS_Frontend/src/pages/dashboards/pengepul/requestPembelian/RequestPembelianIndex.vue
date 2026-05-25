@@ -64,7 +64,7 @@ const headers = { 'Authorization': `Bearer ${token}` }
 const fetchTransaksi = async () => {
 	try {
 		const res = await axios.get(`/api/pengepul/request-pembelian/${user.pengepul_id}`, { headers })
-		transaksiList.value = res.data
+		transaksiList.value = res.data.data
 	} catch (err) {
 		console.error(err)
 	}
