@@ -25,7 +25,7 @@ class RequestPembelianController extends Controller
         ]);
     }
 
-    public function index($pengepul_id) {
+    public function index(Request $request, $pengepul_id) {
         TransaksiPengepul::where('pengepul_id', $pengepul_id)
             ->where('status', 'proses')
             ->where('deadline', '<', now())
@@ -37,12 +37,90 @@ class RequestPembelianController extends Controller
                 'status' => 'tolak'
             ]);
 
-        return response()->json(
-            TransaksiPengepul::with('detailTransaksi.sampah.itemSampah')
-                ->where('pengepul_id', $pengepul_id)
-                ->latest()
-                ->paginate(10)
-        );
+        $activeTab = $request->input('status', 'menunggu');
+        $search = $request->input('search', '');
+
+        $baseQuery = TransaksiPengepul::with('detailTransaksi.sampah.itemSampah')
+            ->where('pengepul_id', $pengepul_id);
+
+        if (!empty($search)) {
+            $baseQuery->where(function ($q) use ($search) {
+                if (preg_match('/#?(\d+)/i', $search, $matches)) {
+                    $q->where('transaksi_id', (int)$matches[1]);
+                } else {
+                    $q->where('transaksi_id', 'like', "%{$search}%")
+                      ->orWhereHas('detailTransaksi.sampah.itemSampah', function ($sub) use ($search) {
+                          $sub->where('nama', 'like', "%{$search}%");
+                      });
+                }
+            });
+        }
+
+        // Count queries
+        $menungguCount = (clone $baseQuery)->where(function ($q) {
+            $q->where('status', 'pending')
+              ->orWhere(function ($sub) {
+                  $sub->where('status', 'proses')
+                      ->where(function ($sub2) {
+                          $sub2->whereNull('bukti_transfer')
+                               ->orWhere('bukti_transfer', '');
+                      });
+              });
+        })->count();
+
+        $diprosesCount = (clone $baseQuery)->where(function ($q) {
+            $q->where(function ($sub) {
+                  $sub->where('status', 'proses')
+                      ->whereNotNull('bukti_transfer')
+                      ->where('bukti_transfer', '!=', '');
+              })
+              ->orWhere('status', 'siap_diambil');
+        })->count();
+
+        $selesaiCount = (clone $baseQuery)->where('status', 'selesai')->count();
+        $ditolakCount = (clone $baseQuery)->whereIn('status', ['tolak', 'batal'])->count();
+
+        // Apply Tab Filter
+        if ($activeTab === 'menunggu') {
+            $baseQuery->where(function ($q) {
+                $q->where('status', 'pending')
+                  ->orWhere(function ($sub) {
+                      $sub->where('status', 'proses')
+                          ->where(function ($sub2) {
+                              $sub2->whereNull('bukti_transfer')
+                                   ->orWhere('bukti_transfer', '');
+                          });
+                  });
+            });
+        } elseif ($activeTab === 'diproses') {
+            $baseQuery->where(function ($q) {
+                $q->where(function ($sub) {
+                      $sub->where('status', 'proses')
+                          ->whereNotNull('bukti_transfer')
+                          ->where('bukti_transfer', '!=', '');
+                  })
+                  ->orWhere('status', 'siap_diambil');
+            });
+        } elseif ($activeTab === 'selesai') {
+            $baseQuery->where('status', 'selesai');
+        } elseif ($activeTab === 'ditolak') {
+            $baseQuery->whereIn('status', ['tolak', 'batal']);
+        }
+
+        $orders = $baseQuery->latest()->paginate(10);
+
+        return response()->json([
+            'data' => $orders->items(),
+            'current_page' => $orders->currentPage(),
+            'last_page' => $orders->lastPage(),
+            'total' => $orders->total(),
+            'counts' => [
+                'menunggu' => $menungguCount,
+                'diproses' => $diprosesCount,
+                'selesai' => $selesaiCount,
+                'ditolak' => $ditolakCount
+            ]
+        ]);
     }
 
     public function show(string $id)

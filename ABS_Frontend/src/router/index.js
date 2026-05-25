@@ -83,6 +83,7 @@ import Keranjang from "@/pages/dashboards/pengepul/Keranjang.vue";
 import RingkasanPembelian from "@/pages/dashboards/pengepul/RingkasanPembelian.vue";
 import DetailPesanan from "@/pages/dashboards/pengepul/DetailPesanan.vue";
 import PesananSaya from "@/pages/dashboards/pengepul/PesananSaya.vue";
+import CetakRiwayat from "@/pages/dashboards/pengepul/CetakRiwayat.vue";
 
 //Manager
 import RiwayatPenarikanMan from "@/pages/dashboards/manager/RiwayatPenarikanMan.vue";
@@ -337,6 +338,10 @@ const routes = [
   {
     path: "/dashboard-pengepul/pesanan-saya",
     component: PesananSaya,
+  },
+  {
+    path: "/dashboard-pengepul/pesanan/:id/cetak",
+    component: CetakRiwayat,
   },
 
   // Nasabah

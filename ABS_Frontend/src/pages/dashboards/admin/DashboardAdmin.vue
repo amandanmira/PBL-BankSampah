@@ -72,7 +72,7 @@ onMounted(() => {
       </div>
 
       <!-- Recent Activity -->
-      <div class="w-full">
+      <div class="max-w-4xl">
         <ActivityList :activities="activities" />
       </div>
     </div>
