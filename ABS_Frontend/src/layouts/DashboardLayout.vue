@@ -23,7 +23,7 @@ const role = computed(() => sessionStorage.getItem("role")?.toLowerCase());
 
 const menuItems = computed(() => {
   console.log("Current role in sidebar:", role.value);
-  
+
   if (role.value === "admin") {
     return [
       { name: "Dashboard", path: "/dashboard-admin", icon: "material-symbols:grid-view-outline" },
@@ -50,8 +50,7 @@ const menuItems = computed(() => {
   if (role.value === "manager") {
     return [
       { name: "Dashboard", path: "/dashboard-manager", icon: "material-symbols:grid-view-outline" },
-      { name: "Riwayat Penjemputan", path: "/dashboard-manager/riwayat-penjemputan", icon: "material-symbols:local-shipping-outline" },
-      { name: "Riwayat Penarikan", path: "/dashboard-manager/riwayat-penarikan", icon: "material-symbols:account-balance-wallet-outline" },
+      { name: "Audit Data", path: "/dashboard-manager/audit-data", icon: "material-symbols:description-outline" },
     ];
   }
   if (role.value === "pengepul") {
@@ -125,9 +124,9 @@ onMounted(() => {
     >
       <!-- Sidebar Toggle (Top Left) -->
       <div :class="cn('p-6 flex transition-all duration-300', isSidebarCollapsed ? 'justify-center' : 'justify-start')">
-        <button 
-          @click="toggleSidebar" 
-          class="p-2 hover:bg-white/10 rounded-lg transition-colors shrink-0"
+        <button
+          @click="toggleSidebar"
+          class="p-2 hover:bg-white/10 rounded-lg transition-colors shrink-0 cursor-pointer"
         >
           <Icon icon="material-symbols:menu" class="w-7 h-7" />
         </button>
@@ -135,7 +134,7 @@ onMounted(() => {
 
       <!-- Logo Section -->
       <div :class="cn('px-4 mb-6 transition-all duration-300', isSidebarCollapsed ? 'flex flex-col items-center gap-4' : '')">
-        <div 
+        <div
           :class="
             cn(
               'bg-white/10 rounded-[2rem] p-6 flex flex-col items-center text-center transition-all duration-300 overflow-hidden border border-white/5',
@@ -152,20 +151,20 @@ onMounted(() => {
           </div>
 
           <!-- Logo Text -->
-          <div 
+          <div
             :class="cn('overflow-hidden transition-all duration-300 flex flex-col items-center', isSidebarCollapsed ? 'max-h-0 opacity-0' : 'max-h-20 opacity-100')"
           >
             <p class="text-xs text-white/80 font-bold uppercase tracking-[0.2em]">Aplikasi Bank Sampah</p>
           </div>
         </div>
-        
+
         <!-- Divider for collapsed state -->
         <div v-if="isSidebarCollapsed" class="w-10 h-[1px] bg-white/10"></div>
       </div>
 
       <!-- User Profile (Sidebar) -->
       <div :class="cn('px-4 mb-8 transition-all duration-300 flex flex-col items-center', isSidebarCollapsed ? 'gap-4' : 'gap-2')">
-        <button 
+        <button
           @click="goToProfile"
           :class="
             cn(
@@ -178,9 +177,9 @@ onMounted(() => {
           <div :class="cn('w-14 h-14 rounded-full bg-[#A86444] flex items-center justify-center shrink-0 shadow-lg border-2 border-white/10 transition-all duration-300', isSidebarCollapsed ? 'w-14 h-14' : '')">
             <Icon icon="material-symbols:person" class="w-8 h-8" />
           </div>
-          
+
           <!-- User Details -->
-          <div 
+          <div
             :class="cn('flex-1 text-left overflow-hidden transition-all duration-300 whitespace-nowrap', isSidebarCollapsed ? 'max-w-0 opacity-0' : 'max-w-xs opacity-100')"
           >
             <p class="font-black text-sm leading-tight truncate">
@@ -214,15 +213,15 @@ onMounted(() => {
               'flex items-center rounded-2xl transition-all duration-200 group overflow-hidden',
               isSidebarCollapsed ? 'justify-center w-12 h-12 mx-auto' : 'px-4 py-3.5 gap-4',
               (route.path === item.path || (item.path === '/dashboard-pengepul/keranjang' && route.path === '/dashboard-pengepul/ringkasan-pembelian') || (item.path === '/dashboard-pengepul/pesanan-saya' && route.path.startsWith('/dashboard-pengepul/pesanan/')))
-                ? 'bg-[#A86444] text-white shadow-lg' 
+                ? 'bg-[#A86444] text-white shadow-lg'
                 : 'text-white/70 hover:bg-white/10 hover:text-white'
             )
           "
         >
           <Icon :icon="item.icon" class="w-6 h-6 shrink-0" />
-          
+
           <!-- Nav Label Reveal -->
-          <div 
+          <div
             :class="cn('overflow-hidden transition-all duration-300 whitespace-nowrap', isSidebarCollapsed ? 'max-w-0 opacity-0' : 'max-w-xs opacity-100')"
           >
             <span class="font-semibold text-xs">{{ item.name }}</span>
@@ -242,9 +241,9 @@ onMounted(() => {
           "
         >
           <Icon icon="material-symbols:logout" class="w-6 h-6 rotate-180 shrink-0" />
-          
+
           <!-- Logout Text Reveal -->
-          <div 
+          <div
             :class="cn('overflow-hidden transition-all duration-300 whitespace-nowrap', isSidebarCollapsed ? 'max-w-0 opacity-0' : 'max-w-xs opacity-100')"
           >
             <span class="font-semibold text-xs">Logout</span>
@@ -268,7 +267,7 @@ onMounted(() => {
             <slot />
           </div>
         </div>
-        
+
         <DashboardFooter />
       </main>
     </div>

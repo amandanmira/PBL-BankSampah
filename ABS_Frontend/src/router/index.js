@@ -87,6 +87,7 @@ import PesananSaya from "@/pages/dashboards/pengepul/PesananSaya.vue";
 //Manager
 import RiwayatPenarikanMan from "@/pages/dashboards/manager/RiwayatPenarikanMan.vue";
 import RiwayatPenjemputanMan from "@/pages/dashboards/manager/RiwayatPenjemputanMan.vue";
+import AuditData from "@/pages/dashboards/manager/AuditData.vue";
 
 const routes = [
   {
@@ -231,6 +232,10 @@ const routes = [
   {
     path: "/dashboard-manager",
     component: DashboardManager,
+  },
+  {
+    path: "/dashboard-manager/audit-data",
+    component: AuditData,
   },
   {
     path: "/dashboard-manager/riwayat-penjemputan",

@@ -104,4 +104,111 @@ class DashboardManagerController extends Controller
             'activities' => $activities
         ]);
     }
+
+    public function charts(Request $request)
+    {
+        $period = $request->input('period', '6 Bulan');
+        $monthsToSub = 5;
+        if ($period == '3 Bulan') $monthsToSub = 2;
+        if ($period == '1 Bulan') $monthsToSub = 0;
+
+        $startDate = \Carbon\Carbon::now()->subMonths($monthsToSub)->startOfMonth();
+        $endDate = \Carbon\Carbon::now()->endOfMonth();
+
+        $trendData = \Illuminate\Support\Facades\DB::table('penimbangans')
+            ->join('sampahs', 'penimbangans.sampah_id', '=', 'sampahs.sampah_id')
+            ->join('item_sampahs', 'sampahs.item_id', '=', 'item_sampahs.item_id')
+            ->join('kategori_sampahs', 'item_sampahs.kategori_id', '=', 'kategori_sampahs.kategori_id')
+            ->whereBetween('penimbangans.created_at', [$startDate, $endDate])
+            ->select(
+                'kategori_sampahs.nama as kategori',
+                \Illuminate\Support\Facades\DB::raw('YEAR(penimbangans.created_at) as year'),
+                \Illuminate\Support\Facades\DB::raw('MONTH(penimbangans.created_at) as month'),
+                \Illuminate\Support\Facades\DB::raw('SUM(penimbangans.berat_timbang) as total_berat')
+            )
+            ->groupBy('kategori', 'year', 'month')
+            ->get();
+
+        $allCategories = \Illuminate\Support\Facades\DB::table('kategori_sampahs')->pluck('nama')->toArray();
+
+        $growthData = \Illuminate\Support\Facades\DB::table('penimbangans')
+            ->whereBetween('created_at', [$startDate, $endDate])
+            ->select(
+                \Illuminate\Support\Facades\DB::raw('YEAR(created_at) as year'),
+                \Illuminate\Support\Facades\DB::raw('MONTH(created_at) as month'),
+                \Illuminate\Support\Facades\DB::raw('SUM(berat_timbang) as total_berat')
+            )
+            ->groupBy('year', 'month')
+            ->get();
+
+        $gudangStatusRaw = \Illuminate\Support\Facades\DB::table('sampahs')
+            ->join('gudangs', 'sampahs.gudang_id', '=', 'gudangs.gudang_id')
+            ->select(
+                'gudangs.alamat as nama',
+                \Illuminate\Support\Facades\DB::raw('SUM(sampahs.stok) as total_stok')
+            )
+            ->groupBy('gudangs.gudang_id', 'gudangs.alamat')
+            ->get();
+
+        $distribusiRaw = \Illuminate\Support\Facades\DB::table('sampahs')
+            ->join('item_sampahs', 'sampahs.item_id', '=', 'item_sampahs.item_id')
+            ->join('kategori_sampahs', 'item_sampahs.kategori_id', '=', 'kategori_sampahs.kategori_id')
+            ->select(
+                'kategori_sampahs.nama as nama',
+                \Illuminate\Support\Facades\DB::raw('SUM(sampahs.stok) as total_stok')
+            )
+            ->groupBy('kategori_sampahs.kategori_id', 'kategori_sampahs.nama')
+            ->get();
+
+        $monthsList = [];
+        for ($i = $monthsToSub; $i >= 0; $i--) {
+            $dt = \Carbon\Carbon::now()->subMonths($i);
+            $monthsList[] = [
+                'year' => $dt->year,
+                'month' => $dt->month,
+                'label' => $dt->locale('id')->shortMonthName
+            ];
+        }
+        $trendCategories = array_column($monthsList, 'label');
+
+        $trendSeries = [];
+        foreach ($allCategories as $catName) {
+            $dataArr = [];
+            foreach ($monthsList as $m) {
+                $found = $trendData->first(function($val) use ($catName, $m) {
+                    return $val->kategori == $catName && $val->year == $m['year'] && $val->month == $m['month'];
+                });
+                $dataArr[] = $found ? (float)$found->total_berat : 0;
+            }
+            $trendSeries[] = [
+                'name' => $catName,
+                'data' => $dataArr
+            ];
+        }
+
+        $initialTotal = \Illuminate\Support\Facades\DB::table('penimbangans')
+            ->where('created_at', '<', $startDate)
+            ->sum('berat_timbang');
+
+        $growthSeriesData = [];
+        $currentTotal = $initialTotal;
+        foreach ($monthsList as $m) {
+            $found = $growthData->first(function($val) use ($m) {
+                return $val->year == $m['year'] && $val->month == $m['month'];
+            });
+            $monthTotal = $found ? (float)$found->total_berat : 0;
+            $currentTotal += $monthTotal;
+            $growthSeriesData[] = $currentTotal;
+        }
+
+        return response()->json([
+            'trendCategories' => $trendCategories,
+            'trendSeries' => $trendSeries,
+            'growthSeries' => [
+                ['name' => 'Total', 'data' => $growthSeriesData]
+            ],
+            'gudangStatus' => $gudangStatusRaw,
+            'distribusiSaatIni' => $distribusiRaw
+        ]);
+    }
 }

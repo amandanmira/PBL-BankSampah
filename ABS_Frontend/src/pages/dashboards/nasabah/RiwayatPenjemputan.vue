@@ -3,9 +3,7 @@
     <h1>Riwayat Penjemputan</h1>
     <p>Halaman ini berisi riwayat penjemputan Anda.</p>
 
-    <div v-if="loading" class="loading">
-      Memuat data...
-    </div>
+    <div v-if="loading" class="loading">Memuat data...</div>
 
     <div v-if="error" class="error">
       {{ error }}
@@ -28,10 +26,24 @@
           <td>{{ penjemputan.deskripsi }}</td>
           <td>{{ penjemputan.alamat }}</td>
           <td>
-            <div v-if="Array.isArray(penjemputan.foto) && penjemputan.foto.length > 0" class="flex gap-2 flex-wrap">
-              <img v-for="(f, i) in penjemputan.foto" :key="i" :src="`http://localhost:8000/storage/${f}`" alt="Foto Penjemputan" style="width: 100px; height: 100px; object-fit: cover; border-radius: 4px;" />
+            <div
+              v-if="Array.isArray(penjemputan.foto) && penjemputan.foto.length > 0"
+              class="flex gap-2 flex-wrap"
+            >
+              <img
+                v-for="(f, i) in penjemputan.foto"
+                :key="i"
+                :src="`http://localhost:8000/storage/${f}`"
+                alt="Foto Penjemputan"
+                style="width: 100px; height: 100px; object-fit: cover; border-radius: 4px"
+              />
             </div>
-            <img v-else-if="penjemputan.foto && !Array.isArray(penjemputan.foto)" :src="`http://localhost:8000/storage/${penjemputan.foto}`" alt="Foto Penjemputan" style="width: 100px; height: 100px; object-fit: cover; border-radius: 4px;" />
+            <img
+              v-else-if="penjemputan.foto && !Array.isArray(penjemputan.foto)"
+              :src="`http://localhost:8000/storage/${penjemputan.foto}`"
+              alt="Foto Penjemputan"
+              style="width: 100px; height: 100px; object-fit: cover; border-radius: 4px"
+            />
             <span v-else>Tidak ada foto</span>
           </td>
           <td>
@@ -41,58 +53,60 @@
         </tr>
       </tbody>
     </table>
-    <div v-else-if="!loading">
-      Tidak ada riwayat penjemputan.
-    </div>
+    <div v-else-if="!loading">Tidak ada riwayat penjemputan.</div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from "vue";
-import { checkRole } from "@/utils";
-import axios from "axios";
+import { ref, onMounted } from 'vue'
+import { checkRole } from '@/utils'
+import axios from 'axios'
 
 // Pastikan hanya nasabah yang bisa mengakses
-checkRole("nasabah");
+checkRole('nasabah')
 
-const allPenjemputans = ref([]);
-const loading = ref(true);
-const error = ref(null);
+const allPenjemputans = ref([])
+const loading = ref(true)
+const error = ref(null)
 
 // Fungsi untuk mengambil data dari API
 const fetchData = async () => {
-  loading.value = true;
+  loading.value = true
   try {
-    const token = sessionStorage.getItem("token");
+    const token = sessionStorage.getItem('token')
     if (!token) {
-      throw new Error("Otentikasi diperlukan.");
+      throw new Error('Otentikasi diperlukan.')
     }
-    const user = JSON.parse(sessionStorage.getItem("user"));
+    const user = JSON.parse(sessionStorage.getItem('user'))
     if (!user || !user.nasabah_id) {
-      throw new Error("Data pengguna tidak ditemukan.");
+      throw new Error('Data pengguna tidak ditemukan.')
     }
 
-    const headers = { Authorization: `Bearer ${token}` };
+    const headers = { Authorization: `Bearer ${token}` }
 
     // Asumsi ada endpoint untuk mengambil riwayat berdasarkan nasabah_id
-    const response = await axios.get("http://localhost:8000/api/nasabah/penjemputan-nasabah", { headers });
-    allPenjemputans.value = response.data.data;
+    const response = await axios.get('http://localhost:8000/api/nasabah/penjemputan-nasabah', {
+      headers,
+    })
+    allPenjemputans.value = response.data.data
   } catch (err) {
-    error.value = "Gagal mengambil data riwayat penjemputan. " + (err.response ? err.response.data.message : err.message);
-    console.error(err);
+    error.value =
+      'Gagal mengambil data riwayat penjemputan. ' +
+      (err.response ? err.response.data.message : err.message)
+    console.error(err)
   } finally {
-    loading.value = false;
+    loading.value = false
   }
-};
+}
 
 // Ambil data saat komponen dimuat
-onMounted(fetchData);
+onMounted(fetchData)
 </script>
 
 <style scoped>
 .container {
   padding: 2rem;
-  font-family: "Arial", sans-serif;
+  font-family: 'Arial', sans-serif;
 }
 table {
   width: 100%;
