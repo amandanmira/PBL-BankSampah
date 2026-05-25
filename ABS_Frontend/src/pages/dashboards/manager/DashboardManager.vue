@@ -90,19 +90,106 @@ const fetchDashboardData = async () => {
   }
 };
 
+const selectedPeriod = ref('6 Bulan');
+const periods = ['1 Bulan', '3 Bulan', '6 Bulan'];
+const totalSampahPeriode = ref(0);
+
+const fetchChartsData = async () => {
+  try {
+    const token = sessionStorage.getItem('token');
+    const response = await axios.get(`http://localhost:8000/api/manager/dashboard-charts?period=${selectedPeriod.value}`, {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+    
+    const data = response.data;
+    
+    trendChartSeries.value = data.trendSeries;
+    trendChartOptions.value = {
+        ...trendChartOptions.value,
+        xaxis: {
+            ...trendChartOptions.value.xaxis,
+            categories: data.trendCategories
+        }
+    };
+
+    growthChartSeries.value = data.growthSeries;
+    growthChartOptions.value = {
+        ...growthChartOptions.value,
+        xaxis: {
+            ...growthChartOptions.value.xaxis,
+            categories: data.trendCategories
+        }
+    };
+
+    let totalTrend = 0;
+    data.trendSeries.forEach(s => {
+        s.data.forEach(v => totalTrend += v);
+    });
+    totalSampahPeriode.value = totalTrend;
+
+    // Calculate colors and percentages for Gudang Status
+    const gudangColors = ['bg-[#4A7043]', 'bg-[#5FA09B]', 'bg-[#A86444]', 'bg-orange-500', 'bg-red-500'];
+    gudangStatus.value = data.gudangStatus.map((g, idx) => {
+        const stok = parseFloat(g.total_stok);
+        const kap = 1000; // Asumsi kapasitas 1000kg
+        const pct = Math.min(Math.round((stok / kap) * 100), 100);
+        let text = 'Normal';
+        if(pct > 80) text = 'Hampir Penuh';
+        else if(pct > 60) text = 'Tinggi';
+        const color = gudangColors[idx % gudangColors.length];
+        
+        return {
+            name: g.nama,
+            percentage: pct,
+            text: text,
+            value: `${stok.toLocaleString('id-ID')} kg tersimpan`,
+            colorClass: color,
+            textClass: color.replace('bg-', 'text-').replace('[', '').replace(']', '')
+        };
+    });
+
+    // Calculate percentages for Distribusi Saat Ini
+    const distColors = ['bg-[#4A7043]', 'bg-[#5FA09B]', 'bg-[#A86444]', 'bg-[#F59E0B]', 'bg-[#7A7A7A]', 'bg-[#3D5A35]', 'bg-[#2E4A27]'];
+    const totalDist = data.distribusiSaatIni.reduce((acc, curr) => acc + parseFloat(curr.total_stok), 0);
+    distribusiSaatIni.value = data.distribusiSaatIni.map((d, idx) => {
+        const stok = parseFloat(d.total_stok);
+        const pct = totalDist > 0 ? Math.round((stok / totalDist) * 100) : 0;
+        const color = distColors[idx % distColors.length];
+        return {
+            name: d.nama,
+            value: `${stok.toLocaleString('id-ID')} kg`,
+            percentage: pct,
+            colorClass: color,
+            dotClass: color
+        };
+    });
+    
+  } catch (error) {
+    console.error("Error fetching charts data:", error);
+  }
+};
+
+import { watch } from "vue";
+watch(selectedPeriod, () => {
+    fetchChartsData();
+});
+
 onMounted(() => {
   fetchDashboardData();
+  fetchChartsData();
 });
 
 // Area chart (Trend Sampah)
-const trendChartOptions = {
+const trendChartOptions = ref({
   chart: {
     type: 'area',
     toolbar: { show: false },
     zoom: { enabled: false },
     fontFamily: 'Inter, sans-serif'
   },
-  colors: ['#4A7043', '#5FA09B', '#A86444', '#F59E0B'],
+  colors: ['#4A7043', '#5FA09B', '#A86444', '#F59E0B', '#7A7A7A', '#3D5A35', '#2E4A27'],
   dataLabels: { enabled: false },
   stroke: { curve: 'smooth', width: 2 },
   fill: {
@@ -115,14 +202,13 @@ const trendChartOptions = {
     }
   },
   xaxis: {
-    categories: ['Jan', 'Feb', 'Mar', 'Apr', 'Mei'],
+    categories: [],
     labels: { style: { colors: '#A8A29E', fontSize: '12px' } },
     axisBorder: { show: false },
     axisTicks: { show: false },
   },
   yaxis: {
     min: 0,
-    max: 600,
     tickAmount: 4,
     labels: { style: { colors: '#A8A29E', fontSize: '12px' } }
   },
@@ -137,17 +223,12 @@ const trendChartOptions = {
     markers: { radius: 12, size: 6 },
     itemMargin: { horizontal: 10, vertical: 0 }
   }
-};
+});
 
-const trendChartSeries = [
-  { name: 'Organik', data: [280, 310, 360, 420, 500] },
-  { name: 'Plastik PET', data: [180, 220, 250, 280, 320] },
-  { name: 'Kertas', data: [140, 160, 180, 200, 230] },
-  { name: 'Logam', data: [60, 70, 80, 90, 120] }
-];
+const trendChartSeries = ref([]);
 
 // Line chart (Pertumbuhan Total Sampah)
-const growthChartOptions = {
+const growthChartOptions = ref({
   chart: {
     type: 'line',
     toolbar: { show: false },
@@ -165,14 +246,13 @@ const growthChartOptions = {
     hover: { size: 7 }
   },
   xaxis: {
-    categories: ['Jan', 'Feb', 'Mar', 'Apr', 'Mei'],
+    categories: [],
     labels: { style: { colors: '#A8A29E', fontSize: '12px' } },
     axisBorder: { show: false },
     axisTicks: { show: false },
   },
   yaxis: {
     min: 0,
-    max: 1400,
     tickAmount: 4,
     labels: { style: { colors: '#A8A29E', fontSize: '12px' } }
   },
@@ -180,29 +260,14 @@ const growthChartOptions = {
     borderColor: '#f3f4f6',
     strokeDashArray: 4,
   }
-};
+});
 
-const growthChartSeries = [
-  { name: 'Total', data: [660, 760, 870, 990, 1170] }
-];
+const growthChartSeries = ref([]);
 
 // Progress bar data
-const gudangStatus = [
-  { name: 'Gudang Pusat', percentage: 92, text: 'Hampir Penuh', value: '412 kg tersimpan', colorClass: 'bg-red-500', textClass: 'text-red-500' },
-  { name: 'Gudang Timur', percentage: 65, text: 'Normal', value: '298 kg tersimpan', colorClass: 'bg-[#4A7043]', textClass: 'text-[#4A7043]' },
-  { name: 'Gudang Barat', percentage: 48, text: 'Normal', value: '225 kg tersimpan', colorClass: 'bg-[#4A7043]', textClass: 'text-[#4A7043]' },
-  { name: 'Gudang Selatan', percentage: 78, text: 'Tinggi', value: '344 kg tersimpan', colorClass: 'bg-orange-500', textClass: 'text-orange-500' },
-];
+const gudangStatus = ref([]);
 
-const distribusiSaatIni = [
-  { name: 'Organik', value: '540 kg', percentage: 80, colorClass: 'bg-[#4A7043]', dotClass: 'bg-[#4A7043]' },
-  { name: 'Plastik PET', value: '340 kg', percentage: 60, colorClass: 'bg-[#5FA09B]', dotClass: 'bg-[#5FA09B]' },
-  { name: 'Kertas', value: '245 kg', percentage: 40, colorClass: 'bg-[#A86444]', dotClass: 'bg-[#A86444]' },
-  { name: 'Logam', value: '128 kg', percentage: 20, colorClass: 'bg-[#F59E0B]', dotClass: 'bg-[#F59E0B]' },
-];
-
-const selectedPeriod = ref('6 Bulan');
-const periods = ['1 Bulan', '3 Bulan', '6 Bulan'];
+const distribusiSaatIni = ref([]);
 </script>
 
 <template>
@@ -238,7 +303,7 @@ const periods = ['1 Bulan', '3 Bulan', '6 Bulan'];
           <div class="flex justify-between items-start mb-2">
             <div>
               <h3 class="text-lg font-bold text-stone-800">Trend Sampah</h3>
-              <p class="text-xs text-stone-400">Total 5,615 kg pada periode terpilih</p>
+              <p class="text-xs text-stone-400">Total {{ totalSampahPeriode.toLocaleString('id-ID') }} kg pada periode terpilih</p>
             </div>
             <div class="flex bg-stone-100 rounded-lg p-1">
               <button v-for="period in periods" :key="period"

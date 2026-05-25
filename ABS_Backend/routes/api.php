@@ -77,8 +77,9 @@ Route::prefix('manager')->middleware(['auth:sanctum', 'role:manager'])->group(fu
     Route::get('/riwayat-penjemputan', [RiwayatPenjemputanController::class, 'riwayatPenjemputan']);
     Route::get('/riwayat-penjemputan/{id}', [RiwayatPenjemputanController::class, 'show']);
 
-    // Dashboard Stats
+    // Dashboard Stats & Charts
     Route::get('/dashboard-stats', [DashboardManagerController::class, 'index']);
+    Route::get('/dashboard-charts', [DashboardManagerController::class, 'charts']);
 });
 
 Route::prefix('pengepul')->middleware(['auth:sanctum', 'role:pengepul'])->group(function () {
