@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Exports\Petugas;
+namespace App\Exports\Manager;
 
 use Carbon\Carbon;
 use App\Models\TransaksiPengepul;
@@ -11,15 +11,38 @@ use Maatwebsite\Excel\Concerns\WithTitle;
 
 class LaporanTransaksiPengepulExport implements FromCollection, WithHeadings, WithMapping, WithTitle
 {
+    protected $startDate;
+    protected $endDate;
+    protected $gudangId;
+    protected $sampah;
+
+    public function __construct($startDate, $endDate, $gudangId, $sampah)
+    {
+        $this->startDate = $startDate;
+        $this->endDate = $endDate;
+        $this->gudangId = $gudangId;
+        $this->sampah = collect($sampah)->pluck('sampah_id')->toArray();
+    }
+
     /**
     * @return \Illuminate\Support\Collection
     */
     public function collection()
     {
-        $oneMonthAgo = Carbon::now()->subMonth();
-
-        return TransaksiPengepul::where('created_at', '>=', $oneMonthAgo)
-            ->where('status', 'selesai')
+        return TransaksiPengepul::whereBetween(
+                'created_at',
+                [$this->startDate, $this->endDate]
+            )
+            ->when($this->gudangId, function ($query) {
+                $query->whereHas('detailTransaksi.sampah.gudang', function ($q) {
+                    $q->where('gudang_id', $this->gudangId);
+                });
+            })
+            ->when($this->sampah, function ($query) {
+                $query->whereHas('detailTransaksi.sampah', function ($q) {
+                    $q->whereIn('item_id', $this->sampah);
+                });
+            })
             ->with(['detailTransaksi.sampah.itemSampah', 'pengepul'])->get();
     }
 
@@ -34,6 +57,7 @@ class LaporanTransaksiPengepulExport implements FromCollection, WithHeadings, Wi
 
         return [
             $transaksi->transaksi_id,
+            $transaksi->status,
             $transaksi->deadline,
             $transaksi->created_at,
             $transaksi->pengepul->nama,
@@ -44,7 +68,7 @@ class LaporanTransaksiPengepulExport implements FromCollection, WithHeadings, Wi
 
     public function headings(): array
     {
-        return ['ID', 'Deadline', 'Tanggal Transaksi', 'Pengepul', 'Detail Transaksi', 'Total'];
+        return ['ID', 'Status', 'Deadline', 'Tanggal Transaksi', 'Pengepul', 'Detail Transaksi', 'Total'];
     }
 
     public function title(): string

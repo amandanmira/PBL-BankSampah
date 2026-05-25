@@ -19,6 +19,14 @@ const user = computed(() => {
   }
 });
 
+const token = sessionStorage.getItem('token')
+
+if (!token) {
+  throw new Error('Otentikasi diperlukan.')
+}
+
+const headers = { 'Authorization': `Bearer ${token}` }
+
 const stats = ref({
   total_petugas: 0,
   total_sampah: 0,
@@ -31,12 +39,7 @@ const loading = ref(true);
 
 const fetchDashboardData = async () => {
   try {
-    const token = sessionStorage.getItem("token");
-    const response = await axios.get("http://localhost:8000/api/manager/dashboard-stats", {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
+    const response = await axios.get("http://localhost:8000/api/manager/dashboard-stats", headers);
     stats.value = response.data.stats;
     activities.value = response.data.activities;
   } catch (error) {
@@ -45,6 +48,47 @@ const fetchDashboardData = async () => {
     loading.value = false;
   }
 };
+
+const downloadExcel = async () => {
+  try {
+    const res = await axios.get(
+      `/api/cetak-laporan/excel`,
+      {
+        headers,
+        responseType: 'blob', // penting
+      }
+    )
+
+    const url = window.URL.createObjectURL(new Blob([res.data]))
+    const link = document.createElement('a')
+    link.href = url
+    link.setAttribute('download', 'transaksi.xlsx') // nama file
+    document.body.appendChild(link)
+    link.click()
+    link.remove()
+  } catch (err) {
+    console.error(err)
+  }
+}
+
+const previewPdf = async () => {
+  try {
+    const response = await axios.get(
+      `/api/cetak-laporan/pdf`,
+      {
+        headers,
+        responseType: 'blob', // penting
+      }
+    )
+
+    const file = new Blob([response.data], { type: 'application/pdf' })
+    const fileURL = URL.createObjectURL(file)
+
+    window.open(fileURL)
+  } catch (err) {
+    console.error(err)
+  }
+}
 
 onMounted(() => {
   fetchDashboardData();
@@ -267,6 +311,11 @@ const getIcon = (type) => {
             <p class="text-stone-500 font-bold text-sm">Belum ada aktivitas terbaru.</p>
           </div>
         </div>
+      </div>
+
+      <div>
+        <button @click="downloadExcel()" class="border-2 p-2">Cetak Laporan Excel</button><br />
+        <button @click="previewPdf()" class="border-2 p-2">Cetak Laporan Pdf</button>
       </div>
 
     </div>

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Exports\Petugas;
+namespace App\Exports\Manager;
 
 use Carbon\Carbon;
 use App\Models\TransaksiNasabah;
@@ -11,17 +11,40 @@ use Maatwebsite\Excel\Concerns\WithTitle;
 
 class LaporanTransaksiNasabahExport implements FromCollection, WithHeadings, WithMapping, WithTitle
 {
+    protected $startDate;
+    protected $endDate;
+    protected $gudangId;
+    protected $sampah;
+
+    public function __construct($startDate, $endDate, $gudangId, $sampah)
+    {
+        $this->startDate = $startDate;
+        $this->endDate = $endDate;
+        $this->gudangId = $gudangId;
+        $this->sampah = collect($sampah)->pluck('sampah_id')->toArray();
+    }
+
     /**
     * @return \Illuminate\Support\Collection
     */
     public function collection()
     {
-        $oneMonthAgo = Carbon::now()->subMonth();
-
-        return TransaksiNasabah::where('tanggal', '>=', $oneMonthAgo)
-            ->where('status', 'selesai')
+        return TransaksiNasabah::whereBetween(
+                'created_at',
+                [$this->startDate, $this->endDate]
+            )
+            ->when($this->gudangId, function ($query) {
+                $query->whereHas('penimbangan.sampah.gudang', function ($q) {
+                    $q->where('gudang_id', $this->gudangId);
+                });
+            })
+            ->when($this->sampah, function ($query) {
+                $query->whereHas('penimbangan.sampah', function ($q) {
+                    $q->whereIn('item_id', $this->sampah);
+                });
+            })
             ->with([
-                'penimbangan' => function ($q) use ($oneMonthAgo) {
+                'penimbangan' => function ($q) {
                     $q->with(['sampah.itemSampah', 'nasabah']);
                 }
             ])->get();
@@ -41,6 +64,7 @@ class LaporanTransaksiNasabahExport implements FromCollection, WithHeadings, Wit
 
         return [
             $transaksi->transaksi_id,
+            $transaksi->status,
             $transaksi->tipe_transaksi,
             $transaksi->tanggal,
             $nasabah->nama,
@@ -50,7 +74,7 @@ class LaporanTransaksiNasabahExport implements FromCollection, WithHeadings, Wit
 
     public function headings(): array
     {
-        return ['ID', 'Tipe Transaksi', 'Tanggal Transaksi', 'Nasabah', 'Detail Transaksi'];
+        return ['ID', 'Status', 'Tipe Transaksi', 'Tanggal Transaksi', 'Nasabah', 'Detail Transaksi'];
     }
 
     public function title(): string

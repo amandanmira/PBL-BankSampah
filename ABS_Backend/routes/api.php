@@ -138,8 +138,12 @@ Route::prefix('petugas')->middleware(['auth:sanctum', 'role:petugas'])->group(fu
     //penimbangan antar sendiri
     Route::get('/list-nasabah', [PenimbanganController::class, 'listNasabah']);
     Route::post('/penimbangan-antar-sendiri', [PenimbanganController::class, 'penimbanganAntarSendiri']);
+});
 
+Route::middleware(['auth:sanctum', 'role:petugas|manager'])->group(function () {
     // API Laporan
+    Route::get('/laporan/list-sampah', [LaporanController::class, 'indexSampah']);
+    Route::get('/laporan/list-gudang', [LaporanController::class, 'indexGudang']);
     Route::get('/cetak-laporan/excel', [LaporanController::class, 'exportExcel']);
     Route::get('/cetak-laporan/pdf', [LaporanController::class, 'exportPdf']);
 

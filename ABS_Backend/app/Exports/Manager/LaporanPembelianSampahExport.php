@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Exports\Petugas;
+namespace App\Exports\Manager;
 
 use Carbon\Carbon;
 use App\Models\Sampah;
@@ -11,18 +11,45 @@ use Maatwebsite\Excel\Concerns\WithTitle;
 
 class LaporanPembelianSampahExport implements FromCollection, WithHeadings, WithMapping, WithTitle
 {
+    protected $startDate;
+    protected $endDate;
+    protected $gudangId;
+    protected $sampah;
+
+    public function __construct($startDate, $endDate, $gudangId, $sampah)
+    {
+        $this->startDate = $startDate;
+        $this->endDate = $endDate;
+        $this->gudangId = $gudangId;
+        $this->sampah = collect($sampah)->pluck('sampah_id')->toArray();
+    }
+
     /**
     * @return \Illuminate\Support\Collection
     */
     public function collection()
     {
-        $oneMonthAgo = Carbon::now()->subMonth();
-
-        return Sampah::whereHas('penimbangan', function ($q) use ($oneMonthAgo) {
-            $q->where('created_at', '>=', $oneMonthAgo);
+        return Sampah::whereHas('penimbangan', function ($q) {
+            $q->whereBetween(
+                'created_at',
+                [$this->startDate, $this->endDate]
+            )
+            ->when($this->gudangId, function ($q) {
+                $q->whereHas('sampah.gudang', function ($q) {
+                    $q->where('gudang_id', $this->gudangId);
+                });
+            })
+            ->when($this->sampah, function ($query) {
+                $query->whereHas('sampah', function ($q) {
+                    $q->whereIn('item_id', $this->sampah);
+                });
+            });
         })->with([
-            'penimbangan' => function ($q) use ($oneMonthAgo) {
-                $q->where('created_at', '>=', $oneMonthAgo);
+            'penimbangan' => function ($q) {
+                $q->whereBetween(
+                    'created_at',
+                    [$this->startDate, $this->endDate]
+                );
             },
             'itemSampah', 'gudang'
         ])->get();
