@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('penarikans', function (Blueprint $table) {
             $table->id('penarikan_id');
             $table->integer('jumlah');
-            $table->enum('status', ['pending', 'proses', 'selesai', 'tolak']);
+            $table->enum('status', ['pending', 'proses', 'selesai', 'tolak', 'batal']);
             $table->text('ket_status')->nullable();
             $table->text('bukti_tf')->nullable();
             $table->string('no_rekening', 20)->nullable();

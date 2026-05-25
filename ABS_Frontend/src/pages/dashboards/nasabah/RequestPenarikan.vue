@@ -196,7 +196,7 @@
         </div>
         
         <div class="flex flex-col w-full gap-3">
-          <button @click="showSuccessModal = false; router.push('/dashboard-nasabah/riwayatpenjemputan')" class="w-full py-4 rounded-2xl bg-[#4A7043] text-white font-black text-sm shadow-lg shadow-[#4A7043]/20 hover:bg-[#3D5C37] transition-all">
+          <button @click="showSuccessModal = false; router.push('/dashboard-nasabah/penarikan-saya')" class="w-full py-4 rounded-2xl bg-[#4A7043] text-white font-black text-sm shadow-lg shadow-[#4A7043]/20 hover:bg-[#3D5C37] transition-all">
             Lihat Tracking
           </button>
           <button @click="showSuccessModal = false; router.push('/dashboard-nasabah')" class="w-full py-4 rounded-2xl border border-stone-200 text-stone-500 font-black text-sm hover:bg-stone-50 transition-all">
