@@ -15,7 +15,7 @@
 
 <p>ID: {{ $transaksi->transaksi_id ?? '-' }}</p>
 <p>Status: {{ $transaksi->status ?? '-' }}</p>
-<p>Deadline: {{ $transaksi->deadline ?? '-' }}</p>
+<p>Pengepul: {{ $transaksi->pengepul->nama ?? '-' }}</p>
 <p>Tanggal: {{ $transaksi->created_at ?? '-' }}</p>
 
 <table>
@@ -36,6 +36,8 @@
         @endforeach
     </tbody>
 </table>
+
+<p>Total: {{ $transaksi->detail_transaksi_sum_harga ?? '-' }}</p>
 
 </body>
 </html>
