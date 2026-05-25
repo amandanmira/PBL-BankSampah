@@ -6,24 +6,31 @@
         <p class="text-gray-500 mt-1">Pantau status dan riwayat pembelian sampah Anda.</p>
       </div>
 
-      <!-- Filters & Stats -->
-      <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-        <div class="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm">
-          <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Total Pesanan</p>
-          <p class="text-2xl font-black text-gray-800">{{ pagination.total || 0 }}</p>
-        </div>
-        <div class="bg-amber-50 p-6 rounded-3xl border border-amber-100 shadow-sm">
-          <p class="text-[10px] font-bold text-amber-500 uppercase tracking-widest mb-1">Perlu Bayar</p>
-          <p class="text-2xl font-black text-amber-700">{{ stats.pending || 0 }}</p>
-        </div>
-        <div class="bg-blue-50 p-6 rounded-3xl border border-blue-100 shadow-sm">
-          <p class="text-[10px] font-bold text-blue-500 uppercase tracking-widest mb-1">Diproses</p>
-          <p class="text-2xl font-black text-blue-700">{{ stats.proses || 0 }}</p>
-        </div>
-        <div class="bg-green-50 p-6 rounded-3xl border border-green-100 shadow-sm">
-          <p class="text-[10px] font-bold text-green-500 uppercase tracking-widest mb-1">Selesai</p>
-          <p class="text-2xl font-black text-green-700">{{ stats.selesai || 0 }}</p>
-        </div>
+      <!-- Tabs -->
+      <div class="flex gap-2 bg-[#F8F7F3] p-2 rounded-full mb-6 overflow-x-auto whitespace-nowrap border border-gray-100 max-w-fit shadow-sm">
+        <button 
+          v-for="tab in tabs" :key="tab.id"
+          @click="changeTab(tab.id)"
+          :class="['px-6 py-3 rounded-full font-bold text-sm flex items-center gap-2 transition-all justify-center min-w-[120px]', activeTab === tab.id ? 'bg-white text-gray-800 shadow-sm' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100/50']"
+        >
+          <Icon :icon="tab.icon" class="w-4 h-4" />
+          {{ tab.label }}
+          <span :class="['w-5 h-5 flex items-center justify-center rounded-full text-[10px] ml-1', activeTab === tab.id ? 'bg-[#8B5E3C] text-white' : 'bg-[#8B5E3C] text-white']">
+            {{ stats[tab.id] || 0 }}
+          </span>
+        </button>
+      </div>
+
+      <!-- Search Bar -->
+      <div class="relative mb-8 shadow-sm rounded-xl">
+        <Icon icon="material-symbols:search" class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+        <input 
+          v-model="searchQuery" 
+          @input="handleSearch"
+          type="text" 
+          placeholder="Cari berdasarkan tracking ID atau jenis sampah..." 
+          class="w-full bg-white border border-gray-100 rounded-xl pl-12 pr-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#4A7043]/20 focus:border-[#4A7043] transition-all text-sm"
+        >
       </div>
 
       <!-- Orders List -->
@@ -53,8 +60,10 @@
               <div>
                 <div class="flex items-center gap-3 mb-1">
                   <span class="text-xs font-black text-gray-800">#{{ order.transaksi_id }}</span>
-                  <span :class="['text-[9px] font-black uppercase px-2 py-0.5 rounded-full tracking-wider', getStatusClass(order.status)]">
-                    {{ order.status === 'tolak' ? 'ditolak' : order.status }}
+                  <span :class="['text-[9px] font-bold px-3 py-1 rounded-md tracking-wider flex items-center gap-1', getStatusClass(order.status, order)]">
+                    <Icon v-if="order.status === 'selesai' || order.status === 'siap_diambil' || (order.status === 'proses' && !order.bukti_transfer)" icon="material-symbols:check-circle-outline" class="w-3 h-3" />
+                    <Icon v-else-if="order.status === 'tolak' || order.status === 'batal'" icon="material-symbols:cancel-outline" class="w-3 h-3" />
+                    {{ getStatusText(order.status, order) }}
                   </span>
                 </div>
                 <p class="text-[10px] text-gray-400 font-medium">
@@ -70,14 +79,32 @@
             </div>
 
             <!-- Action -->
-            <div class="flex gap-2">
+            <div class="flex gap-3 w-full">
               <router-link 
                 :to="`/dashboard-pengepul/pesanan/${order.transaksi_id}`"
-                class="px-6 py-3 bg-gray-800 text-white text-[11px] font-black rounded-xl hover:bg-black transition-all flex items-center gap-2"
+                class="flex-1 py-3 bg-[#F8F7F3] text-gray-700 text-xs font-bold rounded-xl hover:bg-gray-200 transition-all flex items-center justify-center gap-2"
               >
+                <Icon icon="material-symbols:visibility-outline" class="w-4 h-4" />
                 Lihat Detail
-                <Icon icon="material-symbols:arrow-forward" class="w-4 h-4" />
               </router-link>
+              
+              <button
+                v-if="order.status === 'selesai'"
+                @click="router.push(`/dashboard-pengepul/pesanan/${order.transaksi_id}/cetak`)"
+                class="flex-1 py-3 bg-[#8B5E3C] text-white text-xs font-bold rounded-xl hover:bg-[#724C30] transition-all flex items-center justify-center gap-2 shadow-sm"
+              >
+                <Icon icon="material-symbols:print-outline" class="w-4 h-4" />
+                Cetak Riwayat
+              </button>
+            </div>
+          </div>
+          
+          <!-- Rejected Box -->
+          <div v-if="order.status === 'tolak' || order.status === 'batal'" class="mt-4 bg-red-50 border border-red-100 rounded-xl p-4 flex gap-3">
+            <Icon icon="material-symbols:error-outline" class="w-5 h-5 text-red-500 shrink-0 mt-0.5" />
+            <div>
+              <p class="text-xs font-bold text-red-600 mb-1">Alasan {{ order.status === 'tolak' ? 'Ditolak' : 'Dibatalkan' }}:</p>
+              <p class="text-xs text-red-500/80">{{ order.ket_status || 'Tidak ada keterangan.' }}</p>
             </div>
           </div>
         </div>
@@ -104,14 +131,26 @@ import DashboardLayout from '@/layouts/DashboardLayout.vue'
 import { Icon } from '@iconify/vue'
 import { checkRole } from '@/utils'
 import dayjs from 'dayjs'
+import { useRouter } from 'vue-router'
 
 checkRole('pengepul')
 
+const router = useRouter()
 const axios = inject('axios')
 const loading = ref(true)
 const orders = ref([])
-const stats = ref({ pending: 0, proses: 0, selesai: 0 })
+const stats = ref({ menunggu: 0, diproses: 0, selesai: 0, ditolak: 0 })
 const pagination = ref({ current_page: 1, last_page: 1, total: 0 })
+const activeTab = ref('menunggu')
+const searchQuery = ref('')
+let searchTimeout = null
+
+const tabs = [
+  { id: 'menunggu', label: 'Menunggu', icon: 'material-symbols:schedule-outline' },
+  { id: 'diproses', label: 'Diproses', icon: 'material-symbols:sync' },
+  { id: 'selesai', label: 'Selesai', icon: 'material-symbols:check-circle-outline' },
+  { id: 'ditolak', label: 'Ditolak', icon: 'material-symbols:cancel-outline' }
+]
 
 const user = JSON.parse(sessionStorage.getItem('user') || '{}')
 const pengepul_id = user.pengepul_id || user.pengepul?.pengepul_id
@@ -120,18 +159,14 @@ const fetchOrders = async (page = 1) => {
   if (!pengepul_id) return
   loading.value = true
   try {
-    const res = await axios.get(`/api/pengepul/request-pembelian/${pengepul_id}?page=${page}`)
+    const res = await axios.get(`/api/pengepul/request-pembelian/${pengepul_id}?page=${page}&status=${activeTab.value}&search=${searchQuery.value}`)
     orders.value = res.data.data
     pagination.value = {
       current_page: res.data.current_page,
       last_page: res.data.last_page,
       total: res.data.total
     }
-
-    // Simple stats from current page (usually backend should provide this)
-    stats.value.pending = orders.value.filter(o => o.status === 'pending').length
-    stats.value.proses = orders.value.filter(o => o.status === 'proses').length
-    stats.value.selesai = orders.value.filter(o => o.status === 'selesai').length
+    stats.value = res.data.counts || { menunggu: 0, diproses: 0, selesai: 0, ditolak: 0 }
   } catch (err) {
     console.error('Fetch orders error:', err)
   } finally {
@@ -139,18 +174,47 @@ const fetchOrders = async (page = 1) => {
   }
 }
 
+const changeTab = (tabId) => {
+  activeTab.value = tabId
+  fetchOrders(1)
+}
+
+const handleSearch = () => {
+  if (searchTimeout) clearTimeout(searchTimeout)
+  searchTimeout = setTimeout(() => {
+    fetchOrders(1)
+  }, 500)
+}
+
 const calculateTotal = (order) => {
   return order.detail_transaksi?.reduce((acc, item) => acc + (item.berat * item.harga), 0) || 0
 }
 
-const getStatusClass = (status) => {
+const getStatusClass = (status, order) => {
+  if (status === 'proses' && !order?.bukti_transfer) return 'bg-[#4A7043] text-white' 
+  if (status === 'siap_diambil') return 'bg-[#4A7043] text-white' 
+  
   switch (status) {
     case 'pending': return 'bg-amber-100 text-amber-700'
     case 'proses': return 'bg-blue-100 text-blue-700'
-    case 'siap_diambil': return 'bg-green-100 text-green-700'
-    case 'selesai': return 'bg-gray-100 text-gray-500'
-    case 'tolak': return 'bg-red-100 text-red-700'
+    case 'selesai': return 'bg-[#4A7043] text-white'
+    case 'tolak': return 'bg-red-600 text-white'
+    case 'batal': return 'bg-red-600 text-white'
     default: return 'bg-gray-100 text-gray-500'
+  }
+}
+
+const getStatusText = (status, order) => {
+  if (status === 'proses' && !order?.bukti_transfer) return 'Lakukan Pembayaran'
+  if (status === 'siap_diambil') return 'Siap Diambil'
+  
+  switch (status) {
+    case 'pending': return 'Menunggu Konfirmasi'
+    case 'proses': return 'Menunggu Validasi'
+    case 'selesai': return 'Selesai'
+    case 'tolak': return 'Ditolak'
+    case 'batal': return 'Dibatalkan'
+    default: return status
   }
 }
 
