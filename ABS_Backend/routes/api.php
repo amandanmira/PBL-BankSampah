@@ -64,6 +64,8 @@ Route::prefix('nasabah')->middleware(['auth:sanctum', 'role:nasabah'])->group(fu
     Route::get('/penjemputan-nasabah', [KonfirmasiPenjemputanController::class, 'penjemputanNasabah']);
     Route::get('/setor-manual-nasabah', [KonfirmasiPenjemputanController::class, 'setorManualNasabah']);
     Route::post('/penjemputan/{penjemputan}/cancel', [RequestPenjemputanController::class, 'cancel']);
+    Route::put('/penjemputan/{penjemputan}/setuju', [RequestPenjemputanController::class, 'setujuJadwal']);
+    Route::put('/penjemputan/{penjemputan}/tolak', [RequestPenjemputanController::class, 'tolakJadwal']);
     Route::get('/dashboard-stats', [DashboardNasabahController::class, 'index']);
 });
 

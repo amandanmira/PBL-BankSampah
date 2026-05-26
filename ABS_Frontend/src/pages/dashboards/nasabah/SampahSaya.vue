@@ -90,6 +90,8 @@ const counts = computed(() => {
     transactions.value.forEach((t) => {
       if (t.status === 'dijemput' || t.status === 'perlu_input') {
         result.dijemput++
+      } else if (['pending', 'menunggu_persetujuan', 'jadwal_ditolak'].includes(t.status)) {
+        result.pending++
       } else if (result[t.status] !== undefined) {
         result[t.status]++
       }
@@ -111,6 +113,8 @@ const filteredTransactions = computed(() => {
     let matchesStatus = t.status === activeStatusFilter.value
     if (activeStatusFilter.value === 'dijemput') {
       matchesStatus = t.status === 'dijemput' || t.status === 'perlu_input'
+    } else if (activeStatusFilter.value === 'pending') {
+      matchesStatus = ['pending', 'menunggu_persetujuan', 'jadwal_ditolak'].includes(t.status)
     }
     const query = searchQuery.value.toLowerCase()
 
@@ -158,6 +162,65 @@ const cancelTransaction = async (id) => {
         error.response?.data?.message || 'Gagal membatalkan penjemputan.',
         'error',
       )
+    }
+  }
+}
+
+const acceptSchedule = async (id) => {
+  const result = await Swal.fire({
+    title: 'Setujui Jadwal?',
+    text: 'Anda menyetujui jadwal penjemputan ini.',
+    icon: 'question',
+    showCancelButton: true,
+    confirmButtonColor: '#4A7043',
+    cancelButtonColor: '#d33',
+    confirmButtonText: 'Ya, Setujui!',
+    cancelButtonText: 'Batal',
+  })
+
+  if (result.isConfirmed) {
+    try {
+      await axios.put(`/api/nasabah/penjemputan/${id}/setuju`)
+      Swal.fire('Berhasil!', 'Jadwal telah disetujui. Petugas akan segera memproses.', 'success')
+      fetchTransactions()
+      closeDetail()
+    } catch (error) {
+      Swal.fire('Gagal!', error.response?.data?.message || 'Gagal menyetujui jadwal.', 'error')
+    }
+  }
+}
+
+const rejectSchedule = async (id) => {
+  const { value: reason } = await Swal.fire({
+    title: 'Tolak Jadwal',
+    input: 'textarea',
+    inputLabel: 'Alasan penolakan',
+    inputPlaceholder: 'Tulis alasan Anda menolak jadwal ini...',
+    inputAttributes: {
+      'aria-label': 'Tulis alasan Anda menolak jadwal ini'
+    },
+    showCancelButton: true,
+    confirmButtonColor: '#d33',
+    cancelButtonColor: '#3085d6',
+    confirmButtonText: 'Tolak Jadwal',
+    cancelButtonText: 'Batal',
+    inputValidator: (value) => {
+      if (!value) {
+        return 'Anda wajib mengisi alasan penolakan!'
+      }
+    }
+  })
+
+  if (reason) {
+    try {
+      await axios.put(`/api/nasabah/penjemputan/${id}/tolak`, {
+        alasan_tolak: reason
+      })
+      Swal.fire('Ditolak!', 'Jadwal penjemputan telah ditolak.', 'success')
+      fetchTransactions()
+      closeDetail()
+    } catch (error) {
+      Swal.fire('Gagal!', error.response?.data?.message || 'Gagal menolak jadwal.', 'error')
     }
   }
 }
@@ -429,17 +492,33 @@ onMounted(() => {
                     </div>
                   </div>
 
+                  <div v-if="item.status === 'menunggu_persetujuan'" class="bg-indigo-50 rounded-xl p-3 border border-indigo-100 flex items-start gap-2">
+                    <Icon icon="material-symbols:info" class="w-5 h-5 text-indigo-500 shrink-0" />
+                    <p class="text-xs font-bold text-indigo-700">Silahkan setujui jadwal penjemputan Anda untuk diproses lebih lanjut.</p>
+                  </div>
+                  
+                  <div v-if="item.status === 'jadwal_ditolak'" class="bg-red-50 rounded-xl p-3 border border-red-100 flex items-start gap-2">
+                    <Icon icon="material-symbols:warning" class="w-5 h-5 text-red-500 shrink-0" />
+                    <div>
+                       <p class="text-xs font-bold text-red-700">Jadwal Anda tolak. Menunggu petugas mengatur ulang jadwal.</p>
+                       <p class="text-[10px] font-medium text-red-600 mt-0.5">Alasan: {{ item.ket_status }}</p>
+                    </div>
+                  </div>
+
                   <!-- Buttons -->
                   <div class="flex gap-3 pt-2">
                     <button
                       @click="openDetail(item)"
-                      class="flex-1 bg-[#4A7043] hover:bg-[#3D5C37] text-white py-3 rounded-2xl font-bold text-sm transition-all flex items-center justify-center gap-2 shadow-lg shadow-[#4A7043]/20 active:scale-[0.98]"
+                      :class="cn(
+                        'flex-1 py-3 rounded-2xl font-bold text-sm transition-all flex items-center justify-center gap-2 shadow-lg active:scale-[0.98]',
+                        item.status === 'menunggu_persetujuan' ? 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-indigo-600/20' : 'bg-[#4A7043] hover:bg-[#3D5C37] text-white shadow-[#4A7043]/20'
+                      )"
                     >
-                      <span>Lihat Detail</span>
+                      <span>{{ item.status === 'menunggu_persetujuan' ? 'Lihat Konfirmasi Jadwal' : 'Lihat Detail' }}</span>
                       <Icon icon="material-symbols:arrow-right-alt" class="w-5 h-5" />
                     </button>
                     <button
-                      v-if="item.status === 'pending'"
+                      v-if="['pending', 'menunggu_persetujuan', 'jadwal_ditolak'].includes(item.status)"
                       @click="cancelTransaction(item.penjemputan_id)"
                       class="px-6 border-2 border-red-100 text-red-500 hover:bg-red-50 rounded-2xl font-bold text-sm transition-all flex items-center justify-center gap-2 active:scale-[0.98]"
                     >
@@ -677,11 +756,15 @@ onMounted(() => {
                     ? 'bg-red-600'
                     : selectedItem.status === 'batal'
                       ? 'bg-orange-600'
-                      : 'bg-[#D97706]',
+                      : selectedItem.status === 'menunggu_persetujuan'
+                        ? 'bg-indigo-600'
+                        : selectedItem.status === 'jadwal_ditolak'
+                          ? 'bg-red-600'
+                          : 'bg-[#D97706]',
                 )
               "
             >
-              {{ getStatusLabel(selectedItem.status) }}
+              {{ selectedItem.status === 'menunggu_persetujuan' ? 'Menunggu Nasabah' : selectedItem.status === 'jadwal_ditolak' ? 'Jadwal Ditolak' : getStatusLabel(selectedItem.status) }}
             </div>
           </div>
 
@@ -846,20 +929,29 @@ onMounted(() => {
                   selectedItem.status !== 'ditolak' &&
                   selectedItem.status !== 'batal'
                 "
-                class="bg-[#EAF0F0] rounded-3xl p-5 border border-[#D1E5E5] flex items-center gap-4"
+                :class="cn(
+                  'rounded-3xl p-5 border flex items-center gap-4',
+                  selectedItem.status === 'menunggu_persetujuan' ? 'bg-indigo-50 border-indigo-200 ring-2 ring-indigo-400/50 shadow-md shadow-indigo-500/10' : 'bg-[#EAF0F0] border-[#D1E5E5]'
+                )"
               >
                 <div
-                  class="w-12 h-12 bg-white rounded-2xl flex items-center justify-center text-[#4A7043] shadow-sm"
+                  :class="cn(
+                    'w-12 h-12 rounded-2xl flex items-center justify-center shadow-sm',
+                    selectedItem.status === 'menunggu_persetujuan' ? 'bg-indigo-600 text-white' : 'bg-white text-[#4A7043]'
+                  )"
                 >
                   <Icon icon="material-symbols:calendar-month-outline" class="w-6 h-6" />
                 </div>
                 <div>
-                  <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">
-                    Jadwal Penjemputan
+                  <p :class="cn('text-[10px] font-black uppercase tracking-widest mb-1', selectedItem.status === 'menunggu_persetujuan' ? 'text-indigo-400' : 'text-gray-400')">
+                    {{ selectedItem.status === 'menunggu_persetujuan' ? 'Usulan Jadwal Penjemputan' : 'Jadwal Penjemputan' }}
                   </p>
-                  <h5 class="text-base font-black text-[#4A7043]">
+                  <h5 :class="cn('text-base font-black', selectedItem.status === 'menunggu_persetujuan' ? 'text-indigo-700' : 'text-[#4A7043]')">
                     {{ formatDate(selectedItem.jadwal, true) }}
                   </h5>
+                </div>
+                <div v-if="selectedItem.status === 'menunggu_persetujuan'" class="ml-auto text-indigo-500 animate-pulse">
+                  <Icon icon="material-symbols:star" class="w-6 h-6" />
                 </div>
               </div>
 
@@ -1138,13 +1230,29 @@ onMounted(() => {
           </div>
 
           <!-- Global Actions -->
-          <div class="pt-4">
-            <button
-              @click="closeDetail"
-              class="w-full py-4 rounded-2xl bg-[#4A7043] hover:bg-[#3D5C37] text-white font-black text-sm transition-all shadow-lg active:scale-[0.98]"
-            >
-              Tutup
-            </button>
+          <div class="pt-4 flex gap-3">
+            <template v-if="selectedItem.status === 'menunggu_persetujuan'">
+              <button
+                @click="rejectSchedule(selectedItem.penjemputan_id)"
+                class="flex-1 py-4 rounded-2xl bg-red-100 hover:bg-red-200 text-red-600 font-black text-sm transition-all active:scale-[0.98]"
+              >
+                Tolak Jadwal
+              </button>
+              <button
+                @click="acceptSchedule(selectedItem.penjemputan_id)"
+                class="flex-[2] py-4 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-black text-sm transition-all shadow-lg active:scale-[0.98]"
+              >
+                Setujui Jadwal
+              </button>
+            </template>
+            <template v-else>
+              <button
+                @click="closeDetail"
+                class="w-full py-4 rounded-2xl bg-[#4A7043] hover:bg-[#3D5C37] text-white font-black text-sm transition-all shadow-lg active:scale-[0.98]"
+              >
+                Tutup
+              </button>
+            </template>
           </div>
         </div>
       </div>
