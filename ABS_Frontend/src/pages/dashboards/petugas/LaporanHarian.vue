@@ -3,12 +3,15 @@ import { ref, onMounted, computed } from "vue";
 import { Icon } from "@iconify/vue";
 import DashboardLayout from "@/layouts/DashboardLayout.vue";
 import axios from 'axios'
+import Swal from 'sweetalert2';
 
 const token = sessionStorage.getItem('token')
 
 if (!token) {
   throw new Error('Otentikasi diperlukan.')
 }
+
+const user = ref(JSON.parse(sessionStorage.getItem("user")));
 
 const headers = { 'Authorization': `Bearer ${token}` }
 
@@ -17,7 +20,7 @@ const listGudang = ref([]);
 
 const data = ref({
   start_date: 7,
-  gudang_id: "",
+  gudang_id: user.value.gudang_id,
   sampah: [],
 })
 
@@ -84,13 +87,28 @@ const previewPdf = async () => {
           start_date: data.value.start_date,
           gudang_id: data.value.gudang_id,
           sampah: data.value.sampah,
-        },
-        responseType: 'blob',
+        }
       }
     )
-    const file = new Blob([response.data], { type: 'application/pdf' })
-    const fileURL = URL.createObjectURL(file)
-    window.open(fileURL)
+
+    const base64Data = response.data.data.pdf_base64;
+    const byteCharacters = atob(base64Data);
+    const byteNumbers = new Array(byteCharacters.length);
+    for (let i = 0; i < byteCharacters.length; i++) {
+        byteNumbers[i] = byteCharacters.charCodeAt(i);
+    }
+    const byteArray = new Uint8Array(byteNumbers);
+    const blobData = new Blob([byteArray], { type: 'application/pdf' });
+    
+    const url = window.URL.createObjectURL(blobData);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', 'Laporan_Audit_Bank_Sampah.pdf');
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    window.URL.revokeObjectURL(url);
   } catch (err) {
     console.error(err)
   }
