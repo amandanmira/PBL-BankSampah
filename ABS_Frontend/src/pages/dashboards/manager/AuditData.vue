@@ -21,8 +21,28 @@ const gudangOptions = ref([]);
 const jenisSampahOptions = ref([]);
 const tableData = ref([]);
 
-const filterForm = ref({ gudang: 'Semua Gudang', durasi: 'Semua Waktu', jenisSampah: [] });
-const appliedFilter = ref({ gudang: 'Semua Gudang', durasi: 'Semua Waktu', jenisSampah: [] });
+const today = new Date();
+const thirtyDaysAgo = new Date();
+thirtyDaysAgo.setDate(today.getDate() - 30);
+
+// Format ke YYYY-MM-DD
+const formatDate = (date) => date.toISOString().split('T')[0];
+
+const data = ref({
+  start_date: formatDate(thirtyDaysAgo),
+  end_date: formatDate(today)
+});
+
+const filterForm = ref({
+  gudang: 'Semua Gudang',
+  jenisSampah: [],
+  start_date: formatDate(thirtyDaysAgo),
+  end_date: formatDate(today)
+});
+const appliedFilter = ref({
+  gudang: 'Semua Gudang',
+  jenisSampah: []
+});
 
 const currentPage = ref(1);
 const totalPages = ref(1);
@@ -58,16 +78,25 @@ const toggleJenisSampah = (jenis) => {
 };
 
 const resetFilterForm = () => {
-  filterForm.value = { gudang: 'Semua Gudang', durasi: 'Semua Waktu', jenisSampah: [] };
+  filterForm.value.gudang = 'Semua Gudang';
+  filterForm.value.jenisSampah = [];
+  filterForm.value.start_date = formatDate(thirtyDaysAgo);
+  filterForm.value.end_date = formatDate(today);
 };
 
 const openFilterModal = () => {
-  filterForm.value = JSON.parse(JSON.stringify(appliedFilter.value));
+  filterForm.value.gudang = appliedFilter.value.gudang;
+  filterForm.value.jenisSampah = [...appliedFilter.value.jenisSampah];
+  filterForm.value.start_date = data.value.start_date;
+  filterForm.value.end_date = data.value.end_date;
   isFilterModalOpen.value = true;
 };
 
 const terapkanFilter = () => {
-  appliedFilter.value = JSON.parse(JSON.stringify(filterForm.value));
+  appliedFilter.value.gudang = filterForm.value.gudang;
+  appliedFilter.value.jenisSampah = [...filterForm.value.jenisSampah];
+  data.value.start_date = filterForm.value.start_date;
+  data.value.end_date = filterForm.value.end_date;
   currentPage.value = 1;
   isFilterModalOpen.value = false;
   fetchData();
@@ -75,20 +104,40 @@ const terapkanFilter = () => {
 
 const removeFilter = (type, value = null) => {
   if (type === 'gudang') appliedFilter.value.gudang = 'Semua Gudang';
-  if (type === 'durasi') appliedFilter.value.durasi = 'Semua Waktu';
+  if (type === 'durasi') {
+    data.value.start_date = '';
+    data.value.end_date = '';
+  }
   if (type === 'jenisSampah') appliedFilter.value.jenisSampah = appliedFilter.value.jenisSampah.filter(j => j !== value);
   currentPage.value = 1;
   fetchData();
 };
 
 const clearAllFilters = () => {
-  appliedFilter.value = { gudang: 'Semua Gudang', durasi: 'Semua Waktu', jenisSampah: [] };
+  appliedFilter.value.gudang = 'Semua Gudang';
+  appliedFilter.value.jenisSampah = [];
+  data.value.start_date = '';
+  data.value.end_date = '';
   currentPage.value = 1;
   fetchData();
 };
 
 const hasActiveFilters = computed(() => {
-  return appliedFilter.value.gudang !== 'Semua Gudang' || appliedFilter.value.durasi !== 'Semua Waktu' || appliedFilter.value.jenisSampah.length > 0;
+  return appliedFilter.value.gudang !== 'Semua Gudang' ||
+         appliedFilter.value.jenisSampah.length > 0 ||
+         data.value.start_date !== formatDate(thirtyDaysAgo) ||
+         data.value.end_date !== formatDate(today);
+});
+
+const formatDateRangeText = computed(() => {
+  if (data.value.start_date && data.value.end_date) {
+    return `${dayjs(data.value.start_date).format('DD MMM YYYY')} - ${dayjs(data.value.end_date).format('DD MMM YYYY')}`;
+  } else if (data.value.start_date) {
+    return `Mulai ${dayjs(data.value.start_date).format('DD MMM YYYY')}`;
+  } else if (data.value.end_date) {
+    return `Sampai ${dayjs(data.value.end_date).format('DD MMM YYYY')}`;
+  }
+  return 'Semua Waktu';
 });
 
 let searchTimeout = null;
@@ -106,6 +155,8 @@ const fetchData = async () => {
 
     const params = {
       ...appliedFilter.value,
+      start_date: data.value.start_date,
+      end_date: data.value.end_date,
       search: searchQuery.value
     };
 
@@ -131,6 +182,8 @@ const fetchSummary = async () => {
     isLoadingSummary.value = true;
     const params = {
       ...appliedFilter.value,
+      start_date: data.value.start_date,
+      end_date: data.value.end_date,
       search: searchQuery.value
     };
     const response = await getAuditSummary(params);
@@ -263,9 +316,11 @@ const generateTimeText = computed(() => dayjs().format('DD MMM YYYY pukul HH.mm'
 const handleExportExcel = async () => {
   try {
     isExportingExcel.value = true;
-    const selectedGudang = gudangOptions.value.find(g => g.alamat === filterForm.gudang);
+    const selectedGudang = gudangOptions.value.find(g => g.alamat === appliedFilter.value.gudang);
     const params = {
       gudang_id: selectedGudang ? selectedGudang.gudang_id : null,
+      start_date: data.value.start_date,
+      end_date: data.value.end_date,
     };
     const response = await exportLaporanExcel(params);
     const blobData = response.data || response;
@@ -291,9 +346,11 @@ const handlePrintPdf = async () => {
     
     // Kita kembali gunakan Axios (yang akan terkena CORS)
     // karena window.open tidak bisa mengirimkan Bearer Token.
-    const selectedGudang = gudangOptions.value.find(g => g.alamat === filterForm.gudang);
+    const selectedGudang = gudangOptions.value.find(g => g.alamat === appliedFilter.value.gudang);
     const params = {
       gudang_id: selectedGudang ? selectedGudang.gudang_id : null,
+      start_date: data.value.start_date,
+      end_date: data.value.end_date,
     };
     const response = await exportLaporanPdf(params);
     
@@ -428,8 +485,8 @@ const handlePrintPdf = async () => {
             </button>
           </div>
 
-          <div v-if="appliedFilter.durasi && appliedFilter.durasi !== 'Semua Waktu'" class="inline-flex items-center gap-1.5 px-3 py-1 bg-[#F5F9F5] text-[#3D5A35] rounded-full text-[11px] font-bold border border-[#4A7043]/20 shadow-sm transition-all hover:bg-[#E9F5E9]">
-            Waktu: {{ appliedFilter.durasi }}
+          <div v-if="data.start_date || data.end_date" class="inline-flex items-center gap-1.5 px-3 py-1 bg-[#F5F9F5] text-[#3D5A35] rounded-full text-[11px] font-bold border border-[#4A7043]/20 shadow-sm transition-all hover:bg-[#E9F5E9]">
+            Waktu: {{ formatDateRangeText }}
             <button @click="removeFilter('durasi')" class="text-[#4A7043]/50 hover:text-red-500 transition-colors ml-1 focus:outline-none">
               <Icon icon="material-symbols:close" class="w-3.5 h-3.5" />
             </button>
@@ -724,19 +781,22 @@ const handlePrintPdf = async () => {
           </div>
 
           <!-- Durasi Waktu -->
-          <div class="space-y-2">
-            <label class="block text-sm font-bold text-stone-600">Durasi Waktu</label>
-            <div class="relative">
-              <select v-model="filterForm.durasi" class="w-full appearance-none px-4 py-2.5 bg-white border border-stone-200 rounded-lg text-sm text-stone-700 focus:outline-none focus:ring-2 focus:ring-[#4A7043]/20 focus:border-[#4A7043] transition-colors cursor-pointer">
-                <option value="" disabled>Pilih Durasi Waktu...</option>
-                <option value="Semua Waktu">Semua Waktu</option>
-                <option value="1 Minggu Terakhir">1 Minggu Terakhir</option>
-                <option value="1 Bulan Terakhir">1 Bulan Terakhir</option>
-                <option value="3 Bulan Terakhir">3 Bulan Terakhir</option>
-              </select>
-              <div class="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none text-stone-400">
-                <Icon icon="material-symbols:keyboard-arrow-down" class="w-5 h-5" />
-              </div>
+          <div class="grid grid-cols-2 gap-4">
+            <div class="space-y-2">
+              <label class="block text-xs font-bold text-stone-600">Dari Tanggal</label>
+              <input 
+                type="date" 
+                v-model="filterForm.start_date" 
+                class="w-full px-3 py-2 bg-white border border-stone-200 rounded-lg text-xs text-stone-700 focus:outline-none focus:ring-2 focus:ring-[#4A7043]/20 focus:border-[#4A7043] transition-colors cursor-pointer"
+              />
+            </div>
+            <div class="space-y-2">
+              <label class="block text-xs font-bold text-stone-600">Sampai Tanggal</label>
+              <input 
+                type="date" 
+                v-model="filterForm.end_date" 
+                class="w-full px-3 py-2 bg-white border border-stone-200 rounded-lg text-xs text-stone-700 focus:outline-none focus:ring-2 focus:ring-[#4A7043]/20 focus:border-[#4A7043] transition-colors cursor-pointer"
+              />
             </div>
           </div>
 
@@ -785,7 +845,7 @@ const handlePrintPdf = async () => {
         <div class="p-6 bg-white border-b border-stone-100 flex justify-between items-center shrink-0 z-10">
           <div>
             <h3 class="text-xl font-black text-stone-800">Preview Laporan Audit</h3>
-            <p class="text-xs text-stone-500 mt-1">Periode: 30 Hari Terakhir</p>
+            <p class="text-xs text-stone-500 mt-1">Periode: {{ formatDateRangeText }}</p>
           </div>
           <div id="laporan-actions" class="flex items-center gap-3">
             <button @click="handlePrintPdf" :disabled="isExportingPdf || isLoadingSummary" class="px-4 py-2 bg-[#4A7043] hover:bg-[#3D5A35] text-white rounded-lg text-sm font-bold transition-colors flex items-center gap-2 shadow-sm cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">

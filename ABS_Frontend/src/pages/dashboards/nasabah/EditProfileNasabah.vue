@@ -258,39 +258,40 @@
           </button>
         </div>
         
-        <div class="flex-1 bg-stone-50 relative group">
-          <!-- Real Leaflet Map would go here, for now using image as requested static -->
-          <div class="absolute inset-0 flex flex-col items-center justify-center text-stone-400 p-10 text-center space-y-4">
-            <Icon icon="material-symbols:map-outline" class="w-20 h-20 opacity-20" />
-            <p class="font-bold text-lg">Peta Lokasi Interaktif</p>
-            <p class="text-sm max-w-sm">Klik pada peta untuk menandai koordinat lokasi penjemputan Anda secara otomatis.</p>
-            
-            <div class="bg-white p-6 rounded-3xl shadow-xl border border-stone-100 text-stone-700 w-full max-w-md">
-              <div class="flex items-center gap-3 mb-4 text-green-600">
-                <Icon icon="material-symbols:my-location" class="w-5 h-5" />
-                <span class="text-sm font-black uppercase tracking-wider">Simulasi Koordinat Aktif</span>
-              </div>
-              <div class="space-y-3 text-left">
-                <div class="flex justify-between text-xs"><span class="font-bold">Latitude:</span> <span class="font-mono">-6.2088</span></div>
-                <div class="flex justify-between text-xs"><span class="font-bold">Longitude:</span> <span class="font-mono">106.8456</span></div>
-              </div>
-            </div>
-          </div>
+        <div class="flex-1 relative group bg-stone-100">
+          <div ref="mapContainer" class="absolute inset-0 z-0"></div>
           
-          <div class="absolute bottom-6 left-1/2 -translate-x-1/2 w-full max-w-md px-6 z-10">
-            <div class="bg-green-100 border border-green-200 p-4 rounded-2xl flex items-center gap-3 text-green-700 animate-bounce">
-              <Icon icon="material-symbols:check-circle" class="w-5 h-5" />
-              <span class="text-xs font-black">Titik lokasi berhasil disimpan!</span>
+          <div class="absolute top-4 left-4 z-[400] w-64 pointer-events-none">
+            <div class="bg-white/95 backdrop-blur-sm p-4 rounded-2xl shadow-xl border border-stone-100 text-stone-700">
+              <div class="flex items-center gap-2 mb-3 text-[#5BA09B]">
+                <Icon icon="material-symbols:my-location" class="w-4 h-4" />
+                <span class="text-xs font-black uppercase tracking-wider">Koordinat Aktif</span>
+              </div>
+              <div class="space-y-2 text-left">
+                <div class="flex justify-between text-[11px]"><span class="font-bold text-stone-500">Latitude:</span> <span class="font-mono font-bold">{{ currentCoord.lat.toFixed(6) }}</span></div>
+                <div class="flex justify-between text-[11px]"><span class="font-bold text-stone-500">Longitude:</span> <span class="font-mono font-bold">{{ currentCoord.lng.toFixed(6) }}</span></div>
+              </div>
             </div>
           </div>
+
+          <button 
+            @click="requestLocation" 
+            :disabled="isGettingLocation" 
+            class="absolute bottom-6 right-6 z-[400] bg-white text-[#5BA09B] hover:bg-[#5BA09B] hover:text-white transition-all shadow-xl p-4 rounded-full flex items-center justify-center border border-stone-100 disabled:opacity-50"
+            title="Gunakan Lokasi Saat Ini"
+          >
+            <Icon v-if="isGettingLocation" icon="line-md:loading-twotone-loop" class="w-6 h-6" />
+            <Icon v-else icon="material-symbols:my-location" class="w-6 h-6" />
+          </button>
         </div>
         
         <div class="p-6 border-t border-stone-100 flex gap-4">
           <button @click="isMapActive = false" class="flex-1 py-4 rounded-2xl border border-stone-200 font-black text-sm text-stone-500 hover:bg-stone-50 transition-all">
             Tutup
           </button>
-          <button @click="saveLocation" class="flex-[2] py-4 rounded-2xl bg-[#5BA09B] text-white font-black text-sm shadow-lg shadow-[#5BA09B]/20 hover:bg-[#4D8884] transition-all">
-            Gunakan Lokasi Ini
+          <button @click="saveLocation" :disabled="isSavingLocation" class="flex-[2] py-4 rounded-2xl bg-[#5BA09B] text-white font-black text-sm shadow-lg shadow-[#5BA09B]/20 hover:bg-[#4D8884] transition-all disabled:opacity-50 flex items-center justify-center gap-2">
+            <Icon v-if="isSavingLocation" icon="line-md:loading-twotone-loop" class="w-5 h-5" />
+            {{ isSavingLocation ? 'Memproses Lokasi...' : 'Gunakan Lokasi Ini' }}
           </button>
         </div>
       </div>
@@ -300,7 +301,19 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, inject, watch } from "vue";
+import { ref, computed, onMounted, inject, watch, nextTick } from "vue";
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
+import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
+import markerIcon from 'leaflet/dist/images/marker-icon.png';
+import markerShadow from 'leaflet/dist/images/marker-shadow.png';
+
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: markerIcon2x,
+  iconUrl: markerIcon,
+  shadowUrl: markerShadow,
+});
 import DashboardLayout from "@/layouts/DashboardLayout.vue";
 import { Icon } from "@iconify/vue";
 import { cn } from "@/lib/utils";
@@ -341,6 +354,96 @@ const user = computed(() => {
   try {
     return JSON.parse(sessionStorage.getItem("user") || "{}");
   } catch (e) { return {}; }
+});
+
+const mapContainer = ref(null);
+let map = null;
+let marker = null;
+const currentCoord = ref({ lat: -6.2088, lng: 106.8456 });
+const isGettingLocation = ref(false);
+const isSavingLocation = ref(false);
+
+const initMap = async () => {
+  await nextTick();
+  if (mapContainer.value) {
+    if (map) {
+      map.remove();
+    }
+    
+    let initialLat = -6.2088;
+    let initialLng = 106.8456;
+    
+    if (form.value.gmap) {
+      try {
+        const parsed = JSON.parse(form.value.gmap);
+        if (parsed.lat && parsed.lng) {
+          initialLat = parsed.lat;
+          initialLng = parsed.lng;
+        }
+      } catch(e) {}
+    }
+    
+    currentCoord.value = { lat: initialLat, lng: initialLng };
+
+    map = L.map(mapContainer.value).setView([initialLat, initialLng], 13);
+    
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+      maxZoom: 19,
+      attribution: '© OpenStreetMap contributors'
+    }).addTo(map);
+
+    marker = L.marker([initialLat, initialLng], { draggable: true }).addTo(map);
+    
+    marker.on('dragend', function (e) {
+      const pos = marker.getLatLng();
+      currentCoord.value = { lat: pos.lat, lng: pos.lng };
+    });
+
+    map.on('click', function(e) {
+      marker.setLatLng(e.latlng);
+      currentCoord.value = { lat: e.latlng.lat, lng: e.latlng.lng };
+    });
+    
+    setTimeout(() => {
+      map.invalidateSize();
+    }, 100);
+  }
+};
+
+const requestLocation = () => {
+  if (navigator.geolocation) {
+    isGettingLocation.value = true;
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const lat = position.coords.latitude;
+        const lng = position.coords.longitude;
+        currentCoord.value = { lat, lng };
+        if (map && marker) {
+          map.setView([lat, lng], 15);
+          marker.setLatLng([lat, lng]);
+        }
+        isGettingLocation.value = false;
+      },
+      (error) => {
+        alert("Gagal mendapatkan lokasi. Pastikan izin GPS diberikan.");
+        isGettingLocation.value = false;
+      }
+    );
+  } else {
+    alert("Geolocation tidak didukung oleh browser ini.");
+  }
+};
+
+watch(isMapActive, (newVal) => {
+  if (newVal) {
+    initMap();
+    // Jika tidak ada lokasi yang disimpan sebelumnya, otomatis minta akses GPS
+    if (!form.value.gmap) {
+      setTimeout(() => {
+        requestLocation();
+      }, 500);
+    }
+  }
 });
 
 const fetchProfile = async () => {
@@ -402,10 +505,25 @@ const updatePassword = async () => {
   }
 };
 
-const saveLocation = () => {
-  // Simulasi simpan gmap
-  form.value.gmap = JSON.stringify({ lat: -6.2088, lng: 106.8456 });
-  isMapActive.value = false;
+const saveLocation = async () => {
+  const lat = currentCoord.value.lat;
+  const lng = currentCoord.value.lng;
+  
+  form.value.gmap = JSON.stringify({ lat, lng });
+  isSavingLocation.value = true;
+  
+  try {
+    const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`);
+    const data = await response.json();
+    if (data && data.display_name) {
+      form.value.alamat = data.display_name;
+    }
+  } catch (err) {
+    console.error("Gagal mendapatkan alamat dari koordinat:", err);
+  } finally {
+    isSavingLocation.value = false;
+    isMapActive.value = false;
+  }
 };
 
 // Logic Kelengkapan Profil

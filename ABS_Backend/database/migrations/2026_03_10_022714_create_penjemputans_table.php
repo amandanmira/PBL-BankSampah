@@ -17,7 +17,7 @@ return new class extends Migration
             $table->text('alamat');
             $table->text('foto')->nullable();
             $table->dateTime('jadwal')->nullable();
-            $table->enum('status', ['pending', 'proses', 'selesai', 'tolak']);
+            $table->enum('status', ['pending', 'proses', 'selesai', 'tolak', 'menunggu_persetujuan']);
             $table->text('ket_status')->nullable();
 
             $table->foreignId('tukang_id')
