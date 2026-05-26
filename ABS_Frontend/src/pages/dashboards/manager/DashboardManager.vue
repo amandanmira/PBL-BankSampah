@@ -70,9 +70,9 @@ const fetchDashboardData = async () => {
         'Authorization': `Bearer ${token}`
       }
     });
-    
+
     const data = response.data.stats;
-    
+
     // Fungsi untuk update nilai stat spesifik jika nilainya tidak "X" dan terdefinisi
     const updateStat = (id, newValue, increaseValue) => {
       const stat = topStats.value.find(s => s.id === id);
@@ -89,7 +89,7 @@ const fetchDashboardData = async () => {
     updateStat('nasabah', data.nasabah_verifikasi, data.nasabah_increase);
     updateStat('transaksi', data.transaksi_bulan_ini, data.transaksi_increase);
     updateStat('gudang', data.total_gudang, data.gudang_increase);
-    
+
   } catch (error) {
     console.error("Error fetching dashboard data:", error);
   } finally {
@@ -112,9 +112,9 @@ const fetchChartsData = async () => {
         'Authorization': `Bearer ${token}`
       }
     });
-    
+
     const data = response.data;
-    
+
     trendChartSeries.value = data.trendSeries;
     trendChartOptions.value = {
         ...trendChartOptions.value,
@@ -143,13 +143,13 @@ const fetchChartsData = async () => {
     const gudangColors = ['bg-[#4A7043]', 'bg-[#5FA09B]', 'bg-[#A86444]', 'bg-orange-500', 'bg-red-500'];
     gudangStatus.value = data.gudangStatus.map((g, idx) => {
         const stok = parseFloat(g.total_stok);
-        const kap = 1000; // Asumsi kapasitas 1000kg
-        const pct = Math.min(Math.round((stok / kap) * 100), 100);
+        const kap = parseFloat(g.kapasitas) || 1000; // Gunakan kapasitas asli, fallback ke 1000 jika 0/null
+        const pct = kap > 0 ? Math.min(Math.round((stok / kap) * 100), 100) : 0;
         let text = 'Normal';
         if(pct > 80) text = 'Hampir Penuh';
         else if(pct > 60) text = 'Tinggi';
         const color = gudangColors[idx % gudangColors.length];
-        
+
         return {
             name: g.nama,
             percentage: pct,
@@ -175,7 +175,7 @@ const fetchChartsData = async () => {
             dotClass: color
         };
     });
-    
+
   } catch (error) {
     console.error("Error fetching charts data:", error);
   } finally {
@@ -382,9 +382,9 @@ const distribusiSaatIni = ref([]);
           <template v-else>
             <div class="flex justify-between items-center mb-6">
               <h3 class="text-lg font-bold text-stone-800">Status Gudang</h3>
-              <a href="#" class="text-xs text-stone-500 hover:text-stone-800 flex items-center gap-1 font-bold transition-colors">
+              <!-- <a href="#" class="text-xs text-stone-500 hover:text-stone-800 flex items-center gap-1 font-bold transition-colors">
                 Detail <Icon icon="material-symbols:arrow-outward" class="w-3.5 h-3.5" />
-              </a>
+              </a> -->
             </div>
             <div class="space-y-6 flex-1 flex flex-col justify-center">
               <div v-for="(gudang, index) in gudangStatus" :key="index" class="space-y-2">
