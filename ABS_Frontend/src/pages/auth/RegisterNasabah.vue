@@ -117,13 +117,13 @@
         </p>
 
         <!-- Developer Mode OTP display -->
-        <div v-if="localOtp" class="mb-6 p-4 bg-[#F0F7F0] border border-[#D5ECD5] rounded-2xl text-left text-[#3D5E37] text-[14px] shadow-sm">
+        <!-- <div v-if="localOtp" class="mb-6 p-4 bg-[#F0F7F0] border border-[#D5ECD5] rounded-2xl text-left text-[#3D5E37] text-[14px] shadow-sm">
             <div class="flex items-center gap-2 mb-1">
                 <span class="text-base">🛠️</span>
                 <span class="font-bold">Mode Developer</span>
             </div>
             <p>Kode verifikasi Anda adalah <span class="font-mono font-bold text-lg select-all bg-[#D5ECD5] px-2 py-0.5 rounded text-[#22401C]">{{ localOtp }}</span> (muncul karena APP_ENV=local).</p>
-        </div>
+        </div> -->
 
         <div class="flex justify-between gap-2 mb-8">
             <input 
