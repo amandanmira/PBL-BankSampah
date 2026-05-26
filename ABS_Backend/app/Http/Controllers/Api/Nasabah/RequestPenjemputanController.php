@@ -73,4 +73,43 @@ class RequestPenjemputanController extends Controller
             'data' => $penjemputan
         ], 200);
     }
+    public function setujuJadwal(Request $request, Penjemputan $penjemputan) {
+        if ($penjemputan->status !== 'menunggu_persetujuan') {
+            return response()->json([
+                'message' => 'Penjemputan tidak dalam status menunggu persetujuan'
+            ], 422);
+        }
+
+        $penjemputan->update([
+            'status' => 'proses',
+            'ket_status' => null
+        ]);
+
+        return response()->json([
+            'message' => 'Jadwal penjemputan berhasil disetujui',
+            'data' => $penjemputan
+        ], 200);
+    }
+
+    public function tolakJadwal(Request $request, Penjemputan $penjemputan) {
+        if ($penjemputan->status !== 'menunggu_persetujuan') {
+            return response()->json([
+                'message' => 'Penjemputan tidak dalam status menunggu persetujuan'
+            ], 422);
+        }
+
+        $request->validate([
+            'alasan_tolak' => 'required|string'
+        ]);
+
+        $penjemputan->update([
+            'status' => 'jadwal_ditolak',
+            'ket_status' => $request->alasan_tolak
+        ]);
+
+        return response()->json([
+            'message' => 'Jadwal penjemputan ditolak',
+            'data' => $penjemputan
+        ], 200);
+    }
 }

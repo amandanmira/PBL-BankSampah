@@ -49,41 +49,41 @@
             <!-- Basic Info Grid -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div class="flex flex-col gap-1.5">
-                <label class="text-[#4A7043] text-sm font-bold ml-1">Nama Lengkap</label>
+                <label class="text-[#4A7043] text-sm font-bold ml-1">Nama Lengkap<span class="text-red-500">*</span></label>
                 <input v-model="form.nama" type="text" placeholder="Nama lengkap" required class="w-full h-12 px-4 bg-gray-200/60 rounded-xl text-sm outline-none focus:bg-gray-200 transition-all text-neutral-700 placeholder-neutral-400" />
               </div>
               <div class="flex flex-col gap-1.5">
-                <label class="text-[#4A7043] text-sm font-bold ml-1">Username</label>
+                <label class="text-[#4A7043] text-sm font-bold ml-1">Username<span class="text-red-500">*</span></label>
                 <input v-model="form.username" type="text" placeholder="Username" required class="w-full h-12 px-4 bg-gray-200/60 rounded-xl text-sm outline-none focus:bg-gray-200 transition-all text-neutral-700 placeholder-neutral-400" />
               </div>
             </div>
 
             <div class="flex flex-col gap-1.5">
-              <label class="text-[#4A7043] text-sm font-bold ml-1">Email</label>
+              <label class="text-[#4A7043] text-sm font-bold ml-1">Email<span class="text-red-500">*</span></label>
               <input v-model="form.email" @blur="checkEmail" type="email" placeholder="Email aktif" required class="w-full h-12 px-4 bg-gray-200/60 rounded-xl text-sm outline-none focus:bg-gray-200 transition-all text-neutral-700 placeholder-neutral-400" />
               <p v-if="emailError" class="text-red-500 text-[12px] ml-1 font-medium">{{ emailError }}</p>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div class="flex flex-col gap-1.5">
-                <label class="text-[#4A7043] text-sm font-bold ml-1">Nama Lembaga</label>
+                <label class="text-[#4A7043] text-sm font-bold ml-1">Nama Lembaga<span class="text-red-500">*</span></label>
                 <input v-model="form.nama_lembaga" type="text" placeholder="Contoh: PT. Maju Jaya" required class="w-full h-12 px-4 bg-gray-200/60 rounded-xl text-sm outline-none focus:bg-gray-200 transition-all text-neutral-700 placeholder-neutral-400" />
               </div>
               <div class="flex flex-col gap-1.5">
-                <label class="text-[#4A7043] text-sm font-bold ml-1">Nomor Telepon</label>
+                <label class="text-[#4A7043] text-sm font-bold ml-1">Nomor Telepon<span class="text-red-500">*</span></label>
                 <input v-model="form.no_telp" type="tel" placeholder="08xxxx" required class="w-full h-12 px-4 bg-gray-200/60 rounded-xl text-sm outline-none focus:bg-gray-200 transition-all text-neutral-700 placeholder-neutral-400" />
               </div>
             </div>
 
             <div class="flex flex-col gap-1.5">
-              <label class="text-[#4A7043] text-sm font-bold ml-1">Alamat Lengkap</label>
+              <label class="text-[#4A7043] text-sm font-bold ml-1">Alamat Lengkap<span class="text-red-500">*</span></label>
               <textarea v-model="form.alamat" rows="2" placeholder="Alamat lengkap lembaga/tempat usaha" required class="w-full px-4 py-3 bg-gray-200/60 rounded-xl text-sm outline-none focus:bg-gray-200 transition-all text-neutral-700 placeholder-neutral-400 resize-none"></textarea>
             </div>
 
             <!-- Password Grid -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div class="flex flex-col gap-1.5">
-                <label class="text-[#4A7043] text-sm font-bold ml-1">Password</label>
+                <label class="text-[#4A7043] text-sm font-bold ml-1">Password<span class="text-red-500">*</span></label>
                 <div class="relative flex items-center">
                   <input :type="showPassword ? 'text' : 'password'" v-model="form.password" placeholder="Min. 8 karakter" required class="w-full h-12 px-4 pr-11 bg-gray-200/60 rounded-xl text-sm outline-none focus:bg-gray-200 transition-all text-neutral-700 placeholder-neutral-400" />
                   <button type="button" @click="showPassword = !showPassword" class="absolute right-3.5 text-neutral-500">
@@ -93,7 +93,7 @@
                 </div>
               </div>
               <div class="flex flex-col gap-1.5">
-                <label class="text-[#4A7043] text-sm font-bold ml-1">Konfirmasi Password</label>
+                <label class="text-[#4A7043] text-sm font-bold ml-1">Konfirmasi Password<span class="text-red-500">*</span></label>
                 <div class="relative flex items-center">
                   <input :type="showConfirm ? 'text' : 'password'" v-model="form.confirmPassword" placeholder="Ulangi password" required class="w-full h-12 px-4 pr-11 bg-gray-200/60 rounded-xl text-sm outline-none focus:bg-gray-200 transition-all text-neutral-700 placeholder-neutral-400" />
                   <button type="button" @click="showConfirm = !showConfirm" class="absolute right-3.5 text-neutral-500">
@@ -109,7 +109,7 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-2">
               <!-- KTP -->
               <div class="flex flex-col gap-2">
-                <label class="text-[#4A7043] text-sm font-bold ml-1">Foto KTP</label>
+                <label class="text-[#4A7043] text-sm font-bold ml-1">Foto KTP<span class="text-red-500">*</span></label>
                 <div class="relative w-full h-32 bg-gray-200/60 rounded-2xl border-2 border-dashed border-[#8ba783]/40 flex flex-col items-center justify-center cursor-pointer hover:bg-gray-200 transition-all overflow-hidden" @click="$refs.ktpInput.click()">
                   <input ref="ktpInput" type="file" @change="handleFile($event, 'ktp')" accept="image/*" class="hidden" required />
                   <div v-if="!form.ktp" class="flex flex-col items-center gap-1">
@@ -125,7 +125,7 @@
 
               <!-- NPWP -->
               <div class="flex flex-col gap-2">
-                <label class="text-[#4A7043] text-sm font-bold ml-1">Foto NPWP</label>
+                <label class="text-[#4A7043] text-sm font-bold ml-1">Foto NPWP<span class="text-red-500">*</span></label>
                 <div class="relative w-full h-32 bg-gray-200/60 rounded-2xl border-2 border-dashed border-[#8ba783]/40 flex flex-col items-center justify-center cursor-pointer hover:bg-gray-200 transition-all overflow-hidden" @click="$refs.npwpInput.click()">
                   <input ref="npwpInput" type="file" @change="handleFile($event, 'npwp')" accept="image/*" class="hidden" required />
                   <div v-if="!form.npwp" class="flex flex-col items-center gap-1">

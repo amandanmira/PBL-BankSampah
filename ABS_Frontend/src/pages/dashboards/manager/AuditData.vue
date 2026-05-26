@@ -19,10 +19,30 @@ const isExportingPdf = ref(false);
 
 const gudangOptions = ref([]);
 const jenisSampahOptions = ref([]);
-const tableData = ref([]);
+const rawRiwayatData = ref([]);
 
-const filterForm = ref({ gudang: 'Semua Gudang', durasi: 'Semua Waktu', jenisSampah: [] });
-const appliedFilter = ref({ gudang: 'Semua Gudang', durasi: 'Semua Waktu', jenisSampah: [] });
+const today = new Date();
+const thirtyDaysAgo = new Date();
+thirtyDaysAgo.setDate(today.getDate() - 30);
+
+// Format ke YYYY-MM-DD
+const formatDate = (date) => date.toISOString().split('T')[0];
+
+const data = ref({
+  start_date: formatDate(thirtyDaysAgo),
+  end_date: formatDate(today)
+});
+
+const filterForm = ref({
+  gudang: 'Semua Gudang',
+  jenisSampah: [],
+  start_date: formatDate(thirtyDaysAgo),
+  end_date: formatDate(today)
+});
+const appliedFilter = ref({
+  gudang: 'Semua Gudang',
+  jenisSampah: []
+});
 
 const currentPage = ref(1);
 const totalPages = ref(1);
@@ -58,16 +78,25 @@ const toggleJenisSampah = (jenis) => {
 };
 
 const resetFilterForm = () => {
-  filterForm.value = { gudang: 'Semua Gudang', durasi: 'Semua Waktu', jenisSampah: [] };
+  filterForm.value.gudang = 'Semua Gudang';
+  filterForm.value.jenisSampah = [];
+  filterForm.value.start_date = formatDate(thirtyDaysAgo);
+  filterForm.value.end_date = formatDate(today);
 };
 
 const openFilterModal = () => {
-  filterForm.value = JSON.parse(JSON.stringify(appliedFilter.value));
+  filterForm.value.gudang = appliedFilter.value.gudang;
+  filterForm.value.jenisSampah = [...appliedFilter.value.jenisSampah];
+  filterForm.value.start_date = data.value.start_date;
+  filterForm.value.end_date = data.value.end_date;
   isFilterModalOpen.value = true;
 };
 
 const terapkanFilter = () => {
-  appliedFilter.value = JSON.parse(JSON.stringify(filterForm.value));
+  appliedFilter.value.gudang = filterForm.value.gudang;
+  appliedFilter.value.jenisSampah = [...filterForm.value.jenisSampah];
+  data.value.start_date = filterForm.value.start_date;
+  data.value.end_date = filterForm.value.end_date;
   currentPage.value = 1;
   isFilterModalOpen.value = false;
   fetchData();
@@ -75,30 +104,41 @@ const terapkanFilter = () => {
 
 const removeFilter = (type, value = null) => {
   if (type === 'gudang') appliedFilter.value.gudang = 'Semua Gudang';
-  if (type === 'durasi') appliedFilter.value.durasi = 'Semua Waktu';
+  if (type === 'durasi') {
+    data.value.start_date = '';
+    data.value.end_date = '';
+  }
   if (type === 'jenisSampah') appliedFilter.value.jenisSampah = appliedFilter.value.jenisSampah.filter(j => j !== value);
   currentPage.value = 1;
   fetchData();
 };
 
 const clearAllFilters = () => {
-  appliedFilter.value = { gudang: 'Semua Gudang', durasi: 'Semua Waktu', jenisSampah: [] };
+  appliedFilter.value.gudang = 'Semua Gudang';
+  appliedFilter.value.jenisSampah = [];
+  data.value.start_date = '';
+  data.value.end_date = '';
   currentPage.value = 1;
   fetchData();
 };
 
 const hasActiveFilters = computed(() => {
-  return appliedFilter.value.gudang !== 'Semua Gudang' || appliedFilter.value.durasi !== 'Semua Waktu' || appliedFilter.value.jenisSampah.length > 0;
+  return appliedFilter.value.gudang !== 'Semua Gudang' ||
+         appliedFilter.value.jenisSampah.length > 0 ||
+         data.value.start_date !== formatDate(thirtyDaysAgo) ||
+         data.value.end_date !== formatDate(today);
 });
 
-let searchTimeout = null;
-const handleSearch = () => {
-  clearTimeout(searchTimeout);
-  searchTimeout = setTimeout(() => {
-    currentPage.value = 1;
-    fetchData();
-  }, 500);
-};
+const formatDateRangeText = computed(() => {
+  if (data.value.start_date && data.value.end_date) {
+    return `${dayjs(data.value.start_date).format('DD MMM YYYY')} - ${dayjs(data.value.end_date).format('DD MMM YYYY')}`;
+  } else if (data.value.start_date) {
+    return `Mulai ${dayjs(data.value.start_date).format('DD MMM YYYY')}`;
+  } else if (data.value.end_date) {
+    return `Sampai ${dayjs(data.value.end_date).format('DD MMM YYYY')}`;
+  }
+  return 'Semua Waktu';
+});
 
 const fetchData = async () => {
   try {
@@ -109,10 +149,24 @@ const fetchData = async () => {
       search: searchQuery.value
     };
 
-    const response = await getAuditData(currentPage.value, params, itemsPerPage.value);
-    
-    tableData.value = response.data.data;
-    totalPages.value = response.data.last_page || 1;
+    const [gudangRes, sampahRes] = await Promise.all([
+      getListGudang(),
+      getListSampah()
+    ]);
+    gudangOptions.value = gudangRes.data;
+    const sampahList = sampahRes.data.data ? sampahRes.data.data : sampahRes.data;
+    jenisSampahOptions.value = [...new Set(sampahList.map(s => s.item_sampah?.nama || s.nama).filter(Boolean))];
+    if(jenisSampahOptions.value.length === 0) jenisSampahOptions.value = ['Organik', 'Plastik PET', 'Kertas', 'Logam'];
+
+    const riwayat = await fetchAllRiwayatPenjemputan((progress) => {
+      // Real progress overrides fake progress
+      loadingProgress.value = Math.max(loadingProgress.value, progress);
+    });
+
+    clearInterval(fakeProgressInterval);
+    loadingProgress.value = 100;
+
+    rawRiwayatData.value = riwayat;
   } catch (error) {
     console.error("Error fetching audit data:", error);
     Swal.fire({
@@ -122,111 +176,78 @@ const fetchData = async () => {
       confirmButtonColor: '#4A7043'
     });
   } finally {
-    isLoading.value = false;
-  }
-};
-
-const fetchSummary = async () => {
-  try {
-    isLoadingSummary.value = true;
-    const params = {
-      ...appliedFilter.value,
-      search: searchQuery.value
-    };
-    const response = await getAuditSummary(params);
-    laporanStats.value = response.data;
-  } catch (error) {
-    console.error("Error fetching audit summary:", error);
-  } finally {
-    isLoadingSummary.value = false;
-  }
-};
-
-const openLaporanModal = async () => {
-  isLaporanModalOpen.value = true;
-  await fetchSummary();
-};
-
-const fetchPenarikanData = async () => {
-  try {
-    isLoadingPenarikan.value = true;
-    const params = {
-      search: searchQueryPenarikan.value
-      // If we implement durasi filter for penarikan in the future, we can add it here.
-    };
-    const response = await getAuditPenarikanData(currentPagePenarikan.value, params, itemsPerPage.value);
-    
-    tableDataPenarikan.value = response.data.data;
-    totalPagesPenarikan.value = response.data.last_page || 1;
-  } catch (error) {
-    console.error("Error fetching audit penarikan data:", error);
-    Swal.fire({
-      icon: 'error',
-      title: 'Gagal memuat data penarikan',
-      text: 'Terjadi kesalahan saat menghubungi server.',
-      confirmButtonColor: '#4A7043'
-    });
-  } finally {
-    isLoadingPenarikan.value = false;
-  }
-};
-
-const fetchPenarikanSummary = async () => {
-  try {
-    const params = {
-      search: searchQueryPenarikan.value
-    };
-    const response = await getAuditPenarikanSummary(params);
-    penarikanSummary.value = response.data;
-  } catch (error) {
-    console.error("Error fetching audit penarikan summary:", error);
-  }
-};
-
-let searchTimeoutPenarikan = null;
-const handleSearchPenarikan = () => {
-  clearTimeout(searchTimeoutPenarikan);
-  searchTimeoutPenarikan = setTimeout(() => {
-    currentPagePenarikan.value = 1;
-    fetchPenarikanData();
-    fetchPenarikanSummary();
-  }, 500);
-};
-
-const prevPagePenarikan = () => { 
-  if (currentPagePenarikan.value > 1) {
-    currentPagePenarikan.value--;
-    fetchPenarikanData();
-  }
-};
-const nextPagePenarikan = () => { 
-  if (currentPagePenarikan.value < totalPagesPenarikan.value) {
-    currentPagePenarikan.value++;
-    fetchPenarikanData();
+    // Add small delay so user can see 100%
+    setTimeout(() => {
+      isLoading.value = false;
+    }, 300);
   }
 };
 
 onMounted(() => {
   // Ambil opsi filter (gudang dan jenis sampah) dan data tabel secara bersamaan agar tidak saling tunggu (paralel)
   fetchData();
-  fetchPenarikanData();
-  fetchPenarikanSummary();
-  
-  Promise.all([
-    getListGudang(),
-    getListSampah()
-  ]).then(([gudangRes, sampahRes]) => {
-    gudangOptions.value = gudangRes.data;
-    const sampahList = sampahRes.data.data ? sampahRes.data.data : sampahRes.data; 
-    jenisSampahOptions.value = [...new Set(sampahList.map(s => s.item_sampah?.nama || s.nama).filter(Boolean))];
-    if (jenisSampahOptions.value.length === 0) jenisSampahOptions.value = ['Organik', 'Plastik PET', 'Kertas', 'Logam']; 
-  }).catch(e => {
-    console.error("Gagal memuat filter opsi:", e);
-  });
 });
 
-const filteredFlatData = computed(() => {
-  return tableData.value;
+const flatTableData = computed(() => {
+  const flat = [];
+  rawRiwayatData.value.forEach(penjemputan => {
+    const hasPenimbangan = penjemputan.penimbangan && penjemputan.penimbangan.length > 0;
+    const details = penjemputan.detail_penjemputan || penjemputan.detailPenjemputan || [];
+    const hasDetails = details.length > 0;
+
+    if (hasPenimbangan) {
+      penjemputan.penimbangan.forEach(p => {
+        flat.push({
+          tanggal: dayjs(penjemputan.created_at).format('DD MMM YYYY'),
+          nasabah: penjemputan.nasabah?.nama || 'Unknown',
+          gudang: penjemputan.gudang?.alamat || penjemputan.gudang?.nama_gudang || 'Unknown Gudang',
+          jenis: p.sampah?.item_sampah?.nama || 'Unknown',
+          berat: parseFloat(p.berat_timbang) || 0,
+          petugas: penjemputan.tukang?.nama || 'Unknown',
+          status: p.transaksi?.status === 'selesai' ? 'Verified' : 'Pending',
+          rawDate: dayjs(penjemputan.created_at)
+        });
+      });
+    } else if (hasDetails) {
+      details.forEach(d => {
+        flat.push({
+          tanggal: dayjs(penjemputan.created_at).format('DD MMM YYYY'),
+          nasabah: penjemputan.nasabah?.nama || 'Unknown',
+          gudang: penjemputan.gudang?.alamat || penjemputan.gudang?.nama_gudang || 'Unknown Gudang',
+          jenis: d.sampah?.item_sampah?.nama || 'Unknown',
+          berat: parseFloat(penjemputan.estimasi_berat) || 0,
+          petugas: penjemputan.tukang?.nama || 'Unknown',
+          status: penjemputan.status === 'selesai' ? 'Verified' : 'Pending',
+          rawDate: dayjs(penjemputan.created_at)
+        });
+      });
+    } else {
+      flat.push({
+        tanggal: dayjs(penjemputan.created_at).format('DD MMM YYYY'),
+        nasabah: penjemputan.nasabah?.nama || 'Unknown',
+        gudang: penjemputan.gudang?.alamat || penjemputan.gudang?.nama_gudang || 'Unknown Gudang',
+        jenis: 'Unknown',
+        berat: parseFloat(penjemputan.estimasi_berat) || 0,
+        petugas: penjemputan.tukang?.nama || 'Unknown',
+        status: penjemputan.status === 'selesai' ? 'Verified' : 'Pending',
+        rawDate: dayjs(penjemputan.created_at)
+      });
+    }
+  });
+  return flat;
+});
+
+const filteredFlatDataAll = computed(() => {
+  return flatTableData.value.filter(row => {
+    if (appliedFilter.value.gudang !== 'Semua Gudang' && row.gudang !== appliedFilter.value.gudang) return false;
+    if (appliedFilter.value.jenisSampah.length > 0 && !appliedFilter.value.jenisSampah.includes(row.jenis)) return false;
+
+    const rowDateStr = row.rawDate.format('YYYY-MM-DD');
+    if (data.value.start_date && rowDateStr < data.value.start_date) return false;
+    if (data.value.end_date && rowDateStr > data.value.end_date) return false;
+
+    return true;
+  }).sort((a, b) => b.rawDate.valueOf() - a.rawDate.valueOf());
 });
 
 const filteredGroupedData = computed(() => {
@@ -245,27 +266,72 @@ const filteredGroupedData = computed(() => {
   })).sort((a, b) => a.gudangName.localeCompare(b.gudangName));
 });
 
-const prevPage = () => { 
-  if (currentPage.value > 1) {
-    currentPage.value--;
-    fetchData();
-  }
-};
-const nextPage = () => { 
-  if (currentPage.value < totalPages.value) {
-    currentPage.value++;
-    fetchData();
-  }
-};
+const totalPages = computed(() => Math.ceil((isGroupedByGudang.value ? filteredGroupedDataAll.value.length : filteredFlatDataAll.value.length) / itemsPerPage.value) || 1);
+
+const filteredFlatData = computed(() => {
+  const start = (currentPage.value - 1) * itemsPerPage.value;
+  return filteredFlatDataAll.value.slice(start, start + itemsPerPage.value);
+});
+
+const filteredGroupedData = computed(() => {
+  const start = (currentPage.value - 1) * itemsPerPage.value;
+  return filteredGroupedDataAll.value.slice(start, start + itemsPerPage.value);
+});
+
+const prevPage = () => { if (currentPage.value > 1) currentPage.value--; };
+const nextPage = () => { if (currentPage.value < totalPages.value) currentPage.value++; };
+
+const laporanStats = computed(() => {
+  let totalTransaksi = 0;
+  let totalBerat = 0;
+  let verifiedCount = 0;
+  let pendingCount = 0;
+
+  const perGudangMap = {};
+  const jenisSampahMap = {
+    'Organik': { berat: 0 },
+    'Plastik PET': { berat: 0 },
+    'Kertas': { berat: 0 },
+    'Logam': { berat: 0 }
+  };
+
+  filteredFlatDataAll.value.forEach(row => {
+    totalTransaksi++;
+    totalBerat += row.berat;
+    if (row.status === 'Verified') verifiedCount++; else pendingCount++;
+
+    if (!perGudangMap[row.gudang]) {
+      perGudangMap[row.gudang] = { gudang: row.gudang, transaksi: 0, berat: 0, verified: 0, pending: 0 };
+    }
+    perGudangMap[row.gudang].transaksi++;
+    perGudangMap[row.gudang].berat += row.berat;
+    if (row.status === 'Verified') perGudangMap[row.gudang].verified++; else perGudangMap[row.gudang].pending++;
+
+    if (jenisSampahMap[row.jenis]) jenisSampahMap[row.jenis].berat += row.berat;
+    else jenisSampahMap[row.jenis] = { berat: row.berat };
+  });
+
+  const perGudangList = Object.values(perGudangMap).sort((a,b) => b.berat - a.berat);
+
+  const jenisSampahList = Object.keys(jenisSampahMap).map(key => {
+    const berat = jenisSampahMap[key].berat;
+    const percentage = totalBerat > 0 ? (berat / totalBerat) * 100 : 0;
+    return { name: key, berat, percentage };
+  }).sort((a,b) => b.berat - a.berat).filter(j => j.berat > 0 || ['Organik','Plastik PET','Kertas','Logam'].includes(j.name));
+
+  return { totalTransaksi, totalBerat, verifiedCount, pendingCount, perGudangList, jenisSampahList };
+});
 
 const generateTimeText = computed(() => dayjs().format('DD MMM YYYY pukul HH.mm'));
 
 const handleExportExcel = async () => {
   try {
     isExportingExcel.value = true;
-    const selectedGudang = gudangOptions.value.find(g => g.alamat === filterForm.gudang);
+    const selectedGudang = gudangOptions.value.find(g => g.alamat === appliedFilter.value.gudang);
     const params = {
       gudang_id: selectedGudang ? selectedGudang.gudang_id : null,
+      start_date: data.value.start_date,
+      end_date: data.value.end_date,
     };
     const response = await exportLaporanExcel(params);
     const blobData = response.data || response;
@@ -288,15 +354,17 @@ const handleExportExcel = async () => {
 const handlePrintPdf = async () => {
   try {
     isExportingPdf.value = true;
-    
+
     // Kita kembali gunakan Axios (yang akan terkena CORS)
     // karena window.open tidak bisa mengirimkan Bearer Token.
-    const selectedGudang = gudangOptions.value.find(g => g.alamat === filterForm.gudang);
+    const selectedGudang = gudangOptions.value.find(g => g.alamat === appliedFilter.value.gudang);
     const params = {
       gudang_id: selectedGudang ? selectedGudang.gudang_id : null,
+      start_date: data.value.start_date,
+      end_date: data.value.end_date,
     };
     const response = await exportLaporanPdf(params);
-    
+
     // Convert Base64 back to Blob
     const base64Data = response.data.data.pdf_base64;
     const byteCharacters = atob(base64Data);
@@ -306,7 +374,7 @@ const handlePrintPdf = async () => {
     }
     const byteArray = new Uint8Array(byteNumbers);
     const blobData = new Blob([byteArray], { type: 'application/pdf' });
-    
+
     const url = window.URL.createObjectURL(blobData);
     const link = document.createElement('a');
     link.href = url;
@@ -314,7 +382,7 @@ const handlePrintPdf = async () => {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    
+
     window.URL.revokeObjectURL(url);
 
     Swal.fire({ icon: 'success', title: 'Berhasil Print', text: 'File PDF berhasil diunduh.', timer: 2000, showConfirmButton: false });
@@ -428,8 +496,8 @@ const handlePrintPdf = async () => {
             </button>
           </div>
 
-          <div v-if="appliedFilter.durasi && appliedFilter.durasi !== 'Semua Waktu'" class="inline-flex items-center gap-1.5 px-3 py-1 bg-[#F5F9F5] text-[#3D5A35] rounded-full text-[11px] font-bold border border-[#4A7043]/20 shadow-sm transition-all hover:bg-[#E9F5E9]">
-            Waktu: {{ appliedFilter.durasi }}
+          <div v-if="data.start_date || data.end_date" class="inline-flex items-center gap-1.5 px-3 py-1 bg-[#F5F9F5] text-[#3D5A35] rounded-full text-[11px] font-bold border border-[#4A7043]/20 shadow-sm transition-all hover:bg-[#E9F5E9]">
+            Waktu: {{ formatDateRangeText }}
             <button @click="removeFilter('durasi')" class="text-[#4A7043]/50 hover:text-red-500 transition-colors ml-1 focus:outline-none">
               <Icon icon="material-symbols:close" class="w-3.5 h-3.5" />
             </button>
@@ -449,22 +517,7 @@ const handlePrintPdf = async () => {
 
       <!-- Table Container -->
       <div class="bg-white rounded-2xl shadow-sm border border-stone-100 overflow-hidden">
-        
-        <!-- Skeleton Loader -->
-        <div v-if="isLoading" class="p-6">
-          <!-- Skeleton Table Header -->
-          <div class="grid grid-cols-8 gap-4 mb-4 pb-4 border-b border-stone-100">
-            <div v-for="i in 8" :key="`th-${i}`" class="h-3 bg-stone-200 rounded animate-pulse"></div>
-          </div>
-          <!-- Skeleton Table Rows -->
-          <div class="space-y-4">
-            <div v-for="r in 10" :key="`tr-${r}`" class="grid grid-cols-8 gap-4 items-center">
-              <div v-for="i in 8" :key="`td-${r}-${i}`" class="h-3 bg-stone-100 rounded animate-pulse"></div>
-            </div>
-          </div>
-        </div>
-
-        <div v-else class="overflow-x-auto">
+        <div class="overflow-x-auto">
           <table class="w-full text-left border-collapse min-w-[900px]">
             <thead>
               <tr class="bg-[#F5F5F0] border-b border-stone-200">
@@ -581,112 +634,11 @@ const handlePrintPdf = async () => {
       </div>
       </div> <!-- Close v-if activeTab === 'Riwayat Sampah' -->
 
-      <!-- TAB: RIWAYAT PENARIKAN -->
-      <div v-else class="space-y-6 relative animate-in fade-in duration-500">
-        
-        <!-- Summary Cards -->
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div class="bg-white p-5 rounded-2xl shadow-sm border border-stone-100 flex flex-col justify-center">
-            <p class="text-xs font-bold text-stone-500 mb-2">Total Penarikan</p>
-            <p class="text-2xl font-black text-[#4A7043]">{{ penarikanSummary.totalNominal }}</p>
-          </div>
-          <div class="bg-white p-5 rounded-2xl shadow-sm border border-stone-100 flex flex-col justify-center">
-            <p class="text-xs font-bold text-stone-500 mb-2">Selesai</p>
-            <p class="text-2xl font-black text-[#4A7043]">{{ penarikanSummary.selesai }}</p>
-          </div>
-          <div class="bg-white p-5 rounded-2xl shadow-sm border border-stone-100 flex flex-col justify-center">
-            <p class="text-xs font-bold text-stone-500 mb-2">Diproses</p>
-            <p class="text-2xl font-black text-[#F59E0B]">{{ penarikanSummary.diproses }}</p>
-          </div>
-          <div class="bg-white p-5 rounded-2xl shadow-sm border border-stone-100 flex flex-col justify-center">
-            <p class="text-xs font-bold text-stone-500 mb-2">Ditolak</p>
-            <p class="text-2xl font-black text-[#EF4444]">{{ penarikanSummary.ditolak }}</p>
-          </div>
-        </div>
-
-        <!-- Toolbar -->
-        <div class="bg-white p-4 rounded-2xl shadow-sm border border-stone-100 flex flex-row gap-2 justify-between items-center overflow-x-auto">
-          <div class="flex flex-row gap-2 w-auto shrink-0">
-            <div class="relative w-48 sm:w-64 flex items-center shrink-0">
-              <Icon icon="material-symbols:search" class="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400 w-4 h-4" />
-              <input type="text" v-model="searchQueryPenarikan" @input="handleSearchPenarikan" placeholder="Cari ID, nasabah, metode..." class="w-full pl-9 pr-3 py-1.5 bg-white border border-stone-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-[#4A7043]/20 focus:border-[#4A7043] transition-colors text-stone-700" />
-            </div>
-          </div>
-          <div class="flex flex-row gap-2 w-auto shrink-0">
-            <button :disabled="isLoadingPenarikan" class="px-4 py-1.5 bg-white border border-stone-200 rounded-lg text-xs font-bold text-stone-600 hover:bg-stone-50 transition-colors flex items-center gap-1.5 shadow-sm shrink-0 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
-              <Icon icon="material-symbols:filter-alt-outline" class="w-3.5 h-3.5" /> Filter
-            </button>
-            <button :disabled="isLoadingPenarikan" class="px-4 py-1.5 bg-[#4A7043] hover:bg-[#3D5A35] text-white rounded-lg text-xs font-bold transition-colors flex items-center gap-1.5 shadow-sm shrink-0 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
-              Lihat Laporan
-            </button>
-            <button :disabled="isLoadingPenarikan" class="px-4 py-1.5 bg-[#4A7043] hover:bg-[#3D5A35] text-white rounded-lg text-xs font-bold transition-colors flex items-center gap-1.5 shadow-sm shrink-0 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
-              Export CSV
-            </button>
-          </div>
-        </div>
-
-        <!-- Skeleton Loader for Penarikan -->
-        <div v-if="isLoadingPenarikan" class="p-6 bg-white rounded-2xl shadow-sm border border-stone-100">
-          <div class="grid grid-cols-5 gap-4 mb-4 pb-4 border-b border-stone-100">
-            <div v-for="i in 5" :key="`th-${i}`" class="h-3 bg-stone-200 rounded animate-pulse"></div>
-          </div>
-          <div class="space-y-4">
-            <div v-for="r in 10" :key="`tr-${r}`" class="grid grid-cols-5 gap-4 items-center">
-              <div v-for="i in 5" :key="`td-${r}-${i}`" class="h-3 bg-stone-100 rounded animate-pulse"></div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Table Container -->
-        <div v-else class="bg-white rounded-2xl shadow-sm border border-stone-100 overflow-hidden">
-          <div class="overflow-x-auto">
-            <table class="w-full text-left border-collapse min-w-[700px]">
-              <thead>
-                <tr class="bg-[#F5F5F0] border-b border-stone-200">
-                  <th class="py-4 px-6 text-xs font-bold text-stone-600 tracking-wider">ID Penarikan</th>
-                  <th class="py-4 px-6 text-xs font-bold text-stone-600 tracking-wider">Tanggal</th>
-                  <th class="py-4 px-6 text-xs font-bold text-stone-600 tracking-wider">Nasabah</th>
-                  <th class="py-4 px-6 text-xs font-bold text-stone-600 tracking-wider">Nominal</th>
-                  <th class="py-4 px-6 text-xs font-bold text-stone-600 tracking-wider text-center">Status</th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-stone-100">
-                <tr v-for="(row, index) in tableDataPenarikan" :key="index" class="hover:bg-stone-50 transition-colors group">
-                  <td class="py-4 px-6 text-sm text-[#4A7043] font-medium whitespace-nowrap">{{ row.id }}</td>
-                  <td class="py-4 px-6 text-sm text-stone-600 font-medium whitespace-nowrap">{{ row.tanggal }}</td>
-                  <td class="py-4 px-6 text-sm text-stone-600 font-medium whitespace-nowrap">{{ row.nasabah }}</td>
-                  <td class="py-4 px-6 text-sm text-stone-800 font-medium whitespace-nowrap">{{ row.nominal }}</td>
-                  <td class="py-4 px-6 whitespace-nowrap text-center">
-                    <div v-if="row.status === 'Selesai'" class="inline-flex items-center justify-center px-4 py-1.5 rounded-full bg-[#3D5A35] text-white text-[10px] font-bold tracking-wider shadow-sm min-w-[70px]">
-                      Selesai
-                    </div>
-                    <div v-else-if="row.status === 'Diproses'" class="inline-flex items-center justify-center px-4 py-1.5 rounded-full bg-[#F59E0B] text-white text-[10px] font-bold tracking-wider shadow-sm min-w-[70px]">
-                      Diproses
-                    </div>
-                    <div v-else-if="row.status === 'Ditolak'" class="inline-flex items-center justify-center px-4 py-1.5 rounded-full bg-[#EF4444] text-white text-[10px] font-bold tracking-wider shadow-sm min-w-[70px]">
-                      Ditolak
-                    </div>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        <!-- Pagination -->
-        <div v-if="!isLoadingPenarikan" class="bg-white p-4 rounded-2xl shadow-sm border border-stone-100 flex flex-col sm:flex-row justify-between items-center gap-4">
-          <div class="flex items-center gap-3">
-            <span class="text-sm font-medium text-stone-500">Tampilkan</span>
-            <div class="bg-stone-50 border border-stone-200 rounded-lg px-3 py-1.5 text-sm font-bold text-stone-600 flex items-center justify-between w-16 shadow-sm">
-              10
-            </div>
-          </div>
-          <div class="flex items-center gap-2">
-            <button @click="prevPagePenarikan" :disabled="currentPagePenarikan === 1" class="px-4 py-2 rounded-lg text-sm font-bold text-stone-500 hover:bg-stone-100 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed transition-colors">Sebelumnya</button>
-            <button class="w-auto px-3 h-8 flex items-center justify-center rounded-lg bg-[#4A7043] text-white text-sm font-bold shadow-sm">{{ currentPagePenarikan }}/{{ totalPagesPenarikan }}</button>
-            <button @click="nextPagePenarikan" :disabled="currentPagePenarikan === totalPagesPenarikan" class="px-4 py-2 rounded-lg text-sm font-bold text-stone-500 hover:bg-stone-100 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed transition-colors">Selanjutnya</button>
-          </div>
-        </div>
+      <!-- TAB: RIWAYAT PENARIKAN (EMPTY STATE) -->
+      <div v-else class="flex flex-col items-center justify-center py-20 text-center animate-in fade-in duration-500">
+        <Icon icon="material-symbols:inventory-2-outline" class="w-16 h-16 text-stone-300 mb-4" />
+        <h3 class="text-lg font-bold text-stone-700 mb-2">Belum Ada Desain</h3>
+        <p class="text-sm text-stone-500 max-w-sm">Halaman Riwayat Penarikan masih kosong karena belum ada desainnya. Silakan kembali ke tab Riwayat Sampah.</p>
       </div>
 
     </div>
@@ -724,19 +676,22 @@ const handlePrintPdf = async () => {
           </div>
 
           <!-- Durasi Waktu -->
-          <div class="space-y-2">
-            <label class="block text-sm font-bold text-stone-600">Durasi Waktu</label>
-            <div class="relative">
-              <select v-model="filterForm.durasi" class="w-full appearance-none px-4 py-2.5 bg-white border border-stone-200 rounded-lg text-sm text-stone-700 focus:outline-none focus:ring-2 focus:ring-[#4A7043]/20 focus:border-[#4A7043] transition-colors cursor-pointer">
-                <option value="" disabled>Pilih Durasi Waktu...</option>
-                <option value="Semua Waktu">Semua Waktu</option>
-                <option value="1 Minggu Terakhir">1 Minggu Terakhir</option>
-                <option value="1 Bulan Terakhir">1 Bulan Terakhir</option>
-                <option value="3 Bulan Terakhir">3 Bulan Terakhir</option>
-              </select>
-              <div class="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none text-stone-400">
-                <Icon icon="material-symbols:keyboard-arrow-down" class="w-5 h-5" />
-              </div>
+          <div class="grid grid-cols-2 gap-4">
+            <div class="space-y-2">
+              <label class="block text-xs font-bold text-stone-600">Dari Tanggal</label>
+              <input
+                type="date"
+                v-model="filterForm.start_date"
+                class="w-full px-3 py-2 bg-white border border-stone-200 rounded-lg text-xs text-stone-700 focus:outline-none focus:ring-2 focus:ring-[#4A7043]/20 focus:border-[#4A7043] transition-colors cursor-pointer"
+              />
+            </div>
+            <div class="space-y-2">
+              <label class="block text-xs font-bold text-stone-600">Sampai Tanggal</label>
+              <input
+                type="date"
+                v-model="filterForm.end_date"
+                class="w-full px-3 py-2 bg-white border border-stone-200 rounded-lg text-xs text-stone-700 focus:outline-none focus:ring-2 focus:ring-[#4A7043]/20 focus:border-[#4A7043] transition-colors cursor-pointer"
+              />
             </div>
           </div>
 
@@ -785,7 +740,7 @@ const handlePrintPdf = async () => {
         <div class="p-6 bg-white border-b border-stone-100 flex justify-between items-center shrink-0 z-10">
           <div>
             <h3 class="text-xl font-black text-stone-800">Preview Laporan Audit</h3>
-            <p class="text-xs text-stone-500 mt-1">Periode: 30 Hari Terakhir</p>
+            <p class="text-xs text-stone-500 mt-1">Periode: {{ formatDateRangeText }}</p>
           </div>
           <div id="laporan-actions" class="flex items-center gap-3">
             <button @click="handlePrintPdf" :disabled="isExportingPdf || isLoadingSummary" class="px-4 py-2 bg-[#4A7043] hover:bg-[#3D5A35] text-white rounded-lg text-sm font-bold transition-colors flex items-center gap-2 shadow-sm cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
@@ -908,14 +863,14 @@ const handlePrintPdf = async () => {
   width: 4px;
 }
 .custom-scrollbar::-webkit-scrollbar-track {
-  background: #f1f1f1; 
+  background: #f1f1f1;
   border-radius: 10px;
 }
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: #c1c1c1; 
+  background: #c1c1c1;
   border-radius: 10px;
 }
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: #4A7043; 
+  background: #4A7043;
 }
 </style>

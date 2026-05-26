@@ -61,7 +61,7 @@ const filteredRequests = computed(() => {
 
   // Filter by status tab
   if (activeFilter.value === "Menunggu") {
-    filtered = filtered.filter(r => r.status === 'pending');
+    filtered = filtered.filter(r => ['pending', 'menunggu_persetujuan', 'jadwal_ditolak'].includes(r.status));
   } else if (activeFilter.value === "Diproses") {
     filtered = filtered.filter(r => r.status === 'proses');
   } else if (activeFilter.value === "Dijemput") {
@@ -83,7 +83,7 @@ const filteredRequests = computed(() => {
 });
 
 const getCount = (filter) => {
-  if (filter === "Menunggu") return requests.value.filter(r => r.status === 'pending').length;
+  if (filter === "Menunggu") return requests.value.filter(r => ['pending', 'menunggu_persetujuan', 'jadwal_ditolak'].includes(r.status)).length;
   if (filter === "Diproses") return requests.value.filter(r => r.status === 'proses').length;
   if (filter === "Dijemput") return requests.value.filter(r => r.status === 'dijemput').length;
   if (filter === "Perlu Input Data") return requests.value.filter(r => r.status === 'perlu_input').length;
@@ -123,11 +123,9 @@ const confirmSchedule = async (request) => {
       jadwal: datetime
     });
 
-    request.status = 'proses';
+    request.status = 'menunggu_persetujuan';
     request.jadwal = datetime;
     request.showScheduleForm = false;
-    // Pindah otomatis tab ke Diproses
-    activeFilter.value = "Diproses";
   } catch (err) {
     console.error("Failed to confirm schedule:", err);
     alert("Gagal mengkonfirmasi jadwal.");
@@ -287,12 +285,16 @@ onMounted(() => {
                 <span :class="[
                   'px-3 py-1 rounded-full text-[10px] font-black uppercase',
                   request.status === 'pending' ? 'bg-orange-100 text-orange-600' : 
+                  request.status === 'menunggu_persetujuan' ? 'bg-indigo-100 text-indigo-600' : 
+                  request.status === 'jadwal_ditolak' ? 'bg-red-100 text-red-600' : 
                   request.status === 'proses' ? 'bg-blue-100 text-blue-600' :
                   request.status === 'dijemput' ? 'bg-purple-100 text-purple-600' : 
                   request.status === 'perlu_input' ? 'bg-orange-100 text-orange-500' : 'bg-stone-100 text-stone-500'
                 ]">
                   {{ 
                     request.status === 'pending' ? 'Menunggu' : 
+                    request.status === 'menunggu_persetujuan' ? 'Menunggu Nasabah' : 
+                    request.status === 'jadwal_ditolak' ? 'Jadwal Ditolak' : 
                     request.status === 'perlu_input' ? 'Perlu Input Data' : request.status 
                   }}
                 </span>
@@ -332,11 +334,11 @@ onMounted(() => {
             <div class="bg-stone-50 rounded-2xl p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <p class="text-[10px] font-black text-stone-400 uppercase tracking-widest mb-1">Estimasi Berat</p>
-                <p class="font-black text-stone-800 text-lg">{{ request.deskripsi?.split('|')[0] || '8-10 kg' }}</p>
+                <p class="font-black text-stone-800 text-lg">{{ request.estimasi_berat ? request.estimasi_berat + ' kg' : '-' }}</p>
               </div>
               <div>
                 <p class="text-[10px] font-black text-stone-400 uppercase tracking-widest mb-1">Jenis Sampah</p>
-                <p class="font-black text-stone-800 text-lg">{{ request.deskripsi?.split('|')[1] || 'Plastik PET, Botol Kaca' }}</p>
+                <p class="font-black text-stone-800 text-lg">{{ request.detail_penjemputan?.map(d => d.sampah?.item_sampah?.nama).join(', ') || 'Tidak ada' }}</p>
               </div>
               
               <!-- Additional Info for Proses/Dijemput/Perlu Input Data -->
@@ -358,7 +360,16 @@ onMounted(() => {
             </div>
 
             <!-- Pending Flow (Select Worker -> Schedule -> Confirm) -->
-            <template v-if="request.status === 'pending'">
+            <template v-if="['pending', 'jadwal_ditolak'].includes(request.status)">
+            
+            <div v-if="request.status === 'jadwal_ditolak' && !request.showScheduleForm" class="bg-red-50 border border-red-200 rounded-2xl p-4 flex flex-col gap-2 mb-4">
+              <div class="flex items-center gap-2 text-red-700">
+                <Icon icon="material-symbols:warning-outline" class="w-5 h-5" />
+                <p class="font-black text-sm">Jadwal Sebelumnya Ditolak Nasabah</p>
+              </div>
+              <p class="text-xs font-bold text-red-600">Alasan: "{{ request.ket_status }}"</p>
+              <p class="text-[10px] text-red-500 font-medium">Silakan atur jadwal penjemputan ulang.</p>
+            </div>
 
             <!-- Worker Selection -->
             <button 
@@ -453,7 +464,7 @@ onMounted(() => {
                     : 'bg-stone-200 text-stone-400 cursor-not-allowed shadow-none'
                 ]"
               >
-                Terima & Atur Jadwal Penjemputan
+                {{ request.status === 'jadwal_ditolak' ? 'Jadwalkan Ulang Penjemputan' : 'Terima & Atur Jadwal Penjemputan' }}
               </button>
               <button 
                 @click="handleTolak(request)"
@@ -464,6 +475,17 @@ onMounted(() => {
             </div>
             </template>
             
+            <!-- Menunggu Persetujuan Flow -->
+            <template v-if="request.status === 'menunggu_persetujuan'">
+              <div class="bg-indigo-50 border border-indigo-200 rounded-2xl p-4 flex flex-col gap-2 mt-4 shadow-sm">
+                <div class="flex items-center gap-2 text-indigo-700">
+                  <Icon icon="material-symbols:hourglass-empty" class="w-5 h-5 animate-pulse" />
+                  <p class="font-black text-sm uppercase tracking-wider">Menunggu Persetujuan Nasabah</p>
+                </div>
+                <p class="text-xs font-bold text-indigo-600/80 leading-relaxed">Jadwal penjemputan telah Anda buat dan sedang menunggu konfirmasi atau persetujuan dari pihak nasabah melalui aplikasi mereka.</p>
+              </div>
+            </template>
+
             <!-- Proses Flow -->
             <template v-if="request.status === 'proses'">
               <button 
@@ -591,7 +613,7 @@ onMounted(() => {
           <div class="flex items-center gap-3 mb-2">
             <h4 class="text-xl font-black text-stone-800">REQ-{{ String(detailRequest.penjemputan_id).padStart(3, '0') }}</h4>
             <span class="px-3 py-1 rounded-full text-[10px] font-black uppercase bg-orange-100 text-orange-600">
-              {{ detailRequest.status === 'pending' ? 'Menunggu' : detailRequest.status }}
+              {{ detailRequest.status === 'pending' ? 'Menunggu' : detailRequest.status === 'menunggu_persetujuan' ? 'Menunggu Nasabah' : detailRequest.status }}
             </span>
           </div>
 
