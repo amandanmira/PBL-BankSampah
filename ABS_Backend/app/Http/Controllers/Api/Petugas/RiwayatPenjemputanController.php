@@ -12,17 +12,17 @@ class RiwayatPenjemputanController extends Controller
     public function riwayatPenjemputan(Request $request)
     {
         $search = $request->query('search');
-        
+
         $query = Penjemputan::with(['nasabah', 'tukang', 'detailPenjemputan.sampah.itemSampah', 'penimbangan.sampah.itemSampah', 'penimbangan.transaksi', 'gudang'])
-            ->whereIn('status', ['selesai', 'tolak', 'batal'])
+            // ->whereIn('status', ['selesai', 'tolak', 'batal'])
             ->latest();
 
         if ($search) {
             $query->where(function ($q) use ($search) {
                 $q->where('penjemputan_id', 'like', "%$search%")
-                  ->orWhereHas('nasabah', function ($nq) use ($search) {
-                      $nq->where('nama', 'like', "%$search%");
-                  });
+                    ->orWhereHas('nasabah', function ($nq) use ($search) {
+                        $nq->where('nama', 'like', "%$search%");
+                    });
             });
         }
 
