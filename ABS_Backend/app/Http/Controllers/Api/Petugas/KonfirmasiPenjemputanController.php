@@ -10,10 +10,19 @@ use Illuminate\Support\Facades\Auth;
 class KonfirmasiPenjemputanController extends Controller
 {
     public function penjemputan()
-    {
-        $penjemputan = Penjemputan::with(['petugas', 'nasabah', 'tukang'])->whereIn('status',['pending', 'proses', 'dijemput', 'perlu_input'])->latest()->paginate(10);
+{
+        $penjemputan = Penjemputan::with([
+            'petugas', 
+            'nasabah', 
+            'tukang',
+            'detailPenjemputan.sampah.itemSampah' // <-- Tambahkan baris ini
+        ])
+        ->whereIn('status',['pending', 'proses', 'dijemput', 'perlu_input'])
+        ->latest()
+        ->paginate(10);
+        
         return response()->json($penjemputan, 200);
-    }
+}
 
     //riwayat buat nasabah
     public function penjemputanNasabah(Request $request)

@@ -332,11 +332,11 @@ onMounted(() => {
             <div class="bg-stone-50 rounded-2xl p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <p class="text-[10px] font-black text-stone-400 uppercase tracking-widest mb-1">Estimasi Berat</p>
-                <p class="font-black text-stone-800 text-lg">{{ request.deskripsi?.split('|')[0] || '8-10 kg' }}</p>
+                <p class="font-black text-stone-800 text-lg">{{ request.estimasi_berat ? request.estimasi_berat + ' kg' : '-' }}</p>
               </div>
               <div>
                 <p class="text-[10px] font-black text-stone-400 uppercase tracking-widest mb-1">Jenis Sampah</p>
-                <p class="font-black text-stone-800 text-lg">{{ request.deskripsi?.split('|')[1] || 'Plastik PET, Botol Kaca' }}</p>
+                <p class="font-black text-stone-800 text-lg">{{ request.detail_penjemputan?.map(d => d.sampah?.item_sampah?.nama).join(', ') || 'Tidak ada' }}</p>
               </div>
               
               <!-- Additional Info for Proses/Dijemput/Perlu Input Data -->
