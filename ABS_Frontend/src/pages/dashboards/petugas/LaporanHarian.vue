@@ -17,6 +17,7 @@ const headers = { 'Authorization': `Bearer ${token}` }
 
 const listSampah = ref([]);
 const listGudang = ref([]);
+const summaryLaporan = ref([]);
 
 const today = new Date()
 const thirtyDaysAgo = new Date()
@@ -131,6 +132,9 @@ const fetchData = async () => {
 
     const responseG = await axios.get("http://localhost:8000/api/laporan/list-gudang", { headers });
     listGudang.value = responseG.data;
+    
+    const responseSummary = await axios.get("http://localhost:8000/api/petugas/summary-laporan", { headers });
+    summaryLaporan.value = responseSummary.data.data;
   } catch (err) {
     console.error("Gagal mengambil data:", err);
   }
@@ -316,19 +320,19 @@ onMounted(async () => {
               <div class="grid grid-cols-4 gap-3 mb-8">
                 <div class="bg-[#eaf4ee] rounded-2xl p-4">
                   <p class="text-xs text-[#4a7a60] mb-2">Total transaksi</p>
-                  <p class="text-3xl font-semibold text-[#1f3529] leading-none">11</p>
+                  <p class="text-3xl font-semibold text-[#1f3529] leading-none">{{ summaryLaporan.total_transaksi }}</p>
                 </div>
                 <div class="bg-[#eaf4ee] rounded-2xl p-4">
                   <p class="text-xs text-[#4a7a60] mb-2">Total berat</p>
-                  <p class="text-3xl font-semibold text-[#1f3529] leading-none">224<span class="text-sm font-normal text-[#4a7a60]">.3 kg</span></p>
+                  <p class="text-3xl font-semibold text-[#1f3529] leading-none">{{ summaryLaporan.total_stok }}<span class="text-sm font-normal text-[#4a7a60]"> kg</span></p>
                 </div>
                 <div class="bg-[#eaf4ee] rounded-2xl p-4">
                   <p class="text-xs text-[#4a7a60] mb-2">Total nilai</p>
-                  <p class="text-lg font-semibold text-[#1f3529] leading-snug">Rp<br>602.100</p>
+                  <p class="text-lg font-semibold text-[#1f3529] leading-snug">Rp<br>{{ summaryLaporan.total_nilai }}</p>
                 </div>
                 <div class="bg-[#eaf4ee] rounded-2xl p-4">
                   <p class="text-xs text-[#4a7a60] mb-2">Kategori aktif</p>
-                  <p class="text-3xl font-semibold text-[#1f3529] leading-none">4</p>
+                  <p class="text-3xl font-semibold text-[#1f3529] leading-none">{{ summaryLaporan.total_kategori }}</p>
                 </div>
               </div>
 
@@ -338,39 +342,39 @@ onMounted(async () => {
                 <div class="border border-[#c8dfd2] rounded-2xl p-5">
                   <p class="text-xs text-[#4a7a60] mb-3">Penjemputan selesai</p>
                   <p class="mb-1.5 leading-none">
-                    <span class="text-3xl font-semibold text-[#2d4a3e]">4</span>
+                    <span class="text-3xl font-semibold text-[#2d4a3e]">{{ summaryLaporan.penjemputan_count }}</span>
                     <span class="text-xs text-[#7aab8e] ml-2">transaksi</span>
                   </p>
-                  <p class="text-xs text-[#7aab8e]">38.7 kg · Rp 125.100</p>
+                  <p class="text-xs text-[#7aab8e]">{{ summaryLaporan.penjemputan_berat }} kg · Rp {{ summaryLaporan.penjemputan_harga }}</p>
                 </div>
                 <div class="border border-[#c8dfd2] rounded-2xl p-5">
                   <p class="text-xs text-[#4a7a60] mb-3">Setor manual</p>
                   <p class="mb-1.5 leading-none">
-                    <span class="text-3xl font-semibold text-[#2d4a3e]">3</span>
+                    <span class="text-3xl font-semibold text-[#2d4a3e]">{{ summaryLaporan.setor_count }}</span>
                     <span class="text-xs text-[#7aab8e] ml-2">transaksi</span>
                   </p>
-                  <p class="text-xs text-[#7aab8e]">22.6 kg · Rp 103.500</p>
+                  <p class="text-xs text-[#7aab8e]">{{ summaryLaporan.setor_berat }} kg · Rp {{ summaryLaporan.setor_harga }}</p>
                 </div>
                 <div class="border border-[#c8dfd2] rounded-2xl p-5">
                   <p class="text-xs text-[#4a7a60] mb-3">Penarikan distribusi</p>
                   <p class="mb-1.5 leading-none">
-                    <span class="text-3xl font-semibold text-[#2d4a3e]">2</span>
+                    <span class="text-3xl font-semibold text-[#2d4a3e]">{{ summaryLaporan.penarikan_count }}</span>
                     <span class="text-xs text-[#7aab8e] ml-2">transaksi</span>
                   </p>
-                  <p class="text-xs text-[#7aab8e]">Rp 350.000</p>
+                  <p class="text-xs text-[#7aab8e]">Rp. {{ summaryLaporan.penarikan_harga }}</p>
                 </div>
                 <div class="border border-[#c8dfd2] rounded-2xl p-5">
                   <p class="text-xs text-[#4a7a60] mb-3">Pesanan pengepul</p>
                   <p class="mb-1.5 leading-none">
-                    <span class="text-3xl font-semibold text-[#2d4a3e]">2</span>
+                    <span class="text-3xl font-semibold text-[#2d4a3e]">{{ summaryLaporan.pengepul_count }}</span>
                     <span class="text-xs text-[#7aab8e] ml-2">transaksi</span>
                   </p>
-                  <p class="text-xs text-[#7aab8e]">165.0 kg · Rp 23.500</p>
+                  <p class="text-xs text-[#7aab8e]">{{ summaryLaporan.pengepul_berat }} kg · Rp {{ summaryLaporan.pengepul_harga }}</p>
                 </div>
               </div>
 
               <!-- Tabel -->
-              <p class="text-sm font-semibold text-stone-700 mb-4">Data per kategori</p>
+              <!-- <p class="text-sm font-semibold text-stone-700 mb-4">Data per kategori</p>
               <table class="w-full text-sm mb-7" style="border-collapse:collapse;table-layout:fixed;">
                 <thead>
                   <tr class="border-b border-[#c8dfd2]">
@@ -414,13 +418,13 @@ onMounted(async () => {
                     <td class="py-3.5 text-right text-[#4a7a60]">Rp 23.500</td>
                   </tr>
                 </tbody>
-              </table>
+              </table> -->
 
               <!-- Catatan -->
               <div class="bg-[#eaf4ee] border border-[#c8dfd2] rounded-2xl px-5 py-4 flex gap-3 items-start">
                 <Icon icon="material-symbols:info-outline" class="w-4 h-4 text-[#2d4a3e] mt-0.5 shrink-0" />
                 <p class="text-xs text-[#2d4a3e] leading-relaxed">
-                  Laporan ini merupakan ringkasan transaksi pada periode {{ data.start_date }} hari terakhir.
+                  Laporan ini merupakan ringkasan transaksi pada periode {{ data.start_date }} sampai {{ data.end_date }}.
                   Detail tiap transaksi (foto bukti, alamat, catatan nasabah) dapat dilihat pada halaman Riwayat.
                 </p>
               </div>

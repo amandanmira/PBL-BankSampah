@@ -226,7 +226,6 @@ class LaporanController extends Controller
             ->groupBy('gudangs.gudang_id', 'gudangs.alamat')
             ->get();
         $transaksiPengepulData = TransaksiPengepul::whereBetween('created_at', [$startDate, $endDate])
-                ->where('status', 'selesai')
                 ->when($gudangId, function ($query) use ($gudangId) {
                     $query->whereHas('detailTransaksi.sampah.gudang', function ($q) use ($gudangId) {
                         $q->where('gudang_id', $gudangId);
