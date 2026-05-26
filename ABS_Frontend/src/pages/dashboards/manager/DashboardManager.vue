@@ -74,17 +74,21 @@ const fetchDashboardData = async () => {
     const data = response.data.stats;
     
     // Fungsi untuk update nilai stat spesifik jika nilainya tidak "X" dan terdefinisi
-    const updateStat = (id, newValue) => {
+    const updateStat = (id, newValue, increaseValue) => {
       const stat = topStats.value.find(s => s.id === id);
       if (stat && newValue !== "X" && newValue !== undefined) {
         stat.value = typeof newValue === 'number' ? newValue.toLocaleString('id-ID') : newValue;
+        if (increaseValue !== undefined) {
+          stat.increase = increaseValue;
+        }
       }
     };
 
-    updateStat('petugas', data.total_petugas);
-    updateStat('sampah', data.total_sampah);
-    updateStat('nasabah', data.nasabah_verifikasi);
-    updateStat('transaksi', data.transaksi_bulan_ini);
+    updateStat('petugas', data.total_petugas, data.petugas_increase);
+    updateStat('sampah', data.total_sampah, data.sampah_increase);
+    updateStat('nasabah', data.nasabah_verifikasi, data.nasabah_increase);
+    updateStat('transaksi', data.transaksi_bulan_ini, data.transaksi_increase);
+    updateStat('gudang', data.total_gudang, data.gudang_increase);
     
   } catch (error) {
     console.error("Error fetching dashboard data:", error);
