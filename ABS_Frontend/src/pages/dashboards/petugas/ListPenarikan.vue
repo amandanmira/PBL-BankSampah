@@ -397,8 +397,6 @@ onMounted(() => {
                   <p class="font-bold text-stone-800">{{ selectedPenarikan.nasabah?.nama || '-' }}</p>
                 </div>
                 <div class="text-right">
-                  <p class="text-[10px] font-black text-stone-400 uppercase tracking-widest">Siti Aminah</p> <!-- Mock text from image -->
-                  <p class="font-bold text-stone-800">{{ selectedPenarikan.nasabah?.nama }}</p>
                 </div>
                 <div>
                   <p class="text-[10px] font-black text-stone-400 uppercase tracking-widest">ID Nasabah</p>
@@ -409,12 +407,10 @@ onMounted(() => {
                   <p class="font-black text-green-600">{{ formatRupiah(selectedPenarikan.nasabah?.saldo) }}</p>
                 </div>
                 <div>
-                  <p class="text-[10px] font-black text-stone-400 uppercase tracking-widest">Saldo Petugas (Limit Harian)</p>
-                  <p class="font-bold text-stone-800">{{ formatRupiah(dailyLimit) }}</p>
+                  
                 </div>
                 <div class="text-right">
-                  <p class="text-[10px] font-black text-stone-400 uppercase tracking-widest">Sisa Saldo Petugas</p>
-                  <p class="font-black text-green-600">{{ formatRupiah(remainingLimit) }}</p>
+                 
                 </div>
               </div>
             </div>
@@ -425,7 +421,9 @@ onMounted(() => {
                 <div class="w-1.5 h-4 bg-[#4A7043] rounded-full"></div>
                 Detail Penarikan
               </h4>
+              
               <div class="space-y-3">
+                
                 <div class="flex justify-between items-center">
                   <p class="text-[10px] font-black text-stone-400 uppercase tracking-widest">Jumlah Penarikan</p>
                   <p class="text-lg font-black text-stone-800">{{ formatRupiah(selectedPenarikan.jumlah) }}</p>
@@ -435,8 +433,16 @@ onMounted(() => {
                   <p class="font-black text-green-600">{{ formatRupiah(selectedPenarikan.nasabah?.saldo - selectedPenarikan.jumlah) }}</p>
                 </div>
                 <div class="bg-orange-50 border border-orange-100 rounded-xl p-4">
-                  <p class="text-[10px] font-black text-orange-800 uppercase tracking-widest mb-1">Rekening Tujuan</p>
-                  <p class="font-black text-orange-900">{{ selectedPenarikan.nama_bank || selectedPenarikan.nasabah?.nama_bank }} - {{ selectedPenarikan.no_rekening || selectedPenarikan.nasabah?.no_rekening }}</p>
+                  <div class="flex items-center gap-3 mb-2">
+                    <Icon icon="material-symbols:account-balance-outline" class="w-6 h-6 text-[#A86444]" />
+                    <h3 class="font-black text-gray-800">Rekening Tujuan</h3>
+                  </div>
+                  <p class="text-[10px] font-black text-orange-800 uppercase tracking-widest mb-1">Bank</p>
+                  <p class="font-black text-orange-900">{{ selectedPenarikan.nama_bank || selectedPenarikan.nasabah?.nama_bank }}</p>
+                  <p class="text-[10px] font-black text-orange-800 uppercase tracking-widest mb-1">Nomor Rekening</p>
+                  <p class="font-black text-orange-900">{{ selectedPenarikan.no_rekening || selectedPenarikan.nasabah?.no_rekening }}</p>
+                  <p class="text-[10px] font-black text-orange-800 uppercase tracking-widest mb-1">Atas Nama</p>
+                  <p class="font-black text-orange-900">{{ selectedPenarikan.nama_rek || selectedPenarikan.nasabah?.nama_rek }}</p>
                 </div>
               </div>
             </div>

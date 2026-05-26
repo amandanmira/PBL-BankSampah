@@ -19,6 +19,7 @@ use App\Http\Controllers\Api\Petugas\BeritaController;
 use App\Http\Controllers\Api\Petugas\KonfirmasiPenjemputanController;
 use App\Http\Controllers\Api\Petugas\LaporanController;
 use App\Http\Controllers\Api\Petugas\DashboardPetugasController;
+use App\Http\Controllers\Api\Petugas\SummaryLaporanController;
 use App\Http\Controllers\Api\ProfileController;
 
 use App\Http\Controllers\Api\Admin\SampahGudangController;
@@ -64,6 +65,8 @@ Route::prefix('nasabah')->middleware(['auth:sanctum', 'role:nasabah'])->group(fu
     Route::get('/penjemputan-nasabah', [KonfirmasiPenjemputanController::class, 'penjemputanNasabah']);
     Route::get('/setor-manual-nasabah', [KonfirmasiPenjemputanController::class, 'setorManualNasabah']);
     Route::post('/penjemputan/{penjemputan}/cancel', [RequestPenjemputanController::class, 'cancel']);
+    Route::put('/penjemputan/{penjemputan}/setuju', [RequestPenjemputanController::class, 'setujuJadwal']);
+    Route::put('/penjemputan/{penjemputan}/tolak', [RequestPenjemputanController::class, 'tolakJadwal']);
     Route::get('/dashboard-stats', [DashboardNasabahController::class, 'index']);
 });
 
@@ -144,6 +147,8 @@ Route::prefix('petugas')->middleware(['auth:sanctum', 'role:petugas'])->group(fu
     //penimbangan antar sendiri
     Route::get('/list-nasabah', [PenimbanganController::class, 'listNasabah']);
     Route::post('/penimbangan-antar-sendiri', [PenimbanganController::class, 'penimbanganAntarSendiri']);
+
+    Route::get('/summary-laporan', [SummaryLaporanController::class, 'index']);
 });
 
 Route::middleware(['auth:sanctum', 'role:petugas|manager'])->group(function () {

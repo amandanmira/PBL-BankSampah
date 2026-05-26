@@ -202,7 +202,7 @@
       <div v-if="order.status === 'proses' && !order.bukti_transfer" class="bg-white rounded-3xl shadow-sm border border-gray-100 p-8 mb-6">
         <h3 class="text-base font-bold text-gray-500 mb-6 flex items-center gap-2">
           <Icon icon="material-symbols:cloud-upload-outline" class="w-5 h-5" />
-          Upload Bukti Pembayaran
+          Upload Bukti Pembayaran<span class="text-red-500">*</span>
         </h3>
 
         <div 

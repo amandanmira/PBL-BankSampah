@@ -43,7 +43,7 @@
               <div class="space-y-1">
                 <label class="flex items-center gap-2 text-xs font-bold text-[#4A7043] uppercase tracking-wider mb-2">
                   <Icon icon="material-symbols:person-outline" class="w-4.5 h-4.5" />
-                  Username
+                  Username<span class="text-red-500">*</span>
                 </label>
                 <input 
                   v-model="form.username" 
@@ -58,7 +58,7 @@
               <div class="space-y-1">
                 <label class="flex items-center gap-2 text-xs font-bold text-[#4A7043] uppercase tracking-wider mb-2">
                   <Icon icon="material-symbols:person-outline" class="w-4.5 h-4.5" />
-                  Nama Lembaga
+                  Nama Lembaga<span class="text-red-500">*</span>
                 </label>
                 <input 
                   v-model="form.nama_lembaga" 
@@ -73,7 +73,7 @@
               <div class="space-y-1">
                 <label class="flex items-center gap-2 text-xs font-bold text-[#4A7043] uppercase tracking-wider mb-2">
                   <Icon icon="material-symbols:person-outline" class="w-4.5 h-4.5" />
-                  Nama Lengkap
+                  Nama Lengkap<span class="text-red-500">*</span>
                 </label>
                 <input 
                   v-model="form.nama" 
@@ -88,7 +88,7 @@
               <div class="space-y-1 opacity-70">
                 <label class="flex items-center gap-2 text-xs font-bold text-[#4A7043] uppercase tracking-wider mb-2">
                   <Icon icon="material-symbols:description-outline" class="w-4.5 h-4.5" />
-                  Email
+                  Email<span class="text-red-500">*</span>
                 </label>
                 <input 
                   :value="form.email" 
@@ -103,7 +103,7 @@
               <div class="space-y-1">
                 <label class="flex items-center gap-2 text-xs font-bold text-[#4A7043] uppercase tracking-wider mb-2">
                   <Icon icon="material-symbols:description-outline" class="w-4.5 h-4.5" />
-                  Nomor Telepon
+                  Nomor Telepon<span class="text-red-500">*</span>
                 </label>
                 <input 
                   v-model="form.no_telp" 
@@ -118,7 +118,7 @@
               <div class="space-y-1">
                 <label class="flex items-center gap-2 text-xs font-bold text-[#4A7043] uppercase tracking-wider mb-2">
                   <Icon icon="material-symbols:description-outline" class="w-4.5 h-4.5" />
-                  Alamat Lengkap
+                  Alamat Lengkap<span class="text-red-500">*</span>
                 </label>
                 <textarea 
                   v-model="form.alamat" 
@@ -154,7 +154,7 @@
               <div class="space-y-1">
                 <label class="flex items-center gap-2 text-xs font-bold text-[#4A7043] uppercase tracking-wider mb-2">
                   <Icon icon="material-symbols:lock-outline" class="w-4.5 h-4.5" />
-                  Password Baru
+                  Password Baru<span class="text-red-500">*</span>
                 </label>
                 <div class="relative">
                   <input 
@@ -175,7 +175,7 @@
               <div class="space-y-1">
                 <label class="flex items-center gap-2 text-xs font-bold text-[#4A7043] uppercase tracking-wider mb-2">
                   <Icon icon="material-symbols:lock-outline" class="w-4.5 h-4.5" />
-                  Konfirmasi Password
+                  Konfirmasi Password<span class="text-red-500">*</span>
                 </label>
                 <input 
                   v-model="passwordForm.password_confirmation" 
@@ -231,7 +231,7 @@
                 <div class="flex justify-between items-center">
                   <div class="flex items-center gap-2 text-stone-700">
                     <Icon icon="material-symbols:description-outline" class="w-5 h-5 text-[#4A7043]" />
-                    <span class="text-sm font-bold text-stone-800">KTP (Kartu Tanda Penduduk)</span>
+                    <span class="text-sm font-bold text-stone-800">KTP (Kartu Tanda Penduduk)</span><span class="text-red-500">*</span>
                   </div>
                   <div v-if="form.ktp" class="flex items-center gap-1.5 text-green-600 bg-green-50 px-3 py-1 rounded-full text-xs font-bold">
                     <Icon icon="material-symbols:check" class="w-3.5 h-3.5" />
@@ -279,7 +279,7 @@
                 <div class="flex justify-between items-center">
                   <div class="flex items-center gap-2 text-stone-700">
                     <Icon icon="material-symbols:description-outline" class="w-5 h-5 text-[#4A7043]" />
-                    <span class="text-sm font-bold text-stone-800">NPWP (Nomor Pokok Wajib Pajak)</span>
+                    <span class="text-sm font-bold text-stone-800">NPWP (Nomor Pokok Wajib Pajak)</span><span class="text-red-500">*</span>
                   </div>
                   <div v-if="form.npwp" class="flex items-center gap-1.5 text-green-600 bg-green-50 px-3 py-1 rounded-full text-xs font-bold">
                     <Icon icon="material-symbols:check" class="w-3.5 h-3.5" />
