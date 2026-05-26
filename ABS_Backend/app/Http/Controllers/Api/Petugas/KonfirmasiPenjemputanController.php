@@ -11,17 +11,25 @@ class KonfirmasiPenjemputanController extends Controller
 {
     public function penjemputan()
 {
-        $penjemputan = Penjemputan::with([
-            'petugas', 
-            'nasabah', 
-            'tukang',
-            'detailPenjemputan.sampah.itemSampah' // <-- Tambahkan baris ini
-        ])
-        ->whereIn('status',['pending', 'proses', 'dijemput', 'perlu_input'])
-        ->latest()
-        ->paginate(10);
-        
-        return response()->json($penjemputan, 200);
+    $penjemputan = Penjemputan::with([
+        'petugas', 
+        'nasabah', 
+        'tukang',
+        'detailPenjemputan.sampah.itemSampah'
+    ])
+    // Tambahkan status baru ke dalam array ini
+    ->whereIn('status', [
+        'pending', 
+        'menunggu_persetujuan', 
+        'jadwal_ditolak', 
+        'proses', 
+        'dijemput', 
+        'perlu_input'
+    ])
+    ->latest()
+    ->paginate(10);
+
+    return response()->json($penjemputan, 200);
 }
 
     //riwayat buat nasabah

@@ -428,15 +428,6 @@ onMounted(() => {
                 </div>
               </div>
 
-              <div class="space-y-1.5">
-                <label class="text-xs font-semibold text-stone-600">Tukang</label>
-                <div class="relative">
-                  <select class="w-full bg-[#F8FAF8] border border-[#A8C4AC] rounded-xl py-2.5 px-4 text-sm font-medium focus:outline-none appearance-none pr-10 text-stone-700">
-                    <option :value="request.selectedTukang?.tukang_id">{{ request.selectedTukang?.nama }}</option>
-                  </select>
-                  <Icon icon="material-symbols:keyboard-arrow-down" class="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-stone-500 pointer-events-none" />
-                </div>
-              </div>
 
               <button 
                 @click="confirmSchedule(request)" 
