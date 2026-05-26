@@ -38,9 +38,11 @@ class LaporanController extends Controller
     public function exportExcel(Request $request)
     {
         $startDate = $request->start_date
-            ? Carbon::now()->subDays($request->start_date)->startOfDay()
+            ? Carbon::parse($request->start_date)->startOfDay()
             : Carbon::now()->subMonth()->startOfDay();
-        $endDate = Carbon::now()->endOfDay();
+        $endDate = $request->end_date
+            ? Carbon::parse($request->end_date)->endOfDay()
+            : Carbon::now()->endOfDay();
 
         return Excel::download(new LaporanPetugasExport($startDate, $endDate, $request->gudang_id, $request->sampah), 'laporan-transaksi.xlsx');
     }
@@ -48,9 +50,11 @@ class LaporanController extends Controller
     public function exportPdf(Request $request)
     {
         $startDate = $request->start_date
-            ? Carbon::now()->subDays($request->start_date)->startOfDay()
+            ? Carbon::parse($request->start_date)->startOfDay()
             : Carbon::now()->subMonth()->startOfDay();
-        $endDate = Carbon::now()->endOfDay();
+        $endDate = $request->end_date
+            ? Carbon::parse($request->end_date)->endOfDay()
+            : Carbon::now()->endOfDay();
         $gudangId = $request->gudang_id;
         $sampah = collect($request->sampah)->pluck('sampah_id')->toArray();
 

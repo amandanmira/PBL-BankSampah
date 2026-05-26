@@ -18,8 +18,16 @@ const headers = { 'Authorization': `Bearer ${token}` }
 const listSampah = ref([]);
 const listGudang = ref([]);
 
+const today = new Date()
+const thirtyDaysAgo = new Date()
+thirtyDaysAgo.setDate(today.getDate() - 30)
+
+// Format ke YYYY-MM-DD
+const formatDate = (date) => date.toISOString().split('T')[0]
+
 const data = ref({
-  start_date: 7,
+  start_date: formatDate(thirtyDaysAgo),
+  end_date: formatDate(today),
   gudang_id: user.value.gudang_id,
   sampah: [],
 })
@@ -59,6 +67,7 @@ const downloadExcel = async () => {
         headers,
         params: {
           start_date: data.value.start_date,
+          end_date: data.value.end_date,
           gudang_id: data.value.gudang_id,
           sampah: data.value.sampah,
         },
@@ -85,6 +94,7 @@ const previewPdf = async () => {
         headers,
         params: {
           start_date: data.value.start_date,
+          end_date: data.value.end_date,
           gudang_id: data.value.gudang_id,
           sampah: data.value.sampah,
         }
@@ -138,10 +148,19 @@ onMounted(async () => {
     <div class="flex items-center justify-between mb-5">
       <div class="flex items-center gap-2 bg-white rounded-xl px-3 py-2 border border-stone-200 shadow-sm">
         <Icon icon="material-symbols:calendar-month-outline" class="w-4 h-4 text-stone-500" />
-        <button
+
+        <div>
+          <label>Dari Tanggal: </label>
+          <input type="date" v-model="data.start_date" />
+        </div>
+        
+        <div>
+          <label>Sampai Tanggal: </label>
+          <input type="date" v-model="data.end_date" />
+        </div>
+        <!-- <button
           v-for="opt in filterOptions"
           :key="opt.value"
-          @click="data.start_date = opt.value"
           :class="[
             'px-3 py-1.5 rounded-lg text-sm font-medium transition-all',
             data.start_date === opt.value
@@ -150,7 +169,8 @@ onMounted(async () => {
           ]"
         >
           {{ opt.label }}
-        </button>
+        </button> -->
+
       </div>
 
       <button
