@@ -11,7 +11,7 @@ class KonfirmasiPenjemputanController extends Controller
 {
     public function penjemputan()
     {
-        $penjemputan = Penjemputan::with(['petugas', 'nasabah', 'tukang'])->whereIn('status',['pending', 'proses', 'dijemput', 'perlu_input'])->latest()->paginate(10);
+        $penjemputan = Penjemputan::with(['petugas', 'nasabah', 'tukang'])->whereIn('status',['pending', 'menunggu_persetujuan', 'jadwal_ditolak', 'proses', 'dijemput', 'perlu_input'])->latest()->paginate(10);
         return response()->json($penjemputan, 200);
     }
 
@@ -52,7 +52,7 @@ class KonfirmasiPenjemputanController extends Controller
             'jadwal' => 'nullable|date_format:Y-m-d H:i:s'
         ]);
 
-        $penjemputan->status = 'proses';
+        $penjemputan->status = 'menunggu_persetujuan';
         $penjemputan->petugas_id = Auth::id();
         $penjemputan->tukang_id = $request->tukang_id; // Menyimpan ID Tukang
         if ($request->has('jadwal')) {
@@ -60,7 +60,7 @@ class KonfirmasiPenjemputanController extends Controller
         }
         $penjemputan->save();
 
-        return response()->json(['message' => 'Penjemputan di Proses'], 200);
+        return response()->json(['message' => 'Menunggu persetujuan nasabah'], 200);
     }
 
     // public function tolak(Penjemputan $penjemputan){
