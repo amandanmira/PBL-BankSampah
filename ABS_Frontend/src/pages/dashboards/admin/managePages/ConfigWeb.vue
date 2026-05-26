@@ -169,14 +169,14 @@
               <hr class="border-gray-50 my-2" />
 
               <div class="space-y-3">
-                <label class="text-sm font-bold text-gray-500 uppercase tracking-wider">Quote Tentang Kami (Tagline)</label>
+                <label class="text-sm font-bold text-gray-500 uppercase tracking-wider">Semboyan Footer (Tagline)</label>
                 <input 
                   v-model="form.quote"
                   type="text" 
                   placeholder="Mengubah Sampah Menjadi Berkah"
                   class="w-full bg-gray-50 border border-gray-100 rounded-2xl px-6 py-4 text-gray-700 font-medium focus:outline-none focus:ring-4 focus:ring-[#4A7043]/10 focus:border-[#4A7043] transition-all placeholder:text-gray-300"
                 />
-                <p class="text-xs text-gray-400 font-medium mt-2 leading-relaxed">Quote ini akan ditampilkan di halaman Landing Page pada bagian "Tentang Kami"</p>
+                <p class="text-xs text-gray-400 font-medium mt-2 leading-relaxed">Quote ini akan ditampilkan persis di bawah logo pada bagian kaki halaman (Footer).</p>
               </div>
             </div>
           </div>
@@ -402,7 +402,7 @@ const updateData = async () => {
     const formData = new FormData();
 
     Object.keys(form.value).forEach((key) => {
-      if (form.value[key] !== null && form.value[key] !== "" && key !== "logo") {
+      if (form.value[key] !== null && key !== "logo") {
         formData.append(key, form.value[key]);
       }
     });
@@ -411,12 +411,15 @@ const updateData = async () => {
       formData.append("logo", logoFile.value);
     }
 
+    // Explicitly add method spoofing inside FormData
+    formData.append("_method", "PUT");
+
     const headers = {
       'Authorization': `Bearer ${token}`,
       "Content-Type": "multipart/form-data"
     };
 
-    await axios.post("/api/admin/web-config?_method=PUT", formData, { headers });
+    await axios.post("/api/admin/web-config", formData, { headers });
 
     alert("Berhasil memperbarui konfigurasi");
     getData(); // Refresh data

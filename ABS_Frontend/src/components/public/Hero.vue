@@ -11,9 +11,15 @@ const fetchConfig = async () => {
   try {
     const res = await axios.get('/api/web-config'); // Using public endpoint
     if (res.data) {
+      // Hanya ambil data dari DB yang tidak null/kosong
+      // agar teks default tidak hilang tertimpa null
+      const validData = Object.fromEntries(
+        Object.entries(res.data).filter(([_, v]) => v !== null && v !== '')
+      );
+
       config.value = {
         ...config.value,
-        ...res.data
+        ...validData
       };
     }
   } catch (err) {
@@ -24,7 +30,7 @@ const fetchConfig = async () => {
 const headingFontSize = computed(() => {
   const text = config.value.hero_quote_top || "";
   const length = text.length;
-  
+
   if (length > 60) return "text-2xl sm:text-3xl lg:text-4xl";
   if (length > 40) return "text-3xl sm:text-4xl lg:text-5xl";
   if (length > 25) return "text-4xl sm:text-5xl lg:text-6xl";
@@ -34,7 +40,7 @@ const headingFontSize = computed(() => {
 const subHeadingFontSize = computed(() => {
   const text = config.value.hero_quote_bottom || "";
   const length = text.length;
-  
+
   if (length > 150) return "text-sm sm:text-base lg:text-lg";
   if (length > 100) return "text-base sm:text-lg lg:text-xl";
   return "text-base sm:text-lg lg:text-[22px]";
@@ -52,18 +58,18 @@ onMounted(() => {
 
       <!-- Text Content -->
       <div class="flex-1 flex flex-col gap-6 lg:gap-8 text-center lg:text-left z-10 w-full pt-8 lg:pt-0">
-        <h1 
+        <h1
           class="font-extrabold leading-[1.2] lg:leading-[1.1] tracking-wide whitespace-pre-line"
           :class="headingFontSize"
         >
-          Kelola Sampah,<br>Raih Manfaat
+          {{ config.hero_quote_top }}
         </h1>
 
         <p
           class="font-medium leading-relaxed max-w-xl mx-auto lg:mx-0 text-white/95 whitespace-pre-line"
           :class="subHeadingFontSize"
         >
-          Kelola Sampah Jadi Tabungan Digital yang Transparan dan Terpercaya
+          {{ config.hero_quote_bottom }}
         </p>
 
         <div
