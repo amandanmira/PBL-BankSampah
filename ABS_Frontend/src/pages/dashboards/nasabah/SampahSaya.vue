@@ -88,7 +88,9 @@ const counts = computed(() => {
 
   if (activeMainTab.value === 'jemput') {
     transactions.value.forEach((t) => {
-      if (result[t.status] !== undefined) {
+      if (t.status === 'dijemput' || t.status === 'perlu_input') {
+        result.dijemput++
+      } else if (result[t.status] !== undefined) {
         result[t.status]++
       }
     })
@@ -106,7 +108,10 @@ const filteredTransactions = computed(() => {
   const data = activeMainTab.value === 'jemput' ? transactions.value : manualTransactions.value
 
   return data.filter((t) => {
-    const matchesStatus = t.status === activeStatusFilter.value
+    let matchesStatus = t.status === activeStatusFilter.value
+    if (activeStatusFilter.value === 'dijemput') {
+      matchesStatus = t.status === 'dijemput' || t.status === 'perlu_input'
+    }
     const query = searchQuery.value.toLowerCase()
 
     if (activeMainTab.value === 'jemput') {
