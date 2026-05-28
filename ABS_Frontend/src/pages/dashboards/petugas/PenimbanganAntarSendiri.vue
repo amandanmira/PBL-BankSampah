@@ -441,12 +441,9 @@
         </div>
       </div>
 
-      <div class="grid grid-cols-2 gap-4 w-full pt-4">
-        <button @click="router.push('/dashboard-petugas')" class="py-4 rounded-2xl bg-stone-100 text-stone-600 font-black text-sm hover:bg-stone-200 transition-all flex items-center justify-center gap-2">
+      <div class="w-full pt-4">
+        <button @click="router.push('/dashboard-petugas')" class="w-full py-4 rounded-2xl bg-[#4A7043] text-white font-black text-sm hover:bg-[#3D5C37] shadow-lg transition-all flex items-center justify-center gap-2">
           <Icon icon="material-symbols:home-outline" class="w-5 h-5" /> Kembali ke Menu
-        </button>
-        <button @click="resetToStart" class="py-4 rounded-2xl bg-[#4A7043] text-white font-black text-sm hover:bg-[#3D5C37] shadow-lg transition-all flex items-center justify-center gap-2">
-          <Icon icon="material-symbols:add-circle-outline" class="w-5 h-5" /> Transaksi Baru
         </button>
       </div>
     </div>
@@ -514,10 +511,12 @@
 
 <script setup>
 import { ref, computed, onMounted, inject } from "vue";
+import { useRouter } from "vue-router";
 import DashboardLayout from "@/layouts/DashboardLayout.vue";
 import { Icon } from "@iconify/vue";
 
 const axios = inject('axios'); // Gunakan axios global
+const router = useRouter();
 
 const step = ref(1);
 const listNasabah = ref([]);

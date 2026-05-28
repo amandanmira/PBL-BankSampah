@@ -14,9 +14,13 @@ const route = useRoute();
 const axios = inject('axios');
 
 const isSidebarCollapsed = ref(false);
+const isProfileDropdownOpen = ref(false);
 
 const toggleSidebar = () => {
   isSidebarCollapsed.value = !isSidebarCollapsed.value;
+  if (isSidebarCollapsed.value) {
+    isProfileDropdownOpen.value = false;
+  }
 };
 
 const role = computed(() => sessionStorage.getItem("role")?.toLowerCase());
@@ -82,6 +86,19 @@ const goToProfile = () => {
     router.push('/dashboard-nasabah/edit-profile');
   } else if (role.value === 'pengepul') {
     router.push('/dashboard-pengepul/edit-profile');
+  }
+};
+
+const handleProfileClick = () => {
+  if (['admin', 'petugas', 'manager'].includes(role.value)) {
+    if (isSidebarCollapsed.value) {
+      isSidebarCollapsed.value = false;
+      isProfileDropdownOpen.value = true;
+    } else {
+      isProfileDropdownOpen.value = !isProfileDropdownOpen.value;
+    }
+  } else {
+    goToProfile();
   }
 };
 
@@ -163,13 +180,14 @@ onMounted(() => {
       </div>
 
       <!-- User Profile (Sidebar) -->
-      <div :class="cn('px-4 mb-8 transition-all duration-300 flex flex-col items-center', isSidebarCollapsed ? 'gap-4' : 'gap-2')">
+      <div :class="cn('px-4 mb-8 transition-all duration-300 flex flex-col items-center relative', isSidebarCollapsed ? 'gap-4' : 'gap-2')">
         <button
-          @click="goToProfile"
+          @click="handleProfileClick"
           :class="
             cn(
-              'bg-white/10 hover:bg-white/20 rounded-[2rem] p-4 flex items-center transition-all duration-300 overflow-hidden border border-white/5 cursor-pointer hover:border-[#A86444]/50 hover:shadow-[0_0_20px_rgba(168,100,68,0.15)]',
-              isSidebarCollapsed ? 'bg-transparent border-none p-0 w-14 h-14 justify-center' : 'w-full gap-4 px-6'
+              'bg-white/10 hover:bg-white/20 rounded-[2rem] p-4 flex items-center transition-all duration-300 overflow-hidden border border-white/5 cursor-pointer hover:border-[#A86444]/50 hover:shadow-[0_0_20px_rgba(168,100,68,0.15)] w-full',
+              isSidebarCollapsed ? 'bg-transparent border-none p-0 w-14 h-14 justify-center' : 'gap-4 px-6',
+              isProfileDropdownOpen ? 'bg-white/20 border-white/20' : ''
             )
           "
         >
@@ -189,7 +207,37 @@ onMounted(() => {
               {{ (role === 'nasabah' || role === 'pengepul') ? (user.nama || 'Nama Lengkap') : (role === 'admin' ? 'Administrator' : (role ? role.charAt(0).toUpperCase() + role.slice(1) : 'Role')) }}
             </p>
           </div>
+
+          <!-- Dropdown Icon -->
+          <div v-if="['admin', 'petugas', 'manager'].includes(role) && !isSidebarCollapsed" :class="cn('shrink-0 transition-transform duration-300', isProfileDropdownOpen ? 'rotate-180' : '')">
+            <Icon icon="material-symbols:keyboard-arrow-down-rounded" class="w-5 h-5 text-white/50" />
+          </div>
         </button>
+
+        <!-- Dropdown Info -->
+        <div v-if="['admin', 'petugas', 'manager'].includes(role) && isProfileDropdownOpen && !isSidebarCollapsed" class="w-full bg-white/10 backdrop-blur-md rounded-[1.5rem] p-5 flex flex-col gap-4 border border-white/5 text-white shadow-xl animate-in fade-in slide-in-from-top-2 duration-300 relative z-20">
+          <div class="flex items-center gap-4">
+            <Icon icon="material-symbols:tag" class="w-5 h-5 text-white/40 shrink-0" />
+            <div class="min-w-0 flex-1">
+              <p class="text-[9px] font-black uppercase text-white/40 tracking-widest mb-0.5">ID {{ role === 'admin' ? 'Admin' : (role === 'petugas' ? 'Petugas' : 'Manager') }}</p>
+              <p class="text-xs font-bold truncate">{{ user.admin_id || user.petugas_id || user.manager_id || user.id || '-' }}</p>
+            </div>
+          </div>
+          <div class="flex items-center gap-4">
+            <Icon icon="material-symbols:account-circle-outline" class="w-5 h-5 text-white/40 shrink-0" />
+            <div class="min-w-0 flex-1">
+              <p class="text-[9px] font-black uppercase text-white/40 tracking-widest mb-0.5">Username</p>
+              <p class="text-xs font-bold truncate">{{ user.username || '-' }}</p>
+            </div>
+          </div>
+          <div class="flex items-center gap-4">
+            <Icon icon="material-symbols:mail-outline" class="w-5 h-5 text-white/40 shrink-0" />
+            <div class="min-w-0 flex-1">
+              <p class="text-[9px] font-black uppercase text-white/40 tracking-widest mb-0.5">Email</p>
+              <p class="text-xs font-bold truncate">{{ user.email || '-' }}</p>
+            </div>
+          </div>
+        </div>
 
         <!-- Warehouse Badge (For Petugas) -->
         <div v-if="role === 'petugas' && !isSidebarCollapsed" class="w-full flex justify-center">
