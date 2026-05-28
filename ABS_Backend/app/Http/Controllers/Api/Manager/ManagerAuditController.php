@@ -12,7 +12,8 @@ class ManagerAuditController extends Controller
     private function buildQuery(Request $request)
     {
         $gudang = $request->query('gudang');
-        $durasi = $request->query('durasi');
+        $startDate = $request->query('start_date');
+        $endDate = $request->query('end_date');
         $jenisSampah = $request->query('jenisSampah'); 
         $search = $request->query('search');
 
@@ -33,15 +34,12 @@ class ManagerAuditController extends Controller
             });
         }
 
-        // Filter by Durasi
-        if ($durasi && $durasi !== 'Semua Waktu') {
-            if ($durasi === '1 Minggu Terakhir') {
-                $query->where('created_at', '>=', now()->subWeek());
-            } elseif ($durasi === '1 Bulan Terakhir') {
-                $query->where('created_at', '>=', now()->subMonth());
-            } elseif ($durasi === '3 Bulan Terakhir') {
-                $query->where('created_at', '>=', now()->subMonths(3));
-            }
+        // Filter by Date Range
+        if ($startDate) {
+            $query->whereDate('created_at', '>=', $startDate);
+        }
+        if ($endDate) {
+            $query->whereDate('created_at', '<=', $endDate);
         }
 
         // Filter by Jenis Sampah
