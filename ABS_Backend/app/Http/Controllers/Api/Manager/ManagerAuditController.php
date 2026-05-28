@@ -21,16 +21,25 @@ class ManagerAuditController extends Controller
             'nasabah',
             'sampah.itemSampah',
             'tukang',
-            'transaksi',
+            'transaksi.petugas.gudang',
             'penjemputan.gudang'
-        ])->whereHas('penjemputan', function($q) {
-            $q->whereIn('status', ['selesai', 'tolak', 'batal']);
+        ])->where(function ($q) {
+            $q->whereHas('penjemputan', function($q2) {
+                $q2->whereIn('status', ['selesai', 'tolak', 'batal']);
+            })->orWhereHas('transaksi', function($q3) {
+                $q3->where('tipe_transaksi', 'antar_sendiri')
+                   ->whereIn('status', ['selesai']);
+            });
         });
 
         // Filter by Gudang
         if ($gudang && $gudang !== 'Semua Gudang') {
-            $query->whereHas('penjemputan.gudang', function($q) use ($gudang) {
-                $q->where('alamat', $gudang)->orWhere('nama_gudang', $gudang);
+            $query->where(function ($q) use ($gudang) {
+                $q->whereHas('penjemputan.gudang', function($q2) use ($gudang) {
+                    $q2->where('alamat', $gudang)->orWhere('nama_gudang', $gudang);
+                })->orWhereHas('transaksi.petugas.gudang', function($q3) use ($gudang) {
+                    $q3->where('alamat', $gudang)->orWhere('nama_gudang', $gudang);
+                });
             });
         }
 
@@ -66,46 +75,183 @@ class ManagerAuditController extends Controller
         return $query;
     }
 
-    public function index(Request $request)
+    private function getAllAuditData(Request $request)
     {
-        $query = $this->buildQuery($request);
-        
-        $perPage = $request->query('per_page', 10);
-        $data = $query->latest()->paginate($perPage);
+        $startDate = $request->query('start_date');
+        $endDate = $request->query('end_date');
+        $jenisSampah = $request->query('jenisSampah'); 
+        $search = $request->query('search');
+        $gudang = $request->query('gudang');
 
-        // Transform data to flat structure expected by frontend
-        $data->getCollection()->transform(function ($p) {
-            // Mapping English months to Indonesian abbreviation as handled by dayjs manually or directly sending standard format
-            $created_at = Carbon::parse($p->created_at);
+        // 1. Get Completed Transactions
+        $query = Penimbangan::with([
+            'nasabah',
+            'sampah.itemSampah',
+            'tukang',
+            'transaksi.petugas.gudang',
+            'penjemputan.gudang'
+        ])->where(function ($q) {
+            $q->whereHas('penjemputan', function($q2) {
+                $q2->whereIn('status', ['selesai']);
+            })->orWhereHas('transaksi', function($q3) {
+                $q3->where('tipe_transaksi', 'antar_sendiri')
+                   ->whereIn('status', ['selesai']);
+            });
+        });
+
+        if ($gudang && $gudang !== 'Semua Gudang') {
+            $query->where(function ($q) use ($gudang) {
+                // Untuk transaksi Jemput, cek alamat dari Gudang Penjemputan
+                $q->where(function ($qJemput) use ($gudang) {
+                    $qJemput->whereHas('penjemputan.gudang', function($q2) use ($gudang) {
+                        $q2->where('alamat', $gudang);
+                    });
+                })
+                // Untuk transaksi Setor Manual, cek alamat dari Gudang Petugas
+                ->orWhere(function ($qSetor) use ($gudang) {
+                    $qSetor->whereHas('transaksi', function($q3) use ($gudang) {
+                        $q3->where('tipe_transaksi', 'antar_sendiri')
+                           ->whereHas('petugas.gudang', function($q4) use ($gudang) {
+                               $q4->where('alamat', $gudang);
+                           });
+                    });
+                });
+            });
+        }
+        if ($startDate) $query->whereDate('created_at', '>=', $startDate);
+        if ($endDate) $query->whereDate('created_at', '<=', $endDate);
+        if ($jenisSampah) {
+            $jenisArray = is_array($jenisSampah) ? $jenisSampah : explode(',', $jenisSampah);
+            if (count($jenisArray) > 0) {
+                $query->whereHas('sampah.itemSampah', function($q) use ($jenisArray) {
+                    $q->whereIn('nama', $jenisArray);
+                });
+            }
+        }
+        if ($search) {
+            $query->where(function($q) use ($search) {
+                $q->whereHas('nasabah', function($nq) use ($search) {
+                    $nq->where('nama', 'like', "%$search%");
+                })->orWhereHas('penjemputan', function($pq) use ($search) {
+                    $pq->where('penjemputan_id', 'like', "%$search%");
+                });
+            });
+        }
+
+        $completedData = $query->get()->map(function ($p) {
+            $created_at = \Carbon\Carbon::parse($p->created_at);
+            $isJemput = !($p->transaksi && $p->transaksi->tipe_transaksi === 'antar_sendiri');
             
+            $gudangName = $isJemput 
+                ? (optional(optional($p->penjemputan)->gudang)->alamat ?? 'Unknown Gudang')
+                : (optional(optional(optional($p->transaksi)->petugas)->gudang)->alamat ?? 'Unknown Gudang');
+
             return [
                 'tanggal' => $created_at->translatedFormat('d M Y'),
                 'nasabah' => $p->nasabah->nama ?? 'Unknown',
-                'gudang' => $p->penjemputan->gudang->alamat ?? $p->penjemputan->gudang->nama_gudang ?? 'Unknown Gudang',
+                'gudang' => $gudangName,
                 'jenis' => $p->sampah->itemSampah->nama ?? 'Unknown',
                 'berat' => (float)$p->berat_timbang,
-                'sumber' => 'Jemput',
-                'status' => in_array(optional($p->penjemputan)->status, ['tolak', 'batal']) ? 'Tidak Terlaksana' : 'Selesai',
+                'sumber' => $isJemput ? 'Jemput' : 'Setor Manual',
+                'status' => 'Selesai',
+                'petugas' => optional(optional($p->transaksi)->petugas)->nama ?? '-',
+                'tukang' => $p->tukang->nama ?? '-',
                 'rawDate' => $p->created_at,
             ];
         });
 
-        return response()->json($data, 200);
+        // 2. Get Failed Transactions (from Penjemputan directly)
+        $failedQuery = \App\Models\Penjemputan::with([
+            'nasabah',
+            'gudang',
+            'petugas',
+            'tukang'
+        ])->whereIn('status', ['tolak', 'batal']);
+        
+        if ($gudang && $gudang !== 'Semua Gudang') {
+            $failedQuery->whereHas('gudang', function($q) use ($gudang) {
+                $q->where('alamat', $gudang);
+            });
+        }
+        if ($startDate) $failedQuery->whereDate('created_at', '>=', $startDate);
+        if ($endDate) $failedQuery->whereDate('created_at', '<=', $endDate);
+        if ($search) {
+            $failedQuery->where(function($q) use ($search) {
+                $q->whereHas('nasabah', function($nq) use ($search) {
+                    $nq->where('nama', 'like', "%$search%");
+                })->orWhere('penjemputan_id', 'like', "%$search%");
+            });
+        }
+
+        if ($jenisSampah && count(is_array($jenisSampah) ? $jenisSampah : explode(',', $jenisSampah)) > 0) {
+            $failedData = collect([]);
+        } else {
+            $failedData = $failedQuery->get()->map(function ($p) {
+                $created_at = \Carbon\Carbon::parse($p->created_at);
+                $gudangName = $p->gudang->alamat ?? 'Unknown Gudang';
+
+                return [
+                    'tanggal' => $created_at->translatedFormat('d M Y'),
+                    'nasabah' => $p->nasabah->nama ?? 'Unknown',
+                    'gudang' => $gudangName,
+                    'jenis' => 'Belum Ditimbang',
+                    'berat' => 0.0,
+                    'sumber' => 'Jemput',
+                    'status' => 'Tidak Terlaksana',
+                    'petugas' => $p->petugas->nama ?? '-',
+                    'tukang' => $p->tukang->nama ?? '-',
+                    'rawDate' => $p->created_at,
+                ];
+            });
+        }
+
+        return $completedData->merge($failedData)->sortByDesc('rawDate')->values();
+    }
+
+    public function index(Request $request)
+    {
+        $allData = $this->getAllAuditData($request);
+        
+        $perPage = (int)$request->query('per_page', 10);
+        $page = \Illuminate\Pagination\Paginator::resolveCurrentPage() ?: 1;
+        
+        $paginated = new \Illuminate\Pagination\LengthAwarePaginator(
+            $allData->forPage($page, $perPage)->values(),
+            $allData->count(),
+            $perPage,
+            $page,
+            ['path' => \Illuminate\Pagination\Paginator::resolveCurrentPath(), 'query' => $request->query()]
+        );
+
+        return response()->json($paginated, 200);
     }
 
     public function summary(Request $request)
     {
-        $query = $this->buildQuery($request);
+        $allData = $this->getAllAuditData($request);
 
-        // Fetch all matching records to compute aggregations
-        $allData = $query->get();
+        $totalTransaksi = $allData->count();
+        $totalBerat = $allData->sum('berat');
+        $verifiedCount = $allData->where('status', 'Selesai')->count();
+        $verifiedWeight = $allData->where('status', 'Selesai')->sum('berat');
+        $pendingCount = $allData->where('status', 'Tidak Terlaksana')->count();
+        
+        $jemputCount = $allData->where('sumber', 'Jemput')->count();
+        $jemputWeight = $allData->where('sumber', 'Jemput')->sum('berat');
+        $setorManualCount = $allData->where('sumber', 'Setor Manual')->count();
+        $setorManualWeight = $allData->where('sumber', 'Setor Manual')->sum('berat');
 
-        $totalTransaksi = 0;
-        $totalBerat = 0;
-        $verifiedCount = 0;
-        $pendingCount = 0;
+        $gudangFilter = $request->query('gudang');
 
         $perGudangMap = [];
+        $masterGudangs = \App\Models\Gudang::all();
+        foreach ($masterGudangs as $g) {
+            $nama = $g->alamat ?? 'Unknown Gudang';
+            if ($gudangFilter && $gudangFilter !== 'Semua Gudang' && $nama !== $gudangFilter) {
+                continue;
+            }
+            $perGudangMap[$nama] = ['gudang' => $nama, 'transaksi' => 0, 'berat' => 0, 'verified' => 0, 'pending' => 0];
+        }
         $jenisSampahMap = [
             'Organik' => ['berat' => 0],
             'Plastik PET' => ['berat' => 0],
@@ -114,34 +260,25 @@ class ManagerAuditController extends Controller
         ];
 
         foreach ($allData as $row) {
-            $totalTransaksi++;
-            $berat = (float)$row->berat_timbang;
-            $totalBerat += $berat;
-            
-            $status = optional($row->transaksi)->status === 'selesai' ? 'Verified' : 'Pending';
-            if ($status === 'Verified') {
-                $verifiedCount++;
-            } else {
-                $pendingCount++;
-            }
-
-            $gudang = $row->penjemputan->gudang->alamat ?? $row->penjemputan->gudang->nama_gudang ?? 'Unknown Gudang';
+            $gudang = $row['gudang'];
             if (!isset($perGudangMap[$gudang])) {
                 $perGudangMap[$gudang] = ['gudang' => $gudang, 'transaksi' => 0, 'berat' => 0, 'verified' => 0, 'pending' => 0];
             }
             $perGudangMap[$gudang]['transaksi']++;
-            $perGudangMap[$gudang]['berat'] += $berat;
-            if ($status === 'Verified') {
+            $perGudangMap[$gudang]['berat'] += $row['berat'];
+            if ($row['status'] === 'Selesai') {
                 $perGudangMap[$gudang]['verified']++;
             } else {
                 $perGudangMap[$gudang]['pending']++;
             }
 
-            $jenis = $row->sampah->itemSampah->nama ?? 'Unknown';
-            if (isset($jenisSampahMap[$jenis])) {
-                $jenisSampahMap[$jenis]['berat'] += $berat;
-            } else {
-                $jenisSampahMap[$jenis] = ['berat' => $berat];
+            $jenis = $row['jenis'];
+            if ($jenis !== 'Belum Ditimbang') {
+                if (isset($jenisSampahMap[$jenis])) {
+                    $jenisSampahMap[$jenis]['berat'] += $row['berat'];
+                } else {
+                    $jenisSampahMap[$jenis] = ['berat' => $row['berat']];
+                }
             }
         }
 
@@ -171,7 +308,12 @@ class ManagerAuditController extends Controller
             'totalTransaksi' => $totalTransaksi,
             'totalBerat' => $totalBerat,
             'verifiedCount' => $verifiedCount,
+            'verifiedWeight' => $verifiedWeight,
             'pendingCount' => $pendingCount,
+            'jemputCount' => $jemputCount,
+            'jemputWeight' => $jemputWeight,
+            'setorManualCount' => $setorManualCount,
+            'setorManualWeight' => $setorManualWeight,
             'perGudangList' => array_values($perGudangMap),
             'jenisSampahList' => $jenisSampahList
         ], 200);

@@ -140,23 +140,36 @@ const fetchChartsData = async () => {
     totalSampahPeriode.value = totalTrend;
 
     // Calculate colors and percentages for Gudang Status
-    const gudangColors = ['bg-[#4A7043]', 'bg-[#5FA09B]', 'bg-[#A86444]', 'bg-orange-500', 'bg-red-500'];
-    gudangStatus.value = data.gudangStatus.map((g, idx) => {
+    gudangStatus.value = data.gudangStatus.map((g) => {
         const stok = parseFloat(g.total_stok);
         const kap = parseFloat(g.kapasitas) || 1000; // Gunakan kapasitas asli, fallback ke 1000 jika 0/null
         const pct = kap > 0 ? Math.min(Math.round((stok / kap) * 100), 100) : 0;
+        
         let text = 'Normal';
-        if(pct > 80) text = 'Hampir Penuh';
-        else if(pct > 60) text = 'Tinggi';
-        const color = gudangColors[idx % gudangColors.length];
+        let colorClass = 'bg-[#4A7043]';
+        let textClass = 'text-[#4A7043]';
+
+        if (pct >= 100) {
+            text = 'Penuh';
+            colorClass = 'bg-red-500';
+            textClass = 'text-red-500';
+        } else if (pct >= 90) {
+            text = 'Hampir Penuh';
+            colorClass = 'bg-orange-500';
+            textClass = 'text-orange-500';
+        } else if (pct >= 70) {
+            text = 'Tinggi';
+            colorClass = 'bg-yellow-400';
+            textClass = 'text-yellow-600';
+        }
 
         return {
             name: g.nama,
             percentage: pct,
             text: text,
             value: `${stok.toLocaleString('id-ID')} kg tersimpan`,
-            colorClass: color,
-            textClass: color.replace('bg-', 'text-').replace('[', '').replace(']', '')
+            colorClass: colorClass,
+            textClass: textClass
         };
     });
 
