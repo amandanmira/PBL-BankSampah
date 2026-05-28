@@ -84,8 +84,8 @@ class ManagerAuditController extends Controller
                 'gudang' => $p->penjemputan->gudang->alamat ?? $p->penjemputan->gudang->nama_gudang ?? 'Unknown Gudang',
                 'jenis' => $p->sampah->itemSampah->nama ?? 'Unknown',
                 'berat' => (float)$p->berat_timbang,
-                'petugas' => $p->tukang->nama ?? 'Unknown',
-                'status' => optional($p->transaksi)->status === 'selesai' ? 'Verified' : 'Pending',
+                'sumber' => 'Jemput',
+                'status' => in_array(optional($p->penjemputan)->status, ['tolak', 'batal']) ? 'Tidak Terlaksana' : 'Selesai',
                 'rawDate' => $p->created_at,
             ];
         });

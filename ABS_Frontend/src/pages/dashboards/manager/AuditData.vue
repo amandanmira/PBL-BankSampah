@@ -259,6 +259,14 @@ const nextPagePenarikan = () => {
   }
 };
 
+const isDetailModalOpen = ref(false);
+const selectedDetailRow = ref(null);
+
+const openDetailModal = (row) => {
+  selectedDetailRow.value = row;
+  isDetailModalOpen.value = true;
+};
+
 onMounted(() => {
   // Ambil opsi filter (gudang dan jenis sampah) dan data tabel secara bersamaan agar tidak saling tunggu (paralel)
   fetchData();
@@ -527,12 +535,11 @@ const handlePrintPdf = async () => {
               <tr class="bg-[#F5F5F0] border-b border-stone-200">
                 <th class="py-4 px-6 text-xs font-bold text-stone-600 uppercase tracking-wider">Tanggal</th>
                 <th class="py-4 px-6 text-xs font-bold text-stone-600 uppercase tracking-wider">Nasabah</th>
-                <th class="py-4 px-6 text-xs font-bold text-stone-600 uppercase tracking-wider">Gudang</th>
                 <th class="py-4 px-6 text-xs font-bold text-stone-600 uppercase tracking-wider">Jenis Sampah</th>
                 <th class="py-4 px-6 text-xs font-bold text-stone-600 uppercase tracking-wider">Berat</th>
-                <th class="py-4 px-6 text-xs font-bold text-stone-600 uppercase tracking-wider">Petugas</th>
+                <th class="py-4 px-6 text-xs font-bold text-stone-600 uppercase tracking-wider text-center">Sumber</th>
                 <th class="py-4 px-6 text-xs font-bold text-stone-600 uppercase tracking-wider text-center">Status</th>
-                <th class="py-4 px-6 text-xs font-bold text-stone-600 uppercase tracking-wider text-center">Aksi</th>
+                <th v-if="isGroupedByGudang" class="py-4 px-6 text-xs font-bold text-stone-600 uppercase tracking-wider text-center">Aksi</th>
               </tr>
             </thead>
 
@@ -546,7 +553,7 @@ const handlePrintPdf = async () => {
               <template v-else v-for="(group, idx) in filteredGroupedData" :key="idx">
                 <!-- Group Header Row -->
                 <tr class="bg-[#E9F5E9] border-b border-stone-100">
-                  <td colspan="8" class="py-3 px-6">
+                  <td :colspan="isGroupedByGudang ? 7 : 6" class="py-3 px-6">
                     <div class="flex justify-between items-center w-full">
                       <span class="text-sm font-black text-[#3D5A35]">{{ group.gudangName }}</span>
                       <span class="text-xs font-bold text-[#3D5A35]">{{ group.summary }}</span>
@@ -557,24 +564,27 @@ const handlePrintPdf = async () => {
                 <tr v-for="(row, rowIdx) in group.rows" :key="`${idx}-${rowIdx}`" class="hover:bg-stone-50 transition-colors group">
                   <td class="py-4 px-6 text-sm text-stone-600 font-medium whitespace-nowrap">{{ row.tanggal }}</td>
                   <td class="py-4 px-6 text-sm text-stone-800 font-medium whitespace-nowrap">{{ row.nasabah }}</td>
-                  <td class="py-4 px-6">
-                    <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-green-50 text-[#4A7043] text-xs font-bold border border-green-100 whitespace-nowrap">
-                      <div class="w-1.5 h-1.5 rounded-full bg-[#4A7043]"></div>
-                      {{ row.gudang }}
-                    </div>
-                  </td>
                   <td class="py-4 px-6 text-sm text-stone-600 font-medium whitespace-nowrap">{{ row.jenis }}</td>
-                  <td class="py-4 px-6 text-sm text-stone-800 font-bold whitespace-nowrap">{{ row.berat }}</td>
-                  <td class="py-4 px-6 text-sm text-stone-600 font-medium whitespace-nowrap">{{ row.petugas }}</td>
+                  <td class="py-4 px-6 text-sm text-stone-800 font-bold whitespace-nowrap">{{ row.berat }} kg</td>
                   <td class="py-4 px-6 whitespace-nowrap text-center">
-                    <div v-if="row.status === 'Verified'" class="inline-flex items-center justify-center px-4 py-1.5 rounded-full bg-[#3D5A35] text-white text-[10px] font-bold tracking-wider shadow-sm min-w-[70px]">
-                      Verified
+                    <div v-if="row.sumber === 'Jemput'" class="inline-flex items-center justify-center px-4 py-1.5 rounded-full bg-[#E9F5E9] text-[#3D5A35] text-[10px] font-bold tracking-wider shadow-sm min-w-[70px] border border-[#3D5A35]/20">
+                      Jemput
                     </div>
-                    <div v-else-if="row.status === 'Pending'" class="inline-flex items-center justify-center px-4 py-1.5 rounded-full bg-[#F59E0B] text-white text-[10px] font-bold tracking-wider shadow-sm min-w-[70px]">
-                      Pending
+                    <div v-else class="inline-flex items-center justify-center px-4 py-1.5 rounded-full bg-stone-100 text-stone-600 text-[10px] font-bold tracking-wider shadow-sm min-w-[70px] border border-stone-200">
+                      Setor Manual
                     </div>
                   </td>
-                  <td class="py-4 px-6 text-sm font-bold text-[#4A7043] cursor-pointer hover:underline whitespace-nowrap text-center">Detail</td>
+                  <td class="py-4 px-6 whitespace-nowrap text-center">
+                    <div v-if="row.status === 'Selesai'" class="inline-flex items-center justify-center px-4 py-1.5 rounded-full bg-[#3D5A35] text-white text-[10px] font-bold tracking-wider shadow-sm min-w-[70px]">
+                      Selesai
+                    </div>
+                    <div v-else class="inline-flex items-center justify-center px-4 py-1.5 rounded-full bg-[#DC2626] text-white text-[10px] font-bold tracking-wider shadow-sm min-w-[70px]">
+                      Tidak Terlaksana
+                    </div>
+                  </td>
+                  <td class="py-4 px-6 text-xs font-bold text-[#4A7043] cursor-pointer hover:underline whitespace-nowrap text-center transition-colors" @click="openDetailModal(row)">
+                    Detail
+                  </td>
                 </tr>
               </template>
             </tbody>
@@ -590,24 +600,24 @@ const handlePrintPdf = async () => {
                 <tr v-for="(row, index) in filteredFlatData" :key="index" class="hover:bg-stone-50 transition-colors group">
                   <td class="py-4 px-6 text-sm text-stone-600 font-medium whitespace-nowrap">{{ row.tanggal }}</td>
                   <td class="py-4 px-6 text-sm text-stone-800 font-medium whitespace-nowrap">{{ row.nasabah }}</td>
-                  <td class="py-4 px-6">
-                    <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-green-50 text-[#4A7043] text-xs font-bold border border-green-100 whitespace-nowrap">
-                      <div class="w-1.5 h-1.5 rounded-full bg-[#4A7043]"></div>
-                      {{ row.gudang }}
-                    </div>
-                  </td>
                   <td class="py-4 px-6 text-sm text-stone-600 font-medium whitespace-nowrap">{{ row.jenis }}</td>
-                  <td class="py-4 px-6 text-sm text-stone-800 font-bold whitespace-nowrap">{{ row.berat }}</td>
-                  <td class="py-4 px-6 text-sm text-stone-600 font-medium whitespace-nowrap">{{ row.petugas }}</td>
+                  <td class="py-4 px-6 text-sm text-stone-800 font-bold whitespace-nowrap">{{ row.berat }} kg</td>
                   <td class="py-4 px-6 whitespace-nowrap text-center">
-                    <div v-if="row.status === 'Verified'" class="inline-flex items-center justify-center px-4 py-1.5 rounded-full bg-[#3D5A35] text-white text-[10px] font-bold tracking-wider shadow-sm min-w-[70px]">
-                      Verified
+                    <div v-if="row.sumber === 'Jemput'" class="inline-flex items-center justify-center px-4 py-1.5 rounded-full bg-[#E9F5E9] text-[#3D5A35] text-[10px] font-bold tracking-wider shadow-sm min-w-[70px] border border-[#3D5A35]/20">
+                      Jemput
                     </div>
-                    <div v-else-if="row.status === 'Pending'" class="inline-flex items-center justify-center px-4 py-1.5 rounded-full bg-[#F59E0B] text-white text-[10px] font-bold tracking-wider shadow-sm min-w-[70px]">
-                      Pending
+                    <div v-else class="inline-flex items-center justify-center px-4 py-1.5 rounded-full bg-stone-100 text-stone-600 text-[10px] font-bold tracking-wider shadow-sm min-w-[70px] border border-stone-200">
+                      Setor Manual
                     </div>
                   </td>
-                  <td class="py-4 px-6 text-sm font-bold text-[#4A7043] cursor-pointer hover:underline whitespace-nowrap text-center">Detail</td>
+                  <td class="py-4 px-6 whitespace-nowrap text-center">
+                    <div v-if="row.status === 'Selesai'" class="inline-flex items-center justify-center px-4 py-1.5 rounded-full bg-[#3D5A35] text-white text-[10px] font-bold tracking-wider shadow-sm min-w-[70px]">
+                      Selesai
+                    </div>
+                    <div v-else class="inline-flex items-center justify-center px-4 py-1.5 rounded-full bg-[#DC2626] text-white text-[10px] font-bold tracking-wider shadow-sm min-w-[70px]">
+                      Tidak Terlaksana
+                    </div>
+                  </td>
                 </tr>
               </template>
             </tbody>
@@ -619,9 +629,11 @@ const handlePrintPdf = async () => {
       <div v-if="!isLoading" class="bg-white p-4 rounded-2xl shadow-sm border border-stone-100 flex flex-col sm:flex-row justify-between items-center gap-4">
         <div class="flex items-center gap-3">
           <span class="text-sm font-medium text-stone-500">Tampilkan</span>
-          <div class="bg-stone-50 border border-stone-200 rounded-lg px-3 py-1.5 text-sm font-bold text-stone-600 flex items-center justify-between w-16 shadow-sm">
-            10
-          </div>
+          <select v-model="itemsPerPage" @change="fetchData" class="bg-stone-50 border border-stone-200 rounded-lg px-3 py-1.5 text-sm font-bold text-stone-600 focus:outline-none focus:ring-2 focus:ring-[#4A7043]/20 focus:border-[#4A7043] cursor-pointer shadow-sm">
+            <option :value="10">10</option>
+            <option :value="20">20</option>
+            <option :value="50">50</option>
+          </select>
         </div>
 
         <div class="flex items-center gap-2">
@@ -864,21 +876,44 @@ const handlePrintPdf = async () => {
 
           <!-- Top 4 Cards -->
           <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div class="bg-white p-4 rounded-xl border border-stone-100 shadow-sm">
+            <div class="bg-[#F9FAF8] p-5 rounded-xl border border-stone-100 shadow-sm">
               <p class="text-xs font-bold text-stone-500 mb-1">Total Transaksi</p>
-              <p class="text-2xl font-black text-[#4A7043]">{{ laporanStats.totalTransaksi }}</p>
+              <p class="text-2xl font-black text-[#3D5A35]">127</p>
             </div>
-            <div class="bg-white p-4 rounded-xl border border-stone-100 shadow-sm">
+            <div class="bg-[#F9FAF8] p-5 rounded-xl border border-stone-100 shadow-sm">
               <p class="text-xs font-bold text-stone-500 mb-1">Total Berat</p>
-              <p class="text-2xl font-black text-[#4A7043]">{{ laporanStats.totalBerat.toFixed(1) }} <span class="text-sm font-bold text-stone-500">kg</span></p>
+              <p class="text-2xl font-black text-[#3D5A35]">245.8 <span class="text-sm font-bold text-stone-500">kg</span></p>
             </div>
-            <div class="bg-white p-4 rounded-xl border border-stone-100 shadow-sm">
-              <p class="text-xs font-bold text-stone-500 mb-1">Tervalidasi</p>
-              <p class="text-2xl font-black text-[#4A7043]">{{ laporanStats.verifiedCount }}</p>
+            <div class="bg-[#F9FAF8] p-5 rounded-xl border border-stone-100 shadow-sm">
+              <p class="text-xs font-bold text-stone-500 mb-1">Selesai</p>
+              <p class="text-2xl font-black text-[#3D5A35]">108</p>
             </div>
-            <div class="bg-white p-4 rounded-xl border border-stone-100 shadow-sm">
-              <p class="text-xs font-bold text-stone-500 mb-1">Pending</p>
-              <p class="text-2xl font-black text-[#F59E0B]">{{ laporanStats.pendingCount }}</p>
+            <div class="bg-[#F9FAF8] p-5 rounded-xl border border-stone-100 shadow-sm">
+              <p class="text-xs font-bold text-stone-500 mb-1">Tidak Terlaksana</p>
+              <p class="text-2xl font-black text-[#B45309]">19</p>
+            </div>
+          </div>
+
+          <!-- Distribusi Sumber Transaksi -->
+          <div class="bg-white rounded-xl border border-stone-100 shadow-sm overflow-hidden p-6">
+            <h4 class="text-sm font-bold text-stone-800 mb-4">Distribusi Sumber Transaksi</h4>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div class="bg-[#F9FAF8] p-4 rounded-lg">
+                <p class="text-xs font-medium text-stone-600 mb-2">Request Jemput</p>
+                <div class="flex items-baseline gap-1 mb-1">
+                  <span class="text-xl font-bold text-[#3D5A35]">74</span>
+                  <span class="text-xs text-stone-500 font-medium">transaksi</span>
+                </div>
+                <p class="text-xs text-stone-400 font-medium">142.5 kg total</p>
+              </div>
+              <div class="bg-[#F9FAF8] p-4 rounded-lg">
+                <p class="text-xs font-medium text-stone-600 mb-2">Setor Manual</p>
+                <div class="flex items-baseline gap-1 mb-1">
+                  <span class="text-xl font-bold text-[#3D5A35]">53</span>
+                  <span class="text-xs text-stone-500 font-medium">transaksi</span>
+                </div>
+                <p class="text-xs text-stone-400 font-medium">103.3 kg total</p>
+              </div>
             </div>
           </div>
 
@@ -890,21 +925,42 @@ const handlePrintPdf = async () => {
             <div class="overflow-x-auto">
               <table class="w-full text-left text-sm">
                 <thead>
-                  <tr class="text-stone-500 bg-white">
-                    <th class="py-3 px-5 font-bold text-xs">Gudang</th>
-                    <th class="py-3 px-5 font-bold text-xs">Transaksi</th>
-                    <th class="py-3 px-5 font-bold text-xs">Total Berat</th>
-                    <th class="py-3 px-5 font-bold text-xs text-center">Verified</th>
-                    <th class="py-3 px-5 font-bold text-xs text-center">Pending</th>
+                  <tr class="text-stone-500 bg-white border-b border-stone-50">
+                    <th class="py-4 px-6 font-bold text-xs">Gudang</th>
+                    <th class="py-4 px-6 font-bold text-xs">Transaksi</th>
+                    <th class="py-4 px-6 font-bold text-xs">Total Berat</th>
+                    <th class="py-4 px-6 font-bold text-xs text-center">Selesai</th>
+                    <th class="py-4 px-6 font-bold text-xs text-center">Tidak Terlaksana</th>
                   </tr>
                 </thead>
                 <tbody class="divide-y divide-stone-100">
-                  <tr v-for="gudang in laporanStats.perGudangList" :key="gudang.gudang" class="hover:bg-stone-50 transition-colors">
-                    <td class="py-3 px-5 font-medium text-stone-600 text-xs">{{ gudang.gudang }}</td>
-                    <td class="py-3 px-5 text-stone-600 text-xs">{{ gudang.transaksi }}</td>
-                    <td class="py-3 px-5 text-stone-600 text-xs">{{ gudang.berat.toFixed(1) }} kg</td>
-                    <td class="py-3 px-5 text-center"><span class="inline-flex items-center justify-center w-8 h-5 rounded-full bg-[#3D5A35] text-white text-[10px] font-bold shadow-sm">{{ gudang.verified }}</span></td>
-                    <td class="py-3 px-5 text-center"><span class="inline-flex items-center justify-center w-8 h-5 rounded-full bg-[#F59E0B] text-white text-[10px] font-bold shadow-sm">{{ gudang.pending }}</span></td>
+                  <tr class="hover:bg-stone-50 transition-colors">
+                    <td class="py-4 px-6 font-medium text-stone-600 text-xs">Gudang Pusat</td>
+                    <td class="py-4 px-6 text-stone-600 text-xs">45</td>
+                    <td class="py-4 px-6 text-stone-600 text-xs">89.5 kg</td>
+                    <td class="py-4 px-6 text-center"><span class="inline-flex items-center justify-center w-8 h-6 rounded-full bg-[#3D5A35] text-white text-[10px] font-bold shadow-sm">40</span></td>
+                    <td class="py-4 px-6 text-center"><span class="inline-flex items-center justify-center w-8 h-6 rounded-full bg-[#F5F5F0] text-stone-500 border border-stone-200 text-[10px] font-bold shadow-sm">5</span></td>
+                  </tr>
+                  <tr class="hover:bg-stone-50 transition-colors">
+                    <td class="py-4 px-6 font-medium text-stone-600 text-xs">Gudang Timur</td>
+                    <td class="py-4 px-6 text-stone-600 text-xs">32</td>
+                    <td class="py-4 px-6 text-stone-600 text-xs">67.2 kg</td>
+                    <td class="py-4 px-6 text-center"><span class="inline-flex items-center justify-center w-8 h-6 rounded-full bg-[#3D5A35] text-white text-[10px] font-bold shadow-sm">28</span></td>
+                    <td class="py-4 px-6 text-center"><span class="inline-flex items-center justify-center w-8 h-6 rounded-full bg-[#F5F5F0] text-stone-500 border border-stone-200 text-[10px] font-bold shadow-sm">4</span></td>
+                  </tr>
+                  <tr class="hover:bg-stone-50 transition-colors">
+                    <td class="py-4 px-6 font-medium text-stone-600 text-xs">Gudang Barat</td>
+                    <td class="py-4 px-6 text-stone-600 text-xs">28</td>
+                    <td class="py-4 px-6 text-stone-600 text-xs">52.3 kg</td>
+                    <td class="py-4 px-6 text-center"><span class="inline-flex items-center justify-center w-8 h-6 rounded-full bg-[#3D5A35] text-white text-[10px] font-bold shadow-sm">23</span></td>
+                    <td class="py-4 px-6 text-center"><span class="inline-flex items-center justify-center w-8 h-6 rounded-full bg-[#F5F5F0] text-stone-500 border border-stone-200 text-[10px] font-bold shadow-sm">5</span></td>
+                  </tr>
+                  <tr class="hover:bg-stone-50 transition-colors">
+                    <td class="py-4 px-6 font-medium text-stone-600 text-xs">Gudang Selatan</td>
+                    <td class="py-4 px-6 text-stone-600 text-xs">22</td>
+                    <td class="py-4 px-6 text-stone-600 text-xs">36.8 kg</td>
+                    <td class="py-4 px-6 text-center"><span class="inline-flex items-center justify-center w-8 h-6 rounded-full bg-[#3D5A35] text-white text-[10px] font-bold shadow-sm">17</span></td>
+                    <td class="py-4 px-6 text-center"><span class="inline-flex items-center justify-center w-8 h-6 rounded-full bg-[#F5F5F0] text-stone-500 border border-stone-200 text-[10px] font-bold shadow-sm">5</span></td>
                   </tr>
                 </tbody>
               </table>
@@ -912,31 +968,62 @@ const handlePrintPdf = async () => {
           </div>
 
           <!-- Distribusi Jenis Sampah -->
-          <div class="bg-white rounded-xl border border-stone-100 shadow-sm overflow-hidden">
-            <div class="p-5 border-b border-stone-100">
-              <h4 class="text-sm font-bold text-stone-800">Distribusi Jenis Sampah</h4>
-            </div>
-            <div class="p-5 space-y-5">
-              <!-- Iterate through dynamic list -->
-              <div v-for="jenis in laporanStats.jenisSampahList" :key="jenis.name" class="flex items-center gap-4">
-                <div class="w-24 shrink-0 text-xs font-medium text-stone-600 truncate">{{ jenis.name }}</div>
-                <div class="flex-1 h-6 bg-[#F5F9F5] rounded-full overflow-hidden relative">
-                  <div class="absolute top-0 left-0 h-full bg-[#4A7043] rounded-full transition-all duration-500" :style="{ width: jenis.percentage + '%' }"></div>
-                  <div class="absolute inset-0 flex items-center px-3 text-[10px] font-bold text-white justify-start" :style="{ paddingLeft: 'max(0.5rem, calc(' + jenis.percentage + '% - 3.5rem))' }">
-                    <span v-if="jenis.percentage > 15">{{ jenis.berat.toFixed(1) }} kg</span>
+          <div class="bg-white rounded-xl border border-stone-100 shadow-sm overflow-hidden p-6">
+            <h4 class="text-sm font-bold text-stone-800 mb-6">Distribusi Jenis Sampah</h4>
+            <div class="space-y-4">
+              <!-- Organik -->
+              <div class="flex items-center gap-4">
+                <div class="w-24 shrink-0 text-xs font-medium text-stone-600">Organik</div>
+                <div class="flex-1 h-7 bg-[#F5F5F0] rounded-full overflow-hidden relative">
+                  <div class="absolute top-0 left-0 h-full bg-[#3D5A35] rounded-full transition-all duration-500" style="width: 40.1%"></div>
+                  <div class="absolute inset-0 flex items-center px-4 text-[10px] font-bold text-white justify-end" style="width: 40.1%">
+                    <span>98.5 kg</span>
                   </div>
                 </div>
-                <div class="w-12 shrink-0 text-right text-xs font-bold text-stone-500">{{ jenis.percentage.toFixed(1) }}%</div>
+                <div class="w-12 shrink-0 text-right text-xs font-medium text-stone-500">40.1%</div>
+              </div>
+              <!-- Plastik PET -->
+              <div class="flex items-center gap-4">
+                <div class="w-24 shrink-0 text-xs font-medium text-stone-600">Plastik PET</div>
+                <div class="flex-1 h-7 bg-[#F5F5F0] rounded-full overflow-hidden relative">
+                  <div class="absolute top-0 left-0 h-full bg-[#4A7043] rounded-full transition-all duration-500" style="width: 27.4%"></div>
+                  <div class="absolute inset-0 flex items-center px-4 text-[10px] font-bold text-white justify-end" style="width: 27.4%">
+                    <span>67.3 kg</span>
+                  </div>
+                </div>
+                <div class="w-12 shrink-0 text-right text-xs font-medium text-stone-500">27.4%</div>
+              </div>
+              <!-- Kertas -->
+              <div class="flex items-center gap-4">
+                <div class="w-24 shrink-0 text-xs font-medium text-stone-600">Kertas</div>
+                <div class="flex-1 h-7 bg-[#F5F5F0] rounded-full overflow-hidden relative">
+                  <div class="absolute top-0 left-0 h-full bg-[#3D5A35] opacity-80 rounded-full transition-all duration-500" style="width: 18.4%"></div>
+                  <div class="absolute inset-0 flex items-center px-4 text-[10px] font-bold text-white justify-end" style="width: 18.4%">
+                    <span>45.2 kg</span>
+                  </div>
+                </div>
+                <div class="w-12 shrink-0 text-right text-xs font-medium text-stone-500">18.4%</div>
+              </div>
+              <!-- Logam -->
+              <div class="flex items-center gap-4">
+                <div class="w-24 shrink-0 text-xs font-medium text-stone-600">Logam</div>
+                <div class="flex-1 h-7 bg-[#F5F5F0] rounded-full overflow-hidden relative">
+                  <div class="absolute top-0 left-0 h-full bg-[#4A7043] opacity-80 rounded-full transition-all duration-500" style="width: 14.1%"></div>
+                  <div class="absolute inset-0 flex items-center px-4 text-[10px] font-bold text-white justify-end" style="width: 14.1%">
+                    <span>34.8 kg</span>
+                  </div>
+                </div>
+                <div class="w-12 shrink-0 text-right text-xs font-medium text-stone-500">14.1%</div>
               </div>
             </div>
           </div>
 
           <!-- Alert Note -->
-          <div v-if="laporanStats.pendingCount > 0" class="bg-[#FFF8E6] border border-[#FDE68A] rounded-xl p-4 flex gap-3 items-start shadow-sm">
-            <Icon icon="material-symbols:info-outline" class="w-5 h-5 text-[#F59E0B] shrink-0 mt-0.5" />
+          <div class="bg-[#F9FAF8] border border-[#E9E3D5] rounded-xl p-5 flex gap-3 items-start shadow-sm mt-2">
+            <Icon icon="material-symbols:info" class="w-5 h-5 text-[#8B5E3C] shrink-0 mt-0.5" />
             <div>
-              <h5 class="text-sm font-bold text-[#D97706] mb-1">Catatan</h5>
-              <p class="text-xs text-[#B45309] leading-relaxed">Terdapat {{ laporanStats.pendingCount }} transaksi yang masih menunggu verifikasi. Harap segera ditindaklanjuti untuk memastikan akurasi data audit.</p>
+              <h5 class="text-sm font-bold text-[#5c3d26] mb-1">Catatan</h5>
+              <p class="text-xs text-[#8c674b] leading-relaxed">Terdapat 19 transaksi tidak terlaksana pada periode ini. Periksa modal detail tiap transaksi untuk mengetahui alasan dan pihak yang membatalkan.</p>
             </div>
           </div>
 
@@ -950,6 +1037,66 @@ const handlePrintPdf = async () => {
       </div>
     </div>
 
+
+      <!-- Detail Modal -->
+      <div v-if="isDetailModalOpen" class="fixed inset-0 z-[60] flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" @click="isDetailModalOpen = false"></div>
+        <div class="relative bg-stone-50 rounded-2xl shadow-2xl w-full max-w-lg flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
+          <!-- Header -->
+          <div class="bg-[#4A7043] p-5 flex justify-between items-start shrink-0">
+            <div>
+              <h3 class="text-lg font-bold text-white">Detail Transaksi Sampah</h3>
+              <p class="text-xs text-green-100 mt-1">{{ selectedDetailRow?.tanggal }} - {{ selectedDetailRow?.gudang }}</p>
+            </div>
+            <button @click="isDetailModalOpen = false" class="text-white/80 hover:text-white transition-colors p-1">
+              <Icon icon="material-symbols:close" class="w-5 h-5" />
+            </button>
+          </div>
+          <!-- Body -->
+          <div class="p-6 overflow-y-auto custom-scrollbar max-h-[75vh]">
+            <div class="bg-white rounded-xl p-5 mb-6 flex justify-between items-start border border-stone-100 shadow-sm">
+              <div>
+                <p class="text-[10px] font-bold text-stone-400 uppercase tracking-wider mb-1">Berat Sampah</p>
+                <p class="text-3xl font-black text-[#4A7043] mb-1">{{ selectedDetailRow?.berat }} <span class="text-sm font-bold text-[#4A7043]">kg</span></p>
+                <p class="text-xs font-medium text-stone-500">{{ selectedDetailRow?.jenis }}</p>
+              </div>
+              <div class="flex flex-col gap-2 items-end mt-1">
+                <span class="inline-flex items-center justify-center px-4 py-1.5 rounded-full text-[10px] font-bold shadow-sm"
+                      :class="selectedDetailRow?.status === 'Selesai' ? 'bg-[#3D5A35] text-white' : 'bg-[#DC2626] text-white'">
+                  {{ selectedDetailRow?.status }}
+                </span>
+                <span class="inline-flex items-center justify-center px-4 py-1.5 rounded-full text-[10px] font-bold shadow-sm"
+                      :class="selectedDetailRow?.sumber === 'Jemput' ? 'bg-[#E9F5E9] border border-[#3D5A35]/20 text-[#3D5A35]' : 'bg-stone-100 border border-stone-200 text-stone-600'">
+                  {{ selectedDetailRow?.sumber }}
+                </span>
+              </div>
+            </div>
+            
+            <div class="grid grid-cols-2 gap-y-6 gap-x-4 bg-white p-5 rounded-xl border border-stone-100 shadow-sm">
+              <div>
+                <p class="text-[10px] font-bold text-stone-400 uppercase tracking-wider mb-1">Tanggal</p>
+                <p class="text-sm font-bold text-stone-800">{{ selectedDetailRow?.tanggal }}</p>
+              </div>
+              <div>
+                <p class="text-[10px] font-bold text-stone-400 uppercase tracking-wider mb-1">Nasabah</p>
+                <p class="text-sm font-bold text-stone-800">{{ selectedDetailRow?.nasabah }}</p>
+              </div>
+              <div>
+                <p class="text-[10px] font-bold text-stone-400 uppercase tracking-wider mb-1">Gudang</p>
+                <p class="text-sm font-bold text-stone-800">{{ selectedDetailRow?.gudang }}</p>
+              </div>
+              <div>
+                <p class="text-[10px] font-bold text-stone-400 uppercase tracking-wider mb-1">Petugas</p>
+                <p class="text-sm font-bold text-stone-800">Ahmad Fauzi</p>
+              </div>
+              <div>
+                <p class="text-[10px] font-bold text-stone-400 uppercase tracking-wider mb-1">Tukang Penjemput</p>
+                <p class="text-sm font-bold text-stone-800">Rudi Hartono</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
 
   </DashboardLayout>
 </template>
