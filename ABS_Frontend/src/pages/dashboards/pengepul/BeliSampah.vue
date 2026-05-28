@@ -355,7 +355,7 @@ const alurPembelian = [
     desc: 'Dengan menekan tombol "Proses Pembayaran" Anda akan diarahkan ke halaman pembayaran'
   },
   {
-    title: 'Pembayaran (24 Jam)',
+    title: 'Pembayaran',
     desc: 'Lakukan pembayaran di luar sistem, lalu upload bukti pembayaran'
   },
   {

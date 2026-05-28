@@ -116,7 +116,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted, inject } from "vue";
+import { ref, computed, onMounted, onUnmounted, inject, watch } from "vue";
 import { useRouter } from 'vue-router';
 import { checkRole } from '@/utils';
 import { Icon } from "@iconify/vue";
@@ -136,35 +136,40 @@ const days = ref(0);
 const hours = ref(24);
 const loading = ref(false);
 
-// Countdown Preview Logic
-const previewHours = ref(23);
-const previewMinutes = ref(59);
-const previewSeconds = ref(58);
-let timer = null;
-
-const startPreviewTimer = () => {
-  timer = setInterval(() => {
-    if (previewSeconds.value > 0) {
-      previewSeconds.value--;
-    } else {
-      previewSeconds.value = 59;
-      if (previewMinutes.value > 0) {
-        previewMinutes.value--;
-      } else {
-        previewMinutes.value = 59;
-        if (previewHours.value > 0) {
-          previewHours.value--;
-        } else {
-          previewHours.value = 23;
-        }
-      }
-    }
-  }, 1000);
-};
-
+// Definisikan totalHours lebih awal sebelum dipakai
 const totalHours = computed(() => {
   return (parseInt(days.value || 0) * 24) + parseInt(hours.value || 0);
 });
+
+// Countdown Preview
+const previewHours = ref(0);
+const previewMinutes = ref(0);
+const previewSeconds = ref(0);
+let timer = null;
+
+const startPreviewTimer = () => {
+  if (timer) clearInterval(timer);
+
+  let remainingSeconds = totalHours.value * 3600;
+
+  const update = () => {
+    if (remainingSeconds <= 0) {
+      remainingSeconds = totalHours.value * 3600;
+    }
+    previewHours.value = Math.floor(remainingSeconds / 3600);
+    previewMinutes.value = Math.floor((remainingSeconds % 3600) / 60);
+    previewSeconds.value = remainingSeconds % 60;
+    remainingSeconds--;
+  };
+
+  update();
+  timer = setInterval(update, 1000);
+};
+
+// immediate: true agar langsung jalan saat fetch selesai mengubah totalHours
+watch(totalHours, () => {
+  startPreviewTimer();
+}, { immediate: true });
 
 const fetchConfig = async () => {
   try {
@@ -172,7 +177,7 @@ const fetchConfig = async () => {
     const res = await axios.get("/api/admin/web-config", {
       headers: { Authorization: `Bearer ${token}` }
     });
-    
+
     const deadline = res.data.lama_deadline || 24;
     days.value = Math.floor(deadline / 24);
     hours.value = deadline % 24;
@@ -188,14 +193,14 @@ const saveDeadline = async () => {
     loading.value = true;
     const formData = new FormData();
     formData.append("lama_deadline", totalHours.value);
-    
+
     await axios.post("/api/admin/web-config?_method=PUT", formData, {
-      headers: { 
+      headers: {
         Authorization: `Bearer ${token}`,
         "Content-Type": "multipart/form-data"
       }
     });
-    
+
     alert("Deadline pembayaran berhasil diperbarui!");
   } catch (err) {
     console.error("Failed to save deadline:", err);
@@ -207,7 +212,6 @@ const saveDeadline = async () => {
 
 onMounted(() => {
   fetchConfig();
-  startPreviewTimer();
 });
 
 onUnmounted(() => {
