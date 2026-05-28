@@ -149,14 +149,6 @@ Route::prefix('petugas')->middleware(['auth:sanctum', 'role:petugas'])->group(fu
     Route::post('/penimbangan-antar-sendiri', [PenimbanganController::class, 'penimbanganAntarSendiri']);
 
     Route::get('/summary-laporan', [SummaryLaporanController::class, 'index']);
-});
-
-Route::middleware(['auth:sanctum', 'role:petugas|manager'])->group(function () {
-    // API Laporan
-    Route::get('/laporan/list-sampah', [LaporanController::class, 'indexSampah']);
-    Route::get('/laporan/list-gudang', [LaporanController::class, 'indexGudang']);
-    Route::get('/cetak-laporan/excel', [LaporanController::class, 'exportExcel']);
-    Route::get('/cetak-laporan/pdf', [LaporanController::class, 'exportPdf']);
 
     // Dashboard Stats
     Route::get('/dashboard-stats', [DashboardPetugasController::class, 'index']);
@@ -169,6 +161,15 @@ Route::middleware(['auth:sanctum', 'role:petugas|manager'])->group(function () {
         Route::put('/pesanan-pengepul/{id}/verifikasi-pembayaran', [App\Http\Controllers\Api\Petugas\PesananPengepulController::class, 'verifyPayment']);
         Route::put('/pesanan-pengepul/{id}/selesai', [App\Http\Controllers\Api\Petugas\PesananPengepulController::class, 'completeOrder']);
     });
+});
+
+Route::middleware(['auth:sanctum', 'role:petugas|manager'])->group(function () {
+    // API Laporan
+    Route::get('/laporan/list-sampah', [LaporanController::class, 'indexSampah']);
+    Route::get('/laporan/list-gudang', [LaporanController::class, 'indexGudang']);
+    Route::get('/cetak-laporan/excel', [LaporanController::class, 'exportExcel']);
+    Route::get('/cetak-laporan/pdf', [LaporanController::class, 'exportPdf']);
+
 });
 
 // Route Admin

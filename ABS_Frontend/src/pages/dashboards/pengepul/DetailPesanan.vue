@@ -410,15 +410,15 @@ const mockedLogs = computed(() => {
     logs.push({ title: 'Barang diambil', date: dayjs(order.value.updated_at).format('DD MMMM YYYY pukul HH:mm') })
   }
   if (order.value.status === 'siap_diambil' || order.value.status === 'selesai') {
-    logs.push({ title: 'Pembayaran divalidasi', date: dayjs(order.value.updated_at).subtract(1, 'hour').format('DD MMMM YYYY pukul HH:mm') })
+    logs.push({ title: 'Pembayaran divalidasi', date: dayjs(order.value.updated_at).format('DD MMMM YYYY pukul HH:mm') })
   }
   if (order.value.bukti_transfer) {
-    logs.push({ title: 'Bukti pembayaran diupload', date: dayjs(order.value.updated_at).subtract(2, 'hour').format('DD MMMM YYYY pukul HH:mm') })
+    logs.push({ title: 'Bukti pembayaran diupload', date: dayjs(order.value.updated_at).format('DD MMMM YYYY pukul HH:mm') })
   }
   
   // Show "Disetujui petugas" only if the request has reached approved/proses/beyond state and wasn't rejected in pending state
   if (order.value.status !== 'pending' && !(order.value.status === 'tolak' && !order.value.bukti_transfer)) {
-    logs.push({ title: 'Disetujui petugas', date: dayjs(order.value.created_at).add(30, 'minute').format('DD MMMM YYYY pukul HH:mm') })
+    logs.push({ title: 'Disetujui petugas', date: dayjs(order.value.created_at).format('DD MMMM YYYY pukul HH:mm') })
   }
   
   logs.push({ title: 'Request dibuat', date: dayjs(order.value.created_at).format('DD MMMM YYYY pukul HH:mm') })

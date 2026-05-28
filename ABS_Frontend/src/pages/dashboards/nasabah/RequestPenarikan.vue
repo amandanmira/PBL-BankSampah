@@ -2,9 +2,7 @@
   <DashboardLayout title="Penarikan Uang">
     <div class="max-w-4xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-20">
       
-      <!-- Saldo Tersedia Card -->
       <div class="relative overflow-hidden bg-gradient-to-br from-[#4A7043] to-[#3D5C37] rounded-[2.5rem] p-8 text-white shadow-2xl shadow-[#4A7043]/20">
-        <!-- Background Decoration -->
         <div class="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/2 blur-3xl"></div>
         <div class="absolute bottom-0 left-0 w-40 h-40 bg-black/5 rounded-full translate-y-1/2 -translate-x-1/2 blur-2xl"></div>
         
@@ -21,10 +19,8 @@
         </div>
       </div>
 
-      <!-- Main Container -->
       <div class="bg-white rounded-[2.5rem] p-8 md:p-10 shadow-sm border border-stone-100 space-y-10">
         
-        <!-- Input Jumlah Section -->
         <div class="space-y-6">
           <label class="flex items-center gap-2 text-xs font-black text-stone-400 uppercase tracking-[0.2em]">
             <Icon icon="material-symbols:payments-outline" class="w-4 h-4" />
@@ -42,7 +38,6 @@
             />
           </div>
 
-          <!-- Quick Amounts -->
           <div class="flex flex-wrap gap-3">
             <button 
               v-for="amount in presetAmounts" 
@@ -63,7 +58,6 @@
 
         <hr class="border-stone-100" />
 
-        <!-- Pilih Rekening Section -->
         <div class="space-y-6">
           <label class="flex items-center gap-2 text-xs font-black text-stone-400 uppercase tracking-[0.2em]">
             <Icon icon="material-symbols:account-balance-outline" class="w-4 h-4" />
@@ -71,7 +65,6 @@
           </label>
 
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <!-- Rekening Profil Card -->
             <button 
               @click="setTipeRekening('profil')"
               :class="cn(
@@ -98,13 +91,11 @@
                 </div>
               </div>
               
-              <!-- Completion Check Overlay for Profile -->
               <div v-if="tipeRekening === 'profil' && !isProfileComplete" class="absolute inset-0 bg-white/40 backdrop-blur-[1px] flex flex-col items-center justify-center p-4 text-center">
                  <Icon icon="material-symbols:lock-outline" class="w-6 h-6 text-amber-600 mb-2" />
               </div>
             </button>
 
-            <!-- Rekening Lain Card -->
             <button 
               @click="setTipeRekening('lain')"
               :class="cn(
@@ -127,7 +118,6 @@
             </button>
           </div>
 
-          <!-- Profile Warning Alert -->
           <div v-if="tipeRekening === 'profil' && !isProfileComplete" class="bg-amber-50 border border-amber-200 rounded-2xl p-5 flex items-start gap-4 animate-in slide-in-from-top-2 duration-300">
             <div class="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center shrink-0">
               <Icon icon="material-symbols:info-outline" class="w-5 h-5 text-amber-600" />
@@ -141,7 +131,6 @@
             </div>
           </div>
 
-          <!-- Rekening Lain Form -->
           <div v-if="tipeRekening === 'lain'" class="bg-[#FDF8F6] border border-[#A86444]/10 rounded-[2rem] p-8 space-y-6 animate-in zoom-in-95 duration-500">
              <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div class="space-y-2">
@@ -160,7 +149,6 @@
           </div>
         </div>
 
-        <!-- Action Button -->
         <button 
           @click="submitRequest"
           :disabled="isSubmitting || !isFormValid"
@@ -178,7 +166,6 @@
       </div>
     </div>
 
-    <!-- Success Modal -->
     <div v-if="showSuccessModal" class="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
       <div class="bg-white rounded-[3rem] w-full max-w-md p-10 flex flex-col items-center text-center shadow-2xl animate-in zoom-in-95 duration-300">
         <div class="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center mb-8">
@@ -192,7 +179,9 @@
         
         <div class="w-full bg-[#F9F9F7] rounded-3xl p-6 border border-stone-100 mb-8">
            <p class="text-[10px] font-black text-stone-400 uppercase tracking-widest mb-1">Tracking ID</p>
-           <p class="text-xl font-black text-[#4A7043] tracking-wider">#WD-{{ Math.floor(Math.random() * 100000000) }}</p>
+           <p class="text-xl font-black text-[#4A7043] tracking-wider">
+             #WD-{{ String(newPenarikanId).padStart(3, '0') }}
+           </p>
         </div>
         
         <div class="flex flex-col w-full gap-3">
@@ -231,6 +220,7 @@ const rekeningProfil = ref({
 const tipeRekening = ref('profil'); // 'profil' or 'lain'
 const isSubmitting = ref(false);
 const showSuccessModal = ref(false);
+const newPenarikanId = ref(null); // Menyimpan ID penarikan dari database
 
 const form = ref({
   jumlah: null,
@@ -317,9 +307,13 @@ const submitRequest = async () => {
   
   isSubmitting.value = true;
   try {
-    await axios.post('/api/nasabah/request-penarikan', form.value);
+    const res = await axios.post('/api/nasabah/request-penarikan', form.value);
+    
+    // Menangkap penarikan_id dari response data backend
+    newPenarikanId.value = res.data.data.penarikan_id;
+    
     showSuccessModal.value = true;
-    // Refresh data
+    // Refresh data saldo
     fetchData();
   } catch (err) {
     alert(err.response?.data?.message || "Gagal mengirim request penarikan.");
