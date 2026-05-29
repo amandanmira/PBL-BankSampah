@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, onMounted, inject } from "vue";
+import { ref, computed, onMounted, inject, watch } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import { Icon } from "@iconify/vue";
 import { cn } from "@/lib/utils";
@@ -123,8 +123,94 @@ const fetchWebConfig = async () => {
   }
 };
 
+// Notification Red Dot Logic
+const menuUpdates = ref({});
+const lastVisitedMenus = ref({});
+
+const getUserId = () => {
+  return user.value.admin_id || user.value.petugas_id || user.value.manager_id || user.value.pengepul_id || user.value.nasabah_id || user.value.id || 'guest';
+};
+
+const initLastVisited = () => {
+  try {
+    const stored = localStorage.getItem(`lastVisitedMenus_${role.value}_${getUserId()}`);
+    if (stored) {
+      lastVisitedMenus.value = JSON.parse(stored);
+    }
+  } catch (e) {
+    console.error(e);
+  }
+};
+
+// Initialize synchronously so it's ready before watch immediate
+initLastVisited();
+
+const saveLastVisited = () => {
+  try {
+    localStorage.setItem(`lastVisitedMenus_${role.value}_${getUserId()}`, JSON.stringify(lastVisitedMenus.value));
+  } catch (e) {
+    console.error(e);
+  }
+};
+
+const fetchMenuUpdates = async () => {
+  try {
+    const token = sessionStorage.getItem('token');
+    if (!token) return;
+    const res = await axios.get(`${axios.defaults.baseURL}/api/menu-updates`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    menuUpdates.value = res.data;
+    
+    // Automatically mark the current page as visited to catch updates while active
+    const currentMenu = menuItems.value.find(item => item.path === route.path || route.path.startsWith(item.path + '/'));
+    if (currentMenu) {
+      markAsVisited(currentMenu.path);
+    }
+  } catch (e) {
+    console.error('Failed to fetch menu updates', e);
+  }
+};
+
+const hasUpdate = (path) => {
+  // Never show red dot if the user is currently on this page
+  if (route.path === path || route.path.startsWith(path + '/')) {
+    return false;
+  }
+
+  const updateTimestamp = menuUpdates.value[path];
+  const lastVisitedTimestamp = lastVisitedMenus.value[path];
+  
+  if (!updateTimestamp) return false;
+  if (!lastVisitedTimestamp) return true;
+  
+  return updateTimestamp > lastVisitedTimestamp;
+};
+
+const markAsVisited = (path) => {
+  const serverTime = menuUpdates.value[path] || 0;
+  const localTime = Math.floor(Date.now() / 1000);
+  const currentSaved = lastVisitedMenus.value[path] || 0;
+  
+  // Guarantee we never downgrade the timestamp
+  lastVisitedMenus.value = {
+    ...lastVisitedMenus.value,
+    [path]: Math.max(serverTime, localTime, currentSaved)
+  };
+  saveLastVisited();
+};
+
+watch(() => route.path, (newPath) => {
+  const matchingMenu = menuItems.value.find(item => item.path === newPath || newPath.startsWith(item.path + '/'));
+  if (matchingMenu) {
+    markAsVisited(matchingMenu.path);
+  }
+}, { immediate: true });
+
 onMounted(() => {
   fetchWebConfig();
+  fetchMenuUpdates();
+  setInterval(fetchMenuUpdates, 3 * 60 * 1000); // Poll every 3 minutes
 });
 </script>
 
@@ -256,6 +342,7 @@ onMounted(() => {
           v-for="item in menuItems"
           :key="item.path"
           :to="item.path"
+          @click="markAsVisited(item.path)"
           :class="
             cn(
               'flex items-center rounded-2xl transition-all duration-200 group overflow-hidden',
@@ -266,7 +353,10 @@ onMounted(() => {
             )
           "
         >
-          <Icon :icon="item.icon" class="w-6 h-6 shrink-0" />
+          <div class="relative shrink-0">
+            <Icon :icon="item.icon" class="w-6 h-6" />
+            <div v-if="hasUpdate(item.path)" class="absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-500 rounded-full shadow-sm animate-pulse border-2 border-[#4A7043] group-hover:border-white/10" :class="(route.path === item.path || (item.path === '/dashboard-pengepul/keranjang' && route.path === '/dashboard-pengepul/ringkasan-pembelian') || (item.path === '/dashboard-pengepul/pesanan-saya' && route.path.startsWith('/dashboard-pengepul/pesanan/'))) ? 'border-[#A86444]' : ''"></div>
+          </div>
 
           <!-- Nav Label Reveal -->
           <div

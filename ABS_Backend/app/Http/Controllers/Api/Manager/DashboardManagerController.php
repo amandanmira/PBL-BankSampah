@@ -141,11 +141,11 @@ class DashboardManagerController extends Controller
             ->groupBy('year', 'month')
             ->get();
 
-        $gudangStatusRaw = \Illuminate\Support\Facades\DB::table('sampahs')
-            ->join('gudangs', 'sampahs.gudang_id', '=', 'gudangs.gudang_id')
+        $gudangStatusRaw = \Illuminate\Support\Facades\DB::table('gudangs')
+            ->leftJoin('sampahs', 'gudangs.gudang_id', '=', 'sampahs.gudang_id')
             ->select(
                 'gudangs.alamat as nama',
-                \Illuminate\Support\Facades\DB::raw('SUM(sampahs.stok) as total_stok')
+                \Illuminate\Support\Facades\DB::raw('COALESCE(SUM(sampahs.stok), 0) as total_stok')
             )
             ->groupBy('gudangs.gudang_id', 'gudangs.alamat')
             ->get();

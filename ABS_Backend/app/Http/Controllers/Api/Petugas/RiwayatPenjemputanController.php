@@ -13,8 +13,11 @@ class RiwayatPenjemputanController extends Controller
     {
         $search = $request->query('search');
 
+        $user = \Illuminate\Support\Facades\Auth::user();
+        $gudangId = $user->gudang_id;
+
         $query = Penjemputan::with(['nasabah', 'tukang', 'detailPenjemputan.sampah.itemSampah', 'penimbangan.sampah.itemSampah', 'penimbangan.transaksi', 'gudang'])
-            // ->whereIn('status', ['selesai', 'tolak', 'batal'])
+            ->where('gudang_id', $gudangId)
             ->latest();
 
         if ($search) {

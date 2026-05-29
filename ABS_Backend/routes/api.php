@@ -48,6 +48,7 @@ Route::post('password/email', [App\Http\Controllers\Api\PasswordResetController:
 Route::post('password/reset', [App\Http\Controllers\Api\PasswordResetController::class, 'resetPassword']);
 
 Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/menu-updates', [App\Http\Controllers\Api\MenuNotificationController::class, 'getUpdates']);
     Route::post('/logout', [AuthController::class, 'logout']);
 });
 

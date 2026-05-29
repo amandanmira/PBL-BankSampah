@@ -284,11 +284,13 @@
           Riwayat Aktivitas
         </h3>
 
-        <div class="relative pl-6 space-y-8 before:absolute before:left-[11px] before:top-2 before:bottom-2 before:w-0.5 before:bg-gray-100">
-          <div v-for="(log, i) in mockedLogs" :key="i" class="relative">
-            <div :class="['absolute -left-[23px] top-1 w-4 h-4 rounded-full border-4 border-white z-10 shadow-sm', i === 0 ? 'bg-[#8B5E3C]' : 'bg-gray-300']"></div>
-            <div>
-              <h4 :class="['text-sm font-bold leading-none mb-1', i === 0 ? 'text-gray-800' : 'text-gray-400']">{{ log.title }}</h4>
+        <div class="relative space-y-8 before:absolute before:left-[15px] before:top-4 before:bottom-4 before:w-0.5 before:bg-gray-100">
+          <div v-for="(log, i) in mockedLogs" :key="i" class="relative pl-12 flex items-start">
+            <div class="absolute left-0 top-0 w-8 h-8 rounded-full bg-[#8B5E3C]/10 flex items-center justify-center z-10 ring-[6px] ring-white">
+              <Icon :icon="log.icon" class="w-4 h-4 text-[#8B5E3C]" />
+            </div>
+            <div class="pt-1.5">
+              <h4 class="text-sm font-bold text-gray-800 mb-1">{{ log.title }}</h4>
               <p class="text-xs text-gray-400">{{ log.date }}</p>
             </div>
           </div>
@@ -400,29 +402,56 @@ const mockedLogs = computed(() => {
   if (!order.value) return []
   const logs = []
   
+  // 1. Request Dibuat
+  logs.push({ 
+    title: 'Request dibuat', 
+    date: dayjs(order.value.created_at).format('DD MMMM YYYY pukul HH:mm'),
+    icon: 'material-symbols:inventory-2-outline'
+  })
+
+  // 2. Bukti Pembayaran Diupload
+  if (order.value.bukti_transfer) {
+    logs.push({ 
+      title: 'Bukti pembayaran diupload', 
+      date: dayjs(order.value.updated_at).format('DD MMMM YYYY pukul HH:mm'),
+      icon: 'material-symbols:upload'
+    })
+  }
+
+  // 3. Pembayaran Divalidasi
+  if (order.value.status === 'siap_diambil' || order.value.status === 'selesai') {
+    logs.push({ 
+      title: 'Pembayaran divalidasi', 
+      date: dayjs(order.value.updated_at).format('DD MMMM YYYY pukul HH:mm'),
+      icon: 'material-symbols:verified-outline'
+    })
+  }
+
+  // 4. Barang Diambil
+  if (order.value.status === 'selesai') {
+    logs.push({ 
+      title: 'Barang diambil', 
+      date: dayjs(order.value.updated_at).format('DD MMMM YYYY pukul HH:mm'),
+      icon: 'material-symbols:check-circle-outline'
+    })
+  }
+
+  // Status Penolakan / Pembatalan
   if (order.value.status === 'tolak') {
-    logs.push({ title: 'Pesanan ditolak oleh petugas', date: dayjs(order.value.updated_at).format('DD MMMM YYYY pukul HH:mm') })
+    logs.push({ 
+      title: 'Pesanan ditolak oleh petugas', 
+      date: dayjs(order.value.updated_at).format('DD MMMM YYYY pukul HH:mm'),
+      icon: 'material-symbols:cancel-outline'
+    })
   }
   if (order.value.status === 'batal') {
-    logs.push({ title: 'Pesanan dibatalkan', date: dayjs(order.value.updated_at).format('DD MMMM YYYY pukul HH:mm') })
+    logs.push({ 
+      title: 'Pesanan dibatalkan', 
+      date: dayjs(order.value.updated_at).format('DD MMMM YYYY pukul HH:mm'),
+      icon: 'material-symbols:cancel-outline'
+    })
   }
-  if (order.value.status === 'selesai') {
-    logs.push({ title: 'Barang diambil', date: dayjs(order.value.updated_at).format('DD MMMM YYYY pukul HH:mm') })
-  }
-  if (order.value.status === 'siap_diambil' || order.value.status === 'selesai') {
-    logs.push({ title: 'Pembayaran divalidasi', date: dayjs(order.value.updated_at).format('DD MMMM YYYY pukul HH:mm') })
-  }
-  if (order.value.bukti_transfer) {
-    logs.push({ title: 'Bukti pembayaran diupload', date: dayjs(order.value.updated_at).format('DD MMMM YYYY pukul HH:mm') })
-  }
-  
-  // Show "Disetujui petugas" only if the request has reached approved/proses/beyond state and wasn't rejected in pending state
-  if (order.value.status !== 'pending' && !(order.value.status === 'tolak' && !order.value.bukti_transfer)) {
-    logs.push({ title: 'Disetujui petugas', date: dayjs(order.value.created_at).format('DD MMMM YYYY pukul HH:mm') })
-  }
-  
-  logs.push({ title: 'Request dibuat', date: dayjs(order.value.created_at).format('DD MMMM YYYY pukul HH:mm') })
-  
+
   return logs
 })
 

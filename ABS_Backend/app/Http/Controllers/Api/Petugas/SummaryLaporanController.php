@@ -26,7 +26,7 @@ class SummaryLaporanController extends Controller
         $sampah = collect($request->sampah)->pluck('sampah_id')->toArray();
 
         // Ambil Data
-        $transaksiPengepulData = TransaksiPengepul::whereBetween('created_at', [$startDate, $endDate])
+        $transaksiPengepulData = TransaksiPengepul::whereBetween('updated_at', [$startDate, $endDate])
             ->where('status', 'selesai')
             ->when($gudangId, function ($query) use ($gudangId) {
                 $query->whereHas('detailTransaksi.sampah.gudang', function ($q) use ($gudangId) {
@@ -38,9 +38,9 @@ class SummaryLaporanController extends Controller
                     $q->whereIn('item_id', $sampah);
                 });
             })
-            ->with('detailTransaksi')
+            ->with(['detailTransaksi.sampah.itemSampah', 'pengepul'])
             ->get();
-        $transaksiNasabahData = TransaksiNasabah::whereBetween('created_at', [$startDate, $endDate])
+        $transaksiNasabahData = TransaksiNasabah::whereBetween('updated_at', [$startDate, $endDate])
             ->where('status', 'selesai')
             ->when($gudangId, function ($query) use ($gudangId) {
                 $query->whereHas('penimbangan.sampah.gudang', function ($q) use ($gudangId) {
@@ -52,7 +52,12 @@ class SummaryLaporanController extends Controller
                     $q->whereIn('item_id', $sampah);
                 });
             })
-            ->with('penimbangan')
+            ->with(['penimbangan.sampah.itemSampah', 'penimbangan.nasabah', 'penimbangan.penjemputan'])
+            ->get();
+
+        $penarikanData = Penarikan::whereBetween('updated_at', [$startDate, $endDate])
+            ->where('status', 'selesai')
+            ->with('nasabah')
             ->get();
 
         $details = $transaksiPengepulData->flatMap(function ($transaksi) {
@@ -98,7 +103,13 @@ class SummaryLaporanController extends Controller
 
         return response()->json([
             'status' => 'success',
-            'data' => $dataStatistik
+            'data' => $dataStatistik,
+            'details' => [
+                'penjemputan' => $transaksiNasabahData->where('tipe_transaksi', 'dijemput')->values(),
+                'setor_manual' => $transaksiNasabahData->where('tipe_transaksi', 'antar_sendiri')->values(),
+                'penarikan' => $penarikanData,
+                'pesanan_pengepul' => $transaksiPengepulData->values(),
+            ]
         ]);
     }
 }

@@ -29,6 +29,7 @@ const currentGudangId = computed(() => user.value.gudang_id);
 const currentGudangNama = computed(() => user.value.gudang?.nama || `Gudang ${user.value.gudang_id}`);
 
 // Modal States
+const isDetailModalOpen = ref(false);
 const isConfirmApproveOpen = ref(false);
 const isConfirmRejectOpen = ref(false);
 const isProofModalOpen = ref(false);
@@ -50,6 +51,18 @@ const formatRupiah = (angka) => {
 const formatDate = (dateStr) => {
   if (!dateStr) return "-";
   return dateStr.split("T")[0];
+};
+
+const formatDateTime = (dateStr) => {
+  if (!dateStr) return "-";
+  const date = new Date(dateStr);
+  return date.toLocaleString('id-ID', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  });
 };
 
 const getStatusLabel = (order) => {
@@ -178,7 +191,13 @@ const openCompleteCollectionModal = (order) => {
   isCompleteCollectionModalOpen.value = true;
 };
 
+const openDetailModal = (order) => {
+  selectedOrder.value = order;
+  isDetailModalOpen.value = true;
+};
+
 const closeAllModals = () => {
+  isDetailModalOpen.value = false;
   isConfirmApproveOpen.value = false;
   isConfirmRejectOpen.value = false;
   isProofModalOpen.value = false;
@@ -438,8 +457,15 @@ onMounted(() => {
             </div>
 
             <!-- Dynamic Actions based on Tab & Order Status -->
-            <div class="w-full md:w-auto flex items-center justify-end gap-3 self-stretch md:self-auto">
+            <div class="w-full md:w-auto flex flex-wrap items-center justify-end gap-3 self-stretch md:self-auto">
               
+              <button 
+                @click="openDetailModal(order)"
+                class="flex-1 md:flex-none px-4 py-2 border border-stone-200 text-stone-600 rounded-xl text-xs font-semibold hover:bg-stone-50 transition-all flex items-center justify-center gap-1"
+              >
+                Lihat Detail
+              </button>
+
               <!-- Tab: Perlu Validasi -->
               <template v-if="activeFilter === 'perlu_validasi'">
                 <!-- Substate 1: Pending stock verification -->
@@ -500,21 +526,7 @@ onMounted(() => {
                 </button>
               </template>
 
-              <!-- Tab: Selesai -->
-              <template v-else-if="activeFilter === 'selesai'">
-                <div class="flex items-center gap-1 text-[#4A7043] text-sm font-bold py-2">
-                  <span>✓</span>
-                  <span>Tugas Selesai / Barang Telah Diambil</span>
-                </div>
-              </template>
-
-              <!-- Tab: Ditolak/Batal -->
-              <template v-else-if="activeFilter === 'ditolak'">
-                <div class="w-full bg-red-50 border border-red-100 rounded-xl p-3.5 text-xs text-red-700 font-medium leading-relaxed">
-                  <span class="font-extrabold uppercase text-[10px] tracking-wider block mb-0.5">Alasan Pembatalan/Penolakan:</span>
-                  {{ order.ket_status || 'Tidak ada keterangan yang dicantumkan.' }}
-                </div>
-              </template>
+              <!-- Tab: Selesai and Ditolak now only show Lihat Detail button which is outside template -->
 
             </div>
           </div>
@@ -727,6 +739,84 @@ onMounted(() => {
               <Icon v-if="isSubmitting" icon="material-symbols:hourglass-empty" class="w-4 h-4 animate-spin" />
               <span>Tolak Bukti</span>
             </button>
+          </div>
+        </div>
+
+        <!-- Modal: Detail Pesanan -->
+        <div v-if="isDetailModalOpen && selectedOrder" class="relative bg-white w-full max-w-2xl rounded-3xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300 p-0 flex flex-col max-h-[90vh]">
+          <div class="flex justify-between items-center p-6 border-b border-stone-100">
+            <h3 class="text-lg font-black text-stone-800">Detail Pesanan PSN-{{ String(selectedOrder.transaksi_id).padStart(3, '0') }}</h3>
+            <button @click="closeAllModals" class="p-2 hover:bg-stone-50 rounded-xl transition-colors text-stone-400">
+              <Icon icon="material-symbols:close" class="w-6 h-6" />
+            </button>
+          </div>
+          
+          <div class="p-6 overflow-y-auto no-scrollbar space-y-6">
+            <!-- Pengepul Info -->
+            <div class="bg-stone-50 rounded-2xl p-4 border border-stone-100 space-y-3">
+              <h4 class="text-xs font-bold text-stone-400 uppercase tracking-wider">Informasi Pengepul</h4>
+              <div class="grid grid-cols-2 gap-4">
+                <div>
+                  <p class="text-xs text-stone-500 mb-1">Nama Lengkap</p>
+                  <p class="text-sm font-bold text-stone-800">{{ selectedOrder.pengepul?.nama || '-' }}</p>
+                </div>
+                <div>
+                  <p class="text-xs text-stone-500 mb-1">Nama Lembaga</p>
+                  <p class="text-sm font-bold text-stone-800">{{ selectedOrder.pengepul?.nama_lembaga || '-' }}</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Cancel/Reject Reason (Only if status is tolak or batal) -->
+            <div v-if="['tolak', 'batal'].includes(selectedOrder.status)" class="bg-red-50 rounded-2xl p-4 border border-red-100 space-y-2">
+              <h4 class="text-xs font-bold text-red-500 uppercase tracking-wider">Alasan Pembatalan / Penolakan</h4>
+              <p class="text-sm font-semibold text-red-700 leading-relaxed">{{ selectedOrder.ket_status || 'Tidak ada keterangan yang dicantumkan.' }}</p>
+            </div>
+
+            <!-- Item Pesanan -->
+            <div class="space-y-3">
+              <h4 class="text-xs font-bold text-stone-400 uppercase tracking-wider">Detail Barang</h4>
+              <div class="bg-white border border-stone-100 rounded-2xl overflow-hidden shadow-sm">
+                <div v-for="(item, index) in selectedOrder.detail_transaksi" :key="item.detail_id" class="p-4 flex justify-between items-center" :class="{ 'border-t border-stone-50': index > 0 }">
+                  <div class="flex-1">
+                    <p class="text-sm font-bold text-stone-800">{{ item.sampah?.item_sampah?.nama }}</p>
+                    <p class="text-xs text-stone-500 mt-0.5">{{ item.sampah?.gudang?.nama || `Gudang ${item.sampah?.gudang_id}` }}</p>
+                  </div>
+                  <div class="text-right">
+                    <p class="text-sm font-bold text-stone-800">{{ item.berat }} kg <span class="text-xs text-stone-400 font-normal ml-1">× {{ formatRupiah(item.harga) }}</span></p>
+                    <p class="text-sm font-bold text-[#4A7043] mt-0.5">{{ formatRupiah(item.berat * item.harga) }}</p>
+                  </div>
+                </div>
+                <div class="bg-stone-50 p-4 border-t border-stone-100 flex justify-between items-center">
+                  <span class="text-sm font-bold text-stone-600">Total Harga</span>
+                  <span class="text-base font-black text-stone-800">{{ formatRupiah(selectedOrder.total_harga || selectedOrder.detail_transaksi.reduce((a, d) => a + (d.berat * d.harga), 0)) }}</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Bukti Transfer -->
+            <div v-if="selectedOrder.bukti_transfer" class="space-y-3">
+              <h4 class="text-xs font-bold text-stone-400 uppercase tracking-wider">Bukti Transfer</h4>
+              <div class="flex justify-center bg-stone-50 rounded-2xl p-4 overflow-hidden border border-stone-100">
+                <img 
+                  :src="`${axios.defaults.baseURL}/storage/${selectedOrder.bukti_transfer}`" 
+                  class="max-h-60 max-w-full object-contain rounded-xl shadow-sm"
+                  alt="Bukti Transfer Pengepul"
+                />
+              </div>
+            </div>
+
+            <!-- Timestamps -->
+            <div class="grid grid-cols-2 gap-4">
+              <div class="bg-stone-50 rounded-2xl p-4 border border-stone-100">
+                <p class="text-xs text-stone-500 mb-1">Pesanan Dibuat</p>
+                <p class="text-sm font-bold text-stone-800">{{ formatDateTime(selectedOrder.created_at) }}</p>
+              </div>
+              <div v-if="selectedOrder.status === 'selesai'" class="bg-green-50 rounded-2xl p-4 border border-green-100">
+                <p class="text-xs text-green-600 mb-1">Pesanan Selesai</p>
+                <p class="text-sm font-bold text-green-800">{{ formatDateTime(selectedOrder.updated_at) }}</p>
+              </div>
+            </div>
           </div>
         </div>
 
