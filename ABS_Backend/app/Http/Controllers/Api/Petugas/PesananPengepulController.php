@@ -35,7 +35,9 @@ class PesananPengepulController extends Controller
             'pengepul',
             'detailTransaksi.sampah.itemSampah',
             'detailTransaksi.sampah.gudang'
-        ]);
+        ])->whereHas('detailTransaksi.sampah', function ($q) use ($gudangId) {
+            $q->where('gudang_id', $gudangId);
+        });
 
         // Apply search if provided
         if (!empty($search)) {
@@ -75,13 +77,22 @@ class PesananPengepulController extends Controller
         })->count();
 
         // 2. Count for Siap Diambil
-        $siapDiambilCount = TransaksiPengepul::where('status', 'siap_diambil')->count();
+        $siapDiambilCount = TransaksiPengepul::where('status', 'siap_diambil')
+            ->whereHas('detailTransaksi.sampah', function ($q) use ($gudangId) {
+                $q->where('gudang_id', $gudangId);
+            })->count();
 
         // 3. Count for Selesai
-        $selesaiCount = TransaksiPengepul::where('status', 'selesai')->count();
+        $selesaiCount = TransaksiPengepul::where('status', 'selesai')
+            ->whereHas('detailTransaksi.sampah', function ($q) use ($gudangId) {
+                $q->where('gudang_id', $gudangId);
+            })->count();
 
         // 4. Count for Ditolak / Batal
-        $ditolakCount = TransaksiPengepul::whereIn('status', ['tolak', 'batal'])->count();
+        $ditolakCount = TransaksiPengepul::whereIn('status', ['tolak', 'batal'])
+            ->whereHas('detailTransaksi.sampah', function ($q) use ($gudangId) {
+                $q->where('gudang_id', $gudangId);
+            })->count();
 
         // Apply Tab Filter to base query
         if ($activeTab === 'perlu_validasi') {
