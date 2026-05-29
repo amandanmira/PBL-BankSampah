@@ -4,7 +4,7 @@ import { Icon } from "@iconify/vue";
 import DashboardLayout from "@/layouts/DashboardLayout.vue";
 import Swal from 'sweetalert2';
 import dayjs from 'dayjs';
-import { getListGudang, getListSampah, fetchAllRiwayatPenjemputan, exportLaporanExcel, exportLaporanPdf } from '@/lib/api/manager/auditApi';
+import { getListGudang, getListSampah, fetchAllRiwayatPenjemputan, fetchAllRiwayatPenarikan, exportLaporanExcel, exportLaporanPdf } from '@/lib/api/manager/auditApi';
 
 const activeTab = ref('Riwayat Sampah');
 const isGroupedByGudang = ref(true);
@@ -21,7 +21,158 @@ const gudangOptions = ref([]);
 const jenisSampahOptions = ref([]);
 const rawRiwayatData = ref([]);
 
+
+// --- Penarikan State ---
+const rawRiwayatPenarikanData = ref([]);
+const searchPenarikan = ref('');
+const currentPenarikanPage = ref(1);
+const penarikanItemsPerPage = ref(10);
+
+const filterPenarikanForm = ref({
+  gudang: 'Semua Gudang',
+  start_date: '',
+  end_date: '',
+  status: []
+});
+const appliedPenarikanFilter = ref({
+  gudang: 'Semua Gudang',
+  start_date: '',
+  end_date: '',
+  status: []
+});
+
+const isFilterPenarikanModalOpen = ref(false);
+const isDetailPenarikanModalOpen = ref(false);
+const selectedPenarikan = ref(null);
+
+const statusPenarikanOptions = ['selesai', 'pending', 'proses', 'tolak'];
+
+const formatRupiah = (value) => {
+  return new Intl.NumberFormat("id-ID", {
+    style: "currency",
+    currency: "IDR",
+    minimumFractionDigits: 0,
+  }).format(value);
+};
+
+const formatStatusPenarikan = (status) => {
+  if (status === 'selesai') return 'Selesai';
+  if (status === 'pending' || status === 'proses') return 'Diproses';
+  if (status === 'tolak') return 'Ditolak';
+  return status;
+};
+
+const getStatusColorPenarikan = (status) => {
+  if (status === 'selesai') return 'bg-[#4A7043] text-white';
+  if (status === 'pending' || status === 'proses') return 'bg-[#F59E0B] text-white';
+  if (status === 'tolak') return 'bg-[#EF4444] text-white';
+  return 'bg-stone-500 text-white';
+};
+
+const openFilterPenarikanModal = () => {
+  filterPenarikanForm.value.gudang = appliedPenarikanFilter.value.gudang;
+  filterPenarikanForm.value.start_date = appliedPenarikanFilter.value.start_date;
+  filterPenarikanForm.value.end_date = appliedPenarikanFilter.value.end_date;
+  filterPenarikanForm.value.status = [...appliedPenarikanFilter.value.status];
+  isFilterPenarikanModalOpen.value = true;
+};
+
+const terapkanFilterPenarikan = () => {
+  appliedPenarikanFilter.value.gudang = filterPenarikanForm.value.gudang;
+  appliedPenarikanFilter.value.start_date = filterPenarikanForm.value.start_date;
+  appliedPenarikanFilter.value.end_date = filterPenarikanForm.value.end_date;
+  appliedPenarikanFilter.value.status = [...filterPenarikanForm.value.status];
+  currentPenarikanPage.value = 1;
+  isFilterPenarikanModalOpen.value = false;
+};
+
+const resetFilterPenarikanForm = () => {
+  filterPenarikanForm.value.gudang = 'Semua Gudang';
+  filterPenarikanForm.value.start_date = '';
+  filterPenarikanForm.value.end_date = '';
+  filterPenarikanForm.value.status = [];
+};
+
+const toggleStatusPenarikan = (status) => {
+  const index = filterPenarikanForm.value.status.indexOf(status);
+  if (index === -1) filterPenarikanForm.value.status.push(status);
+  else filterPenarikanForm.value.status.splice(index, 1);
+};
+
+const openDetailPenarikan = (row) => {
+  selectedPenarikan.value = row;
+  isDetailPenarikanModalOpen.value = true;
+};
+
+const filteredPenarikanData = computed(() => {
+  let result = rawRiwayatPenarikanData.value;
+  
+  if (searchPenarikan.value) {
+    const s = searchPenarikan.value.toLowerCase();
+    result = result.filter(r => 
+      (r.penarikan_id && r.penarikan_id.toLowerCase().includes(s)) ||
+      (r.nasabah?.nama && r.nasabah.nama.toLowerCase().includes(s)) ||
+      (r.nama_bank && r.nama_bank.toLowerCase().includes(s))
+    );
+  }
+
+  if (appliedPenarikanFilter.value.gudang !== 'Semua Gudang') {
+    // Note: If penarikan doesn't have gudang directly, we might filter by petugas's gudang if available.
+    // For now we check if we can. Since riwayat doesn't eager load gudang, this might not work perfectly unless added to backend.
+    result = result.filter(r => r.petugas?.gudang?.alamat === appliedPenarikanFilter.value.gudang || r.petugas?.gudang?.nama_gudang === appliedPenarikanFilter.value.gudang);
+  }
+
+  if (appliedPenarikanFilter.value.status.length > 0) {
+    result = result.filter(r => {
+      const mappedStatus = formatStatusPenarikan(r.status).toLowerCase();
+      // map to generic status strings
+      const formStatuses = appliedPenarikanFilter.value.status.map(s => {
+          if(s === 'selesai') return 'selesai';
+          if(s === 'pending' || s === 'proses') return 'diproses';
+          if(s === 'tolak') return 'ditolak';
+          return s;
+      });
+      return formStatuses.includes(mappedStatus);
+    });
+  }
+
+  if (appliedPenarikanFilter.value.start_date) {
+    result = result.filter(r => dayjs(r.created_at).format('YYYY-MM-DD') >= appliedPenarikanFilter.value.start_date);
+  }
+  if (appliedPenarikanFilter.value.end_date) {
+    result = result.filter(r => dayjs(r.created_at).format('YYYY-MM-DD') <= appliedPenarikanFilter.value.end_date);
+  }
+
+  return result.sort((a,b) => new Date(b.created_at) - new Date(a.created_at));
+});
+
+const totalPenarikanPages = computed(() => Math.ceil(filteredPenarikanData.value.length / penarikanItemsPerPage.value) || 1);
+
+const paginatedPenarikanData = computed(() => {
+  const start = (currentPenarikanPage.value - 1) * penarikanItemsPerPage.value;
+  return filteredPenarikanData.value.slice(start, start + penarikanItemsPerPage.value);
+});
+
+const prevPenarikanPage = () => { if (currentPenarikanPage.value > 1) currentPenarikanPage.value--; };
+const nextPenarikanPage = () => { if (currentPenarikanPage.value < totalPenarikanPages.value) currentPenarikanPage.value++; };
+
+const totalNominalPenarikan = computed(() => {
+  return rawRiwayatPenarikanData.value.filter(r => r.status === 'selesai').reduce((sum, r) => sum + parseFloat(r.jumlah || 0), 0);
+});
+const countPenarikanSelesai = computed(() => rawRiwayatPenarikanData.value.filter(r => r.status === 'selesai').length);
+const countPenarikanDiproses = computed(() => rawRiwayatPenarikanData.value.filter(r => r.status === 'pending' || r.status === 'proses').length);
+const countPenarikanDitolak = computed(() => rawRiwayatPenarikanData.value.filter(r => r.status === 'tolak').length);
+
+const hasActivePenarikanFilters = computed(() => {
+  return appliedPenarikanFilter.value.gudang !== 'Semua Gudang' ||
+         appliedPenarikanFilter.value.status.length > 0 ||
+         appliedPenarikanFilter.value.start_date !== '' ||
+         appliedPenarikanFilter.value.end_date !== '';
+});
+// --- End Penarikan State ---
+
 const today = new Date();
+
 const thirtyDaysAgo = new Date();
 thirtyDaysAgo.setDate(today.getDate() - 30);
 
@@ -134,15 +285,22 @@ const fetchData = async () => {
     jenisSampahOptions.value = [...new Set(sampahList.map(s => s.item_sampah?.nama || s.nama).filter(Boolean))];
     if(jenisSampahOptions.value.length === 0) jenisSampahOptions.value = ['Organik', 'Plastik PET', 'Kertas', 'Logam']; 
 
+
     const riwayat = await fetchAllRiwayatPenjemputan((progress) => {
       // Real progress overrides fake progress
-      loadingProgress.value = Math.max(loadingProgress.value, progress);
+      loadingProgress.value = Math.max(loadingProgress.value, progress / 2);
+    });
+
+    const riwayatPenarikan = await fetchAllRiwayatPenarikan((progress) => {
+      loadingProgress.value = Math.max(loadingProgress.value, 50 + (progress / 2));
     });
     
     clearInterval(fakeProgressInterval);
     loadingProgress.value = 100;
 
     rawRiwayatData.value = riwayat;
+    rawRiwayatPenarikanData.value = riwayatPenarikan;
+
   } catch (error) {
     console.error("Error fetching audit data:", error);
     Swal.fire({
@@ -610,11 +768,121 @@ const handlePrintPdf = async () => {
       </div>
       </div> <!-- Close v-if activeTab === 'Riwayat Sampah' -->
 
-      <!-- TAB: RIWAYAT PENARIKAN (EMPTY STATE) -->
-      <div v-else class="flex flex-col items-center justify-center py-20 text-center animate-in fade-in duration-500">
-        <Icon icon="material-symbols:inventory-2-outline" class="w-16 h-16 text-stone-300 mb-4" />
-        <h3 class="text-lg font-bold text-stone-700 mb-2">Belum Ada Desain</h3>
-        <p class="text-sm text-stone-500 max-w-sm">Halaman Riwayat Penarikan masih kosong karena belum ada desainnya. Silakan kembali ke tab Riwayat Sampah.</p>
+      <!-- TAB: RIWAYAT PENARIKAN -->
+      <div v-else class="space-y-6 relative animate-in fade-in duration-500">
+        <!-- Summary Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div class="bg-white p-5 rounded-2xl shadow-sm border border-stone-100 flex flex-col justify-center relative overflow-hidden">
+            <p class="text-[11px] font-bold text-stone-500 mb-1 z-10">Total Penarikan</p>
+            <p class="text-2xl font-black text-[#4A7043] z-10">{{ formatRupiah(totalNominalPenarikan) }}</p>
+          </div>
+          <div class="bg-white p-5 rounded-2xl shadow-sm border border-stone-100 flex flex-col justify-center">
+            <p class="text-[11px] font-bold text-stone-500 mb-1">Selesai</p>
+            <p class="text-2xl font-black text-[#4A7043]">{{ countPenarikanSelesai }}</p>
+          </div>
+          <div class="bg-white p-5 rounded-2xl shadow-sm border border-stone-100 flex flex-col justify-center relative group cursor-pointer">
+            <p class="text-[11px] font-bold text-stone-500 mb-1">Diproses</p>
+            <p class="text-2xl font-black text-[#F59E0B]">{{ countPenarikanDiproses }}</p>
+            <Icon icon="bi:cursor-fill" class="absolute bottom-4 right-4 text-black w-4 h-4 opacity-70 group-hover:opacity-100 transition-opacity" />
+          </div>
+          <div class="bg-white p-5 rounded-2xl shadow-sm border border-stone-100 flex flex-col justify-center">
+            <p class="text-[11px] font-bold text-stone-500 mb-1">Ditolak</p>
+            <p class="text-2xl font-black text-[#EF4444]">{{ countPenarikanDitolak }}</p>
+          </div>
+        </div>
+
+        <!-- Toolbar -->
+        <div class="bg-white p-4 rounded-2xl shadow-sm border border-stone-100 flex flex-col md:flex-row gap-4 justify-between items-center">
+          <div class="flex flex-row gap-2 w-full md:w-auto shrink-0 items-center">
+            <!-- Search -->
+            <div class="relative w-full md:w-64 flex items-center">
+              <Icon icon="material-symbols:search" class="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400 w-4 h-4" />
+              <input
+                type="text"
+                v-model="searchPenarikan"
+                placeholder="Cari ID, nasabah, metode..."
+                class="w-full pl-9 pr-3 py-2 bg-white border border-stone-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-[#4A7043]/20 focus:border-[#4A7043] transition-colors text-stone-700"
+              />
+            </div>
+            <!-- Filter Button -->
+            <button @click="openFilterPenarikanModal" class="relative px-4 py-2 bg-stone-50 border border-stone-200 rounded-lg text-xs font-bold text-stone-600 hover:bg-stone-100 transition-colors flex items-center gap-1.5 shadow-sm shrink-0 cursor-pointer">
+              <Icon icon="material-symbols:filter-alt-outline" class="w-4 h-4" />
+              Filter
+              <span v-if="hasActivePenarikanFilters" class="absolute -top-1 -right-1 flex h-3 w-3">
+                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#4A7043] opacity-75"></span>
+                <span class="relative inline-flex rounded-full h-3 w-3 bg-[#4A7043] border border-white"></span>
+              </span>
+            </button>
+          </div>
+          <div class="flex flex-row gap-2 w-full md:w-auto shrink-0">
+            <button class="px-4 py-2 bg-[#4A7043] hover:bg-[#3D5A35] text-white rounded-lg text-xs font-bold transition-colors flex items-center gap-1.5 shadow-sm shrink-0 cursor-pointer">
+              Lihat Laporan
+            </button>
+            <button class="px-4 py-2 bg-[#4A7043] hover:bg-[#3D5A35] text-white rounded-lg text-xs font-bold transition-colors flex items-center gap-1.5 shadow-sm shrink-0 cursor-pointer">
+              Export CSV
+            </button>
+          </div>
+        </div>
+
+        <!-- Table Container -->
+        <div class="bg-white rounded-2xl shadow-sm border border-stone-100 overflow-hidden">
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse min-w-[800px]">
+              <thead>
+                <tr class="bg-[#F5F5F0] border-b border-stone-200">
+                  <th class="py-4 px-6 text-xs font-bold text-stone-600 tracking-wider w-[15%]">ID Penarikan</th>
+                  <th class="py-4 px-6 text-xs font-bold text-stone-600 tracking-wider w-[20%]">Tanggal</th>
+                  <th class="py-4 px-6 text-xs font-bold text-stone-600 tracking-wider w-[25%]">Nasabah</th>
+                  <th class="py-4 px-6 text-xs font-bold text-stone-600 tracking-wider w-[25%]">Nominal</th>
+                  <th class="py-4 px-6 text-xs font-bold text-stone-600 tracking-wider w-[15%]">Status</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-stone-100">
+                <template v-if="paginatedPenarikanData.length === 0">
+                  <tr>
+                    <td colspan="5" class="py-8 text-center text-sm font-bold text-stone-400">Tidak ada data penarikan</td>
+                  </tr>
+                </template>
+                <template v-else>
+                  <tr v-for="row in paginatedPenarikanData" :key="row.penarikan_id" @click="openDetailPenarikan(row)" class="hover:bg-stone-50 transition-colors cursor-pointer group">
+                    <td class="py-4 px-6 text-xs font-bold text-[#4A7043]">{{ row.penarikan_id }}</td>
+                    <td class="py-4 px-6 text-sm text-stone-600 font-medium whitespace-nowrap">{{ dayjs(row.created_at).format('DD MMM YYYY') }}</td>
+                    <td class="py-4 px-6 text-sm text-stone-600 font-medium">{{ row.nasabah?.nama || '-' }}</td>
+                    <td class="py-4 px-6 text-sm text-stone-800 font-bold whitespace-nowrap">{{ formatRupiah(row.jumlah) }}</td>
+                    <td class="py-4 px-6 whitespace-nowrap">
+                      <div :class="['inline-flex items-center justify-center px-4 py-1.5 rounded-full text-[10px] font-bold tracking-wider shadow-sm min-w-[70px]', getStatusColorPenarikan(row.status)]">
+                        {{ formatStatusPenarikan(row.status) }}
+                      </div>
+                    </td>
+                  </tr>
+                </template>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Pagination -->
+        <div class="bg-white p-4 rounded-2xl shadow-sm border border-stone-100 flex flex-col sm:flex-row justify-between items-center gap-4">
+          <div class="flex items-center gap-3">
+            <span class="text-sm font-medium text-stone-500">Tampilkan</span>
+            <div class="bg-stone-50 border border-stone-200 rounded-lg px-3 py-1.5 text-sm font-bold text-stone-600 flex items-center justify-between w-16 shadow-sm">
+              10
+            </div>
+          </div>
+          <div class="flex items-center gap-2">
+            <button @click="prevPenarikanPage" :disabled="currentPenarikanPage === 1" class="px-4 py-2 rounded-lg text-sm font-bold text-stone-500 hover:bg-stone-100 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+              Sebelumnya
+            </button>
+            <div class="px-4 py-2 rounded-lg bg-[#4A7043] text-white text-sm font-bold shadow-sm flex items-center gap-1">
+              <span>{{ currentPenarikanPage }}</span>
+              <span>/</span>
+              <span>{{ totalPenarikanPages }}</span>
+            </div>
+            <button @click="nextPenarikanPage" :disabled="currentPenarikanPage === totalPenarikanPages" class="px-4 py-2 rounded-lg text-sm font-bold text-stone-500 hover:bg-stone-100 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+              Selanjutnya
+            </button>
+          </div>
+        </div>
       </div>
 
     </div>
@@ -821,6 +1089,99 @@ const handlePrintPdf = async () => {
       </div>
     </div>
 
+
+
+    <!-- Modal Filter Penarikan -->
+    <div v-if="isFilterPenarikanModalOpen" class="fixed inset-0 z-[100] flex items-center justify-center p-4">
+      <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" @click="isFilterPenarikanModalOpen = false"></div>
+      <div class="relative bg-white rounded-2xl w-full max-w-md shadow-2xl animate-in zoom-in-95 duration-200">
+        <div class="flex items-center justify-between p-6 border-b border-stone-100">
+          <h3 class="text-lg font-bold text-stone-800">Filter Data</h3>
+          <button @click="isFilterPenarikanModalOpen = false" class="text-stone-400 hover:text-stone-600 transition-colors cursor-pointer">
+            <Icon icon="material-symbols:close" class="w-6 h-6" />
+          </button>
+        </div>
+        <div class="p-6 space-y-6">
+          <div class="space-y-2">
+            <label class="block text-sm font-bold text-stone-600">Gudang</label>
+            <input type="text" v-model="filterPenarikanForm.gudang" class="w-full px-4 py-2.5 bg-white border border-stone-200 rounded-lg text-sm focus:outline-none focus:border-[#4A7043]" placeholder="Semua Gudang" />
+          </div>
+          <div class="space-y-2">
+            <label class="block text-sm font-bold text-stone-600">Durasi Waktu</label>
+            <div class="flex gap-2">
+              <input type="date" v-model="filterPenarikanForm.start_date" class="w-full px-3 py-2 bg-white border border-stone-200 rounded-lg text-xs" />
+              <input type="date" v-model="filterPenarikanForm.end_date" class="w-full px-3 py-2 bg-white border border-stone-200 rounded-lg text-xs" />
+            </div>
+          </div>
+          <div class="space-y-3">
+            <label class="block text-sm font-bold text-stone-600">Status Penarikan</label>
+            <div class="flex flex-wrap gap-2">
+              <button @click="toggleStatusPenarikan('selesai')" :class="['px-4 py-1.5 rounded-full text-xs font-bold transition-all border cursor-pointer', filterPenarikanForm.status.includes('selesai') ? 'bg-white text-stone-800 border-stone-300 shadow-sm' : 'bg-white text-stone-400 border-stone-200']">Selesai</button>
+              <button @click="toggleStatusPenarikan('pending')" :class="['px-4 py-1.5 rounded-full text-xs font-bold transition-all border cursor-pointer', filterPenarikanForm.status.includes('pending') ? 'bg-white text-stone-800 border-stone-300 shadow-sm' : 'bg-white text-stone-400 border-stone-200']">Diproses</button>
+              <button @click="toggleStatusPenarikan('tolak')" :class="['px-4 py-1.5 rounded-full text-xs font-bold transition-all border cursor-pointer', filterPenarikanForm.status.includes('tolak') ? 'bg-white text-stone-800 border-stone-300 shadow-sm' : 'bg-white text-stone-400 border-stone-200']">Ditolak</button>
+            </div>
+          </div>
+        </div>
+        <div class="p-6 border-t border-stone-100 flex gap-3">
+          <button @click="resetFilterPenarikanForm" class="flex-1 px-4 py-2.5 bg-white border border-stone-200 text-stone-600 rounded-lg text-sm font-bold hover:bg-stone-50 transition-colors cursor-pointer">Reset Filter</button>
+          <button @click="terapkanFilterPenarikan" class="flex-1 px-4 py-2.5 bg-[#4A7043] text-white rounded-lg text-sm font-bold hover:bg-[#3D5A35] transition-colors shadow-sm cursor-pointer">Terapkan Filter</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal Detail Penarikan -->
+    <div v-if="isDetailPenarikanModalOpen" class="fixed inset-0 z-[100] flex items-center justify-center p-4">
+      <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" @click="isDetailPenarikanModalOpen = false"></div>
+      <div class="relative bg-white rounded-2xl w-full max-w-md shadow-2xl animate-in zoom-in-95 duration-200 overflow-hidden">
+        <div class="bg-[#4A7043] p-6 text-white flex justify-between items-start">
+          <div>
+            <h3 class="text-lg font-black">Detail Penarikan</h3>
+            <p class="text-sm text-green-100 opacity-90">{{ selectedPenarikan?.penarikan_id }}</p>
+          </div>
+          <button @click="isDetailPenarikanModalOpen = false" class="text-white hover:text-stone-200 transition-colors">
+            <Icon icon="material-symbols:close" class="w-6 h-6" />
+          </button>
+        </div>
+        <div class="p-6 space-y-6">
+          <div class="bg-[#F5F9F5] p-4 rounded-xl flex justify-between items-center border border-[#4A7043]/10">
+            <div>
+              <p class="text-[10px] font-bold text-stone-500 mb-0.5">Nominal Penarikan</p>
+              <p class="text-2xl font-black text-[#4A7043]">{{ formatRupiah(selectedPenarikan?.jumlah) }}</p>
+            </div>
+            <div :class="['px-3 py-1 rounded-full text-[10px] font-bold shadow-sm', getStatusColorPenarikan(selectedPenarikan?.status)]">
+              {{ formatStatusPenarikan(selectedPenarikan?.status) }}
+            </div>
+          </div>
+          
+          <div class="grid grid-cols-2 gap-y-5 gap-x-4">
+            <div>
+              <p class="text-[10px] font-bold text-stone-400 mb-0.5">Tanggal</p>
+              <p class="text-sm font-bold text-stone-700">{{ selectedPenarikan?.created_at ? dayjs(selectedPenarikan.created_at).format('DD MMM YYYY') : '-' }}</p>
+            </div>
+            <div>
+              <p class="text-[10px] font-bold text-stone-400 mb-0.5">Nasabah</p>
+              <p class="text-sm font-bold text-stone-700">{{ selectedPenarikan?.nasabah?.nama || '-' }}</p>
+            </div>
+            <div>
+              <p class="text-[10px] font-bold text-stone-400 mb-0.5">Gudang</p>
+              <p class="text-sm font-bold text-stone-700">{{ selectedPenarikan?.petugas?.gudang?.nama_gudang || selectedPenarikan?.petugas?.gudang?.alamat || '-' }}</p>
+            </div>
+            <div>
+              <p class="text-[10px] font-bold text-stone-400 mb-0.5">Petugas</p>
+              <p class="text-sm font-bold text-stone-700">{{ selectedPenarikan?.petugas?.nama || '-' }}</p>
+            </div>
+            <div>
+              <p class="text-[10px] font-bold text-stone-400 mb-0.5">Metode</p>
+              <p class="text-sm font-bold text-stone-700">{{ selectedPenarikan?.nama_bank || 'Transfer Bank' }}</p>
+            </div>
+            <div>
+              <p class="text-[10px] font-bold text-stone-400 mb-0.5">Rekening / Akun</p>
+              <p class="text-sm font-bold text-stone-700">{{ selectedPenarikan?.nama_bank || 'Bank' }} &bull;&bull;&bull;&bull; {{ selectedPenarikan?.no_rekening ? selectedPenarikan.no_rekening.slice(-4) : '0000' }}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
 
   </DashboardLayout>
 </template>

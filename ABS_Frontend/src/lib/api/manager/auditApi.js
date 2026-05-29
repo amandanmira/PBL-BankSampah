@@ -18,8 +18,32 @@ export const fetchAllRiwayatPenjemputan = async (onProgress) => {
     const response = await axios.get(`/api/manager/riwayat-penjemputan?page=${currentPage}`);
     const data = response.data;
 
-    allData = allData.concat(data.data);
-    lastPage = data.last_page || 1;
+    allData = allData.concat(data.data || data.penjemputan?.data || []);
+    lastPage = data.last_page || data.penjemputan?.last_page || 1;
+
+    if (onProgress) {
+      onProgress(Math.round((currentPage / lastPage) * 100));
+    }
+
+    currentPage++;
+  } while (currentPage <= lastPage);
+
+  return allData;
+};
+
+// Loop through pagination to fetch all history
+export const fetchAllRiwayatPenarikan = async (onProgress) => {
+  let allData = [];
+  let currentPage = 1;
+  let lastPage = 1;
+
+  do {
+    const response = await axios.get(`/api/manager/riwayat-penarikan?page=${currentPage}`);
+    const data = response.data;
+
+    // riwayat-penarikan returns { penarikan: { data: [...], last_page: x } }
+    allData = allData.concat(data.penarikan?.data || []);
+    lastPage = data.penarikan?.last_page || 1;
 
     if (onProgress) {
       onProgress(Math.round((currentPage / lastPage) * 100));
