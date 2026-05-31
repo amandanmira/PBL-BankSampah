@@ -4,6 +4,9 @@ import { Icon } from "@iconify/vue";
 import DashboardLayout from "@/layouts/DashboardLayout.vue";
 import axios from 'axios'
 import Swal from 'sweetalert2';
+import { useRouter } from 'vue-router';
+
+const router = useRouter();
 
 const token = sessionStorage.getItem('token')
 
@@ -107,7 +110,16 @@ const viewImage = (imagePath) => {
   showImageModal.value = true;
 };
 
-const showPreview = ref(false)
+const navigateToPreview = () => {
+  router.push({
+    path: '/dashboard-petugas/preview-laporan',
+    query: {
+      start_date: data.value.start_date,
+      end_date: data.value.end_date,
+      gudang_id: data.value.gudang_id
+    }
+  });
+};
 
 const tanggalCetak = computed(() => {
   const now = new Date()
@@ -242,11 +254,11 @@ onMounted(async () => {
       </div>
 
       <button
-        @click="showPreview = true"
+        @click="navigateToPreview"
         class="flex items-center gap-2 bg-[#2d4a3e] text-white text-sm font-medium px-4 py-2.5 rounded-xl hover:bg-[#1f3529] transition-all"
       >
         <Icon icon="material-symbols:description-outline" class="w-4 h-4" />
-        Lihat &amp; Cetak Laporan
+        Preview Laporan
       </button>
     </div>
 
@@ -629,183 +641,7 @@ onMounted(async () => {
         </div>
       </Transition>
 
-      <!-- Modal Preview Laporan (Cetak) -->
-      <Transition name="fade">
-        <div
-          v-if="showPreview"
-          class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-6"
-          @click.self="showPreview = false"
-        >
-          <div class="bg-white rounded-3xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden">
 
-            <!-- Header -->
-            <div class="flex items-center justify-between px-8 pt-7 pb-6 border-b border-[#eaf4ee]">
-              <div>
-                <h2 class="text-lg font-semibold text-stone-800 mb-1">Preview laporan harian</h2>
-                <p class="text-xs text-[#7aab8e]">{{ filterLabel }}</p>
-              </div>
-              <div class="flex items-center gap-3">
-                <button
-                  @click="downloadExcel"
-                  class="flex items-center gap-2 border border-[#2d4a3e] text-[#2d4a3e] text-sm font-medium px-4 py-2 rounded-xl hover:bg-[#eaf4ee] transition-all"
-                >
-                  <Icon icon="material-symbols:table-view-outline" class="w-4 h-4" />
-                  Excel
-                </button>
-                <button
-                  @click="previewPdf"
-                  class="flex items-center gap-2 bg-[#2d4a3e] text-white text-sm font-medium px-4 py-2 rounded-xl hover:bg-[#1f3529] transition-all"
-                >
-                  <Icon icon="material-symbols:print-outline" class="w-4 h-4" />
-                  Cetak PDF
-                </button>
-                <button
-                  @click="showPreview = false"
-                  class="w-9 h-9 flex items-center justify-center rounded-xl border border-[#c8dfd2] text-[#7aab8e] hover:bg-[#eaf4ee] transition-all"
-                >
-                  <Icon icon="material-symbols:close" class="w-4 h-4" />
-                </button>
-              </div>
-            </div>
-
-            <!-- Body -->
-            <div class="overflow-y-auto flex-1 px-8 py-6">
-
-              <!-- Petugas & Gudang -->
-              <div class="grid grid-cols-2 gap-6 mb-7 pb-6 border-b border-[#eaf4ee]">
-                <div>
-                  <p class="text-xs text-[#7aab8e] mb-1.5">Nama petugas</p>
-                  <p class="text-sm font-semibold text-stone-700">Budi Santoso</p>
-                </div>
-                <div>
-                  <p class="text-xs text-[#7aab8e] mb-1.5">Lokasi gudang</p>
-                  <p class="text-sm font-semibold text-stone-700">Gudang 001</p>
-                </div>
-              </div>
-
-              <!-- Summary Cards -->
-              <div class="grid grid-cols-4 gap-3 mb-8">
-                <div class="bg-[#eaf4ee] rounded-2xl p-4">
-                  <p class="text-xs text-[#4a7a60] mb-2">Total transaksi</p>
-                  <p class="text-3xl font-semibold text-[#1f3529] leading-none">{{ summaryLaporan.total_transaksi }}</p>
-                </div>
-                <div class="bg-[#eaf4ee] rounded-2xl p-4">
-                  <p class="text-xs text-[#4a7a60] mb-2">Total berat</p>
-                  <p class="text-3xl font-semibold text-[#1f3529] leading-none">{{ summaryLaporan.total_stok }}<span class="text-sm font-normal text-[#4a7a60]"> kg</span></p>
-                </div>
-                <div class="bg-[#eaf4ee] rounded-2xl p-4">
-                  <p class="text-xs text-[#4a7a60] mb-2">Total nilai</p>
-                  <p class="text-lg font-semibold text-[#1f3529] leading-snug">Rp<br>{{ summaryLaporan.total_nilai }}</p>
-                </div>
-                <div class="bg-[#eaf4ee] rounded-2xl p-4">
-                  <p class="text-xs text-[#4a7a60] mb-2">Kategori aktif</p>
-                  <p class="text-3xl font-semibold text-[#1f3529] leading-none">{{ summaryLaporan.total_kategori }}</p>
-                </div>
-              </div>
-
-              <!-- Ringkasan -->
-              <p class="text-sm font-semibold text-stone-700 mb-4">Ringkasan per kategori</p>
-              <div class="grid grid-cols-2 gap-3 mb-8">
-                <div class="border border-[#c8dfd2] rounded-2xl p-5">
-                  <p class="text-xs text-[#4a7a60] mb-3">Penjemputan selesai</p>
-                  <p class="mb-1.5 leading-none">
-                    <span class="text-3xl font-semibold text-[#2d4a3e]">{{ summaryLaporan.penjemputan_count }}</span>
-                    <span class="text-xs text-[#7aab8e] ml-2">transaksi</span>
-                  </p>
-                  <p class="text-xs text-[#7aab8e]">{{ summaryLaporan.penjemputan_berat }} kg · Rp {{ summaryLaporan.penjemputan_harga }}</p>
-                </div>
-                <div class="border border-[#c8dfd2] rounded-2xl p-5">
-                  <p class="text-xs text-[#4a7a60] mb-3">Setor manual</p>
-                  <p class="mb-1.5 leading-none">
-                    <span class="text-3xl font-semibold text-[#2d4a3e]">{{ summaryLaporan.setor_count }}</span>
-                    <span class="text-xs text-[#7aab8e] ml-2">transaksi</span>
-                  </p>
-                  <p class="text-xs text-[#7aab8e]">{{ summaryLaporan.setor_berat }} kg · Rp {{ summaryLaporan.setor_harga }}</p>
-                </div>
-                <div class="border border-[#c8dfd2] rounded-2xl p-5">
-                  <p class="text-xs text-[#4a7a60] mb-3">Penarikan distribusi</p>
-                  <p class="mb-1.5 leading-none">
-                    <span class="text-3xl font-semibold text-[#2d4a3e]">{{ summaryLaporan.penarikan_count }}</span>
-                    <span class="text-xs text-[#7aab8e] ml-2">transaksi</span>
-                  </p>
-                  <p class="text-xs text-[#7aab8e]">Rp. {{ summaryLaporan.penarikan_harga }}</p>
-                </div>
-                <div class="border border-[#c8dfd2] rounded-2xl p-5">
-                  <p class="text-xs text-[#4a7a60] mb-3">Pesanan pengepul</p>
-                  <p class="mb-1.5 leading-none">
-                    <span class="text-3xl font-semibold text-[#2d4a3e]">{{ summaryLaporan.pengepul_count }}</span>
-                    <span class="text-xs text-[#7aab8e] ml-2">transaksi</span>
-                  </p>
-                  <p class="text-xs text-[#7aab8e]">{{ summaryLaporan.pengepul_berat }} kg · Rp {{ summaryLaporan.pengepul_harga }}</p>
-                </div>
-              </div>
-
-              <!-- Tabel -->
-              <!-- <p class="text-sm font-semibold text-stone-700 mb-4">Data per kategori</p>
-              <table class="w-full text-sm mb-7" style="border-collapse:collapse;table-layout:fixed;">
-                <thead>
-                  <tr class="border-b border-[#c8dfd2]">
-                    <th class="text-left pb-3 text-xs font-medium text-[#4a7a60]" style="width:38%;">Kategori</th>
-                    <th class="text-center pb-3 text-xs font-medium text-[#4a7a60]" style="width:18%;">Transaksi</th>
-                    <th class="text-right pb-3 text-xs font-medium text-[#4a7a60]" style="width:22%;">Total berat</th>
-                    <th class="text-right pb-3 text-xs font-medium text-[#4a7a60]" style="width:22%;">Total nilai</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr class="border-b border-[#eaf4ee]">
-                    <td class="py-3.5 text-stone-700 font-medium">Penjemputan selesai</td>
-                    <td class="py-3.5 text-center">
-                      <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-[#2d4a3e] text-white text-xs font-semibold">4</span>
-                    </td>
-                    <td class="py-3.5 text-right text-[#4a7a60]">36.7 kg</td>
-                    <td class="py-3.5 text-right text-[#4a7a60]">Rp 125.100</td>
-                  </tr>
-                  <tr class="border-b border-[#eaf4ee]">
-                    <td class="py-3.5 text-stone-700 font-medium">Setor manual</td>
-                    <td class="py-3.5 text-center">
-                      <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-[#3d6b54] text-white text-xs font-semibold">3</span>
-                    </td>
-                    <td class="py-3.5 text-right text-[#4a7a60]">22.6 kg</td>
-                    <td class="py-3.5 text-right text-[#4a7a60]">Rp 103.500</td>
-                  </tr>
-                  <tr class="border-b border-[#eaf4ee]">
-                    <td class="py-3.5 text-stone-700 font-medium">Penarikan distribusi</td>
-                    <td class="py-3.5 text-center">
-                      <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-[#4f8a6a] text-white text-xs font-semibold">2</span>
-                    </td>
-                    <td class="py-3.5 text-right text-[#7aab8e]">—</td>
-                    <td class="py-3.5 text-right text-[#4a7a60]">Rp 350.000</td>
-                  </tr>
-                  <tr>
-                    <td class="py-3.5 text-stone-700 font-medium">Pesanan pengepul</td>
-                    <td class="py-3.5 text-center">
-                      <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-[#6aaa85] text-white text-xs font-semibold">2</span>
-                    </td>
-                    <td class="py-3.5 text-right text-[#4a7a60]">165.0 kg</td>
-                    <td class="py-3.5 text-right text-[#4a7a60]">Rp 23.500</td>
-                  </tr>
-                </tbody>
-              </table> -->
-
-              <!-- Catatan -->
-              <div class="bg-[#eaf4ee] border border-[#c8dfd2] rounded-2xl px-5 py-4 flex gap-3 items-start">
-                <Icon icon="material-symbols:info-outline" class="w-4 h-4 text-[#2d4a3e] mt-0.5 shrink-0" />
-                <p class="text-xs text-[#2d4a3e] leading-relaxed">
-                  Laporan ini merupakan ringkasan transaksi pada periode {{ data.start_date }} sampai {{ data.end_date }}.
-                  Detail tiap transaksi (foto bukti, alamat, catatan nasabah) dapat dilihat pada halaman Riwayat.
-                </p>
-              </div>
-            </div>
-
-            <!-- Footer -->
-            <div class="px-8 py-4 border-t border-[#eaf4ee] flex items-center justify-between">
-              <p class="text-xs text-[#7aab8e]">Digenerate pada: {{ tanggalCetak }}</p>
-              <p class="text-xs text-[#7aab8e]">Bank Sampah Management System</p>
-            </div>
-
-          </div>
-        </div>
-      </Transition>
     </Teleport>
 
   </DashboardLayout>
