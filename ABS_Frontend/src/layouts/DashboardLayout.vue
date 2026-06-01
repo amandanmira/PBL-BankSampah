@@ -393,8 +393,12 @@ onMounted(() => {
     <!-- Content Area -->
     <div class="flex-1 flex flex-col min-w-0 h-full">
       <!-- Header with Page Title (Green) -->
-      <header class="bg-[#4A7043] text-white px-8 flex items-center sticky top-0 z-30 shadow-md h-20 shrink-0">
-        <h1 class="text-xl lg:text-2xl font-bold tracking-wide uppercase">{{ title }}</h1>
+      <header class="bg-[#4A7043] text-white flex items-center sticky top-0 z-30 shadow-md h-20 shrink-0">
+        <div class="w-full flex justify-center px-4 lg:px-16">
+          <div class="w-full max-w-[1650px]">
+            <h1 class="text-xl lg:text-2xl font-bold tracking-wide uppercase">{{ title }}</h1>
+          </div>
+        </div>
       </header>
 
       <!-- Main Scroll Area -->

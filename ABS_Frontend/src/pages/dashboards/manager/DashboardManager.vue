@@ -89,7 +89,6 @@ const fetchDashboardData = async () => {
     updateStat('nasabah', data.nasabah_verifikasi, data.nasabah_increase);
     updateStat('transaksi', data.transaksi_bulan_ini, data.transaksi_increase);
     updateStat('gudang', data.total_gudang, data.gudang_increase);
-
   } catch (error) {
     console.error("Error fetching dashboard data:", error);
   } finally {
@@ -164,6 +163,7 @@ const fetchChartsData = async () => {
         }
 
         return {
+            id: g.gudang_id,
             name: g.nama,
             percentage: pct,
             text: text,
@@ -181,6 +181,7 @@ const fetchChartsData = async () => {
         const pct = totalDist > 0 ? Math.round((stok / totalDist) * 100) : 0;
         const color = distColors[idx % distColors.length];
         return {
+            id: d.kategori_id,
             name: d.nama,
             value: `${stok.toLocaleString('id-ID')} kg`,
             percentage: pct,
@@ -188,7 +189,7 @@ const fetchChartsData = async () => {
             dotClass: color
         };
     });
-
+    detailSampah.value = data.detailSampah;
   } catch (error) {
     console.error("Error fetching charts data:", error);
   } finally {
@@ -291,8 +292,11 @@ const growthChartSeries = ref([]);
 
 // Progress bar data
 const gudangStatus = ref([]);
+const isGudangModalOpen = ref(false);
 
 const distribusiSaatIni = ref([]);
+const detailSampah = ref([]);
+const isDistribusiModalOpen = ref(false);
 </script>
 
 <template>
@@ -365,6 +369,7 @@ const distribusiSaatIni = ref([]);
                 </button>
               </div>
             </div>
+<<<<<<< HEAD
             <div class="mt-4 -ml-2">
               <apexchart type="area" height="300" :options="trendChartOptions" :series="trendChartSeries" />
             </div>
@@ -389,6 +394,43 @@ const distribusiSaatIni = ref([]);
                   <div class="h-3 w-20 bg-stone-100 rounded animate-pulse"></div>
                   <div class="h-3 w-16 bg-stone-100 rounded animate-pulse"></div>
                 </div>
+=======
+          </div>
+          <div class="mt-4 -ml-2 h-[300px] flex items-center justify-center border border-dashed border-stone-200 rounded-2xl bg-stone-50/30" v-if="totalSampahPeriode === 0">
+            <div class="text-center space-y-2">
+              <Icon icon="material-symbols:insert-chart-outline" class="w-12 h-12 text-stone-300 mx-auto" />
+              <p class="text-sm font-medium text-stone-500">Belum ada trend sampah pada periode ini</p>
+              <p class="text-xs text-stone-400">Data transaksi penimbangan sampah belum tercatat.</p>
+            </div>
+          </div>
+          <div class="mt-4 -ml-2" v-else>
+            <apexchart type="area" height="300" :options="trendChartOptions" :series="trendChartSeries" />
+          </div>
+        </div>
+
+        <!-- Status Gudang -->
+        <div class="bg-white rounded-[1.5rem] p-6 shadow-sm border border-stone-100 flex flex-col">
+          <div class="flex justify-between items-center mb-6">
+            <h3 class="text-lg font-bold text-stone-800">Status Gudang</h3>
+            <button @click="isGudangModalOpen = true" 
+              class="text-xs flex items-center gap-1 font-bold transition-all cursor-pointer px-2.5 py-1.5 rounded-lg"
+              :class="isGudangModalOpen ? 'bg-[#4A7043] text-white shadow-sm' : 'text-[#4A7043] hover:text-[#3D5A35] hover:bg-stone-50'">
+              Lihat Detail <Icon icon="material-symbols:arrow-outward" class="w-3.5 h-3.5" />
+            </button>
+          </div>
+          <div class="space-y-6 flex-1 flex flex-col justify-center">
+            <div v-for="(gudang, index) in gudangStatus" :key="index" class="space-y-2">
+              <div class="flex justify-between items-end">
+                <span class="text-sm font-bold text-stone-700">{{ gudang.name }}</span>
+                <span class="text-xs font-bold" :class="gudang.textClass">{{ gudang.percentage }}%</span>
+              </div>
+              <div class="w-full bg-stone-100 rounded-full h-2 overflow-hidden">
+                <div class="h-2 rounded-full transition-all duration-1000" :class="gudang.colorClass" :style="{ width: `${gudang.percentage}%` }"></div>
+              </div>
+              <div class="flex justify-between items-center">
+                <span class="text-xs font-medium text-stone-400">{{ gudang.value }}</span>
+                <span class="text-[10px] font-bold" :class="gudang.textClass">{{ gudang.text }}</span>
+>>>>>>> 5f0abc30c4f993ee1a702ec5f193b12368410feb
               </div>
             </div>
           </template>
@@ -434,7 +476,14 @@ const distribusiSaatIni = ref([]);
               <h3 class="text-lg font-bold text-stone-800">Pertumbuhan Total Sampah</h3>
               <p class="text-xs text-stone-400">Akumulasi bulanan seluruh gudang</p>
             </div>
-            <div class="mt-4 -ml-2">
+            <div class="mt-4 -ml-2 h-[280px] flex items-center justify-center border border-dashed border-stone-200 rounded-2xl bg-stone-50/30" v-if="!growthChartSeries || growthChartSeries.length === 0 || growthChartSeries[0]?.data?.every(v => v === 0)">
+              <div class="text-center space-y-2">
+                <Icon icon="material-symbols:show-chart-rounded" class="w-12 h-12 text-stone-300 mx-auto" />
+                <p class="text-sm font-medium text-stone-500">Belum ada pertumbuhan total sampah</p>
+                <p class="text-xs text-stone-400">Data akumulasi bulanan belum tersedia.</p>
+              </div>
+            </div>
+            <div class="mt-4 -ml-2" v-else>
               <apexchart type="line" height="280" :options="growthChartOptions" :series="growthChartSeries" />
             </div>
           </template>
@@ -443,7 +492,9 @@ const distribusiSaatIni = ref([]);
         <!-- Distribusi Saat Ini -->
         <div class="bg-white rounded-[1.5rem] p-6 shadow-sm border border-stone-100 flex flex-col min-h-[380px]">
           <template v-if="isLoadingCharts">
-            <div class="h-6 w-40 bg-stone-200 rounded animate-pulse mb-6"></div>
+            <div class="flex justify-between items-center mb-6">
+              <div class="h-6 w-40 bg-stone-200 rounded animate-pulse"></div>
+            </div>
             <div class="space-y-6 flex-1 flex flex-col justify-center">
               <div v-for="i in 4" :key="`dist-skel-${i}`" class="space-y-2">
                 <div class="flex justify-between items-center">
@@ -458,7 +509,14 @@ const distribusiSaatIni = ref([]);
             </div>
           </template>
           <template v-else>
-            <h3 class="text-lg font-bold text-stone-800 mb-6">Distribusi Saat Ini</h3>
+            <div class="flex justify-between items-center mb-6">
+              <h3 class="text-lg font-bold text-stone-800">Distribusi Saat Ini</h3>
+              <button @click="isDistribusiModalOpen = true" 
+                class="text-xs flex items-center gap-1 font-bold transition-all cursor-pointer px-2.5 py-1.5 rounded-lg"
+                :class="isDistribusiModalOpen ? 'bg-[#4A7043] text-white shadow-sm' : 'text-[#4A7043] hover:text-[#3D5A35] hover:bg-stone-50'">
+                Lihat Detail <Icon icon="material-symbols:arrow-outward" class="w-3.5 h-3.5" />
+              </button>
+            </div>
             <div class="space-y-6 flex-1 flex flex-col justify-center">
               <div v-for="(item, index) in distribusiSaatIni" :key="index" class="space-y-2 group">
                 <div class="flex justify-between items-center">
@@ -474,6 +532,119 @@ const distribusiSaatIni = ref([]);
               </div>
             </div>
           </template>
+        </div>
+      </div>
+
+      <!-- Modal Detail Gudang -->
+      <div v-if="isGudangModalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4 transition-opacity duration-300">
+        <div class="bg-white rounded-[2rem] shadow-[0_20px_50px_rgba(0,0,0,0.2)] border border-stone-200 max-w-2xl w-full overflow-hidden transform transition-all duration-300 scale-100 flex flex-col max-h-[85vh]">
+          <!-- Modal Header -->
+          <div class="px-6 py-5 border-b border-stone-100 flex justify-between items-center bg-stone-50">
+            <div>
+              <h3 class="text-xl font-bold text-stone-800">Detail Status Gudang</h3>
+              <p class="text-xs text-stone-500 mt-1">Daftar informasi lengkap kapasitas dan penyimpanan seluruh gudang aktif</p>
+            </div>
+            <button @click="isGudangModalOpen = false" class="p-2 text-stone-400 hover:text-stone-700 hover:bg-stone-100 rounded-full transition-colors cursor-pointer">
+              <Icon icon="material-symbols:close-rounded" class="w-6 h-6" />
+            </button>
+          </div>
+
+          <!-- Modal Body -->
+          <div class="p-6 overflow-y-auto space-y-4 flex-1">
+            <div v-for="gudang in gudangStatus" :key="gudang.id" 
+              class="p-5 rounded-2xl border border-stone-100 bg-stone-50/50 hover:bg-stone-50 transition-all duration-200 flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div class="space-y-1.5 flex-1">
+                <div class="flex items-center gap-2">
+                  <span class="px-2 py-0.5 text-[10px] font-bold bg-stone-200 text-stone-700 rounded-md">ID: {{ gudang.id }}</span>
+                  <h4 class="text-sm font-bold text-stone-800">{{ gudang.name }}</h4>
+                </div>
+                <div class="text-xs text-stone-500 flex items-center gap-1.5">
+                  <Icon icon="material-symbols:location-on-outline" class="w-4 h-4 text-stone-400" />
+                  <span>Alamat: {{ gudang.name }}</span>
+                </div>
+              </div>
+              <div class="flex items-center gap-4 border-t md:border-t-0 pt-3 md:pt-0 border-stone-100">
+                <div class="text-right">
+                  <p class="text-xs text-stone-400">Total Penyimpanan</p>
+                  <p class="text-sm font-bold text-stone-800">{{ gudang.value }}</p>
+                </div>
+                <div class="flex items-center justify-center w-12 h-12 rounded-full border-2 transition-all duration-300" 
+                  :class="gudang.percentage > 80 ? 'border-red-500 bg-red-50' : gudang.percentage > 60 ? 'border-orange-500 bg-orange-50' : 'border-[#4A7043] bg-emerald-50'">
+                  <span class="text-xs font-bold" :class="gudang.percentage > 80 ? 'text-red-700' : gudang.percentage > 60 ? 'text-orange-700' : 'text-[#4A7043]'">{{ gudang.percentage }}%</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Modal Footer -->
+          <div class="px-6 py-4 border-t border-stone-100 bg-stone-50 flex justify-end">
+            <button @click="isGudangModalOpen = false" class="px-5 py-2.5 text-sm font-bold text-stone-600 hover:text-stone-800 hover:bg-stone-100 rounded-xl transition-all cursor-pointer">
+              Tutup
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal Detail Distribusi Sampah -->
+      <div v-if="isDistribusiModalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4 transition-opacity duration-300">
+        <div class="bg-white rounded-[2rem] shadow-[0_20px_50px_rgba(0,0,0,0.2)] border border-stone-200 max-w-3xl w-full overflow-hidden transform transition-all duration-300 scale-100 flex flex-col max-h-[85vh]">
+          <!-- Modal Header -->
+          <div class="px-6 py-5 border-b border-stone-100 flex justify-between items-center bg-stone-50">
+            <div>
+              <h3 class="text-xl font-bold text-stone-800">Detail Distribusi Sampah</h3>
+              <p class="text-xs text-stone-500 mt-1">Daftar rincian item sampah, lokasi gudang penyimpanan, dan stok masing-masing kategori</p>
+            </div>
+            <button @click="isDistribusiModalOpen = false" class="p-2 text-stone-400 hover:text-stone-700 hover:bg-stone-100 rounded-full transition-colors cursor-pointer">
+              <Icon icon="material-symbols:close-rounded" class="w-6 h-6" />
+            </button>
+          </div>
+
+          <!-- Modal Body -->
+          <div class="p-6 overflow-y-auto space-y-6 flex-1 bg-stone-50/20">
+            <div v-for="category in distribusiSaatIni" :key="category.id" class="space-y-3">
+              <!-- Category Header -->
+              <div class="flex justify-between items-center bg-stone-100/70 p-3.5 rounded-xl border border-stone-200/50">
+                <div class="flex items-center gap-2">
+                  <div class="w-3 h-3 rounded-full" :class="category.dotClass"></div>
+                  <h4 class="text-sm font-extrabold text-stone-700 uppercase tracking-wider">{{ category.name }}</h4>
+                </div>
+                <span class="text-xs font-extrabold text-stone-800 bg-white px-2.5 py-1 rounded-md border border-stone-200">Total: {{ category.value }}</span>
+              </div>
+              
+              <!-- Items List -->
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-3 pl-2">
+                <div v-for="(item, idx) in detailSampah.filter(i => i.kategori_id === category.id)" :key="idx"
+                  class="p-4 rounded-xl border border-stone-100 bg-white flex flex-col justify-between gap-3 hover:bg-stone-50 transition-all duration-200 shadow-sm">
+                  <div class="space-y-1">
+                    <h5 class="text-xs font-bold text-stone-800">{{ item.nama_item }}</h5>
+                    <div class="text-[10px] text-stone-500 flex items-center gap-1">
+                      <Icon icon="material-symbols:warehouse-outline" class="w-3.5 h-3.5 text-stone-400" />
+                      <span>{{ item.nama_gudang }}</span>
+                    </div>
+                  </div>
+                  <div class="flex justify-between items-end border-t border-stone-100 pt-2">
+                    <div class="text-[10px] text-stone-400">
+                      <div>Beli: <span class="font-semibold text-stone-600">Rp{{ item.harga_beli.toLocaleString('id-ID') }}/kg</span></div>
+                      <div>Jual: <span class="font-semibold text-stone-600">Rp{{ item.harga_jual.toLocaleString('id-ID') }}/kg</span></div>
+                    </div>
+                    <span class="text-xs font-bold text-[#4A7043] bg-emerald-50 px-2 py-0.5 rounded-md">{{ item.stok.toLocaleString('id-ID') }} kg</span>
+                  </div>
+                </div>
+                <!-- Empty Item Handler -->
+                <div v-if="detailSampah.filter(i => i.kategori_id === category.id).length === 0" 
+                  class="col-span-full py-4 text-center text-xs text-stone-400 italic">
+                  Belum ada rincian item untuk kategori ini.
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Modal Footer -->
+          <div class="px-6 py-4 border-t border-stone-100 bg-stone-50 flex justify-end">
+            <button @click="isDistribusiModalOpen = false" class="px-5 py-2.5 text-sm font-bold text-stone-600 hover:text-stone-800 hover:bg-stone-100 rounded-xl transition-all cursor-pointer">
+              Tutup
+            </button>
+          </div>
         </div>
       </div>
 
