@@ -27,6 +27,10 @@ class DashboardManagerController extends Controller
         // Transaksi Bulan Ini (Statis sesuai request)
         $transaksiBulanIni = "X";
 
+        // Total Gudang
+        $totalGudang = Gudang::count();
+        $activeGudang = Gudang::where('active', 1)->count();
+
         // Recent activities - Dynamic data
         $activities = [];
 
@@ -100,6 +104,8 @@ class DashboardManagerController extends Controller
                 'total_sampah' => $totalSampah,
                 'nasabah_verifikasi' => $nasabahVerifikasi,
                 'transaksi_bulan_ini' => $transaksiBulanIni,
+                'total_gudang' => $totalGudang,
+                'active_gudang' => $activeGudang,
             ],
             'activities' => $activities
         ]);
@@ -144,6 +150,7 @@ class DashboardManagerController extends Controller
         $gudangStatusRaw = \Illuminate\Support\Facades\DB::table('gudangs')
             ->leftJoin('sampahs', 'gudangs.gudang_id', '=', 'sampahs.gudang_id')
             ->select(
+                'gudangs.gudang_id',
                 'gudangs.alamat as nama',
                 \Illuminate\Support\Facades\DB::raw('COALESCE(SUM(sampahs.stok), 0) as total_stok')
             )
@@ -154,10 +161,25 @@ class DashboardManagerController extends Controller
             ->join('item_sampahs', 'sampahs.item_id', '=', 'item_sampahs.item_id')
             ->join('kategori_sampahs', 'item_sampahs.kategori_id', '=', 'kategori_sampahs.kategori_id')
             ->select(
+                'kategori_sampahs.kategori_id',
                 'kategori_sampahs.nama as nama',
-                \Illuminate\Support\Facades\DB::raw('SUM(sampahs.stok) as total_stok')
+                \Illuminate\Support\Facades\DB::raw('COALESCE(SUM(sampahs.stok), 0) as total_stok')
             )
             ->groupBy('kategori_sampahs.kategori_id', 'kategori_sampahs.nama')
+            ->get();
+
+        $detailSampahRaw = \Illuminate\Support\Facades\DB::table('sampahs')
+            ->join('item_sampahs', 'sampahs.item_id', '=', 'item_sampahs.item_id')
+            ->join('kategori_sampahs', 'item_sampahs.kategori_id', '=', 'kategori_sampahs.kategori_id')
+            ->join('gudangs', 'sampahs.gudang_id', '=', 'gudangs.gudang_id')
+            ->select(
+                'kategori_sampahs.kategori_id',
+                'item_sampahs.nama as nama_item',
+                'gudangs.alamat as nama_gudang',
+                'sampahs.stok',
+                'item_sampahs.harga_beli',
+                'item_sampahs.harga_jual'
+            )
             ->get();
 
         $monthsList = [];
@@ -208,7 +230,8 @@ class DashboardManagerController extends Controller
                 ['name' => 'Total', 'data' => $growthSeriesData]
             ],
             'gudangStatus' => $gudangStatusRaw,
-            'distribusiSaatIni' => $distribusiRaw
+            'distribusiSaatIni' => $distribusiRaw,
+            'detailSampah' => $detailSampahRaw
         ]);
     }
 }
