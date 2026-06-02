@@ -31,7 +31,7 @@ class DashboardPetugasController extends Controller
 
         // 4. Total Transactions Finished Today (Sum of various finished activities)
         $finishedPickup = TransaksiNasabah::whereDate('created_at', $today)
-            ->where('tipe_transaksi', 'jemput')
+            ->where('tipe_transaksi', 'dijemput')
             ->where('status', 'selesai')
             ->count();
         $finishedManual = TransaksiNasabah::whereDate('created_at', $today)
@@ -56,7 +56,7 @@ class DashboardPetugasController extends Controller
 
         // Attention Items (Pending/Proses items)
         $attentionItems = [];
-        
+
         // Pending/Proses Pickups
         $latestPickup = Penjemputan::with('nasabah')
             ->whereIn('status', ['dijemput', 'perlu_input'])
@@ -100,7 +100,7 @@ class DashboardPetugasController extends Controller
 
         // Recent Activities
         $activities = [];
-        
+
         // Latest Penimbangan
         $latestPenimbangan = Penimbangan::with(['nasabah', 'sampah.itemSampah'])
             ->latest()

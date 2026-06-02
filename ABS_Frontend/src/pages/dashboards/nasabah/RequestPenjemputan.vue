@@ -241,139 +241,123 @@ onMounted(() => {
 </script>
 
 <template>
-  <DashboardLayout title="Request Penjemputan">
-    <div class="space-y-6 animate-in fade-in duration-700 pb-10">
+  <DashboardLayout title="Request Jemput / Setor Manual">
+    <div class="space-y-6 animate-in fade-in duration-700 pb-10 max-w-xl mx-auto">
       
-      <!-- Top Filters -->
-      <div class="flex gap-4 p-2 bg-white rounded-[2rem] shadow-sm border border-stone-100">
+      <!-- Top Tab Switcher -->
+      <div class="flex gap-4 p-2 bg-white rounded-[2rem] shadow-sm border border-stone-100/50">
         <button 
-          @click="activeTab = 'Jemput Sampah'"
+          type="button"
+          @click="activeTab = 'Jemput Sampah'; addressType = 'alamat_baru'; form.alamat = ''"
           :class="[
-            'flex-1 flex items-center justify-center gap-3 py-4 rounded-[1.5rem] text-sm font-black transition-all',
-            activeTab === 'Jemput Sampah' ? 'bg-[#4A7043] text-white shadow-lg' : 'text-stone-400 hover:bg-stone-50'
+            'flex-1 flex items-center justify-center gap-2.5 py-4 rounded-[1.5rem] text-sm font-bold transition-all cursor-pointer border border-transparent',
+            activeTab === 'Jemput Sampah' ? 'bg-[#4A7043] text-white shadow-md' : 'bg-[#F5F5F0] text-stone-500 hover:bg-stone-100'
           ]"
         >
-          <Icon icon="material-symbols:local-shipping-outline" class="w-6 h-6" />
+          <Icon icon="material-symbols:local-shipping-outline" class="w-5.5 h-5.5" />
           Jemput Sampah
         </button>
         <button 
+          type="button"
           @click="activeTab = 'Setor Manual'"
           :class="[
-            'flex-1 flex items-center justify-center gap-3 py-4 rounded-[1.5rem] text-sm font-black transition-all',
-            activeTab === 'Setor Manual' ? 'bg-[#4A7043] text-white shadow-lg' : 'text-stone-400 hover:bg-stone-50'
+            'flex-1 flex items-center justify-center gap-2.5 py-4 rounded-[1.5rem] text-sm font-bold transition-all cursor-pointer border border-transparent',
+            activeTab === 'Setor Manual' ? 'bg-[#4A7043] text-white shadow-md' : 'bg-[#F5F5F0] text-stone-500 hover:bg-stone-100'
           ]"
         >
-          <Icon icon="material-symbols:storefront-outline" class="w-6 h-6" />
+          <Icon icon="material-symbols:package-2-outline" class="w-5.5 h-5.5" />
           Setor Manual
         </button>
       </div>
 
-      <!-- Main Form Section (Jemput Sampah) -->
-      <div v-if="activeTab === 'Jemput Sampah'" class="bg-white rounded-[2.5rem] p-8 shadow-sm border border-stone-100 space-y-8">
+      <!-- Main Form Card (Only visible when activeTab is Jemput Sampah) -->
+      <div v-if="activeTab === 'Jemput Sampah'" class="bg-white rounded-[2.5rem] p-6 shadow-sm border border-stone-100/50 space-y-6">
         
         <!-- Gudang Selection -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          <div class="space-y-3">
-            <label class="flex items-center gap-2 text-xs font-black text-stone-400 uppercase tracking-widest">
-              <Icon icon="material-symbols:home-work-outline" class="w-4 h-4" />
-              Pilih Gudang Tujuan <span class="text-red-500">*</span>
-            </label>
-            <div class="relative">
-              <select 
-                v-model="form.gudang_id"
-                class="w-full bg-stone-50 border border-stone-100 rounded-2xl py-4 px-5 text-sm font-bold appearance-none focus:outline-none focus:ring-2 focus:ring-[#4A7043]/20 transition-all pr-12"
-              >
-                <option value="" disabled>Pilih Gudang Cabang</option>
-                <option v-for="gudang in gudangList" :key="gudang.gudang_id" :value="gudang.gudang_id">
-                  {{ gudang.alamat }}
-                </option>
-              </select>
-              <Icon icon="material-symbols:keyboard-arrow-down" class="absolute right-5 top-1/2 -translate-y-1/2 w-6 h-6 text-stone-400 pointer-events-none" />
-            </div>
+        <div class="space-y-2.5">
+          <label class="flex items-center gap-2 text-xs font-bold text-stone-500 uppercase tracking-wider">
+            <Icon icon="material-symbols:home-work-outline" class="w-4 h-4 text-stone-400" />
+            Pilih Gudang Tujuan <span class="text-red-500">*</span>
+          </label>
+          <div class="relative">
+            <select 
+              v-model="form.gudang_id"
+              class="w-full bg-[#F5F5F0] border border-stone-100 rounded-2xl py-4 px-5 text-sm font-bold appearance-none focus:outline-none focus:ring-2 focus:ring-[#4A7043]/20 transition-all pr-12 text-stone-700"
+            >
+              <option value="" disabled>Pilih Gudang Cabang</option>
+              <option v-for="gudang in gudangList" :key="gudang.gudang_id" :value="gudang.gudang_id">
+                Gudang {{ gudang.alamat.split(',')[0] }}
+              </option>
+            </select>
+            <Icon icon="material-symbols:keyboard-arrow-down" class="absolute right-5 top-1/2 -translate-y-1/2 w-6 h-6 text-stone-400 pointer-events-none" />
           </div>
-
-          <!-- Gudang Info Card -->
-          <div v-if="selectedGudang" class="bg-stone-50 rounded-2xl p-5 border border-stone-100 flex flex-col justify-center">
-            <div class="grid grid-cols-2 gap-4">
-              <div>
-                <p class="text-[10px] font-black text-stone-400 uppercase tracking-widest mb-1">ID Gudang</p>
-                <p class="font-black text-stone-800">GDG-{{ String(selectedGudang.gudang_id).padStart(3, '0') }}</p>
-              </div>
-              <div>
-                <p class="text-[10px] font-black text-stone-400 uppercase tracking-widest mb-1">Alamat Gudang</p>
-                <p class="font-black text-stone-800 leading-tight">{{ selectedGudang.alamat }}</p>
-              </div>
-            </div>
-          </div>
-          <div v-else class="bg-stone-50/50 rounded-2xl p-5 border border-dashed border-stone-200 flex items-center justify-center text-stone-400">
-            <p class="text-xs font-bold italic">Pilih gudang untuk melihat detail informasi</p>
+          <!-- Gudang Details text -->
+          <div v-if="selectedGudang" class="text-xs text-stone-400 mt-1 px-1">
+            <p class="font-bold text-stone-600">ID Gudang : GDG-{{ String(selectedGudang.gudang_id).padStart(3, '0') }}</p>
+            <p class="mt-0.5">{{ selectedGudang.alamat }}</p>
           </div>
         </div>
 
         <!-- Address Selection -->
-        <div class="space-y-6">
-          <label class="flex items-center gap-2 text-xs font-black text-stone-400 uppercase tracking-widest">
-            <Icon icon="material-symbols:location-on-outline" class="w-4 h-4" />
-            Pilih Alamat Penjemputan <span class="text-red-500">*</span>
+        <div class="space-y-4">
+          <label class="flex items-center gap-2 text-xs font-bold text-stone-500 uppercase tracking-wider">
+            <Icon icon="material-symbols:location-on-outline" class="w-4 h-4 text-stone-400" />
+            Pilih Alamat Penjemputan
           </label>
           
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="grid grid-cols-2 gap-3">
             <button 
-              @click="addressType = 'alamat_profil'"
+              type="button"
+              @click="addressType = 'alamat_profil'; form.alamat = user.alamat || ''"
               :class="[
-                'flex flex-col items-center justify-center p-6 rounded-[2rem] border-2 transition-all gap-2',
+                'flex flex-col items-center justify-center p-4 rounded-2xl border-2 transition-all gap-1.5 cursor-pointer',
                 addressType === 'alamat_profil' ? 'bg-[#E8F0E6] border-[#4A7043] text-[#4A7043]' : 'bg-white border-stone-100 text-stone-400 hover:border-stone-200'
               ]"
             >
-              <Icon icon="material-symbols:home-outline" class="w-8 h-8" />
+              <Icon icon="material-symbols:home-outline" class="w-6 h-6" />
               <div class="text-center">
-                <p class="font-black text-sm">Alamat di Profil</p>
-                <p class="text-[10px] font-bold opacity-60">Gunakan alamat tersimpan</p>
+                <p class="font-bold text-xs">Alamat di Profil</p>
+                <p class="text-[9px] font-medium opacity-60">Gunakan alamat tersimpan</p>
               </div>
             </button>
             <button 
-              @click="addressType = 'alamat_baru'"
+              type="button"
+              @click="addressType = 'alamat_baru'; form.alamat = ''"
               :class="[
-                'flex flex-col items-center justify-center p-6 rounded-[2rem] border-2 transition-all gap-2',
+                'flex flex-col items-center justify-center p-4 rounded-2xl border-2 transition-all gap-1.5 cursor-pointer',
                 addressType === 'alamat_baru' ? 'bg-[#E8F0E6] border-[#4A7043] text-[#4A7043]' : 'bg-white border-stone-100 text-stone-400 hover:border-stone-200'
               ]"
             >
-              <Icon icon="material-symbols:add-location-outline" class="w-8 h-8" />
+              <Icon icon="material-symbols:add-location-outline" class="w-6 h-6" />
               <div class="text-center">
-                <p class="font-black text-sm">Alamat Baru</p>
-                <p class="text-[10px] font-bold opacity-60">Input alamat berbeda</p>
+                <p class="font-bold text-xs">Alamat Baru</p>
+                <p class="text-[9px] font-medium opacity-60">Input alamat berbeda</p>
               </div>
             </button>
           </div>
 
-          <!-- New Address Input -->
-          <div v-if="addressType === 'alamat_baru'" class="space-y-3 animate-in slide-in-from-top-4 duration-300">
-            <label class="block text-[10px] font-black text-stone-400 uppercase tracking-widest ml-1">Alamat Lengkap <span class="text-red-500">*</span></label>
+          <!-- Address Textarea (Display in both modes) -->
+          <div class="space-y-2">
+            <label class="block text-[10px] font-bold text-stone-400 uppercase tracking-wider ml-1">Alamat Lengkap <span class="text-red-500">*</span></label>
             <textarea 
               v-model="form.alamat"
-              placeholder="Masukkan alamat lengkap untuk penjemputan..." 
-              class="w-full bg-stone-50 border border-stone-100 rounded-2xl py-4 px-5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#4A7043]/20 transition-all min-h-[120px]"
+              :readonly="addressType === 'alamat_profil'"
+              :placeholder="addressType === 'alamat_profil' ? 'Alamat dari profil akan digunakan' : 'Masukkan alamat baru'"
+              class="w-full bg-[#F5F5F0] border border-stone-100 rounded-2xl py-3.5 px-4 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-[#4A7043]/20 transition-all min-h-[90px] text-stone-700"
             ></textarea>
-            <div class="flex items-center gap-2 text-stone-400 px-1">
-              <Icon icon="material-symbols:lightbulb-outline" class="w-3.5 h-3.5 text-orange-400" />
-              <p class="text-[10px] font-bold italic">Pastikan alamat lengkap dan jelas agar petugas mudah menemukan lokasi</p>
-            </div>
-          </div>
-          <div v-else class="bg-stone-50 rounded-2xl p-5 border border-stone-100">
-             <p class="text-[10px] font-black text-stone-400 uppercase tracking-widest mb-2">Alamat Profil Saat Ini:</p>
-             <p class="text-sm font-bold text-stone-600">{{ user.alamat || 'Belum diatur di profil' }}</p>
+            <p v-if="addressType === 'alamat_baru'" class="text-[9px] font-medium text-stone-400 italic">Edit alamat di profil jika ingin mengubah alamat default</p>
           </div>
         </div>
 
-        <!-- Photo Upload (Updated with Icon) -->
-        <div class="space-y-3">
-          <label class="flex items-center gap-2 text-xs font-black text-stone-400 uppercase tracking-widest">
-            <Icon icon="material-symbols:photo-camera-outline" class="w-4 h-4" />
+        <!-- Photo Upload -->
+        <div class="space-y-2.5">
+          <label class="flex items-center gap-2 text-xs font-bold text-stone-500 uppercase tracking-wider">
+            <Icon icon="material-symbols:photo-camera-outline" class="w-4 h-4 text-stone-400" />
             Foto Sampah yang Sudah Ditata <span class="text-red-500">*</span>
           </label>
           <div 
             @click="$refs.fileInput.click()"
-            class="group relative border-2 border-dashed border-stone-200 rounded-[2.5rem] p-12 flex flex-col items-center justify-center gap-6 cursor-pointer hover:border-[#4A7043] hover:bg-stone-50 transition-all overflow-hidden"
+            class="border-2 border-dashed border-stone-200 rounded-2xl p-8 flex flex-col items-center justify-center gap-4 cursor-pointer hover:border-[#4A7043] hover:bg-stone-50/50 transition-all"
           >
             <input 
               type="file" 
@@ -383,156 +367,143 @@ onMounted(() => {
               accept="image/*"
               multiple
             />
-            
-            <div class="w-20 h-20 bg-stone-100 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
-              <Icon icon="material-symbols:upload" class="w-10 h-10 text-stone-400 group-hover:text-[#4A7043]" />
-            </div>
+            <Icon icon="material-symbols:upload" class="w-8 h-8 text-stone-400" />
             <div class="text-center">
-              <p class="text-xl font-black text-stone-800">Upload Foto Sampah</p>
-              <p class="text-xs font-bold text-stone-400 mt-1">Klik untuk memilih foto (bisa lebih dari 1, maks 3 foto)</p>
+              <p class="text-sm font-bold text-stone-800">Upload Foto Sampah</p>
+              <p class="text-[10px] font-medium text-stone-400 mt-0.5">Klik untuk memilih foto (bisa lebih dari 1)</p>
             </div>
           </div>
           
-          <!-- Thumbnails -->
-          <div v-if="uploadedPhotos.length > 0" class="flex flex-wrap gap-4 mt-4">
-            <div v-for="(photo, index) in uploadedPhotos" :key="index" class="relative group w-24 h-24 rounded-2xl overflow-hidden border border-stone-200 shadow-sm cursor-pointer" @click="openPreview(photo.previewUrl)">
-              <img :src="photo.previewUrl" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" />
-              <!-- Delete Button overlay -->
-              <button @click.stop="removePhoto(index)" class="absolute top-1 right-1 bg-white/90 text-red-500 rounded-full p-1.5 opacity-0 group-hover:opacity-100 transition-opacity shadow-sm hover:bg-red-50">
-                <Icon icon="material-symbols:close" class="w-4 h-4 font-bold" />
+          <!-- Photo Thumbnails -->
+          <div v-if="uploadedPhotos.length > 0" class="flex flex-wrap gap-3 mt-3">
+            <div v-for="(photo, index) in uploadedPhotos" :key="index" class="relative group w-16 h-16 rounded-xl overflow-hidden border border-stone-200 shadow-sm cursor-pointer" @click="openPreview(photo.previewUrl)">
+              <img :src="photo.previewUrl" class="w-full h-full object-cover" />
+              <button @click.stop="removePhoto(index)" class="absolute top-1 right-1 bg-white/90 text-red-500 rounded-full p-1 shadow-sm hover:bg-red-50">
+                <Icon icon="material-symbols:close" class="w-3.5 h-3.5" />
               </button>
             </div>
           </div>
-          <div v-if="uploadedPhotos.length > 0" class="flex items-center gap-2 text-stone-400 px-1 mt-2">
-            <Icon icon="material-symbols:lightbulb-outline" class="w-4 h-4 text-orange-400" />
-            <p class="text-[10px] font-bold italic">Tips: Pastikan sampah sudah ditata rapi dan foto terlihat jelas untuk mempercepat proses verifikasi</p>
-          </div>
+          <p class="text-[9px] text-stone-400 font-medium italic mt-1.5 flex items-start gap-1">
+            <Icon icon="material-symbols:lightbulb-outline" class="w-3 h-3 text-orange-400 shrink-0 mt-0.5" />
+            Tips: Pastikan sampah sudah ditata rapi dan foto terlihat jelas untuk mempercepat proses verifikasi
+          </p>
         </div>
 
-        <!-- Description Section -->
-        <div class="space-y-3">
-          <label class="flex items-center gap-2 text-xs font-black text-stone-400 uppercase tracking-widest">
-            <Icon icon="material-symbols:description-outline" class="w-4 h-4" />
-            Deskripsi <span class="text-red-500">*</span>
+        <!-- Description -->
+        <div class="space-y-2.5">
+          <label class="flex items-center gap-2 text-xs font-bold text-stone-500 uppercase tracking-wider">
+            <Icon icon="material-symbols:description-outline" class="w-4 h-4 text-stone-400" />
+            Deskripsi
           </label>
           <textarea 
             v-model="form.deskripsi"
-            placeholder="Contoh: Mayoritas sampah berupa botol plastik air mineral dan beberapa tumpuk kardus mie instan..." 
-            class="w-full bg-stone-50 border border-stone-100 rounded-2xl py-4 px-5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#4A7043]/20 transition-all min-h-[120px]"
+            placeholder="Contoh: Ada sampah botol plastik sekitar 5kg, kardus 3kg..." 
+            class="w-full bg-[#F5F5F0] border border-stone-100 rounded-2xl py-3.5 px-4 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-[#4A7043]/20 transition-all min-h-[90px] text-stone-700"
           ></textarea>
         </div>
 
-        <!-- Estimation Weight (Custom Styled Dropdown - Lengthened) -->
-        <div class="space-y-3">
-          <label class="flex items-center gap-2 text-xs font-black text-stone-400 uppercase tracking-widest">
-            <Icon icon="material-symbols:monitor-weight-outline" class="w-4 h-4" />
+        <!-- Estimasi Berat -->
+        <div class="space-y-2.5">
+          <label class="flex items-center gap-2 text-xs font-bold text-stone-500 uppercase tracking-wider">
+            <Icon icon="material-symbols:monitor-weight-outline" class="w-4 h-4 text-stone-400" />
             Estimasi Berat <span class="text-red-500">*</span>
           </label>
           <div class="relative w-full">
             <button 
+              type="button"
               @click="isWeightDropdownOpen = !isWeightDropdownOpen"
-              class="w-full bg-white border border-stone-200 rounded-[1.5rem] py-4 px-6 text-sm font-black flex justify-between items-center shadow-sm hover:border-stone-300 transition-all"
+              class="w-full bg-white border border-stone-200 rounded-xl py-3.5 px-5 text-sm font-bold flex justify-between items-center shadow-sm hover:border-stone-300 transition-all"
             >
-              {{ form.estimasi_berat }}
-              <Icon icon="material-symbols:keyboard-arrow-down" :class="['w-6 h-6 text-stone-400 transition-transform duration-300', isWeightDropdownOpen ? 'rotate-180' : '']" />
+              {{ form.estimasi_berat || 'Pilih estimasi berat' }}
+              <Icon icon="material-symbols:keyboard-arrow-down" :class="['w-5 h-5 text-stone-400 transition-transform duration-300', isWeightDropdownOpen ? 'rotate-180' : '']" />
             </button>
             
-            <div v-if="isWeightDropdownOpen" class="absolute z-20 w-full mt-2 bg-white border border-stone-200 rounded-2xl shadow-xl overflow-hidden animate-in fade-in zoom-in duration-100">
+            <div v-if="isWeightDropdownOpen" class="absolute z-20 w-full mt-1.5 bg-white border border-stone-200 rounded-xl shadow-xl overflow-hidden">
               <div 
                 v-for="opt in ['1-5 kg', '6-10 kg', '11-20 kg', 'Lebih dari 20 kg']" 
                 :key="opt"
                 @click="form.estimasi_berat = opt; isWeightDropdownOpen = false"
                 :class="[
-                  'px-6 py-4 text-sm font-bold cursor-pointer transition-colors',
-                  form.estimasi_berat === opt ? 'bg-[#2D4363] text-white' : 'hover:bg-stone-50 text-stone-600'
+                  'px-5 py-3 text-xs font-bold cursor-pointer transition-colors',
+                  form.estimasi_berat === opt ? 'bg-[#4A7043] text-white' : 'hover:bg-stone-50 text-stone-600'
                 ]"
               >
                 {{ opt }}
               </div>
             </div>
           </div>
-          <p class="text-[10px] font-bold text-stone-400 italic ml-1">Berat akhir akan ditentukan setelah penimbangan oleh petugas</p>
         </div>
 
-        <!-- Jenis Sampah Section (with Pagination) -->
-        <div class="space-y-4">
-          <label class="flex items-center gap-2 text-xs font-black text-stone-800 uppercase tracking-widest">
-            <Icon icon="material-symbols:recycling" class="w-4 h-4" />
+        <!-- Jenis Sampah Checklist -->
+        <div class="space-y-3">
+          <label class="flex items-center gap-2 text-xs font-bold text-stone-500 uppercase tracking-wider">
+            <Icon icon="material-symbols:recycling" class="w-4 h-4 text-stone-400" />
             Jenis Sampah <span class="text-red-500">*</span>
-            <span class="text-[10px] text-stone-400 font-bold lowercase normal-case ml-2">(Bisa pilih lebih dari 1)</span>
+            <span class="text-[10px] text-stone-400 font-bold lowercase normal-case ml-1">(Bisa pilih lebih dari 1)</span>
           </label>
 
-          <!-- Container Box -->
-          <div class="bg-stone-50/50 rounded-[2.5rem] p-6 border border-stone-100 min-h-[400px] flex flex-col">
-            <div v-if="selectedGudang && paginatedSampah.length > 0" class="flex-1 space-y-3">
+          <!-- Checklist Rows -->
+          <div class="space-y-2">
+            <div v-if="selectedGudang && paginatedSampah.length > 0" class="space-y-2">
               <div 
                 v-for="s in paginatedSampah" 
                 :key="s.sampah_id"
-@click="toggleItem(s.item_sampah.nama, s.sampah_id)"
-                :class="[
-                  'p-5 rounded-2xl border-2 transition-all cursor-pointer flex justify-between items-center group bg-white shadow-sm',
-                  selectedItems.includes(s.item_sampah.nama) ? 'border-[#4A7043] ring-1 ring-[#4A7043]' : 'border-transparent hover:border-stone-200'
-                ]"
+                @click="toggleItem(s.item_sampah.nama, s.sampah_id)"
+                class="p-4 rounded-xl border border-stone-100 shadow-sm cursor-pointer flex justify-between items-center bg-white hover:border-stone-200 transition-all"
               >
-                <div class="flex-1">
-                  <h5 :class="['font-black transition-colors', selectedItems.includes(s.item_sampah.nama) ? 'text-[#4A7043]' : 'text-stone-800']">
-                    {{ s.item_sampah.nama }}
-                  </h5>
-                  <p class="text-[10px] font-bold text-stone-400 mt-1">Sedia di gudang ini (Stok: {{ s.stok }} unit)</p>
+                <div class="flex items-center gap-3">
+                  <div :class="['w-5 h-5 rounded border flex items-center justify-center transition-all', 
+                    selectedItems.includes(s.item_sampah.nama) ? 'border-[#4A7043] bg-[#4A7043] text-white' : 'border-stone-300 bg-white'
+                  ]">
+                    <Icon v-if="selectedItems.includes(s.item_sampah.nama)" icon="material-symbols:check" class="w-4 h-4 font-black" />
+                  </div>
+                  <span class="font-bold text-stone-700 text-xs md:text-sm">{{ s.item_sampah.nama }}</span>
                 </div>
                 <div class="text-right">
-                  <p class="font-black text-[#4A7043]">{{ formatCurrency(s.item_sampah.harga_beli) }}/kg</p>
+                  <span class="font-black text-[#4A7043] text-xs md:text-sm">{{ formatCurrency(s.item_sampah.harga_beli) }}/kg</span>
                 </div>
               </div>
             </div>
-            <div v-else class="flex-1 flex flex-col items-center justify-center text-center px-6">
-              <Icon icon="material-symbols:inventory-2-outline" class="w-12 h-12 text-stone-300 mb-3" />
-              <p class="text-stone-400 font-bold text-sm italic">
-                {{ form.gudang_id ? 'Maaf, gudang ini belum memiliki daftar jenis sampah.' : 'Silakan pilih gudang tujuan terlebih dahulu untuk melihat jenis sampah.' }}
+            <div v-else class="py-10 flex flex-col items-center justify-center text-center px-4 bg-stone-50 rounded-2xl border border-dashed border-stone-200">
+              <Icon icon="material-symbols:inventory-2-outline" class="w-10 h-10 text-stone-300 mb-2" />
+              <p class="text-stone-400 font-bold text-xs italic">
+                {{ form.gudang_id ? 'Gudang ini tidak memiliki jenis sampah.' : 'Silakan pilih gudang tujuan terlebih dahulu.' }}
               </p>
-            </div>
-
-            <!-- Pagination Controls -->
-            <div v-if="totalPages > 1" class="mt-8 flex items-center justify-center gap-4">
-              <button 
-                @click="currentPage > 1 && currentPage--"
-                :disabled="currentPage === 1"
-                class="p-3 rounded-xl bg-white border border-stone-200 text-stone-400 disabled:opacity-30 hover:text-[#4A7043] transition-colors shadow-sm"
-              >
-                <Icon icon="material-symbols:chevron-left" class="w-6 h-6" />
-              </button>
-              <div class="flex gap-2">
-                <button 
-                  v-for="p in totalPages" 
-                  :key="p"
-                  @click="currentPage = p"
-                  :class="[
-                    'w-10 h-10 rounded-xl font-black text-xs transition-all',
-                    currentPage === p ? 'bg-[#4A7043] text-white shadow-lg' : 'bg-white border border-stone-200 text-stone-400 hover:border-stone-300'
-                  ]"
-                >
-                  {{ p }}
-                </button>
-              </div>
-              <button 
-                @click="currentPage < totalPages && currentPage++"
-                :disabled="currentPage === totalPages"
-                class="p-3 rounded-xl bg-white border border-stone-200 text-stone-400 disabled:opacity-30 hover:text-[#4A7043] transition-colors shadow-sm"
-              >
-                <Icon icon="material-symbols:chevron-right" class="w-6 h-6" />
-              </button>
             </div>
           </div>
 
-          <!-- Selection Summary -->
-          <div v-if="selectedItems.length > 0" class="bg-green-50 rounded-2xl p-4 border border-green-100 flex items-start gap-3">
-            <div class="p-1.5 bg-white rounded-lg text-[#4A7043] shadow-sm">
-              <Icon icon="material-symbols:check-circle-outline" class="w-4 h-4" />
+          <!-- Pagination inside form matching mockup -->
+          <div v-if="totalPages > 1" class="mt-4 flex items-center justify-center gap-2">
+            <button 
+              type="button"
+              @click="currentPage > 1 && currentPage--"
+              :disabled="currentPage === 1"
+              class="w-8 h-8 flex items-center justify-center text-stone-400 hover:text-stone-700 disabled:opacity-20 transition-colors"
+            >
+              <Icon icon="material-symbols:chevron-left" class="w-5 h-5" />
+            </button>
+            <div class="flex items-center gap-1">
+              <button 
+                v-for="p in totalPages" 
+                :key="p"
+                type="button"
+                @click="currentPage = p"
+                :class="[
+                  'w-8 h-8 flex items-center justify-center text-xs font-bold rounded-full transition-all',
+                  currentPage === p ? 'bg-[#4A7043] text-white shadow-sm' : 'text-stone-400 hover:bg-stone-50'
+                ]"
+              >
+                {{ p }}
+              </button>
             </div>
-            <p class="text-xs font-bold text-green-800">
-              <span class="text-green-600 font-black uppercase tracking-widest mr-2 text-[10px]">Dipilih:</span>
-              {{ selectedItems.join(", ") }}
-            </p>
+            <button 
+              type="button"
+              @click="currentPage < totalPages && currentPage++"
+              :disabled="currentPage === totalPages"
+              class="w-8 h-8 flex items-center justify-center text-stone-400 hover:text-stone-700 disabled:opacity-20 transition-colors"
+            >
+              <Icon icon="material-symbols:chevron-right" class="w-5 h-5" />
+            </button>
           </div>
         </div>
 
@@ -540,27 +511,26 @@ onMounted(() => {
         <button 
           @click="submitRequest"
           :disabled="loading"
-          class="w-full py-5 rounded-[1.5rem] bg-[#4A7043] text-white font-black text-lg shadow-xl shadow-green-900/10 hover:scale-[1.01] active:scale-[0.98] transition-all flex items-center justify-center gap-3 disabled:opacity-50 disabled:hover:scale-100"
+          class="w-full py-4.5 rounded-2xl bg-[#4A7043] text-white font-black text-sm hover:bg-[#3d5c37] active:scale-[0.98] transition-all flex items-center justify-center gap-2 disabled:opacity-50"
         >
           <template v-if="!loading">
             Request Penjemputan
-            <Icon icon="material-symbols:send-outline" class="w-6 h-6" />
           </template>
           <template v-else>
-            <Icon icon="line-md:loading-twotone-loop" class="w-6 h-6" />
+            <Icon icon="line-md:loading-twotone-loop" class="w-5 h-5" />
             Mengirim Request...
           </template>
         </button>
 
       </div>
 
-      <!-- Setor Manual View -->
+      <!-- Setor Manual View (Warehouse list matching nasabah - setor manual.png) -->
       <div v-else-if="activeTab === 'Setor Manual'" class="space-y-6 animate-in fade-in duration-500">
         <!-- Instructions Accordion -->
-        <div class="bg-white rounded-[2.5rem] shadow-sm border border-stone-100 overflow-hidden">
+        <div class="bg-white rounded-[2.5rem] shadow-sm border border-stone-100/50 overflow-hidden">
           <button 
             @click="showInstructions = !showInstructions"
-            class="w-full flex items-center justify-between p-6 bg-[#4A7043] text-white font-black text-sm uppercase tracking-widest transition-all"
+            class="w-full flex items-center justify-between p-6 bg-[#4A7043] text-white font-bold text-sm uppercase tracking-wider transition-all"
           >
             <div class="flex items-center gap-3">
               <Icon icon="material-symbols:info-outline" class="w-5 h-5" />
@@ -569,106 +539,110 @@ onMounted(() => {
             <Icon icon="material-symbols:keyboard-arrow-down" :class="['w-6 h-6 transition-transform duration-300', showInstructions ? 'rotate-180' : '']" />
           </button>
           
-          <div v-if="showInstructions" class="p-8 space-y-4 animate-in slide-in-from-top-2 duration-300">
-            <ol class="space-y-3">
-              <li v-for="(step, i) in [
-                'Pilih gudang yang tersedia sesuai lokasi terdekatmu.',
-                'Siapkan sampah yang sudah dipilah dan disusun rapi.',
-                'Datang ke gudang dan temui petugas untuk melakukan penyetoran.',
-                'Petugas akan menimbang sampahmu dan mencatat hasilnya.',
-                'Pantau status setor melalui menu \'Sampah Saya\'.'
-              ]" :key="i" class="flex gap-4 text-stone-600 font-bold text-sm leading-relaxed">
-                <span class="flex-shrink-0 w-6 h-6 bg-stone-100 rounded-full flex items-center justify-center text-[10px] font-black text-[#4A7043]">{{ i + 1 }}</span>
-                {{ step }}
-              </li>
+          <div v-if="showInstructions" class="p-8 bg-white border-t border-stone-100">
+            <ol class="space-y-3 list-decimal pl-5 text-stone-600 font-bold text-sm leading-relaxed">
+              <li>Pilih gudang yang tersedia sesuai lokasi terdekatmu.</li>
+              <li>Siapkan sampah yang sudah dipilah dan disusun rapi.</li>
+              <li>Datang ke gudang dan temui petugas untuk melakukan penyetoran.</li>
+              <li>Petugas akan menimbang sampahmu dan mencatat hasilnya.</li>
+              <li>Pantau status setor melalui menu “Sampah Saya”.</li>
             </ol>
           </div>
         </div>
 
         <!-- Search & Filter Bar -->
-        <div class="bg-white rounded-[2.5rem] p-6 shadow-sm border border-stone-100 space-y-4">
+        <div class="bg-white rounded-[2rem] p-5 shadow-sm border border-stone-100/50 space-y-4">
           <div class="relative">
             <Icon icon="material-symbols:search" class="absolute left-5 top-1/2 -translate-y-1/2 w-6 h-6 text-stone-400" />
             <input 
               v-model="searchQuery"
               type="text" 
               placeholder="Cari gudang..." 
-              class="w-full bg-stone-50 border border-stone-100 rounded-2xl py-4 pl-14 pr-6 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-[#4A7043]/20 transition-all"
+              class="w-full bg-white border border-stone-200 rounded-2xl py-4 pl-14 pr-6 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-[#4A7043]/20 transition-all text-stone-700"
             />
           </div>
           
-          <div class="flex flex-wrap items-center gap-4">
-            <div class="flex p-1 bg-stone-50 rounded-xl border border-stone-100">
-              <button 
-                v-for="opt in ['Semua', 'Tersedia']" 
-                :key="opt"
-                @click="statusFilter = opt"
-                :class="[
-                  'px-6 py-2 rounded-lg text-xs font-black transition-all',
-                  statusFilter === opt ? 'bg-[#4A7043] text-white shadow-md' : 'text-stone-400 hover:text-stone-600'
-                ]"
-              >
-                {{ opt }} <span v-if="opt === 'Tersedia'" class="opacity-60">({{ filteredGudangList.filter(g => getGudangStats(g).percentage < 100).length }})</span>
-              </button>
-            </div>
+          <div class="flex items-center gap-2">
+            <button 
+              type="button"
+              @click="statusFilter = 'Semua'"
+              :class="[
+                'px-4 py-2.5 rounded-lg text-xs font-bold transition-all cursor-pointer',
+                statusFilter === 'Semua' ? 'bg-[#4A7043] text-white shadow-sm' : 'bg-[#F5F5F0] text-stone-600 hover:bg-stone-200'
+              ]"
+            >
+              Semua
+            </button>
+            <button 
+              type="button"
+              @click="statusFilter = 'Tersedia'"
+              :class="[
+                'px-4 py-2.5 rounded-lg text-xs font-bold transition-all cursor-pointer whitespace-nowrap',
+                statusFilter === 'Tersedia' ? 'bg-[#4A7043] text-white shadow-sm' : 'bg-[#F5F5F0] text-stone-600 hover:bg-stone-200'
+              ]"
+            >
+              Tersedia ({{ filteredGudangList.filter(g => getGudangStats(g).percentage < 100).length }})
+            </button>
             
-            <div class="flex-1 min-w-[200px] relative">
-              <select class="w-full bg-stone-50 border border-stone-100 rounded-xl py-3 px-5 text-xs font-bold appearance-none text-stone-600 focus:outline-none">
+            <div class="flex-1 relative">
+              <select class="w-full bg-white border border-stone-200 rounded-xl py-2 px-3 text-xs font-bold appearance-none text-stone-500 focus:outline-none pr-8">
                 <option>Semua Wilayah</option>
               </select>
-              <Icon icon="material-symbols:keyboard-arrow-down" class="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-stone-400 pointer-events-none" />
+              <Icon icon="material-symbols:keyboard-arrow-down" class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400 pointer-events-none" />
             </div>
           </div>
         </div>
 
-        <!-- Warehouse Grid -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <!-- Warehouse List (Matching mockup style) -->
+        <div class="space-y-4">
           <div 
             v-for="gudang in filteredGudangList" 
             :key="gudang.gudang_id"
-            class="group bg-white rounded-[2rem] border border-stone-100 overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300"
+            class="bg-white rounded-[2rem] border border-stone-100/50 overflow-hidden shadow-sm hover:shadow-md transition-all duration-300"
           >
             <!-- Card Header -->
-            <div :class="['p-4 flex items-center gap-3 transition-colors', getGudangStats(gudang).isFull ? 'bg-red-500 text-white' : 'bg-[#4A7043] text-white']">
-              <div class="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center">
+            <div :class="['p-5 flex items-center gap-3 text-white transition-colors', getGudangStats(gudang).isFull ? 'bg-[#E86B6B]' : 'bg-[#4A7043]']">
+              <div class="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center shrink-0">
                 <Icon icon="material-symbols:storefront-outline" class="w-6 h-6" />
               </div>
               <div class="flex-1 min-w-0">
-                <h4 class="font-black text-sm truncate">Gudang {{ gudang.alamat.split(',')[0] }}</h4>
-                <div class="flex items-center gap-1 opacity-80">
-                  <Icon icon="material-symbols:location-on" class="w-3 h-3" />
-                  <p class="text-[10px] font-bold truncate">{{ gudang.alamat }}</p>
+                <h4 class="font-bold text-base truncate">Gudang {{ gudang.alamat.split(',')[0] }}</h4>
+                <div class="flex items-center gap-1 opacity-90 mt-0.5">
+                  <Icon icon="material-symbols:location-on" class="w-3.5 h-3.5" />
+                  <p class="text-xs font-medium truncate">{{ gudang.alamat }}</p>
                 </div>
               </div>
             </div>
 
             <!-- Card Body -->
-            <div class="p-5 space-y-5">
-              <!-- Stats -->
-              <div class="grid grid-cols-3 gap-2">
-                <div class="bg-stone-50 p-3 rounded-xl text-center">
-                  <p class="text-[14px] font-black text-stone-800 leading-none">{{ gudang.petugas?.length || 0 }}</p>
-                  <p class="text-[8px] font-black text-stone-400 uppercase tracking-tighter mt-1">Petugas</p>
+            <div class="p-5 space-y-4">
+              <!-- Grid Stats -->
+              <div class="grid grid-cols-3 gap-3">
+                <div class="bg-[#F5F5F0] p-3.5 rounded-2xl text-center">
+                  <p class="text-base font-black text-[#4A7043] leading-none">{{ gudang.petugas?.length || 0 }}</p>
+                  <p class="text-[9px] font-bold text-stone-400 uppercase tracking-wider mt-1.5">Petugas</p>
                 </div>
-                <div class="bg-stone-50 p-3 rounded-xl text-center">
-                  <p class="text-[14px] font-black text-stone-800 leading-none">{{ gudang.tukang?.length || 0 }}</p>
-                  <p class="text-[8px] font-black text-stone-400 uppercase tracking-tighter mt-1">Tukang</p>
+                <div class="bg-[#F5F5F0] p-3.5 rounded-2xl text-center">
+                  <p class="text-base font-black text-[#0D9488] leading-none">{{ gudang.tukang?.length || 0 }}</p>
+                  <p class="text-[9px] font-bold text-stone-400 uppercase tracking-wider mt-1.5">Tukang</p>
                 </div>
-                <div class="bg-stone-50 p-3 rounded-xl text-center">
-                  <p class="text-[10px] font-black text-stone-800 leading-none">{{ getGudangStats(gudang).totalStok }}/{{ gudang.kapasitas }}</p>
-                  <p class="text-[8px] font-black text-stone-400 uppercase tracking-tighter mt-1">kg</p>
+                <div class="bg-[#F5F5F0] p-3.5 rounded-2xl text-center flex flex-col justify-center">
+                  <p class="text-base font-black text-[#EA580C] leading-none">
+                    {{ getGudangStats(gudang).isFull ? '0/300' : Math.round(getGudangStats(gudang).totalStok) }}
+                  </p>
+                  <p class="text-[9px] font-bold text-stone-400 uppercase tracking-wider mt-1.5">kg</p>
                 </div>
               </div>
 
               <!-- Capacity Progress -->
-              <div class="space-y-2">
-                <div class="flex justify-between items-center text-[9px] font-black uppercase tracking-widest text-stone-400">
+              <div class="space-y-1.5">
+                <div class="flex justify-between items-center text-[10px] font-bold uppercase tracking-wider text-stone-400">
                   <span>Kapasitas</span>
-                  <span :class="getGudangStats(gudang).isFull ? 'text-red-500' : 'text-[#4A7043]'">{{ getGudangStats(gudang).percentage }}%</span>
+                  <span :class="getGudangStats(gudang).isFull ? 'text-[#E86B6B]' : 'text-[#4A7043]'">{{ getGudangStats(gudang).percentage }}%</span>
                 </div>
                 <div class="h-2 w-full bg-stone-100 rounded-full overflow-hidden">
                   <div 
-                    :class="['h-full transition-all duration-1000', getGudangStats(gudang).isFull ? 'bg-red-500' : 'bg-[#4A7043]']"
+                    :class="['h-full transition-all duration-1000', getGudangStats(gudang).isFull ? 'bg-[#E86B6B]' : 'bg-[#EBB82C]']"
                     :style="{ width: getGudangStats(gudang).percentage + '%' }"
                   ></div>
                 </div>
@@ -680,68 +654,49 @@ onMounted(() => {
         <!-- Empty State -->
         <div v-if="filteredGudangList.length === 0" class="bg-white rounded-[2.5rem] p-12 flex flex-col items-center text-center border border-dashed border-stone-200">
           <Icon icon="material-symbols:search-off" class="w-16 h-16 text-stone-200 mb-4" />
-          <h3 class="text-lg font-black text-stone-800">Gudang Tidak Ditemukan</h3>
-          <p class="text-sm font-bold text-stone-400 mt-1">Coba gunakan kata kunci lain atau ubah filter status.</p>
+          <h3 class="text-base font-bold text-stone-800">Gudang Tidak Ditemukan</h3>
+          <p class="text-xs font-bold text-stone-400 mt-1">Coba gunakan kata kunci lain atau ubah filter status.</p>
         </div>
       </div>
 
     </div>
-    
+
     <!-- Image Preview Modal -->
-    <div v-if="selectedPreview" class="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm animate-in fade-in zoom-in duration-200" @click="closePreview">
+    <div v-if="selectedPreview" class="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm" @click="closePreview">
       <div class="relative max-w-4xl max-h-[90vh] p-4">
-        <button @click="closePreview" class="absolute -top-12 right-0 bg-white text-stone-800 rounded-full w-12 h-12 flex items-center justify-center hover:bg-stone-200 transition-colors shadow-lg">
-          <Icon icon="material-symbols:close" class="w-6 h-6 font-black" />
+        <button @click="closePreview" class="absolute -top-12 right-0 bg-white text-stone-800 rounded-full w-10 h-10 flex items-center justify-center hover:bg-stone-200 transition-colors">
+          <Icon icon="material-symbols:close" class="w-5 h-5" />
         </button>
-        <img :src="selectedPreview" class="max-w-full max-h-[85vh] rounded-2xl shadow-2xl object-contain border-4 border-white/10" @click.stop />
+        <img :src="selectedPreview" class="max-w-full max-h-[85vh] rounded-2xl shadow-2xl object-contain" @click.stop />
       </div>
     </div>
 
     <!-- Success Modal -->
-    <div v-if="showSuccessModal" class="fixed inset-0 z-[110] flex items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
-      <div class="bg-white w-full max-w-md rounded-[2.5rem] p-8 relative shadow-2xl animate-in zoom-in-95 duration-300">
-        <!-- Close Button -->
-        <button @click="closeSuccessModal" class="absolute top-6 right-6 bg-stone-100 text-stone-400 hover:text-stone-600 w-8 h-8 rounded-full flex items-center justify-center transition-colors">
-          <Icon icon="material-symbols:close" class="w-5 h-5" />
-        </button>
+    <div v-if="showSuccessModal" class="fixed inset-0 z-[110] flex items-center justify-center bg-black/60 backdrop-blur-sm">
+      <div class="bg-white w-full max-w-md rounded-[2rem] p-6 relative shadow-2xl text-center mx-4">
+        <div class="w-16 h-16 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-4">
+          <Icon icon="material-symbols:check-circle-outline" class="w-10 h-10 text-[#4A7043]" />
+        </div>
+        <h3 class="text-xl font-black text-stone-800 mb-2">Request Berhasil Dibuat!</h3>
+        <p class="text-stone-500 text-xs font-medium mb-6">
+          Permintaan Anda telah kami daftarkan. Petugas akan memproses pesanan Anda.
+        </p>
 
-        <div class="flex flex-col items-center text-center mt-4">
-          <!-- Icon -->
-          <div class="relative mb-6">
-            <div class="w-20 h-20 bg-green-50 rounded-full flex items-center justify-center">
-              <Icon icon="material-symbols:check-circle-outline" class="w-12 h-12 text-[#4A7043]" />
-            </div>
-            <div class="absolute -bottom-2 -right-2 w-10 h-10 bg-[#4A7043] rounded-full border-4 border-white flex items-center justify-center shadow-sm">
-              <Icon icon="material-symbols:local-shipping-outline" class="w-5 h-5 text-white" />
-            </div>
-          </div>
+        <div class="bg-stone-50 rounded-2xl p-4 mb-6 border border-stone-100">
+          <p class="text-[9px] font-bold text-stone-400 uppercase tracking-wider mb-1">ID Transaksi / Tracking</p>
+          <p class="text-lg font-black text-[#4A7043] tracking-wide">{{ submittedTrackingId }}</p>
+        </div>
 
-          <!-- Title & Desc -->
-          <h3 class="text-2xl font-black text-stone-800 mb-3">Request Berhasil Dibuat! 🎉</h3>
-          <p class="text-stone-500 text-sm font-medium leading-relaxed mb-8 px-4">
-            Permintaan penjemputan sampah Anda telah diterima. Petugas akan menghubungi Anda untuk konfirmasi jadwal.
-          </p>
-
-          <!-- Tracking Box -->
-          <div class="w-full bg-[#FAFAFA] rounded-3xl p-6 mb-8 border border-stone-100">
-            <p class="text-[10px] font-black text-stone-400 uppercase tracking-widest mb-2">Tracking Jemput</p>
-            <p class="text-2xl font-black text-[#4A7043] tracking-wider">{{ submittedTrackingId }}</p>
-            <p class="text-xs font-bold text-stone-400 mt-2">Simpan ID ini untuk melacak status request Anda</p>
-          </div>
-
-          <!-- Actions -->
-          <div class="w-full space-y-3">
-            <button 
-              @click="router.push('/dashboard-nasabah/sampah-saya')"
-              class="w-full py-4 rounded-[1.5rem] bg-[#4A7043] text-white font-black text-sm flex items-center justify-center gap-2 hover:bg-[#3d5c37] transition-colors shadow-lg shadow-green-900/20"
-            >
-              <Icon icon="material-symbols:local-shipping-outline" class="w-5 h-5" />
-              Lihat Tracking
-            </button>
-            <button @click="closeSuccessModal" class="w-full py-4 rounded-[1.5rem] bg-white border-2 border-stone-100 text-stone-600 font-black text-sm hover:border-stone-200 hover:bg-stone-50 transition-colors">
-              Kembali ke Dashboard
-            </button>
-          </div>
+        <div class="space-y-2">
+          <button 
+            @click="router.push('/dashboard-nasabah/sampah-saya')"
+            class="w-full py-3.5 rounded-xl bg-[#4A7043] text-white font-bold text-xs"
+          >
+            Lihat Riwayat
+          </button>
+          <button @click="closeSuccessModal" class="w-full py-3.5 rounded-xl bg-white border border-stone-200 text-stone-500 font-bold text-xs">
+            Kembali
+          </button>
         </div>
       </div>
     </div>

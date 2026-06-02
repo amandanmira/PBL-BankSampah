@@ -7,8 +7,8 @@ defineProps({
 <template>
   <div class="bg-[#4A7043] rounded-3xl p-8 text-white relative overflow-hidden shadow-lg">
     <div class="relative z-10">
-      <h1 class="text-3xl font-bold mb-2">Selamat Datang, {{ name }}! 👋</h1>
-      <p class="text-white/80 text-lg">Mari berkontribusi untuk lingkungan yang lebih bersih</p>
+      <h1 class="text-xl md:text-2xl font-bold mb-1.5">Selamat Datang, {{ name }}! 👋</h1>
+      <p class="text-white/80 text-xs md:text-sm">Mari berkontribusi untuk lingkungan yang lebih bersih</p>
     </div>
     <!-- Decorative background elements -->
     <div class="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -mr-20 -mt-20"></div>

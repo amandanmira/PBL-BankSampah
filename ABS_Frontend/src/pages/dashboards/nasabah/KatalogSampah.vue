@@ -85,6 +85,29 @@ const formatCurrency = (val) => {
   return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(val);
 };
 
+const getDescription = (name) => {
+  const lowercaseName = name?.toLowerCase() || '';
+  if (lowercaseName.includes('botol plastik')) {
+    return 'Botol plastik bekas minuman (PET), bersih dan tidak pecah';
+  }
+  if (lowercaseName.includes('kardus')) {
+    return 'Kardus bekas dalam kondisi kering dan tidak basah';
+  }
+  if (lowercaseName.includes('botol kaca')) {
+    return 'Botol kaca bekas dalam kondisi bersih dan utuh';
+  }
+  if (lowercaseName.includes('kaleng') || lowercaseName.includes('aluminium')) {
+    return 'Kaleng minuman bekas (aluminium) dalam kondisi bersih';
+  }
+  if (lowercaseName.includes('kertas') || lowercaseName.includes('hvs') || lowercaseName.includes('koran') || lowercaseName.includes('majalah')) {
+    return 'Kertas bekas (HVS, koran, majalah) dalam kondisi kering';
+  }
+  if (lowercaseName.includes('besi') || lowercaseName.includes('logam')) {
+    return 'Besi atau logam bekas dalam berbagai bentuk';
+  }
+  return 'Barang bekas berkualitas layak daur ulang.';
+};
+
 // Reset pagination when filters change
 const changeFilter = (gudangId) => {
   selectedGudangFilter.value = gudangId;
@@ -162,7 +185,7 @@ const onSearchInput = () => {
               class="bg-white rounded-3xl overflow-hidden border border-stone-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group"
             >
               <!-- Image Container -->
-              <div class="relative h-48 w-full bg-stone-100 overflow-hidden">
+              <div class="relative h-56 w-full bg-stone-50 overflow-hidden">
                 <img 
                   v-if="item.foto" 
                   :src="`${axios.defaults.baseURL}/storage/${item.foto}`" 
@@ -181,31 +204,52 @@ const onSearchInput = () => {
                 </div>
               </div>
 
-              <!-- Card Body -->
+              <!-- Card Body (Mockup Style) -->
               <div class="p-6">
-                <h3 class="text-lg font-black text-stone-800 mb-2 truncate">{{ item.nama }}</h3>
-                <p class="text-sm font-black text-[#4A7043]">{{ formatCurrency(item.harga_beli) }} <span class="text-[10px] text-stone-400 font-bold uppercase tracking-widest ml-1">/ KG</span></p>
+                <!-- Title Row -->
+                <div class="flex items-center justify-between gap-3 mb-2">
+                  <h3 class="text-lg md:text-xl font-bold text-stone-800 truncate">{{ item.nama }}</h3>
+                  <div class="w-7 h-7 rounded-full bg-[#E8F0E6] text-[#4A7043] flex items-center justify-center shrink-0">
+                    <Icon icon="material-symbols:package-2-outline" class="w-4.5 h-4.5" />
+                  </div>
+                </div>
+
+                <!-- Description -->
+                <p class="text-xs md:text-sm text-stone-400 font-medium leading-relaxed mb-6">
+                  {{ getDescription(item.nama) }}
+                </p>
+
+                <!-- Divider line -->
+                <div class="border-t border-stone-100/80 my-4"></div>
+
+                <!-- Price Section -->
+                <div>
+                  <p class="text-[10px] md:text-xs text-stone-400 font-bold uppercase tracking-wider">Harga per kg</p>
+                  <h4 class="text-xl md:text-2xl font-black text-[#4A7043] mt-1">{{ formatCurrency(item.harga_beli) }}</h4>
+                </div>
               </div>
             </div>
           </div>
 
-          <!-- Pagination -->
-          <div v-if="totalPages > 1" class="mt-12 flex items-center justify-center gap-4">
+          <!-- Pagination (Mockup Style) -->
+          <div v-if="totalPages > 1" class="mt-12 flex items-center justify-center gap-3">
             <button 
               @click="currentPage > 1 && currentPage--"
               :disabled="currentPage === 1"
-              class="p-3 rounded-xl bg-white border border-stone-200 text-stone-400 disabled:opacity-30 hover:text-[#4A7043] transition-colors shadow-sm"
+              class="w-10 h-10 flex items-center justify-center text-stone-400 hover:text-stone-800 disabled:opacity-20 transition-colors cursor-pointer"
             >
               <Icon icon="material-symbols:chevron-left" class="w-6 h-6" />
             </button>
-            <div class="flex gap-2">
+            <div class="flex items-center gap-1.5">
               <button 
                 v-for="p in totalPages" 
                 :key="p"
                 @click="currentPage = p"
                 :class="[
-                  'w-10 h-10 rounded-xl font-black text-xs transition-all',
-                  currentPage === p ? 'bg-[#4A7043] text-white shadow-lg' : 'bg-white border border-stone-200 text-stone-400 hover:border-stone-300'
+                  'w-10 h-10 flex items-center justify-center text-sm font-bold transition-all rounded-full',
+                  currentPage === p 
+                    ? 'bg-stone-700 text-white shadow-md' 
+                    : 'text-stone-500 hover:text-stone-800 hover:bg-stone-100/50'
                 ]"
               >
                 {{ p }}
@@ -214,7 +258,7 @@ const onSearchInput = () => {
             <button 
               @click="currentPage < totalPages && currentPage++"
               :disabled="currentPage === totalPages"
-              class="p-3 rounded-xl bg-white border border-stone-200 text-stone-400 disabled:opacity-30 hover:text-[#4A7043] transition-colors shadow-sm"
+              class="w-10 h-10 flex items-center justify-center text-stone-400 hover:text-stone-800 disabled:opacity-20 transition-colors cursor-pointer"
             >
               <Icon icon="material-symbols:chevron-right" class="w-6 h-6" />
             </button>
