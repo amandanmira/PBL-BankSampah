@@ -234,18 +234,20 @@ const goBack = () => {
           <div class="text-right">
             <h2 class="text-lg font-black text-stone-800 uppercase tracking-wide mb-2">LAPORAN OPERASIONAL & KEUANGAN</h2>
             <table class="text-xs text-stone-500 ml-auto text-right">
-              <tr>
-                <td class="pr-2">Periode Laporan:</td>
-                <td class="font-bold text-stone-800">{{ periodeLaporan }}</td>
-              </tr>
-              <tr>
-                <td class="pr-2">Nama Petugas:</td>
-                <td class="font-bold text-stone-800">{{ user.nama || user.name || 'Admin' }}</td>
-              </tr>
-              <tr>
-                <td class="pr-2">Lokasi Gudang:</td>
-                <td class="font-bold text-stone-800">{{ gudangName }}</td>
-              </tr>
+              <tbody>
+                <tr>
+                  <td class="pr-2">Periode Laporan:</td>
+                  <td class="font-bold text-stone-800">{{ periodeLaporan }}</td>
+                </tr>
+                <tr>
+                  <td class="pr-2">Nama Petugas:</td>
+                  <td class="font-bold text-stone-800">{{ user.nama || user.name || 'Admin' }}</td>
+                </tr>
+                <tr>
+                  <td class="pr-2">Lokasi Gudang:</td>
+                  <td class="font-bold text-stone-800">{{ gudangName }}</td>
+                </tr>
+              </tbody>
             </table>
           </div>
         </div>

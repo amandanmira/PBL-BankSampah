@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
 import axios from 'axios'
 import { useRouter } from "vue-router";
 
@@ -8,9 +8,19 @@ const router = useRouter()
 const token = sessionStorage.getItem("token")
 
 const isMenuOpen = ref(false);
+const webConfig = ref({ logo: null });
 
 const toggleMenu = () => {
   isMenuOpen.value = !isMenuOpen.value;
+};
+
+const fetchWebConfig = async () => {
+  try {
+    const res = await axios.get("/api/web-config");
+    webConfig.value = res.data;
+  } catch (err) {
+    console.error("Failed to fetch web config:", err);
+  }
 };
 
 const logout = async () => {
@@ -24,6 +34,10 @@ const logout = async () => {
     console.log(error.response)
   }
 }
+
+onMounted(() => {
+  fetchWebConfig();
+});
 </script>
 
 <template>
@@ -48,8 +62,9 @@ const logout = async () => {
         </button>
 
         <!-- Logo -->
-        <RouterLink to="/" class="text-3xl md:text-4xl font-bold tracking-wide">
-          ABS
+        <RouterLink to="/" class="flex items-center gap-2">
+          <img v-if="webConfig.logo" :src="`${axios.defaults.baseURL}/storage/${webConfig.logo}`" class="h-10 w-auto object-contain" alt="Logo" />
+          <span v-else class="text-3xl md:text-4xl font-bold tracking-wide">Bank Sampah</span>
         </RouterLink>
       </div>
 

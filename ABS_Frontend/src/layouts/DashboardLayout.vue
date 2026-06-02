@@ -409,10 +409,16 @@ onMounted(() => {
       "
     >
       <!-- Mobile Close & Logo -->
-      <div class="p-6 flex items-start justify-between">
-        <div>
-          <h2 class="text-3xl font-black tracking-wide leading-none text-white">logo</h2>
-          <p class="text-[10px] text-white/60 font-bold uppercase tracking-wider mt-1.5">Aplikasi Bank Sampah</p>
+      <div class="p-6 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center overflow-hidden shrink-0">
+            <img v-if="webConfig.logo" :src="`${axios.defaults.baseURL}/storage/${webConfig.logo}`" class="w-full h-full object-contain p-1" alt="Logo" />
+            <Icon v-else icon="material-symbols:recycling" class="w-7 h-7 text-[#4CAF50]" />
+          </div>
+          <div>
+            <h2 class="text-sm font-black tracking-wide leading-none text-white">Bank Sampah</h2>
+            <p class="text-[9px] text-white/60 font-bold uppercase tracking-wider mt-1">Aplikasi Bank Sampah</p>
+          </div>
         </div>
         <button
           @click="isMobileMenuOpen = false"
@@ -491,6 +497,17 @@ onMounted(() => {
               <Icon icon="material-symbols:menu" class="w-6 h-6 text-[#4A7043]" />
             </button>
             <h1 class="text-lg lg:text-2xl font-bold tracking-wide uppercase lg:normal-case">{{ title }}</h1>
+          </div>
+
+          <!-- Profile Button (Top Right Header) -->
+          <div class="flex items-center">
+            <button
+              @click="handleProfileClick"
+              class="p-2 hover:bg-stone-200/50 lg:hover:bg-white/10 rounded-full transition-all shrink-0 cursor-pointer text-[#4A7043] lg:text-white flex items-center justify-center"
+              title="Profil Saya"
+            >
+              <Icon icon="material-symbols:account-circle-outline" class="w-6 h-6 lg:w-7 h-7" />
+            </button>
           </div>
         </div>
       </header>
