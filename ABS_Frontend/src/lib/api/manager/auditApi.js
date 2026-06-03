@@ -35,6 +35,8 @@ export const getAuditPenarikanData = async (page = 1, filters = {}, perPage = 10
     page,
     per_page: perPage,
     durasi: filters.durasi,
+    start_date: filters.start_date,
+    end_date: filters.end_date,
     search: filters.search
   };
   return await axios.get('/api/manager/audit-penarikan-data', { params });
@@ -43,6 +45,8 @@ export const getAuditPenarikanData = async (page = 1, filters = {}, perPage = 10
 export const getAuditPenarikanSummary = async (filters = {}) => {
   const params = {
     durasi: filters.durasi,
+    start_date: filters.start_date,
+    end_date: filters.end_date,
     search: filters.search
   };
   return await axios.get('/api/manager/audit-penarikan-summary', { params });
@@ -60,3 +64,10 @@ export const exportLaporanPdf = async (params) => {
     params
   });
 };
+
+export const exportPenarikanPdf = async (params) => {
+  return await axios.get('/api/cetak-laporan/penarikan/pdf', {
+    params
+  });
+};
+

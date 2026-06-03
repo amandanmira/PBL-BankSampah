@@ -322,6 +322,8 @@ class ManagerAuditController extends Controller
     private function buildPenarikanQuery(Request $request)
     {
         $durasi = $request->query('durasi');
+        $startDate = $request->query('start_date');
+        $endDate = $request->query('end_date');
         $search = $request->query('search');
 
         $query = \App\Models\Penarikan::with('nasabah')->latest();
@@ -335,6 +337,14 @@ class ManagerAuditController extends Controller
             } elseif ($durasi === '3 Bulan Terakhir') {
                 $query->where('created_at', '>=', now()->subMonths(3));
             }
+        }
+
+        // Filter by Date Range
+        if ($startDate) {
+            $query->whereDate('created_at', '>=', $startDate);
+        }
+        if ($endDate) {
+            $query->whereDate('created_at', '<=', $endDate);
         }
 
         // Filter by Search (Nasabah Name or Penarikan ID)

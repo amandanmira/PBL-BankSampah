@@ -113,6 +113,22 @@
     </tr>
 </table>
 
+<h3>Distribusi Transaksi Nasabah</h3>
+<table width="100%">
+    <tr>
+        <td width="50%" valign="top">
+            <strong>Dijemput:</strong><br>
+            Jumlah Transaksi: {{ $dataStatistik['nasabah_jemput_count'] }} Transaksi<br>
+            Total Berat: {{ number_format($dataStatistik['nasabah_jemput_weight'], 2, ',', '.') }} Kg
+        </td>
+        <td width="50%" valign="top">
+            <strong>Antar Sendiri:</strong><br>
+            Jumlah Transaksi: {{ $dataStatistik['nasabah_setor_count'] }} Transaksi<br>
+            Total Berat: {{ number_format($dataStatistik['nasabah_setor_weight'], 2, ',', '.') }} Kg
+        </td>
+    </tr>
+</table>
+
 <h3>Info Gudang</h3>
 <table width="100%">
     @foreach ($gudang->sortByDesc('total_stok')->take(5)->values() as $g)
