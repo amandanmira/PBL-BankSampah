@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, computed, inject, watch } from "vue";
+import { ref, onMounted, onUnmounted, computed, inject, watch } from "vue";
 import DashboardLayout from "@/layouts/DashboardLayout.vue";
 import { Icon } from "@iconify/vue";
 import { checkRole } from "@/utils";
@@ -136,17 +136,14 @@ const openEditModal = async () => {
       masterSampah.value = response.data.data;
     } catch (err) {
       console.error("Gagal mengambil master sampah:", err);
-      // Tampilkan notifikasi error
     }
   }
 
   // Salin data item untuk diedit
   let itemsToEdit = [];
   if (activeFilter.value === 'penjemputan') {
-      // Ambil dari detail penjemputan yang sudah di-fetch
       itemsToEdit = selectedItem.value?.penimbangan || [];
   } else if (activeFilter.value === 'setor_manual') {
-      // `selectedItem` adalah data transaksi, `penimbangan` ada di dalamnya
       itemsToEdit = selectedItem.value?.penimbangan || [];
   }
   
@@ -165,7 +162,7 @@ const addItem = () => {
     editItems.value.push({
       sampah_id: masterSampah.value[0].sampah_id,
       berat_timbang: 0.1,
-      sampah: { // Tambahkan struktur ini agar dropdown bisa menampilkan nama
+      sampah: {
           item_sampah: {
               nama: masterSampah.value[0].item_sampah.nama
           }
@@ -203,11 +200,12 @@ const submitEdit = async () => {
 
         closeEditModal();
         fetchHistory(pagination.value.current_page); // Refresh list
-        // Tampilkan notifikasi sukses
         
     } catch (error) {
         console.error("Gagal update penimbangan:", error);
-        // Tampilkan notifikasi error
+        if(error.response && error.response.data && error.response.data.message){
+             alert(error.response.data.message);
+        }
     } finally {
         isSubmitting.value = false;
     }
@@ -280,8 +278,51 @@ const getWasteTypes = (item) => {
     return "-";
 };
 
+// --- LOGIKA TIMER MUNDUR 12 JAM ---
+const currentTime = ref(new Date());
+let timerInterval = null;
+
 onMounted(() => {
   fetchHistory();
+  
+  // Update currentTime setiap 1 detik agar timer live
+  timerInterval = setInterval(() => {
+    currentTime.value = new Date();
+  }, 1000); 
+});
+
+onUnmounted(() => {
+  if (timerInterval) clearInterval(timerInterval);
+});
+
+// Cek apakah transaksi belum melewati 12 jam secara live
+const isEditable = (item) => {
+    if (!item) return false;
+    const dateString = item.updated_at || item.created_at;
+    if (!dateString) return false;
+
+    const transactionDate = new Date(dateString);
+    const diffInHours = (currentTime.value - transactionDate) / (1000 * 60 * 60);
+    return diffInHours <= 12;
+};
+
+// Hitung Sisa Waktu Format Teks
+const remainingTimeText = computed(() => {
+    if (!selectedItem.value) return "";
+    
+    const dateString = selectedItem.value.updated_at || selectedItem.value.created_at;
+    if (!dateString) return "";
+
+    const transactionDate = new Date(dateString);
+    const deadline = new Date(transactionDate.getTime() + (12 * 60 * 60 * 1000)); // Waktu transaksi + 12 jam
+    const diffMs = deadline - currentTime.value;
+
+    if (diffMs <= 0) return "Waktu Habis";
+
+    const hours = Math.floor(diffMs / (1000 * 60 * 60));
+    const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+    
+    return `${hours} jam ${minutes} menit`;
 });
 </script>
 
@@ -765,7 +806,7 @@ onMounted(() => {
           </div>
         </div>
 
-        <!-- Modal Footer -->
+        <!-- Modal Footer dengan Tombol & Timer -->
         <div class="p-6 bg-gray-50 flex justify-center gap-4">
           <button
             @click="closeModal"
@@ -774,13 +815,16 @@ onMounted(() => {
             Tutup
           </button>
           
-          <!-- Tombol hanya muncul jika status selesai -->
           <button
-            v-if="(activeFilter === 'penjemputan' || activeFilter === 'setor_manual') && modalActiveTab === 'penimbangan' && selectedItem?.status === 'selesai'"
+            v-if="(activeFilter === 'penjemputan' || activeFilter === 'setor_manual') && modalActiveTab === 'penimbangan' && selectedItem?.status === 'selesai' && isEditable(selectedItem)"
             @click="openEditModal"
-            class="w-full py-4 bg-[#4A7043] text-white rounded-2xl font-bold hover:bg-[#3d5c37] transition-all"
+            class="w-full py-2 bg-[#4A7043] text-white rounded-2xl hover:bg-[#3d5c37] transition-all flex flex-col items-center justify-center gap-0.5"
           >
-            Edit Penimbangan
+            <span class="font-bold">Edit Penimbangan</span>
+            <span class="text-[10px] font-medium bg-white/20 px-2.5 py-0.5 rounded-full flex items-center gap-1 shadow-sm mt-0.5">
+              <Icon icon="material-symbols:timer-outline" class="w-3 h-3" />
+              Sisa Waktu: {{ remainingTimeText }}
+            </span>
           </button>
         </div>
       </div>

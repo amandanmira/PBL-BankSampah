@@ -64,6 +64,20 @@ class EditPenimbanganController extends Controller
         try {
             $transaksi = TransaksiNasabah::with('penimbangan')->findOrFail($id);
             
+            // --- Cek Status ---
+            if ($transaksi->status !== 'selesai') {
+                return response()->json([
+                    'message' => 'Hanya transaksi dengan status Selesai yang dapat diedit.'
+                ], 400); 
+            }
+
+            // --- Cek Batas Waktu 12 Jam ---
+            if ($transaksi->created_at->diffInHours(now()) >= 12) {
+                return response()->json([
+                    'message' => 'Batas waktu edit telah habis. Transaksi hanya dapat diedit maksimal 12 jam setelah dibuat.'
+                ], 400);
+            }
+
             // --- PERBAIKAN: Ambil ID penting dari penimbangan lama ---
             $originalPenimbangan = $transaksi->penimbangan->first();
             
@@ -138,7 +152,7 @@ class EditPenimbanganController extends Controller
             DB::rollBack();
             return response()->json([
                 'message' => 'Gagal memperbarui data penimbangan.',
-                'error'   => $e->getMessage() // Pesan error sekarang akan muncul di frontend jika ada kendala
+                'error'   => $e->getMessage() 
             ], 500);
         }
     }
