@@ -15,17 +15,57 @@ class DashboardManagerController extends Controller
 {
     public function index()
     {
-        // Total Petugas Aktif (seluruh petugas)
+        $now = now();
+        $startOfMonth = $now->copy()->startOfMonth();
+        $startOfLastMonth = $now->copy()->subMonth()->startOfMonth();
+        $endOfLastMonth = $now->copy()->subMonth()->endOfMonth();
+        $startOfWeek = $now->copy()->startOfWeek();
+
+        // Total Petugas Aktif
         $totalPetugas = Petugas::count();
+        $petugasBulanIni = Petugas::where('created_at', '>=', $startOfMonth)->count();
+        $petugasIncrease = '+' . $petugasBulanIni . ' bulan ini';
 
-        // Total Sampah kg (Statis sesuai request)
-        $totalSampah = "X";
+        // Total Sampah kg
+        $totalSampah = Penimbangan::sum('berat_timbang');
+        $sampahBulanIni = Penimbangan::whereBetween('created_at', [$startOfMonth, $now])->sum('berat_timbang');
+        $sampahBulanLalu = Penimbangan::whereBetween('created_at', [$startOfLastMonth, $endOfLastMonth])->sum('berat_timbang');
+        
+        $sampahGrowth = 0;
+        if ($sampahBulanLalu > 0) {
+            $sampahGrowth = (($sampahBulanIni - $sampahBulanLalu) / $sampahBulanLalu) * 100;
+        } elseif ($sampahBulanIni > 0) {
+            $sampahGrowth = 100;
+        }
+        $sampahSign = $sampahGrowth >= 0 ? '+' : '';
+        $sampahIncrease = $sampahSign . round($sampahGrowth, 1) . '%';
 
-        // Nasabah Terverifikasi (total jumlah akun nasabah)
+        // Nasabah Terverifikasi
         $nasabahVerifikasi = Nasabah::where('status', 'aktif')->count();
+        $nasabahMingguIni = Nasabah::where('status', 'aktif')->where('created_at', '>=', $startOfWeek)->count();
+        $nasabahIncrease = '+' . $nasabahMingguIni . ' minggu ini';
 
-        // Transaksi Bulan Ini (Statis sesuai request)
-        $transaksiBulanIni = "X";
+        // Transaksi Bulan Ini
+        $transaksiBulanIni = Penimbangan::whereBetween('created_at', [$startOfMonth, $now])->count() 
+                           + Penjemputan::whereBetween('created_at', [$startOfMonth, $now])->count() 
+                           + Penarikan::whereBetween('created_at', [$startOfMonth, $now])->count();
+        
+        $transaksiBulanLalu = Penimbangan::whereBetween('created_at', [$startOfLastMonth, $endOfLastMonth])->count()
+                            + Penjemputan::whereBetween('created_at', [$startOfLastMonth, $endOfLastMonth])->count()
+                            + Penarikan::whereBetween('created_at', [$startOfLastMonth, $endOfLastMonth])->count();
+        
+        $trxGrowth = 0;
+        if ($transaksiBulanLalu > 0) {
+            $trxGrowth = (($transaksiBulanIni - $transaksiBulanLalu) / $transaksiBulanLalu) * 100;
+        } elseif ($transaksiBulanIni > 0) {
+            $trxGrowth = 100;
+        }
+        $trxSign = $trxGrowth >= 0 ? '+' : '';
+        $trxIncrease = $trxSign . round($trxGrowth, 1) . '%';
+
+        // Total Gudang
+        $totalGudang = Gudang::count();
+        $gudangIncrease = $totalGudang . ' dari ' . $totalGudang . ' online';
 
         // Total Gudang
         $totalGudang = Gudang::count();
@@ -101,10 +141,15 @@ class DashboardManagerController extends Controller
         return response()->json([
             'stats' => [
                 'total_petugas' => $totalPetugas,
+                'petugas_increase' => $petugasIncrease,
                 'total_sampah' => $totalSampah,
+                'sampah_increase' => $sampahIncrease,
                 'nasabah_verifikasi' => $nasabahVerifikasi,
+                'nasabah_increase' => $nasabahIncrease,
                 'transaksi_bulan_ini' => $transaksiBulanIni,
+                'transaksi_increase' => $trxIncrease,
                 'total_gudang' => $totalGudang,
+                'gudang_increase' => $gudangIncrease,
                 'active_gudang' => $activeGudang,
             ],
             'activities' => $activities
@@ -152,9 +197,10 @@ class DashboardManagerController extends Controller
             ->select(
                 'gudangs.gudang_id',
                 'gudangs.alamat as nama',
+                'gudangs.kapasitas',
                 \Illuminate\Support\Facades\DB::raw('COALESCE(SUM(sampahs.stok), 0) as total_stok')
             )
-            ->groupBy('gudangs.gudang_id', 'gudangs.alamat')
+            ->groupBy('gudangs.gudang_id', 'gudangs.alamat', 'gudangs.kapasitas')
             ->get();
 
         $distribusiRaw = \Illuminate\Support\Facades\DB::table('sampahs')

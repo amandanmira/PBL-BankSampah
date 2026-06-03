@@ -84,6 +84,11 @@ Route::prefix('manager')->middleware(['auth:sanctum', 'role:manager'])->group(fu
     // Dashboard Stats & Charts
     Route::get('/dashboard-stats', [DashboardManagerController::class, 'index']);
     Route::get('/dashboard-charts', [DashboardManagerController::class, 'charts']);
+    // Audit Data (SSP)
+    Route::get('/audit-data', [App\Http\Controllers\Api\Manager\ManagerAuditController::class, 'index']);
+    Route::get('/audit-summary', [App\Http\Controllers\Api\Manager\ManagerAuditController::class, 'summary']);
+    Route::get('/audit-penarikan-data', [App\Http\Controllers\Api\Manager\ManagerAuditController::class, 'penarikanData']);
+    Route::get('/audit-penarikan-summary', [App\Http\Controllers\Api\Manager\ManagerAuditController::class, 'penarikanSummary']);
 });
 
 Route::prefix('pengepul')->middleware(['auth:sanctum', 'role:pengepul'])->group(function () {
@@ -150,11 +155,13 @@ Route::prefix('petugas')->middleware(['auth:sanctum', 'role:petugas'])->group(fu
     Route::get('/dashboard-stats', [DashboardPetugasController::class, 'index']);
 
     // Pesanan Pengepul Petugas
-    Route::get('/pesanan-pengepul', [App\Http\Controllers\Api\Petugas\PesananPengepulController::class, 'index']);
-    Route::put('/pesanan-pengepul/{id}/approve-stok', [App\Http\Controllers\Api\Petugas\PesananPengepulController::class, 'approveStock']);
-    Route::put('/pesanan-pengepul/{id}/tolak', [App\Http\Controllers\Api\Petugas\PesananPengepulController::class, 'rejectOrder']);
-    Route::put('/pesanan-pengepul/{id}/verifikasi-pembayaran', [App\Http\Controllers\Api\Petugas\PesananPengepulController::class, 'verifyPayment']);
-    Route::put('/pesanan-pengepul/{id}/selesai', [App\Http\Controllers\Api\Petugas\PesananPengepulController::class, 'completeOrder']);
+    Route::prefix('petugas')->group(function () {
+        Route::get('/pesanan-pengepul', [App\Http\Controllers\Api\Petugas\PesananPengepulController::class, 'index']);
+        Route::put('/pesanan-pengepul/{id}/approve-stok', [App\Http\Controllers\Api\Petugas\PesananPengepulController::class, 'approveStock']);
+        Route::put('/pesanan-pengepul/{id}/tolak', [App\Http\Controllers\Api\Petugas\PesananPengepulController::class, 'rejectOrder']);
+        Route::put('/pesanan-pengepul/{id}/verifikasi-pembayaran', [App\Http\Controllers\Api\Petugas\PesananPengepulController::class, 'verifyPayment']);
+        Route::put('/pesanan-pengepul/{id}/selesai', [App\Http\Controllers\Api\Petugas\PesananPengepulController::class, 'completeOrder']);
+    });
 });
 
 Route::middleware(['auth:sanctum', 'role:petugas|manager'])->group(function () {
