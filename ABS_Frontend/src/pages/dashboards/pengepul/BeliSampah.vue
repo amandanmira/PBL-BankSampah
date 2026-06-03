@@ -65,97 +65,97 @@
     </div>
 
     <div v-else>
-      <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-12">
+      <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6 mb-12">
         <div
           v-for="item in paginatedSampah"
           :key="item.sampah_id"
-          class="bg-white rounded-[1.5rem] overflow-hidden shadow-sm border border-gray-100 hover:shadow-lg transition-all duration-300 group"
+          class="bg-white rounded-3xl overflow-hidden shadow-sm border border-gray-100 hover:shadow-lg transition-all duration-300 group flex flex-col"
         >
-        <div class="relative aspect-square overflow-hidden bg-gray-50 cursor-zoom-in" @click="previewImage(`${axios.defaults.baseURL}/storage/${item.item_sampah.foto}`, item.item_sampah.nama)">
-          <img
-            v-if="item.item_sampah.foto"
-            :src="`${axios.defaults.baseURL}/storage/${item.item_sampah.foto}`"
-            :alt="item.item_sampah.nama"
-            class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-            @error="item.item_sampah.foto = null"
-          />
-          <div v-else class="w-full h-full flex flex-col items-center justify-center text-gray-300 scale-75">
-            <Icon icon="material-symbols:image-not-supported-outline" class="w-10 h-10 mb-1" />
-            <span class="text-xs">No Image</span>
-          </div>
+          <div class="relative aspect-square overflow-hidden bg-gray-50 cursor-zoom-in shrink-0" @click="previewImage(`${axios.defaults.baseURL}/storage/${item.item_sampah.foto}`, item.item_sampah.nama)">
+            <img
+              v-if="item.item_sampah.foto"
+              :src="`${axios.defaults.baseURL}/storage/${item.item_sampah.foto}`"
+              :alt="item.item_sampah.nama"
+              class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+              @error="item.item_sampah.foto = null"
+            />
+            <div v-else class="w-full h-full flex flex-col items-center justify-center text-gray-300 scale-75">
+              <Icon icon="material-symbols:image-not-supported-outline" class="w-10 h-10 mb-1" />
+              <span class="text-xs">No Image</span>
+            </div>
 
-          <!-- Discount Badge (Top Right) -->
-          <div v-if="item.item_sampah.diskon && parseFloat(item.item_sampah.diskon) > 0" class="absolute top-0 right-0 bg-red-600 text-white px-4 py-2 rounded-bl-2xl text-sm font-black shadow-lg z-10">
-            {{ parseFloat(item.item_sampah.diskon) * 100 }}% OFF
-          </div>
-          <div class="absolute bottom-2 left-2">
-            <span class="bg-white/90 backdrop-blur-sm text-[#A86444] text-[11px] font-bold px-2 py-0.5 rounded-full border border-[#A86444]/10">
-              {{ item.item_sampah.kategori_sampah.nama_kategori }}
-            </span>
-          </div>
-        </div>
-
-        <!-- Content -->
-        <div class="p-3">
-          <div class="mb-2">
-            <h3 class="font-bold text-gray-800 text-xl leading-tight truncate">{{ item.item_sampah.nama }}</h3>
-            <div class="flex items-center gap-2 mt-2">
-              <div class="w-2 h-2 rounded-full bg-blue-600 shadow-sm"></div>
-              <span class="text-xs font-bold text-gray-600 uppercase tracking-widest">GUDANG {{ item.gudang_id }}</span>
+            <!-- Discount Badge (Top Right) -->
+            <div v-if="item.item_sampah.diskon && parseFloat(item.item_sampah.diskon) > 0" class="absolute top-0 right-0 bg-red-600 text-white px-4 py-2 rounded-bl-2xl text-sm font-black shadow-lg z-10">
+              {{ parseFloat(item.item_sampah.diskon) * 100 }}% OFF
+            </div>
+            <div class="absolute bottom-2 left-2">
+              <span class="bg-white/95 backdrop-blur-sm text-[#A86444] text-[11px] font-bold px-2 py-0.5 rounded-full border border-[#A86444]/10">
+                {{ item.item_sampah.kategori_sampah.nama_kategori }}
+              </span>
             </div>
           </div>
 
-          <div class="bg-gray-50 rounded-xl p-2 mb-3 flex justify-between items-center">
-            <div>
-              <div class="flex items-baseline gap-0.5">
-                <span class="text-base font-black text-[#A86444]">{{ formatCurrency(item.item_sampah.harga_jual * (1 - parseFloat(item.item_sampah.diskon || 0))) }}</span>
-                <span class="text-sm font-bold text-gray-400">/kg</span>
+          <!-- Content -->
+          <div class="p-5 flex flex-col flex-1 justify-between">
+            <div class="mb-4">
+              <h3 class="font-bold text-gray-800 text-xl leading-tight truncate">{{ item.item_sampah.nama }}</h3>
+              <div class="flex items-center gap-2 mt-2">
+                <div class="w-2 h-2 rounded-full bg-[#4A7043] shadow-sm"></div>
+                <span class="text-xs font-bold text-gray-500 uppercase tracking-wider">GUDANG {{ item.gudang_id }}</span>
               </div>
             </div>
-            <div class="flex items-center gap-0.5 text-amber-600">
-              <Icon icon="material-symbols:inventory-2-outline" class="w-2.5 h-2.5" />
-              <span class="text-sm font-bold">{{ item.stok }}kg</span>
+
+            <div class="bg-gray-50 rounded-2xl p-3 mb-4 flex justify-between items-center">
+              <div>
+                <div class="flex items-baseline gap-0.5">
+                  <span class="text-lg font-black text-[#A86444]">{{ formatCurrency(item.item_sampah.harga_jual * (1 - parseFloat(item.item_sampah.diskon || 0))) }}</span>
+                  <span class="text-xs font-bold text-gray-400">/kg</span>
+                </div>
+              </div>
+              <div class="flex items-center gap-1 text-[#4A7043] bg-[#E8F0E6] px-2.5 py-1 rounded-full text-xs font-bold">
+                <Icon icon="material-symbols:inventory-2-outline" class="w-3.5 h-3.5" />
+                <span>Stok: {{ item.stok }}kg</span>
+              </div>
+            </div>
+
+            <!-- Quantity Selector Compact -->
+            <div class="space-y-3">
+              <div class="flex items-center justify-between bg-gray-50 border border-gray-100 rounded-xl overflow-hidden shadow-inner h-11">
+                <button
+                  @click="updateQty(item.sampah_id, -1)"
+                  class="w-11 h-full flex items-center justify-center bg-white text-red-500 hover:bg-red-50 transition-colors cursor-pointer border-r border-gray-100"
+                >
+                  <Icon icon="material-symbols:remove" class="w-5 h-5" />
+                </button>
+                <input
+                  v-model.number="itemQuantities[item.sampah_id]"
+                  type="number"
+                  class="w-full text-center border-none focus:ring-0 font-bold text-base text-gray-800 bg-transparent p-0"
+                  min="0"
+                  :max="item.stok"
+                />
+                <button
+                  @click="updateQty(item.sampah_id, 1, item.stok)"
+                  class="w-11 h-full flex items-center justify-center bg-white text-[#4A7043] hover:bg-green-50 transition-colors cursor-pointer border-l border-gray-100"
+                >
+                  <Icon icon="material-symbols:add" class="w-5 h-5" />
+                </button>
+              </div>
+
+              <div class="text-center text-sm font-semibold text-gray-500">
+                Total: <span class="text-[#A86444] font-bold">{{ formatCurrency((item.item_sampah.harga_jual * (1 - parseFloat(item.item_sampah.diskon || 0))) * (itemQuantities[item.sampah_id] || 0)) }}</span>
+              </div>
+
+              <button
+                @click="addToCart(item)"
+                :disabled="!itemQuantities[item.sampah_id] || itemQuantities[item.sampah_id] <= 0"
+                class="w-full py-3 rounded-xl bg-[#4A7043] hover:bg-[#3D5C37] text-white font-bold text-sm transition-all disabled:opacity-40 disabled:hover:bg-[#4A7043] flex items-center justify-center gap-2 shadow-sm cursor-pointer active:scale-95"
+              >
+                <Icon icon="material-symbols:shopping-cart-outline" class="w-4 h-4" />
+                + Keranjang
+              </button>
             </div>
           </div>
-
-          <!-- Quantity Selector Compact -->
-          <div class="space-y-2">
-            <div class="flex items-center justify-between bg-white border border-gray-100 rounded-lg overflow-hidden shadow-xs h-10">
-              <button
-                @click="updateQty(item.sampah_id, -1)"
-                class="w-10 h-full flex items-center justify-center bg-red-50 text-red-500 hover:bg-red-100 transition-colors cursor-pointer"
-              >
-                <Icon icon="material-symbols:remove" class="w-4 h-4" />
-              </button>
-              <input
-                v-model.number="itemQuantities[item.sampah_id]"
-                type="number"
-                class="w-full text-center border-none focus:ring-0 font-bold text-base text-gray-700 bg-transparent p-0"
-                min="0"
-                :max="item.stok"
-              />
-              <button
-                @click="updateQty(item.sampah_id, 1, item.stok)"
-                class="w-10 h-full flex items-center justify-center bg-green-50 text-green-500 hover:bg-green-100 transition-colors cursor-pointer"
-              >
-                <Icon icon="material-symbols:add" class="w-4 h-4" />
-              </button>
-            </div>
-
-            <div class="text-center text-sm font-bold text-gray-400">
-              Total: <span class="text-[#A86444]">{{ formatCurrency((item.item_sampah.harga_jual * (1 - parseFloat(item.item_sampah.diskon || 0))) * (itemQuantities[item.sampah_id] || 0)) }}</span>
-            </div>
-
-            <button
-              @click="addToCart(item)"
-              :disabled="!itemQuantities[item.sampah_id] || itemQuantities[item.sampah_id] <= 0"
-              class="w-full py-2.5 rounded-xl bg-white border-2 border-[#4A7043] text-[#4A7043] font-black text-sm hover:bg-[#4A7043] hover:text-white transition-all disabled:opacity-30 flex items-center justify-center gap-2 shadow-sm cursor-pointer"
-            >
-              <Icon icon="material-symbols:shopping-cart-outline" class="w-4 h-4" />
-              Tambah
-            </button>
-          </div>
-        </div>
         </div>
       </div>
       <!-- Pagination Controls -->
@@ -193,6 +193,15 @@
         </button>
       </div>
     </div>
+
+    <!-- Floating Help Button (FAB) -->
+    <button
+      @click="showTataCara = true"
+      class="fixed bottom-24 right-6 w-14 h-14 bg-[#4A7043] hover:bg-[#3D5C37] text-white rounded-full flex items-center justify-center shadow-2xl transition-all active:scale-95 z-50 cursor-pointer"
+      title="Tata Cara Pembelian"
+    >
+      <Icon icon="material-symbols:help" class="w-7 h-7" />
+    </button>
 
     <!-- Floating Summary Bar Compact -->
     <div
@@ -238,7 +247,7 @@
       <div @click="showTataCara = false" class="absolute inset-0 bg-black/40 backdrop-blur-sm"></div>
       
       <!-- Modal Content -->
-      <div class="relative bg-[#F9F9F5] w-full max-w-xl max-h-[90vh] overflow-y-auto rounded-[2rem] shadow-2xl animate-in zoom-in-95 duration-300">
+      <div class="relative bg-[#F9F9F5] w-full max-w-xl max-h-[90vh] overflow-y-auto rounded-[2rem] shadow-2xl animate-in zoom-in-95 duration-300 border border-gray-100">
         <div class="p-8">
           <h2 class="text-3xl font-black text-gray-800 mb-2">Tata Cara Pengambilan Sampah</h2>
           <p class="text-base text-gray-500 mb-8">Ikuti langkah-langkah berikut untuk melakukan transaksi pembelian sampah dengan lancar.</p>
@@ -254,32 +263,41 @@
               </div>
               <div class="pt-1">
                 <h3 class="font-bold text-[#4A7043] mb-1">{{ step.title }}</h3>
-                <p class="text-base text-gray-600 leading-relaxed">{{ step.desc }}</p>
+                <p class="text-sm text-gray-600 leading-relaxed">{{ step.desc }}</p>
               </div>
             </div>
           </div>
 
           <!-- Important Notes -->
-          <div class="bg-[#E6F0EE] rounded-2xl p-6 mb-6">
-            <div class="flex items-center gap-2 mb-3 text-[#3B7A77]">
-              <Icon icon="material-symbols:info-outline" class="w-5 h-5" />
+          <div class="bg-[#E6F0EE] rounded-2xl p-6 mb-8">
+            <div class="flex items-center gap-2 mb-4 text-[#3B7A77]">
+              <Icon icon="material-symbols:info-outline" class="w-5 h-5 animate-pulse" />
               <h4 class="font-bold">Catatan Penting</h4>
             </div>
-            <ul class="space-y-2">
-              <li v-for="(note, index) in notes" :key="index" class="flex gap-2 text-base text-[#3B7A77]/80 leading-relaxed">
-                <span class="mt-1.5 w-1.5 h-1.5 rounded-full bg-[#3B7A77] shrink-0"></span>
-                {{ note }}
+            <ul class="space-y-3">
+              <li v-for="(note, index) in notes" :key="index" class="flex gap-2.5 text-sm text-[#3B7A77]/90 leading-relaxed">
+                <span class="mt-2 w-1.5 h-1.5 rounded-full bg-[#3B7A77] shrink-0"></span>
+                <span>{{ note }}</span>
               </li>
             </ul>
           </div>
 
-
+          <!-- Contact Center Box -->
+          <div class="border border-dashed border-gray-200 rounded-2xl p-5 mb-8 flex items-center gap-4 bg-white shadow-xs">
+            <div class="w-12 h-12 rounded-xl bg-amber-50 flex items-center justify-center text-amber-600 shrink-0">
+              <Icon icon="material-symbols:support-agent" class="w-7 h-7" />
+            </div>
+            <div>
+              <h5 class="text-sm font-bold text-gray-800">Butuh Bantuan Lebih Lanjut?</h5>
+              <p class="text-xs text-gray-500 mt-0.5">Hubungi customer service kami jika Anda mengalami kendala saat bertransaksi.</p>
+            </div>
+          </div>
 
           <!-- Close Button -->
-          <div class="flex justify-end">
+          <div class="flex justify-end gap-3">
             <button
               @click="showTataCara = false"
-              class="px-8 py-3 bg-[#4A7043] text-white font-black text-base rounded-xl hover:bg-[#3D5C37] transition-all shadow-lg active:scale-95"
+              class="w-full sm:w-auto px-8 py-3.5 bg-[#4A7043] text-white font-bold text-base rounded-xl hover:bg-[#3D5C37] transition-all shadow-md active:scale-95 cursor-pointer text-center"
             >
               Mengerti
             </button>
@@ -287,6 +305,7 @@
         </div>
       </div>
     </div>
+
     <!-- Alur Pembelian Modal -->
     <div v-if="showAlurPembelian" class="fixed inset-0 z-[100] flex items-center justify-center p-4">
       <div @click="showAlurPembelian = false" class="absolute inset-0 bg-black/40 backdrop-blur-sm"></div>
@@ -375,32 +394,34 @@ watch([searchQuery, selectedGudang], () => {
 
 const steps = [
   {
-    title: 'Pilih Sampah',
-    desc: 'Pilih jenis sampah dan lokasi gudang, lalu tambahkan ke Keranjang.'
+    title: 'Pilih Sampah yang Ingin Dibeli',
+    desc: 'Telusuri daftar sampah yang tersedia pada sistem dan pilih jenis sampah yang sesuai dengan kebutuhan Anda. Pilih sampah dari gudang mana yang ingin Anda beli, kemudian tambahkan ke keranjang belanja untuk melanjutkan proses pembelian.'
   },
   {
-    title: 'Proses Pesanan',
-    desc: 'Cek kembali rincian di Keranjang, lalu klik "Proses Pembayaran".'
+    title: 'Tinjau Pesanan di Keranjang',
+    desc: 'Setelah itu, pergi ke menu Keranjang dan tinjau kembali rincian pesanan beserta total pembayaran yang harus dibayarkan. Klik tombol "Proses Pembayaran" untuk melanjutkan ke tahap pembayaran.'
   },
   {
-    title: 'Bayar & Unggah Bukti',
-    desc: 'Transfer ke rekening yang tertera dan segera unggah foto bukti pembayarannya.'
+    title: 'Lakukan Pembayaran',
+    desc: 'Lakukan pembayaran melalui transfer bank ke salah satu rekening yang tertera pada halaman pembayaran. Setelah transfer berhasil, ambil screenshot atau foto bukti pembayaran, lalu unggah bukti tersebut ke dalam sistem dan kirim untuk diverifikasi.'
   },
   {
-    title: 'Tunggu Verifikasi',
-    desc: 'Setelah divalidasi, lokasi dan jadwal pengambilan akan dikirim via notifikasi.'
+    title: 'Verifikasi Pembayaran',
+    desc: 'Petugas akan melakukan verifikasi terhadap bukti pembayaran yang telah Anda kirimkan. Setelah pembayaran dinyatakan valid, Anda akan menerima notifikasi berisi informasi detail mengenai lokasi dan jadwal pengambilan sampah.'
   },
   {
-    title: 'Ambil di Gudang',
-    desc: 'Datang ke lokasi sesuai jadwal, tunjukkan ID Pesanan, dan bawa pulang pesananmu.'
+    title: 'Ambil Sampah di Gudang',
+    desc: 'Datang ke lokasi gudang sesuai dengan jenis sampah yang telah Anda beli. Tunjukkan ID Pesanan kepada petugas gudang, dan sampah yang telah Anda beli akan diserahkan kepada Anda.'
   }
 ]
 
 const notes = [
-  'Pastikan nominal transfer sesuai dan foto bukti terlihat jelas.',
-  'Proses verifikasi membutuhkan waktu 1-2 jam kerja.',
-  'Simpan ID Pesanan untuk ditunjukkan saat pengambilan sampah.',
-  'Siapkan kendaraan yang memadai dan cek kondisi sampah sebelum dibawa pulang.'
+  'Pastikan nominal transfer sesuai dengan total pembayaran',
+  'Unggah bukti pembayaran yang jelas dan dapat terbaca dengan baik',
+  'Verifikasi pembayaran dilakukan oleh petugas dalam waktu 1-2 jam kerja',
+  'Simpan ID Pesanan untuk ditunjukkan saat pengambilan sampah',
+  'Siapkan kendaraan dan wadah yang sesuai untuk mengangkut sampah',
+  'Periksa kondisi dan kualitas sampah sebelum membawa pulang'
 ]
 
 const fetchData = async () => {

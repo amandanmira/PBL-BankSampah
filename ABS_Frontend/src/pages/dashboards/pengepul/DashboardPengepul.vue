@@ -12,43 +12,43 @@
         <!-- Top Stats Cards -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
           <!-- Total Pengeluaran -->
-          <div class="bg-white p-6 rounded-[2rem] shadow-sm border border-gray-100 flex flex-col gap-4">
+          <div class="bg-white p-6 rounded-[2rem] shadow-xs border border-stone-100 flex flex-col gap-4">
             <div class="flex justify-between items-start">
-              <div class="w-12 h-12 rounded-full bg-[#E8F0E5] flex items-center justify-center">
-                <Icon icon="material-symbols:attach-money" class="w-6 h-6 text-[#4A7043]" />
+              <div class="w-12 h-12 rounded-full bg-[#3CA3A3] flex items-center justify-center shadow-sm">
+                <Icon icon="material-symbols:attach-money" class="w-6 h-6 text-white" />
               </div>
-              <Icon icon="material-symbols:trending-up" class="w-6 h-6 text-[#4CAF50]" />
+              <Icon icon="material-symbols:trending-up" class="w-6 h-6 text-[#3CA3A3]" />
             </div>
             <div>
-              <p class="text-gray-500 text-sm font-medium">Total Pengeluaran</p>
-              <p class="text-2xl font-bold text-gray-800">{{ formatCurrency(dashboardData.total_pengeluaran || 0) }}</p>
+              <p class="text-stone-400 text-sm font-semibold">Total Pengeluaran</p>
+              <p class="text-3xl font-extrabold text-stone-800 mt-1">{{ formatCurrency(dashboardData.total_pengeluaran || 0) }}</p>
             </div>
           </div>
 
-          <!-- Total Sampah Terkumpul -->
-          <div class="bg-white p-6 rounded-[2rem] shadow-sm border border-gray-100 flex flex-col gap-4">
+          <!-- Total Volume Sampah Dibeli -->
+          <div class="bg-white p-6 rounded-[2rem] shadow-xs border border-stone-100 flex flex-col gap-4">
             <div class="flex justify-between items-start">
-              <div class="w-12 h-12 rounded-full bg-[#E8F0E5] flex items-center justify-center">
-                <Icon icon="material-symbols:inventory-2" class="w-6 h-6 text-[#4A7043]" />
+              <div class="w-12 h-12 rounded-full bg-[#4A7043] flex items-center justify-center shadow-sm">
+                <Icon icon="material-symbols:inventory-2" class="w-6 h-6 text-white" />
               </div>
               <Icon icon="material-symbols:trending-up" class="w-6 h-6 text-[#4CAF50]" />
             </div>
             <div>
-              <p class="text-gray-500 text-sm font-medium">Total Sampah Terkumpul</p>
-              <p class="text-2xl font-bold text-gray-800">{{ (dashboardData.total_sampah || 0).toFixed(2) }} kg</p>
+              <p class="text-stone-400 text-sm font-semibold">Total Volume Sampah Dibeli</p>
+              <p class="text-3xl font-extrabold text-stone-800 mt-1">{{ (dashboardData.total_sampah || 0).toFixed(2) }} kg</p>
             </div>
           </div>
 
           <!-- Pesanan Aktif -->
-          <div class="bg-white p-6 rounded-[2rem] shadow-sm border border-gray-100 flex flex-col gap-4">
+          <div class="bg-white p-6 rounded-[2rem] shadow-xs border border-stone-100 flex flex-col gap-4">
             <div class="flex justify-between items-start">
-              <div class="w-12 h-12 rounded-full bg-[#F5E6E0] flex items-center justify-center">
-                <Icon icon="material-symbols:shopping-cart" class="w-6 h-6 text-[#A86444]" />
+              <div class="w-12 h-12 rounded-full bg-[#A86444] flex items-center justify-center shadow-sm">
+                <Icon icon="material-symbols:inventory-2" class="w-6 h-6 text-white" />
               </div>
             </div>
             <div>
-              <p class="text-gray-500 text-sm font-medium">Pesanan Aktif</p>
-              <p class="text-2xl font-bold text-gray-800">{{ dashboardData.pesanan_aktif_count || 0 }} Pesanan</p>
+              <p class="text-stone-400 text-sm font-semibold">Pesanan Aktif</p>
+              <p class="text-3xl font-extrabold text-stone-800 mt-1">{{ dashboardData.pesanan_aktif_count || 0 }} Pesanan</p>
             </div>
           </div>
         </div>
@@ -56,10 +56,10 @@
         <!-- Chart and Status Active Orders -->
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <!-- Bar Chart -->
-          <div class="lg:col-span-2 bg-white p-8 rounded-[2rem] shadow-sm border border-gray-100">
+          <div class="lg:col-span-2 bg-white p-8 rounded-[2rem] shadow-xs border border-stone-100">
             <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-3">
-              <h3 class="text-lg font-bold text-gray-800">
-                Tren Pembelian (Bulan Ini) <span class="text-sm font-normal text-gray-400">dalam {{ activeFilter === 'berat' ? 'kg' : 'item' }}</span>
+              <h3 class="text-lg font-bold text-stone-800">
+                Tren Pembelian (Bulan Ini) <span class="text-sm font-normal text-stone-400">dalam {{ activeFilter === 'berat' ? 'kg' : 'item' }}</span>
               </h3>
               
               <!-- Weight/Item Filter Toggle Buttons -->
@@ -101,31 +101,31 @@
           </div>
 
           <!-- Status Pesanan Aktif -->
-          <div class="bg-white p-8 rounded-[2rem] shadow-sm border border-gray-100 flex flex-col">
-            <h3 class="text-lg font-bold text-gray-800 mb-6">Status Pesanan Aktif</h3>
+          <div class="bg-white p-8 rounded-[2rem] shadow-xs border border-stone-100 flex flex-col">
+            <h3 class="text-lg font-bold text-stone-800 mb-6">Status Pesanan Aktif</h3>
             <div class="space-y-4 flex-1 overflow-y-auto max-h-[300px] pr-1">
               <div 
                 v-for="order in dashboardData.pesanan_aktif" 
                 :key="order.transaksi_id"
                 @click="router.push(`/dashboard-pengepul/request-pembelian/show/${order.transaksi_id}`)"
-                class="p-4 rounded-2xl border border-gray-100 space-y-2 hover:border-[#4A7043]/30 hover:shadow-xs transition-all cursor-pointer group"
+                class="p-5 rounded-2xl border border-stone-100 space-y-3 hover:border-[#4A7043]/30 hover:shadow-xs transition-all cursor-pointer group"
               >
                 <div class="flex justify-between items-center">
-                  <span class="font-bold text-sm text-gray-700 group-hover:text-[#4A7043] transition-colors">
-                    PSN-{{ String(order.transaksi_id).padStart(3, '0') }}
+                  <span class="font-extrabold text-base text-stone-800 group-hover:text-[#4A7043] transition-colors">
+                    #{{ order.kode_transaksi || order.transaksi_id }}
                   </span>
                   <span :class="[
-                    'px-2.5 py-0.5 text-[9px] font-extrabold rounded-full border tracking-wide uppercase',
+                    'px-3 py-1 text-[11px] font-bold rounded-full border tracking-wide',
                     order.status === 'pending' ? 'bg-amber-50 text-amber-700 border-amber-200' :
                     order.status === 'proses' ? (order.bukti_transfer ? 'bg-sky-50 text-sky-700 border-sky-200' : 'bg-orange-50 text-orange-700 border-orange-200') :
-                    'bg-green-50 text-green-700 border-green-200'
+                    'bg-[#E8F0E5] text-[#4A7043] border-[#C4D1C0]/30'
                   ]">
-                    {{ formatStatus(order.status, order.bukti_transfer) }}
+                    {{ order.status === 'siap_diambil' ? 'Siap Diambil' : formatStatus(order.status, order.bukti_transfer) }}
                   </span>
                 </div>
-                <div class="text-xs text-gray-500 space-y-1">
-                  <p class="truncate font-medium text-stone-600">{{ order.items_summary || 'Tidak ada deskripsi item' }}</p>
-                  <p class="font-bold text-[#A86444]">{{ order.total_berat }} kg</p>
+                <div class="text-sm text-stone-500 space-y-1">
+                  <p class="truncate font-semibold text-stone-600">{{ order.items_summary || 'Tidak ada deskripsi item' }}</p>
+                  <p class="font-medium text-stone-400 text-xs">{{ order.total_berat }} kg</p>
                 </div>
               </div>
 
@@ -138,55 +138,61 @@
           </div>
         </div>
 
-        <!-- Market Insights (Static Section with Badge) -->
-        <div class="bg-white p-8 rounded-[2rem] shadow-sm border border-gray-100">
+        <!-- Market Insights (Dynamic Section) -->
+        <div class="bg-white p-8 rounded-[2rem] shadow-xs border border-stone-100">
           <div class="flex items-center mb-6">
-            <h3 class="text-lg font-bold text-gray-800">Peluang Pembelian & Market Insights</h3>
-            <span class="bg-amber-50 text-amber-700 text-[10px] font-extrabold px-2.5 py-0.5 rounded-full ml-3 tracking-wider uppercase border border-amber-200/60 shadow-2xs">*Statis</span>
+            <h3 class="text-lg font-bold text-stone-800">Peluang Pembelian & Market Insights</h3>
           </div>
 
           <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <!-- Card 1 -->
-            <div class="bg-[#F2F6F1] p-6 rounded-2xl border-l-4 border-[#4A7043] flex flex-col gap-4">
+            <div 
+              v-for="insight in dashboardData.market_insights" 
+              :key="insight.tipe"
+              :class="[
+                'p-6 rounded-2xl border-l-4 flex flex-col gap-4',
+                insight.tipe === 'ketersediaan_tinggi' ? 'bg-[#F2F6F1] border-[#4A7043]' :
+                insight.tipe === 'stok_menipis' ? 'bg-[#FFF5F5] border-red-500' :
+                'bg-[#F1F6F7] border-cyan-500'
+              ]"
+            >
               <div class="flex items-center gap-2">
-                <Icon icon="material-symbols:trending-up" class="w-4 h-4 text-[#4A7043]" />
-                <span class="text-[10px] font-bold text-[#4A7043] uppercase">Ketersediaan Tinggi</span>
+                <Icon 
+                  :icon="
+                    insight.tipe === 'ketersediaan_tinggi' ? 'material-symbols:trending-up' :
+                    insight.tipe === 'stok_menipis' ? 'material-symbols:warning-outline' :
+                    'material-symbols:trending-down'
+                  " 
+                  :class="[
+                    'w-4 h-4',
+                    insight.tipe === 'ketersediaan_tinggi' ? 'text-[#4A7043]' :
+                    insight.tipe === 'stok_menipis' ? 'text-red-500' :
+                    'text-cyan-500'
+                  ]"
+                />
+                <span 
+                  :class="[
+                    'text-[10px] font-bold uppercase',
+                    insight.tipe === 'ketersediaan_tinggi' ? 'text-[#4A7043]' :
+                    insight.tipe === 'stok_menipis' ? 'text-red-500' :
+                    'text-cyan-500'
+                  ]"
+                >
+                  {{ insight.label }}
+                </span>
               </div>
               <div>
-                <h4 class="font-bold text-gray-800">Kertas HVS</h4>
-                <p class="text-xs text-gray-500 mt-1">Gudang 1 - 800kg</p>
+                <h4 class="font-bold text-stone-800">{{ insight.nama }}</h4>
+                <p class="text-xs text-stone-500 mt-1">{{ insight.info }}</p>
               </div>
-              <button @click="router.push('/dashboard-pengepul/beli-sampah')" class="text-xs font-bold text-[#4A7043] flex items-center gap-1 hover:gap-2 transition-all cursor-pointer">
-                Beli Sekarang <Icon icon="material-symbols:arrow-forward" />
-              </button>
-            </div>
-
-            <!-- Card 2 -->
-            <div class="bg-[#FFF5F5] p-6 rounded-2xl border-l-4 border-red-500 flex flex-col gap-4">
-              <div class="flex items-center gap-2">
-                <Icon icon="material-symbols:warning-outline" class="w-4 h-4 text-red-500" />
-                <span class="text-[10px] font-bold text-red-500 uppercase">Stok Menipis</span>
-              </div>
-              <div>
-                <h4 class="font-bold text-gray-800">Kaleng Aluminium</h4>
-                <p class="text-xs text-gray-500 mt-1">Sisa: 50kg</p>
-              </div>
-              <button @click="router.push('/dashboard-pengepul/beli-sampah')" class="text-xs font-bold text-red-500 flex items-center gap-1 hover:gap-2 transition-all cursor-pointer">
-                Beli Sekarang <Icon icon="material-symbols:arrow-forward" />
-              </button>
-            </div>
-
-            <!-- Card 3 -->
-            <div class="bg-[#F1F6F7] p-6 rounded-2xl border-l-4 border-cyan-500 flex flex-col gap-4">
-              <div class="flex items-center gap-2">
-                <Icon icon="material-symbols:trending-down" class="w-4 h-4 text-cyan-500" />
-                <span class="text-[10px] font-bold text-cyan-500 uppercase">Harga Turun</span>
-              </div>
-              <div>
-                <h4 class="font-bold text-gray-800">Botol Kaca</h4>
-                <p class="text-xs text-gray-500 mt-1">Turun Rp 200/kg</p>
-              </div>
-              <button @click="router.push('/dashboard-pengepul/beli-sampah')" class="text-xs font-bold text-cyan-500 flex items-center gap-1 hover:gap-2 transition-all cursor-pointer">
+              <button 
+                @click="router.push('/dashboard-pengepul/beli-sampah')" 
+                :class="[
+                  'text-xs font-bold flex items-center gap-1 hover:gap-2 transition-all cursor-pointer mt-auto self-start',
+                  insight.tipe === 'ketersediaan_tinggi' ? 'text-[#4A7043]' :
+                  insight.tipe === 'stok_menipis' ? 'text-red-500' :
+                  'text-cyan-500'
+                ]"
+              >
                 Beli Sekarang <Icon icon="material-symbols:arrow-forward" />
               </button>
             </div>

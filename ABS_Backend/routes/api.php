@@ -69,6 +69,7 @@ Route::prefix('nasabah')->middleware(['auth:sanctum', 'role:nasabah'])->group(fu
     Route::put('/penjemputan/{penjemputan}/setuju', [RequestPenjemputanController::class, 'setujuJadwal']);
     Route::put('/penjemputan/{penjemputan}/tolak', [RequestPenjemputanController::class, 'tolakJadwal']);
     Route::get('/dashboard-stats', [DashboardNasabahController::class, 'index']);
+    Route::get('/transaksi-bulan-ini', [DashboardNasabahController::class, 'transaksiBulanIni']);
 });
 
 Route::prefix('manager')->middleware(['auth:sanctum', 'role:manager'])->group(function () {
@@ -89,6 +90,7 @@ Route::prefix('manager')->middleware(['auth:sanctum', 'role:manager'])->group(fu
     Route::get('/audit-summary', [App\Http\Controllers\Api\Manager\ManagerAuditController::class, 'summary']);
     Route::get('/audit-penarikan-data', [App\Http\Controllers\Api\Manager\ManagerAuditController::class, 'penarikanData']);
     Route::get('/audit-penarikan-summary', [App\Http\Controllers\Api\Manager\ManagerAuditController::class, 'penarikanSummary']);
+    Route::get('/transaksi-bulan-ini', [DashboardManagerController::class, 'transaksiBulanIni']);
 });
 
 Route::prefix('pengepul')->middleware(['auth:sanctum', 'role:pengepul'])->group(function () {

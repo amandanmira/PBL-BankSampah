@@ -295,6 +295,58 @@ const gudangStatus = ref([]);
 
 const distribusiSaatIni = ref([]);
 const detailSampah = ref([]);
+const isDistribusiModalOpen = ref(false);
+
+// Transaksi Bulan Ini Modal State
+const isModalOpen = ref(false);
+const modalLoading = ref(false);
+const modalTransactions = ref([]);
+const currentPage = ref(1);
+const totalPages = ref(1);
+const totalTransactionsCount = ref(0);
+
+const fetchModalData = async (page = 1) => {
+  modalLoading.value = true;
+  try {
+    const token = sessionStorage.getItem('token');
+    const response = await axios.get("/api/manager/transaksi-bulan-ini", {
+      params: { page, per_page: 5 },
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+    modalTransactions.value = response.data.data;
+    currentPage.value = response.data.current_page;
+    totalPages.value = response.data.last_page;
+    totalTransactionsCount.value = response.data.total;
+  } catch (err) {
+    console.error("Gagal memuat transaksi detail:", err);
+  } finally {
+    modalLoading.value = false;
+  }
+};
+
+const openModal = () => {
+  isModalOpen.value = true;
+  currentPage.value = 1;
+  fetchModalData(1);
+};
+
+const closeModal = () => {
+  isModalOpen.value = false;
+};
+
+const nextPage = () => {
+  if (currentPage.value < totalPages.value) {
+    fetchModalData(currentPage.value + 1);
+  }
+};
+
+const prevPage = () => {
+  if (currentPage.value > 1) {
+    fetchModalData(currentPage.value - 1);
+  }
+};
 </script>
 
 <template>
@@ -302,7 +354,7 @@ const detailSampah = ref([]);
     <div class="space-y-6 animate-in fade-in duration-700 pb-10 font-['Inter']">
 
       <!-- Top Stats Row -->
-      <DashboardTopStats :topStats="topStats" :isLoadingStats="isLoadingStats" />
+      <DashboardTopStats :topStats="topStats" :isLoadingStats="isLoadingStats" @click-detail="openModal" />
 
       <!-- Middle Row -->
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -339,6 +391,112 @@ const detailSampah = ref([]);
           :distribusiSaatIni="distribusiSaatIni" 
           :detailSampah="detailSampah" 
         />
+      </div>
+
+      <!-- Modal Transaksi Bulan Ini -->
+      <div v-if="isModalOpen" class="fixed inset-0 z-55 flex items-center justify-center p-4 bg-transparent font-['Inter']">
+        <!-- Transparent Click-outside Overlay -->
+        <div class="fixed inset-0 bg-transparent" @click="closeModal"></div>
+        
+        <!-- Modal Content Container -->
+        <div class="bg-white rounded-3xl w-full max-w-2xl max-h-[85vh] flex flex-col border border-stone-200/80 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.2)] overflow-hidden relative z-10 animate-in fade-in zoom-in duration-200">
+          <!-- Header -->
+          <div class="p-6 border-b border-stone-100 flex justify-between items-center bg-[#4A7043] text-white">
+            <div>
+              <h3 class="text-lg font-bold text-white">Detail Transaksi Bulan Ini</h3>
+              <p class="text-xs text-white/80 mt-0.5">Gabungan transaksi nasabah dan pengepul</p>
+            </div>
+            <button @click="closeModal" class="p-1.5 hover:bg-white/10 rounded-full transition-colors cursor-pointer text-white">
+              <Icon icon="material-symbols:close" class="w-6 h-6 text-white" />
+            </button>
+          </div>
+
+          <!-- Content -->
+          <div class="p-6 overflow-y-auto flex-1 space-y-4 text-stone-700">
+            <div v-if="modalLoading" class="flex flex-col items-center justify-center py-16">
+              <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-[#4A7043]"></div>
+              <p class="text-xs font-semibold text-stone-500 mt-3">Memuat riwayat transaksi...</p>
+            </div>
+            
+            <div v-else-if="modalTransactions.length === 0" class="flex flex-col items-center justify-center py-16 text-stone-400">
+              <Icon icon="material-symbols:history" class="w-12 h-12 opacity-30 mb-2" />
+              <p class="text-sm font-semibold text-stone-500">Tidak ada transaksi di bulan ini</p>
+            </div>
+
+            <div v-else class="space-y-3">
+              <div 
+                v-for="tx in modalTransactions" 
+                :key="tx.kode"
+                class="p-4 rounded-2xl border border-stone-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-stone-50/50 transition-colors"
+              >
+                <div class="flex items-start gap-3">
+                  <div 
+                    :class="[
+                      'p-2.5 rounded-xl shrink-0 flex items-center justify-center',
+                      tx.tipe === 'Nasabah' ? 'bg-[#E8F0E6] text-[#4A7043]' : 'bg-cyan-50 text-cyan-600'
+                    ]"
+                  >
+                    <Icon 
+                      :icon="tx.tipe === 'Nasabah' ? 'material-symbols:person-outline' : 'material-symbols:local-shipping-outline'" 
+                      class="w-5 h-5" 
+                    />
+                  </div>
+                  <div>
+                    <div class="flex items-center gap-2 flex-wrap">
+                      <span class="font-bold text-sm text-stone-800">{{ tx.kode }}</span>
+                      <span 
+                        :class="[
+                          'px-2 py-0.5 text-[9.5px] font-extrabold rounded-full border uppercase tracking-wider',
+                          tx.tipe === 'Nasabah' ? 'bg-green-50 text-green-700 border-green-100' : 'bg-cyan-50 text-cyan-700 border-cyan-100'
+                        ]"
+                      >
+                        {{ tx.tipe }}
+                      </span>
+                      <span 
+                        :class="[
+                          'px-2 py-0.5 text-[9.5px] font-bold rounded-full border uppercase tracking-wide',
+                          tx.status === 'selesai' ? 'bg-green-50 text-green-700 border-green-200' :
+                          tx.status === 'pending' ? 'bg-amber-50 text-amber-700 border-amber-200' :
+                          'bg-stone-50 text-stone-600 border-stone-200'
+                        ]"
+                      >
+                        {{ tx.status }}
+                      </span>
+                    </div>
+                    <p class="text-xs font-semibold text-stone-600 mt-1">Pelaku: {{ tx.pelaku }}</p>
+                    <p class="text-[11px] text-stone-400 mt-0.5">{{ tx.keterangan }} • {{ tx.tanggal }}</p>
+                  </div>
+                </div>
+                <div class="sm:text-right shrink-0">
+                  <span class="font-extrabold text-base text-[#4A7043]">{{ tx.total }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Footer / Pagination -->
+          <div v-if="!modalLoading && totalPages > 1" class="p-6 border-t border-stone-100 flex items-center justify-between bg-stone-50/50">
+            <p class="text-xs text-stone-500 font-semibold">
+              Menampilkan {{ modalTransactions.length }} dari {{ totalTransactionsCount }} transaksi
+            </p>
+            <div class="flex gap-2">
+              <button 
+                @click="prevPage" 
+                :disabled="currentPage === 1"
+                class="px-3 py-1.5 rounded-xl border border-stone-200 text-xs font-bold bg-white text-stone-700 hover:bg-stone-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all cursor-pointer"
+              >
+                Sebelumnya
+              </button>
+              <button 
+                @click="nextPage" 
+                :disabled="currentPage === totalPages"
+                class="px-3 py-1.5 rounded-xl border border-stone-200 text-xs font-bold bg-white text-stone-700 hover:bg-stone-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all cursor-pointer"
+              >
+                Berikutnya
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
 
     </div>

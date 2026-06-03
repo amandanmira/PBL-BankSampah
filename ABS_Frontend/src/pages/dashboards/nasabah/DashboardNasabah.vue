@@ -6,6 +6,7 @@ import StatCard from "@/components/dashboard/StatCard.vue";
 import TransactionChart from "@/components/dashboard/TransactionChart.vue";
 import LeaderboardTable from "@/components/dashboard/LeaderboardTable.vue";
 import ActivityList from "@/components/dashboard/ActivityList.vue";
+import { Icon } from "@iconify/vue";
 import { checkRole } from "@/utils";
 
 // Middleware

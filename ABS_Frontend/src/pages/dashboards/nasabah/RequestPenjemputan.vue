@@ -242,7 +242,7 @@ onMounted(() => {
 
 <template>
   <DashboardLayout title="Request Jemput / Setor Manual">
-    <div class="space-y-6 animate-in fade-in duration-700 pb-10 max-w-xl mx-auto">
+    <div class="space-y-6 animate-in fade-in duration-700 pb-10 max-w-xl lg:max-w-7xl mx-auto">
       
       <!-- Top Tab Switcher -->
       <div class="flex gap-4 p-2 bg-white rounded-[2rem] shadow-sm border border-stone-100/50">
@@ -273,28 +273,37 @@ onMounted(() => {
       <!-- Main Form Card (Only visible when activeTab is Jemput Sampah) -->
       <div v-if="activeTab === 'Jemput Sampah'" class="bg-white rounded-[2.5rem] p-6 shadow-sm border border-stone-100/50 space-y-6">
         
-        <!-- Gudang Selection -->
-        <div class="space-y-2.5">
-          <label class="flex items-center gap-2 text-xs font-bold text-stone-500 uppercase tracking-wider">
-            <Icon icon="material-symbols:home-work-outline" class="w-4 h-4 text-stone-400" />
-            Pilih Gudang Tujuan <span class="text-red-500">*</span>
-          </label>
-          <div class="relative">
-            <select 
-              v-model="form.gudang_id"
-              class="w-full bg-[#F5F5F0] border border-stone-100 rounded-2xl py-4 px-5 text-sm font-bold appearance-none focus:outline-none focus:ring-2 focus:ring-[#4A7043]/20 transition-all pr-12 text-stone-700"
-            >
-              <option value="" disabled>Pilih Gudang Cabang</option>
-              <option v-for="gudang in gudangList" :key="gudang.gudang_id" :value="gudang.gudang_id">
-                Gudang {{ gudang.alamat.split(',')[0] }}
-              </option>
-            </select>
-            <Icon icon="material-symbols:keyboard-arrow-down" class="absolute right-5 top-1/2 -translate-y-1/2 w-6 h-6 text-stone-400 pointer-events-none" />
+        <!-- Gudang Selection and details side-by-side on desktop -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
+          <div class="space-y-2.5">
+            <label class="flex items-center gap-2 text-xs font-bold text-stone-500 uppercase tracking-wider">
+              <Icon icon="material-symbols:home-work-outline" class="w-4 h-4 text-stone-400" />
+              Pilih Gudang Tujuan <span class="text-red-500">*</span>
+            </label>
+            <div class="relative">
+              <select 
+                v-model="form.gudang_id"
+                class="w-full bg-[#F5F5F0] border border-stone-100 rounded-2xl py-4 px-5 text-sm font-bold appearance-none focus:outline-none focus:ring-2 focus:ring-[#4A7043]/20 transition-all pr-12 text-stone-700"
+              >
+                <option value="" disabled>Pilih Gudang Cabang</option>
+                <option v-for="gudang in gudangList" :key="gudang.gudang_id" :value="gudang.gudang_id">
+                  Gudang {{ gudang.alamat.split(',')[0] }}
+                </option>
+              </select>
+              <Icon icon="material-symbols:keyboard-arrow-down" class="absolute right-5 top-1/2 -translate-y-1/2 w-6 h-6 text-stone-400 pointer-events-none" />
+            </div>
           </div>
-          <!-- Gudang Details text -->
-          <div v-if="selectedGudang" class="text-xs text-stone-400 mt-1 px-1">
-            <p class="font-bold text-stone-600">ID Gudang : GDG-{{ String(selectedGudang.gudang_id).padStart(3, '0') }}</p>
-            <p class="mt-0.5">{{ selectedGudang.alamat }}</p>
+
+          <!-- Gudang Details box (Desktop & Mobile styled) -->
+          <div v-if="selectedGudang" class="bg-[#F5F5F0] rounded-2xl p-4.5 text-[11px] text-stone-500 space-y-2 border border-stone-100/50 flex flex-col justify-center h-full min-h-[84px]">
+            <div>
+              <p class="text-[9px] font-bold text-stone-400 uppercase tracking-wider">ID Gudang</p>
+              <p class="font-bold text-stone-700 text-xs">GDG-{{ String(selectedGudang.gudang_id).padStart(3, '0') }}</p>
+            </div>
+            <div>
+              <p class="text-[9px] font-bold text-stone-400 uppercase tracking-wider">Alamat Gudang</p>
+              <p class="font-medium text-stone-700 text-xs leading-relaxed">{{ selectedGudang.alamat }}</p>
+            </div>
           </div>
         </div>
 
@@ -463,6 +472,11 @@ onMounted(() => {
                   <span class="font-black text-[#4A7043] text-xs md:text-sm">{{ formatCurrency(s.item_sampah.harga_beli) }}/kg</span>
                 </div>
               </div>
+
+              <!-- Selected Items List Summary matching desktop mockup -->
+              <div v-if="selectedItems.length > 0" class="bg-[#F5F5F0] rounded-xl p-4 text-xs font-bold text-stone-600 mt-3 border border-stone-100/50">
+                Dipilih: {{ selectedItems.join(', ') }}
+              </div>
             </div>
             <div v-else class="py-10 flex flex-col items-center justify-center text-center px-4 bg-stone-50 rounded-2xl border border-dashed border-stone-200">
               <Icon icon="material-symbols:inventory-2-outline" class="w-10 h-10 text-stone-300 mb-2" />
@@ -594,7 +608,7 @@ onMounted(() => {
         </div>
 
         <!-- Warehouse List (Matching mockup style) -->
-        <div class="space-y-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           <div 
             v-for="gudang in filteredGudangList" 
             :key="gudang.gudang_id"

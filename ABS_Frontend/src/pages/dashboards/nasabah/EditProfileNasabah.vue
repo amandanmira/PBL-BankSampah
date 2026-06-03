@@ -1,10 +1,10 @@
 <template>
   <DashboardLayout title="Profile">
-    <!-- Main mobile viewport simulator -->
-    <div class="max-w-md mx-auto bg-[#F7F7F5] min-h-screen pb-20 font-sans antialiased text-stone-800 relative">
+    <!-- Main container: max-w-md on mobile, max-w-5xl on desktop -->
+    <div class="max-w-md lg:max-w-7xl mx-auto bg-[#F7F7F5] lg:bg-transparent min-h-screen lg:min-h-0 pb-20 font-sans antialiased text-stone-800 relative">
       
       <!-- Spacing and Content Wrapper -->
-      <div class="p-4 space-y-4">
+      <div class="p-4 lg:p-0 space-y-4">
         
         <!-- Notifikasi Berhasil -->
         <div v-if="successMessage" class="bg-green-100 border border-green-200 text-green-700 px-4 py-3 rounded-2xl flex items-center gap-2 shadow-sm animate-in fade-in duration-300">
@@ -76,6 +76,20 @@
           <!-- TAB 1: INFORMASI PRIBADI -->
           <div v-if="activeTab === 'pribadi'" class="space-y-4 animate-in fade-in duration-300">
             
+            <!-- Username (Disabled) -->
+            <div class="space-y-1.5 opacity-70">
+              <label class="flex items-center gap-2 text-xs font-bold text-stone-700">
+                <Icon icon="material-symbols:person-outline" class="w-4 h-4 text-[#4A7043]" />
+                Username
+              </label>
+              <input 
+                :value="form.username" 
+                type="text" 
+                disabled 
+                class="w-full bg-stone-50 border border-stone-200 rounded-2xl py-3 px-4 text-xs font-bold text-stone-500 cursor-not-allowed" 
+              />
+            </div>
+
             <!-- Nama Lengkap -->
             <div class="space-y-1.5">
               <label class="flex items-center gap-2 text-xs font-bold text-stone-700">
@@ -249,7 +263,7 @@
             </div>
 
             <!-- Password Saat Ini (Visual only or sent to backend if needed) -->
-            <div class="space-y-1.5">
+            <div class="space-y-1.5 lg:hidden">
               <label class="flex items-center gap-2 text-xs font-bold text-stone-700">
                 <Icon icon="material-symbols:lock-open-outline" class="w-4 h-4 text-[#4A7043]" />
                 Password Saat Ini

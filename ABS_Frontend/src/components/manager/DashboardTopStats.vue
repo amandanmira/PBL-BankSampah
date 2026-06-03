@@ -12,6 +12,7 @@ const props = defineProps({
     default: true
   }
 });
+const emit = defineEmits(['click-detail']);
 </script>
 
 <template>
@@ -33,13 +34,23 @@ const props = defineProps({
         class="rounded-2xl p-5 text-white shadow-sm flex flex-col justify-between h-36 relative overflow-hidden group transition-all duration-300 hover:shadow-md hover:-translate-y-1"
         :class="stat.bgClass"
       >
-        <div class="flex justify-between items-start z-10">
+        <div class="flex justify-between items-start z-10 w-full">
           <Icon :icon="stat.icon" class="w-7 h-7" />
-          <div class="px-2.5 py-1 rounded-full text-[10px] font-bold flex items-center gap-1" :class="stat.increaseClass">
-            <Icon v-if="stat.increase.includes('+')" icon="material-symbols:trending-up" class="w-3 h-3" />
-            <Icon v-else-if="stat.increase.includes('-')" icon="material-symbols:trending-down" class="w-3 h-3" />
-            <Icon v-else icon="material-symbols:check-circle-outline" class="w-3 h-3" />
-            {{ stat.increase }}
+          <div class="flex items-center gap-2">
+            <!-- Lihat Detail Button in Top Right (Only for Transaksi Card, on the left side of badge) -->
+            <button 
+              v-if="stat.id === 'transaksi'" 
+              @click="$emit('click-detail')" 
+              class="px-2.5 py-1 rounded-xl text-[10px] font-bold bg-white/20 hover:bg-white/30 text-white flex items-center gap-1 transition-all cursor-pointer shadow-sm border border-white/10 shrink-0"
+            >
+              Detail <Icon icon="material-symbols:arrow-forward" class="w-3 h-3" />
+            </button>
+            <div class="px-2.5 py-1 rounded-full text-[10px] font-bold flex items-center gap-1" :class="stat.increaseClass">
+              <Icon v-if="stat.increase.includes('+')" icon="material-symbols:trending-up" class="w-3 h-3" />
+              <Icon v-else-if="stat.increase.includes('-')" icon="material-symbols:trending-down" class="w-3 h-3" />
+              <Icon v-else icon="material-symbols:check-circle-outline" class="w-3 h-3" />
+              {{ stat.increase }}
+            </div>
           </div>
         </div>
         <div class="z-10 mt-auto">

@@ -394,12 +394,95 @@ class RequestPembelianController extends Controller
             'top_items_weekly' => $formattedTopItemsWeekly
         ];
 
+        // 7. Dynamic Market Insights
+        $ketersediaanTinggi = \App\Models\Sampah::with(['itemSampah', 'gudang'])
+            ->where('stok', '>', 0)
+            ->orderBy('stok', 'desc')
+            ->first();
+
+        $stokMenipis = \App\Models\Sampah::with(['itemSampah'])
+            ->where('stok', '>', 0)
+            ->orderBy('stok', 'asc')
+            ->first();
+
+        $hargaTurun = \App\Models\ItemSampah::where('diskon', '>', 0)
+            ->orderBy('diskon', 'desc')
+            ->first();
+
+        $insightKetersediaan = null;
+        if ($ketersediaanTinggi && $ketersediaanTinggi->itemSampah) {
+            $insightKetersediaan = [
+                'tipe' => 'ketersediaan_tinggi',
+                'label' => 'Ketersediaan Tinggi',
+                'nama' => $ketersediaanTinggi->itemSampah->nama,
+                'info' => 'Gudang ' . $ketersediaanTinggi->gudang_id . ' - ' . number_format($ketersediaanTinggi->stok, 0) . 'kg',
+            ];
+        } else {
+            $insightKetersediaan = [
+                'tipe' => 'ketersediaan_tinggi',
+                'label' => 'Ketersediaan Tinggi',
+                'nama' => 'Kertas HVS',
+                'info' => 'Gudang 1 - 800kg',
+            ];
+        }
+
+        $insightStokMenipis = null;
+        if ($stokMenipis && $stokMenipis->itemSampah) {
+            $insightStokMenipis = [
+                'tipe' => 'stok_menipis',
+                'label' => 'Stok Menipis',
+                'nama' => $stokMenipis->itemSampah->nama,
+                'info' => 'Sisa: ' . number_format($stokMenipis->stok, 0) . 'kg',
+            ];
+        } else {
+            $insightStokMenipis = [
+                'tipe' => 'stok_menipis',
+                'label' => 'Stok Menipis',
+                'nama' => 'Kaleng Aluminium',
+                'info' => 'Sisa: 50kg',
+            ];
+        }
+
+        $insightHargaTurun = null;
+        if ($hargaTurun) {
+            $insightHargaTurun = [
+                'tipe' => 'harga_turun',
+                'label' => 'Harga Turun',
+                'nama' => $hargaTurun->nama,
+                'info' => 'Turun Rp ' . number_format($hargaTurun->diskon, 0, ',', '.') . '/kg',
+            ];
+        } else {
+            $cheapestItem = \App\Models\ItemSampah::orderBy('harga_jual', 'asc')->first();
+            if ($cheapestItem) {
+                $insightHargaTurun = [
+                    'tipe' => 'harga_turun',
+                    'label' => 'Harga Murah',
+                    'nama' => $cheapestItem->nama,
+                    'info' => 'Harga Rp ' . number_format($cheapestItem->harga_jual, 0, ',', '.') . '/kg',
+                ];
+            } else {
+                $insightHargaTurun = [
+                    'tipe' => 'harga_turun',
+                    'label' => 'Harga Turun',
+                    'nama' => 'Botol Kaca',
+                    'info' => 'Turun Rp 200/kg',
+                ];
+            }
+        }
+
+        $marketInsights = [
+            $insightKetersediaan,
+            $insightStokMenipis,
+            $insightHargaTurun
+        ];
+
         return response()->json([
             'total_pengeluaran' => (float)$totalPengeluaran,
             'total_sampah' => (float)$totalSampah,
             'pesanan_aktif_count' => $pesananAktifCount,
             'pesanan_aktif' => $pesananAktif,
-            'chart_data' => $chartData
+            'chart_data' => $chartData,
+            'market_insights' => $marketInsights
         ]);
     }
 }

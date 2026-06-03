@@ -45,15 +45,20 @@ class DashboardManagerController extends Controller
         $nasabahMingguIni = Nasabah::where('status', 'aktif')->where('created_at', '>=', $startOfWeek)->count();
         $nasabahIncrease = '+' . $nasabahMingguIni . ' minggu ini';
 
-        // Transaksi Bulan Ini
-        $transaksiBulanIni = Penimbangan::whereBetween('created_at', [$startOfMonth, $now])->count() 
-                           + Penjemputan::whereBetween('created_at', [$startOfMonth, $now])->count() 
-                           + Penarikan::whereBetween('created_at', [$startOfMonth, $now])->count();
-        
-        $transaksiBulanLalu = Penimbangan::whereBetween('created_at', [$startOfLastMonth, $endOfLastMonth])->count()
-                            + Penjemputan::whereBetween('created_at', [$startOfLastMonth, $endOfLastMonth])->count()
-                            + Penarikan::whereBetween('created_at', [$startOfLastMonth, $endOfLastMonth])->count();
-        
+        // Transaksi Bulan Ini (Dynamic: combined nasabah and pengepul transactions)
+        $startOfMonth = now()->startOfMonth();
+        $endOfMonth = now()->endOfMonth();
+        $nasabahTransCount = \App\Models\TransaksiNasabah::whereBetween('created_at', [$startOfMonth, $endOfMonth])->count();
+        $pengepulTransCount = \App\Models\TransaksiPengepul::whereBetween('created_at', [$startOfMonth, $endOfMonth])->count();
+        $transaksiBulanIni = $nasabahTransCount + $pengepulTransCount;
+
+        // Transaksi Bulan Lalu for growth calculation
+        $startOfLastMonth = now()->subMonth()->startOfMonth();
+        $endOfLastMonth = now()->subMonth()->endOfMonth();
+        $nasabahTransCountLalu = \App\Models\TransaksiNasabah::whereBetween('created_at', [$startOfLastMonth, $endOfLastMonth])->count();
+        $pengepulTransCountLalu = \App\Models\TransaksiPengepul::whereBetween('created_at', [$startOfLastMonth, $endOfLastMonth])->count();
+        $transaksiBulanLalu = $nasabahTransCountLalu + $pengepulTransCountLalu;
+
         $trxGrowth = 0;
         if ($transaksiBulanLalu > 0) {
             $trxGrowth = (($transaksiBulanIni - $transaksiBulanLalu) / $transaksiBulanLalu) * 100;
@@ -278,6 +283,72 @@ class DashboardManagerController extends Controller
             'gudangStatus' => $gudangStatusRaw,
             'distribusiSaatIni' => $distribusiRaw,
             'detailSampah' => $detailSampahRaw
+        ]);
+    }
+
+    public function transaksiBulanIni(Request $request)
+    {
+        $startOfMonth = now()->startOfMonth();
+        $endOfMonth = now()->endOfMonth();
+
+        // 1. Fetch Transaksi Nasabah this month
+        $nasabahTrans = \App\Models\TransaksiNasabah::with(['penimbangan.nasabah'])
+            ->whereBetween('created_at', [$startOfMonth, $endOfMonth])
+            ->get()
+            ->map(function ($t) {
+                $nasabahName = $t->penimbangan->first()?->nasabah?->nama ?? 'Nasabah';
+                return [
+                    'transaksi_id' => $t->transaksi_id,
+                    'kode' => 'TXN-' . str_pad($t->transaksi_id, 5, '0', STR_PAD_LEFT),
+                    'tipe' => 'Nasabah',
+                    'pelaku' => $nasabahName,
+                    'tanggal' => $t->created_at->format('d M Y H:i'),
+                    'status' => $t->status,
+                    'total' => 'Rp ' . number_format($t->total_harga, 0, ',', '.'),
+                    'keterangan' => $t->tipe_transaksi === 'jemput' ? 'Penjemputan Sampah' : 'Setor Manual',
+                    'created_timestamp' => $t->created_at->timestamp
+                ];
+            });
+
+        // 2. Fetch Transaksi Pengepul this month
+        $pengepulTrans = \App\Models\TransaksiPengepul::with(['pengepul', 'detailTransaksi'])
+            ->whereBetween('created_at', [$startOfMonth, $endOfMonth])
+            ->get()
+            ->map(function ($t) {
+                $pengepulName = $t->pengepul?->nama ?? 'Pengepul';
+                $totalHarga = $t->detailTransaksi->sum(function ($d) {
+                    return $d->harga * $d->berat;
+                });
+                return [
+                    'transaksi_id' => $t->transaksi_id,
+                    'kode' => 'TXP-' . str_pad($t->transaksi_id, 5, '0', STR_PAD_LEFT),
+                    'tipe' => 'Pengepul',
+                    'pelaku' => $pengepulName,
+                    'tanggal' => $t->created_at->format('d M Y H:i'),
+                    'status' => $t->status,
+                    'total' => 'Rp ' . number_format($totalHarga, 0, ',', '.'),
+                    'keterangan' => 'Pembelian Sampah',
+                    'created_timestamp' => $t->created_at->timestamp
+                ];
+            });
+
+        // Merge and sort
+        $merged = $nasabahTrans->concat($pengepulTrans)->sortByDesc('created_timestamp')->values();
+
+        // Paginate manually
+        $page = (int) $request->input('page', 1);
+        $perPage = (int) $request->input('per_page', 5);
+        $offset = ($page - 1) * $perPage;
+
+        $sliced = $merged->slice($offset, $perPage)->values();
+        $total = $merged->count();
+
+        return response()->json([
+            'data' => $sliced,
+            'current_page' => $page,
+            'per_page' => $perPage,
+            'total' => $total,
+            'last_page' => (int) ceil($total / $perPage)
         ]);
     }
 }
