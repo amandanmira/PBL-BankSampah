@@ -3,7 +3,7 @@ import { ref, computed, onMounted } from "vue";
 import { Icon } from "@iconify/vue";
 import Swal from 'sweetalert2';
 import dayjs from 'dayjs';
-import { getAuditPenarikanData, getAuditPenarikanSummary, exportPenarikanPdf } from '@/lib/api/manager/auditApi';
+import { getAuditPenarikanData, getAuditPenarikanSummary, exportPenarikanPdf, getListGudang } from '@/lib/api/manager/auditApi';
 
 const isLoadingPenarikan = ref(false);
 const currentPagePenarikan = ref(1);
@@ -13,6 +13,7 @@ const searchQueryPenarikan = ref('');
 const tableDataPenarikan = ref([]);
 const isExportingPdf = ref(false);
 const isFilterModalOpen = ref(false);
+const gudangOptions = ref([]);
 
 const penarikanSummary = ref({
   totalNominal: 'Rp 0',
@@ -29,21 +30,25 @@ const formatDate = (date) => date.toISOString().split('T')[0];
 
 const filterForm = ref({
   start_date: formatDate(thirtyDaysAgo),
-  end_date: formatDate(today)
+  end_date: formatDate(today),
+  gudang: 'Semua Gudang'
 });
 
 const appliedFilter = ref({
   start_date: formatDate(thirtyDaysAgo),
-  end_date: formatDate(today)
+  end_date: formatDate(today),
+  gudang: 'Semua Gudang'
 });
 
 const fetchPenarikanData = async () => {
   try {
     isLoadingPenarikan.value = true;
+    const selectedGudang = gudangOptions.value.find(g => g.alamat === appliedFilter.value.gudang);
     const params = {
       search: searchQueryPenarikan.value,
       start_date: appliedFilter.value.start_date,
-      end_date: appliedFilter.value.end_date
+      end_date: appliedFilter.value.end_date,
+      gudang_id: selectedGudang ? selectedGudang.gudang_id : null
     };
     const response = await getAuditPenarikanData(currentPagePenarikan.value, params, itemsPerPage.value);
     tableDataPenarikan.value = response.data.data;
@@ -63,10 +68,12 @@ const fetchPenarikanData = async () => {
 
 const fetchPenarikanSummary = async () => {
   try {
+    const selectedGudang = gudangOptions.value.find(g => g.alamat === appliedFilter.value.gudang);
     const params = {
       search: searchQueryPenarikan.value,
       start_date: appliedFilter.value.start_date,
-      end_date: appliedFilter.value.end_date
+      end_date: appliedFilter.value.end_date,
+      gudang_id: selectedGudang ? selectedGudang.gudang_id : null
     };
     const response = await getAuditPenarikanSummary(params);
     penarikanSummary.value = response.data;
@@ -88,12 +95,14 @@ const handleSearchPenarikan = () => {
 const openFilterModal = () => {
   filterForm.value.start_date = appliedFilter.value.start_date;
   filterForm.value.end_date = appliedFilter.value.end_date;
+  filterForm.value.gudang = appliedFilter.value.gudang;
   isFilterModalOpen.value = true;
 };
 
 const terapkanFilter = () => {
   appliedFilter.value.start_date = filterForm.value.start_date;
   appliedFilter.value.end_date = filterForm.value.end_date;
+  appliedFilter.value.gudang = filterForm.value.gudang;
   currentPagePenarikan.value = 1;
   isFilterModalOpen.value = false;
   fetchPenarikanData();
@@ -103,6 +112,7 @@ const terapkanFilter = () => {
 const resetFilterForm = () => {
   filterForm.value.start_date = '';
   filterForm.value.end_date = '';
+  filterForm.value.gudang = 'Semua Gudang';
 };
 
 const removeFilter = (type) => {
@@ -111,6 +121,9 @@ const removeFilter = (type) => {
     appliedFilter.value.end_date = '';
     filterForm.value.start_date = '';
     filterForm.value.end_date = '';
+  } else if (type === 'gudang') {
+    appliedFilter.value.gudang = 'Semua Gudang';
+    filterForm.value.gudang = 'Semua Gudang';
   }
   currentPagePenarikan.value = 1;
   fetchPenarikanData();
@@ -120,15 +133,17 @@ const removeFilter = (type) => {
 const clearAllFilters = () => {
   appliedFilter.value.start_date = '';
   appliedFilter.value.end_date = '';
+  appliedFilter.value.gudang = 'Semua Gudang';
   filterForm.value.start_date = '';
   filterForm.value.end_date = '';
+  filterForm.value.gudang = 'Semua Gudang';
   currentPagePenarikan.value = 1;
   fetchPenarikanData();
   fetchPenarikanSummary();
 };
 
 const hasActiveFilters = computed(() => {
-  return appliedFilter.value.start_date !== '' || appliedFilter.value.end_date !== '';
+  return appliedFilter.value.start_date !== '' || appliedFilter.value.end_date !== '' || appliedFilter.value.gudang !== 'Semua Gudang';
 });
 
 const formatDateRangeText = computed(() => {
@@ -148,6 +163,7 @@ const prevPagePenarikan = () => {
     fetchPenarikanData();
   }
 };
+
 const nextPagePenarikan = () => { 
   if (currentPagePenarikan.value < totalPagesPenarikan.value) {
     currentPagePenarikan.value++;
@@ -158,10 +174,11 @@ const nextPagePenarikan = () => {
 const handlePrintPdf = async () => {
   try {
     isExportingPdf.value = true;
+    const selectedGudang = gudangOptions.value.find(g => g.alamat === appliedFilter.value.gudang);
     const params = {
-      durasi: appliedFilter.value.durasi,
       start_date: appliedFilter.value.start_date,
-      end_date: appliedFilter.value.end_date
+      end_date: appliedFilter.value.end_date,
+      gudang_id: selectedGudang ? selectedGudang.gudang_id : null
     };
     const response = await exportPenarikanPdf(params);
     
@@ -204,9 +221,15 @@ const handlePrintPdf = async () => {
   }
 };
 
-onMounted(() => {
+onMounted(async () => {
   fetchPenarikanData();
   fetchPenarikanSummary();
+  try {
+    const res = await getListGudang();
+    gudangOptions.value = res.data;
+  } catch (error) {
+    console.error("Error loading gudang list:", error);
+  }
 });
 </script>
 
@@ -262,9 +285,15 @@ onMounted(() => {
     <!-- Active Filter Chips Section -->
     <div v-if="hasActiveFilters" class="flex flex-wrap items-center gap-2 px-1">
       <span class="text-[11px] font-bold text-stone-500 mr-1">Filter Aktif:</span>
-      <div class="inline-flex items-center gap-1.5 px-3 py-1 bg-[#F5F9F5] text-[#3D5A35] rounded-full text-[11px] font-bold border border-[#4A7043]/20 shadow-sm transition-all hover:bg-[#E9F5E9]">
+      <div v-if="appliedFilter.start_date || appliedFilter.end_date" class="inline-flex items-center gap-1.5 px-3 py-1 bg-[#F5F9F5] text-[#3D5A35] rounded-full text-[11px] font-bold border border-[#4A7043]/20 shadow-sm transition-all hover:bg-[#E9F5E9]">
         Waktu: {{ formatDateRangeText }}
         <button @click="removeFilter('date')" class="text-[#4A7043]/50 hover:text-red-500 transition-colors ml-1 focus:outline-none">
+          <Icon icon="material-symbols:close" class="w-3.5 h-3.5" />
+        </button>
+      </div>
+      <div v-if="appliedFilter.gudang && appliedFilter.gudang !== 'Semua Gudang'" class="inline-flex items-center gap-1.5 px-3 py-1 bg-[#F5F9F5] text-[#3D5A35] rounded-full text-[11px] font-bold border border-[#4A7043]/20 shadow-sm transition-all hover:bg-[#E9F5E9]">
+        Gudang: {{ appliedFilter.gudang }}
+        <button @click="removeFilter('gudang')" class="text-[#4A7043]/50 hover:text-red-500 transition-colors ml-1 focus:outline-none">
           <Icon icon="material-symbols:close" class="w-3.5 h-3.5" />
         </button>
       </div>
@@ -352,6 +381,20 @@ onMounted(() => {
 
           <!-- Modal Body -->
           <div class="p-6 space-y-6 flex-1">
+            <!-- Gudang Dropdown -->
+            <div class="space-y-2">
+              <label class="block text-xs font-bold text-stone-600">Gudang</label>
+              <div class="relative">
+                <select v-model="filterForm.gudang" class="w-full appearance-none px-4 py-2.5 bg-white border border-stone-200 rounded-lg text-xs text-stone-700 focus:outline-none focus:ring-2 focus:ring-[#4A7043]/20 focus:border-[#4A7043] transition-colors cursor-pointer">
+                  <option value="Semua Gudang">Semua Gudang</option>
+                  <option v-for="g in gudangOptions" :key="g.gudang_id" :value="g.alamat">{{ g.alamat }}</option>
+                </select>
+                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-stone-400">
+                  <Icon icon="material-symbols:keyboard-arrow-down-rounded" class="w-4 h-4" />
+                </div>
+              </div>
+            </div>
+
             <!-- Custom Rentang Tanggal -->
             <div class="grid grid-cols-2 gap-4">
               <div class="space-y-2">

@@ -325,8 +325,16 @@ class ManagerAuditController extends Controller
         $startDate = $request->query('start_date');
         $endDate = $request->query('end_date');
         $search = $request->query('search');
+        $gudangId = $request->query('gudang_id');
 
         $query = \App\Models\Penarikan::with('nasabah')->latest();
+
+        // Filter by Gudang
+        if ($gudangId) {
+            $query->whereHas('petugas', function($q) use ($gudangId) {
+                $q->where('gudang_id', $gudangId);
+            });
+        }
 
         // Filter by Durasi
         if ($durasi && $durasi !== 'Semua Waktu') {

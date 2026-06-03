@@ -37,6 +37,7 @@ export const getAuditPenarikanData = async (page = 1, filters = {}, perPage = 10
     durasi: filters.durasi,
     start_date: filters.start_date,
     end_date: filters.end_date,
+    gudang_id: filters.gudang_id,
     search: filters.search
   };
   return await axios.get('/api/manager/audit-penarikan-data', { params });
@@ -47,6 +48,7 @@ export const getAuditPenarikanSummary = async (filters = {}) => {
     durasi: filters.durasi,
     start_date: filters.start_date,
     end_date: filters.end_date,
+    gudang_id: filters.gudang_id,
     search: filters.search
   };
   return await axios.get('/api/manager/audit-penarikan-summary', { params });

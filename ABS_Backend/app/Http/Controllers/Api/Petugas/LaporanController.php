@@ -377,6 +377,7 @@ class LaporanController extends Controller
     {
         $startDate = null;
         $endDate = Carbon::now()->endOfDay();
+        $gudangId = $request->query('gudang_id') ?: $request->gudang_id;
 
         $durasi = $request->query('durasi');
         if ($durasi && $durasi !== 'Semua Waktu') {
@@ -412,6 +413,14 @@ class LaporanController extends Controller
         // 1. Grand totals (kolom)
         $summaryQuery = DB::table('penarikans');
         $applyDateRange($summaryQuery);
+        if ($gudangId) {
+            $summaryQuery->whereExists(function ($query) use ($gudangId) {
+                $query->select(DB::raw(1))
+                    ->from('petugas')
+                    ->whereColumn('petugas.petugas_id', 'penarikans.petugas_id')
+                    ->where('petugas.gudang_id', $gudangId);
+            });
+        }
         $summary = $summaryQuery->select(
             DB::raw('COUNT(penarikan_id) as total_penarikan'),
             DB::raw('COALESCE(SUM(jumlah), 0) as total_nilai'),
@@ -420,7 +429,7 @@ class LaporanController extends Controller
         )->first();
 
         // 2. Table: Gudang details (alamat gudang join dari petugas)
-        $gudangReport = DB::table('gudangs')
+        $gudangReportQuery = DB::table('gudangs')
             ->leftJoin('petugas', 'gudangs.gudang_id', '=', 'petugas.gudang_id')
             ->leftJoin('penarikans', function($join) use ($startDate, $endDate) {
                 $join->on('petugas.petugas_id', '=', 'penarikans.petugas_id');
@@ -430,8 +439,13 @@ class LaporanController extends Controller
                 if ($endDate) {
                     $join->where('penarikans.created_at', '<=', $endDate);
                 }
-            })
-            ->select(
+            });
+        
+        if ($gudangId) {
+            $gudangReportQuery->where('gudangs.gudang_id', $gudangId);
+        }
+
+        $gudangReport = $gudangReportQuery->select(
                 'gudangs.alamat as alamat',
                 DB::raw('COUNT(penarikans.penarikan_id) as total_penarikan'),
                 DB::raw('COALESCE(SUM(penarikans.jumlah), 0) as total_nilai'),
@@ -445,19 +459,21 @@ class LaporanController extends Controller
             })
             ->toArray();
 
-        // Unassigned (Pending) Penarikans (no petugas_id yet)
-        $unassignedQuery = DB::table('penarikans')->whereNull('petugas_id');
-        $applyDateRange($unassignedQuery);
-        $unassigned = $unassignedQuery->select(
-            DB::raw('"Belum Diproses (Tanpa Gudang)" as alamat'),
-            DB::raw('COUNT(penarikan_id) as total_penarikan'),
-            DB::raw('COALESCE(SUM(jumlah), 0) as total_nilai'),
-            DB::raw('COUNT(CASE WHEN status = "selesai" THEN 1 END) as status_selesai'),
-            DB::raw('COUNT(CASE WHEN status = "pending" THEN 1 END) as status_pending')
-        )->first();
+        // Unassigned (Pending) Penarikans (no petugas_id yet) - only show when not filtering by warehouse
+        if (!$gudangId) {
+            $unassignedQuery = DB::table('penarikans')->whereNull('petugas_id');
+            $applyDateRange($unassignedQuery);
+            $unassigned = $unassignedQuery->select(
+                DB::raw('"Belum Diproses (Tanpa Gudang)" as alamat'),
+                DB::raw('COUNT(penarikan_id) as total_penarikan'),
+                DB::raw('COALESCE(SUM(jumlah), 0) as total_nilai'),
+                DB::raw('COUNT(CASE WHEN status = "selesai" THEN 1 END) as status_selesai'),
+                DB::raw('COUNT(CASE WHEN status = "pending" THEN 1 END) as status_pending')
+            )->first();
 
-        if ($unassigned && $unassigned->total_penarikan > 0) {
-            $gudangReport[] = (array) $unassigned;
+            if ($unassigned && $unassigned->total_penarikan > 0) {
+                $gudangReport[] = (array) $unassigned;
+            }
         }
 
         // 3. Top 5 Nasabah by Jumlah Penarikan (frequency)
@@ -470,6 +486,14 @@ class LaporanController extends Controller
         }
         if ($endDate) {
             $topNasabahByCountQuery->where('penarikans.created_at', '<=', $endDate);
+        }
+        if ($gudangId) {
+            $topNasabahByCountQuery->whereExists(function ($query) use ($gudangId) {
+                $query->select(DB::raw(1))
+                    ->from('petugas')
+                    ->whereColumn('petugas.petugas_id', 'penarikans.petugas_id')
+                    ->where('petugas.gudang_id', $gudangId);
+            });
         }
         
         $topNasabahByCount = $topNasabahByCountQuery
@@ -489,6 +513,14 @@ class LaporanController extends Controller
         }
         if ($endDate) {
             $topNasabahByAmountQuery->where('penarikans.created_at', '<=', $endDate);
+        }
+        if ($gudangId) {
+            $topNasabahByAmountQuery->whereExists(function ($query) use ($gudangId) {
+                $query->select(DB::raw(1))
+                    ->from('petugas')
+                    ->whereColumn('petugas.petugas_id', 'penarikans.petugas_id')
+                    ->where('petugas.gudang_id', $gudangId);
+            });
         }
 
         $topNasabahByAmount = $topNasabahByAmountQuery
