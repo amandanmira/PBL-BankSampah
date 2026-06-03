@@ -115,9 +115,8 @@ onMounted(() => {
 
 <template>
   <DashboardLayout title="Riwayat Penarikan">
-    <!-- Main mobile viewport simulator -->
-    <div class="max-w-md mx-auto bg-[#F7F7F5] min-h-screen pb-16 font-sans antialiased text-stone-800">
-      
+    <!-- MOBILE VIEW (max-w-md viewport, untouched) -->
+    <div class="block md:hidden max-w-md mx-auto bg-[#F7F7F5] min-h-screen pb-16 font-sans antialiased text-stone-800">
       <!-- Spacing and List Content -->
       <div class="p-4 space-y-4">
 
@@ -225,6 +224,121 @@ onMounted(() => {
             </div>
           </template>
         </div>
+      </div>
+    </div>
+
+    <!-- DESKTOP VIEW (Full viewport version) -->
+    <div class="hidden md:block max-w-5xl mx-auto p-6 space-y-6 font-sans antialiased text-stone-800">
+      
+      <!-- Top Card (Tabs and Search) -->
+      <div class="bg-white rounded-3xl p-6 shadow-sm border border-stone-200/50 space-y-6">
+        
+        <!-- Tabs status filter -->
+        <div class="bg-stone-50/80 rounded-2xl p-1.5 flex border border-stone-100">
+          <button
+            v-for="filter in statusFilters"
+            :key="filter.value"
+            @click="activeStatusFilter = filter.value"
+            :class="cn(
+              'flex-1 flex items-center justify-center gap-2.5 py-4 transition-all relative rounded-xl font-semibold text-sm',
+              activeStatusFilter === filter.value 
+                ? 'bg-white text-[#A86444] font-bold shadow-sm border-b-4 border-[#A86444]' 
+                : 'text-stone-500 hover:text-stone-700'
+            )"
+          >
+            <span>{{ filter.label }}</span>
+            <div 
+              :class="cn(
+                'w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold transition-all',
+                activeStatusFilter === filter.value ? 'bg-[#A86444] text-white' : 'bg-stone-200 text-stone-500'
+              )"
+            >
+              {{ counts[filter.value] || 0 }}
+            </div>
+          </button>
+        </div>
+
+        <!-- Search input field -->
+        <div class="relative group">
+          <Icon icon="material-symbols:search" class="absolute left-5 top-1/2 -translate-y-1/2 w-5.5 h-5.5 text-stone-400 focus-within:text-[#A86444]" />
+          <input
+            v-model="searchQuery"
+            type="text"
+            placeholder="Cari berdasarkan tracking ID atau metode..."
+            class="w-full pl-12 pr-5 py-4 bg-white border border-stone-200 rounded-2xl focus:outline-none focus:border-[#A86444] transition-all text-sm shadow-inner/5"
+          />
+        </div>
+      </div>
+
+      <!-- List cards section -->
+      <div class="space-y-4">
+        <div v-if="loading" class="flex flex-col items-center justify-center py-24 bg-white rounded-3xl border border-stone-200/50 gap-3">
+          <div class="w-10 h-10 border-4 border-[#A86444]/20 border-t-[#A86444] rounded-full animate-spin"></div>
+          <p class="text-stone-400 text-sm italic">Menarik data penarikan...</p>
+        </div>
+
+        <template v-else>
+          <div v-if="withdrawals.length === 0" class="flex flex-col items-center justify-center py-20 text-center space-y-4 bg-white rounded-3xl p-8 border border-stone-200/50 shadow-sm">
+            <div class="w-20 h-20 bg-stone-50 rounded-full flex items-center justify-center text-stone-300">
+              <Icon icon="material-symbols:info-outline" class="w-10 h-10" />
+            </div>
+            <div class="space-y-1">
+              <p class="text-stone-800 font-bold text-base">Tidak ada data ditemukan</p>
+              <p class="text-sm text-stone-400">Coba ubah filter atau kata kunci pencarian Anda.</p>
+            </div>
+          </div>
+
+          <!-- List card items -->
+          <div
+            v-for="item in withdrawals"
+            :key="item.penarikan_id"
+            class="bg-white border border-stone-200/50 rounded-3xl p-6 shadow-sm space-y-5"
+          >
+            <div class="flex items-center gap-3">
+              <div class="w-11 h-11 bg-stone-50 rounded-xl flex items-center justify-center text-stone-600 shrink-0">
+                <Icon icon="material-symbols:account-balance-wallet-outline" class="w-6 h-6 text-stone-500" />
+              </div>
+              <div>
+                <p class="text-[10px] font-bold text-stone-400 uppercase tracking-wider">Tracking ID</p>
+                <h4 class="text-base font-bold text-stone-800">
+                  #WD-{{ String(item.penarikan_id).padStart(3, '0') }}
+                </h4>
+              </div>
+            </div>
+
+            <!-- Nested Card for Amount -->
+            <div class="bg-[#FDF8F6] p-5 rounded-2xl border border-stone-100">
+              <p class="text-xs font-semibold text-stone-400 uppercase tracking-wider mb-1">Jumlah Penarikan</p>
+              <p class="text-2xl font-bold text-[#A86444]">
+                Rp {{ item.jumlah.toLocaleString('id-ID') }}
+              </p>
+            </div>
+
+            <div class="flex items-center gap-2 text-stone-400 text-sm">
+              <Icon icon="material-symbols:calendar-today-outline" class="w-4.5 h-4.5" />
+              <span>{{ formatDate(item.created_at, true) }}</span>
+            </div>
+
+            <!-- Buttons -->
+            <div class="flex gap-3">
+              <button 
+                @click="openDetail(item)"
+                class="flex-1 bg-[#925F3A] hover:bg-[#805030] text-white py-4 rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2 active:scale-[0.99] shadow-sm"
+              >
+                <span>Lihat Detail</span>
+                <Icon icon="material-symbols:arrow-right-alt" class="w-5 h-5" />
+              </button>
+              <button
+                v-if="item.status === 'pending'"
+                @click="confirmCancel(item.penarikan_id)"
+                class="px-8 border border-red-200 text-red-500 hover:bg-red-50 rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-1.5 active:scale-[0.99]"
+              >
+                <Icon icon="material-symbols:cancel-outline" class="w-5 h-5" />
+                <span>Batalkan</span>
+              </button>
+            </div>
+          </div>
+        </template>
       </div>
     </div>
 
