@@ -1,200 +1,237 @@
 <template>
   <DashboardLayout title="Penarikan Uang">
-    <div class="max-w-4xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-20">
+    <!-- Main mobile viewport wrapper to simulate/render the layout nicely -->
+    <div class="max-w-md mx-auto bg-[#F7F7F5] min-h-screen pb-16 font-sans antialiased text-stone-800">
       
-      <div class="relative overflow-hidden bg-gradient-to-br from-[#4A7043] to-[#3D5C37] rounded-[2.5rem] p-8 text-white shadow-2xl shadow-[#4A7043]/20">
-        <div class="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/2 blur-3xl"></div>
-        <div class="absolute bottom-0 left-0 w-40 h-40 bg-black/5 rounded-full translate-y-1/2 -translate-x-1/2 blur-2xl"></div>
+      <!-- Top header spacing if not header is styled. We will just render the content cards. -->
+      <div class="p-4 space-y-4">
         
-        <div class="relative flex justify-between items-center">
-          <div class="space-y-2">
-            <p class="text-white/70 text-sm font-bold uppercase tracking-widest">Saldo Tersedia</p>
-            <h2 class="text-4xl md:text-5xl font-black tracking-tight">
-              {{ formatRupiah(saldoTersedia) }}
+        <!-- Saldo Tersedia Card -->
+        <div class="bg-[#56774F] rounded-[1.5rem] p-5 text-white shadow-sm flex justify-between items-center relative overflow-hidden">
+          <div class="space-y-1">
+            <p class="text-white/80 text-xs font-medium">Saldo Tersedia</p>
+            <h2 class="text-3xl font-bold tracking-tight">
+              {{ formatRupiahShort(saldoTersedia) }}
             </h2>
           </div>
-          <div class="w-16 h-16 bg-white/10 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/10 shadow-inner">
-            <Icon icon="material-symbols:account-balance-wallet-outline" class="w-8 h-8 text-white" />
+          <div class="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
+            <Icon icon="material-symbols:account-balance-wallet-outline" class="w-6 h-6 text-white" />
           </div>
         </div>
-      </div>
 
-      <div class="bg-white rounded-[2.5rem] p-8 md:p-10 shadow-sm border border-stone-100 space-y-10">
-        
-        <div class="space-y-6">
-          <label class="flex items-center gap-2 text-xs font-black text-stone-400 uppercase tracking-[0.2em]">
-            <Icon icon="material-symbols:payments-outline" class="w-4 h-4" />
-            Jumlah Penarikan
-          </label>
+        <!-- Main Form Container Card -->
+        <div class="bg-white rounded-3xl p-5 shadow-sm space-y-6">
           
-          <div class="relative group">
-            <div class="absolute left-6 top-1/2 -translate-y-1/2 text-2xl font-black text-stone-300 group-focus-within:text-[#4A7043] transition-colors">Rp</div>
-            <input 
-              v-model="displayJumlah"
-              @input="handleJumlahInput"
-              type="text" 
-              placeholder="0"
-              class="w-full bg-[#F9F9F7] border-2 border-transparent focus:border-[#4A7043] rounded-3xl py-6 pl-16 pr-8 text-3xl font-black text-stone-800 transition-all outline-none"
-            />
-          </div>
-
-          <div class="flex flex-wrap gap-3">
-            <button 
-              v-for="amount in presetAmounts" 
-              :key="amount"
-              @click="setQuickAmount(amount)"
-              :class="cn(
-                'px-6 py-3 rounded-2xl text-sm font-black transition-all border-2',
-                form.jumlah === amount 
-                  ? 'bg-[#4A7043] border-[#4A7043] text-white shadow-lg shadow-[#4A7043]/20 scale-105' 
-                  : 'bg-stone-50 border-stone-100 text-stone-500 hover:border-[#4A7043]/30 hover:bg-white'
-              )"
-            >
-              {{ formatRupiahShort(amount) }}
-            </button>
-          </div>
-          <p class="text-[10px] font-bold text-stone-400 italic px-2">Minimal penarikan: Rp 50.000</p>
-        </div>
-
-        <hr class="border-stone-100" />
-
-        <div class="space-y-6">
-          <label class="flex items-center gap-2 text-xs font-black text-stone-400 uppercase tracking-[0.2em]">
-            <Icon icon="material-symbols:account-balance-outline" class="w-4 h-4" />
-            Pilih Rekening Tujuan
-          </label>
-
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <button 
-              @click="setTipeRekening('profil')"
-              :class="cn(
-                'flex items-start gap-4 p-6 rounded-3xl border-2 transition-all text-left group relative overflow-hidden',
-                tipeRekening === 'profil'
-                  ? 'bg-[#E8F0E6] border-[#4A7043] shadow-md'
-                  : 'bg-white border-stone-100 hover:border-stone-200'
-              )"
-            >
-              <div :class="cn(
-                'w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 transition-all',
-                tipeRekening === 'profil' ? 'bg-[#4A7043] text-white' : 'bg-stone-100 text-stone-400 group-hover:bg-stone-200'
-              )">
-                <Icon icon="material-symbols:person-outline" class="w-6 h-6" />
-              </div>
-              <div class="flex-1">
-                <h4 class="font-black text-stone-800 text-sm">Rekening di Profil</h4>
-                <p class="text-[10px] font-bold text-stone-400 mt-0.5 leading-tight">Gunakan data rekening yang tersimpan di profil Anda</p>
-                
-                <div v-if="tipeRekening === 'profil' && isProfileComplete" class="mt-4 p-3 bg-white/50 rounded-xl border border-[#4A7043]/10 space-y-1">
-                   <p class="text-[10px] font-black text-[#4A7043] uppercase tracking-wider">{{ rekeningProfil.nama_bank }}</p>
-                   <p class="text-xs font-black text-stone-700">{{ rekeningProfil.no_rekening }}</p>
-                   <p class="text-[10px] font-bold text-stone-500">{{ rekeningProfil.nama_rek }}</p>
-                </div>
-              </div>
-              
-              <div v-if="tipeRekening === 'profil' && !isProfileComplete" class="absolute inset-0 bg-white/40 backdrop-blur-[1px] flex flex-col items-center justify-center p-4 text-center">
-                 <Icon icon="material-symbols:lock-outline" class="w-6 h-6 text-amber-600 mb-2" />
-              </div>
-            </button>
-
-            <button 
-              @click="setTipeRekening('lain')"
-              :class="cn(
-                'flex items-start gap-4 p-6 rounded-3xl border-2 transition-all text-left group',
-                tipeRekening === 'lain'
-                  ? 'bg-[#E8F0E6] border-[#4A7043] shadow-md'
-                  : 'bg-white border-stone-100 hover:border-stone-200'
-              )"
-            >
-              <div :class="cn(
-                'w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 transition-all',
-                tipeRekening === 'lain' ? 'bg-[#4A7043] text-white' : 'bg-stone-100 text-stone-400 group-hover:bg-stone-200'
-              )">
-                <Icon icon="material-symbols:account-balance-wallet" class="w-6 h-6" />
-              </div>
-              <div class="flex-1">
-                <h4 class="font-black text-stone-800 text-sm">Rekening Lain</h4>
-                <p class="text-[10px] font-bold text-stone-400 mt-0.5 leading-tight">Gunakan rekening lain untuk tujuan penarikan ini</p>
-              </div>
-            </button>
-          </div>
-
-          <div v-if="tipeRekening === 'profil' && !isProfileComplete" class="bg-amber-50 border border-amber-200 rounded-2xl p-5 flex items-start gap-4 animate-in slide-in-from-top-2 duration-300">
-            <div class="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center shrink-0">
-              <Icon icon="material-symbols:info-outline" class="w-5 h-5 text-amber-600" />
+          <!-- Jumlah Penarikan -->
+          <div class="space-y-3">
+            <label class="text-xs font-semibold text-stone-500">
+              Jumlah Penarikan
+            </label>
+            
+            <div class="relative flex items-center border border-stone-200 rounded-2xl px-4 py-3 bg-white focus-within:border-[#4A7043] focus-within:ring-1 focus-within:ring-[#4A7043] transition-all">
+              <span class="text-base font-bold text-stone-400 mr-2">Rp</span>
+              <input 
+                v-model="displayJumlah"
+                @input="handleJumlahInput"
+                type="text" 
+                placeholder="0"
+                class="w-full text-lg font-bold text-stone-800 outline-none bg-transparent"
+              />
             </div>
-            <div class="flex-1 space-y-1">
-              <p class="text-sm font-black text-amber-900 leading-tight">Profil Belum Lengkap ({{ completionPercentage }}%)</p>
-              <p class="text-xs font-bold text-amber-700 leading-relaxed">
-                Anda harus melengkapi profil 100% untuk menggunakan rekening tersimpan. 
-                <router-link to="/dashboard-nasabah/edit-profile" class="underline decoration-2 underline-offset-2 hover:text-amber-900">Lengkapi profil Anda sekarang</router-link>
-              </p>
+            
+            <p class="text-xs text-stone-400">Minimal penarikan: Rp 50.000</p>
+
+            <!-- Preset Amounts Grid -->
+            <div class="grid grid-cols-2 gap-2">
+              <button 
+                v-for="amount in presetAmounts" 
+                :key="amount"
+                @click="setQuickAmount(amount)"
+                type="button"
+                :class="cn(
+                  'py-2 px-3 rounded-xl text-xs font-bold transition-all text-center',
+                  form.jumlah === amount 
+                    ? 'bg-[#EEF3ED] text-[#4A7043] border border-[#4A7043]' 
+                    : 'bg-[#F5F5F3] text-stone-600 hover:bg-[#EEF3ED]/50 border border-transparent'
+                )"
+              >
+                {{ formatRupiahShort(amount) }}
+              </button>
             </div>
           </div>
 
-          <div v-if="tipeRekening === 'lain'" class="bg-[#FDF8F6] border border-[#A86444]/10 rounded-[2rem] p-8 space-y-6 animate-in zoom-in-95 duration-500">
-             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div class="space-y-2">
-                  <label class="text-[10px] font-black text-stone-400 uppercase tracking-widest px-1">Nama Bank</label>
-                  <input v-model="form.nama_bank" type="text" placeholder="Contoh: Bank BRI" class="w-full bg-white border border-stone-100 rounded-2xl py-3.5 px-5 text-sm font-bold text-stone-700 focus:outline-none focus:border-[#4A7043] transition-all" />
-                </div>
-                <div class="space-y-2">
-                  <label class="text-[10px] font-black text-stone-400 uppercase tracking-widest px-1">Nomor Rekening</label>
-                  <input v-model="form.no_rekening" type="text" placeholder="Masukkan nomor rekening" class="w-full bg-white border border-stone-100 rounded-2xl py-3.5 px-5 text-sm font-bold text-stone-700 focus:outline-none focus:border-[#4A7043] transition-all" />
-                </div>
-                <div class="md:col-span-2 space-y-2">
-                  <label class="text-[10px] font-black text-stone-400 uppercase tracking-widest px-1">Nama Pemilik Rekening</label>
-                  <input v-model="form.nama_rek" type="text" placeholder="Sesuai dengan di buku tabungan" class="w-full bg-white border border-stone-100 rounded-2xl py-3.5 px-5 text-sm font-bold text-stone-700 focus:outline-none focus:border-[#4A7043] transition-all" />
-                </div>
-             </div>
-          </div>
-        </div>
+          <!-- Pilih Rekening Tujuan -->
+          <div class="space-y-3">
+            <label class="text-xs font-semibold text-stone-500">
+              Pilih Rekening Tujuan
+            </label>
 
-        <button 
-          @click="submitRequest"
-          :disabled="isSubmitting || !isFormValid"
-          :class="cn(
-            'w-full py-5 rounded-[2rem] font-black text-lg flex items-center justify-center gap-3 transition-all active:scale-[0.98]',
-            isFormValid 
-              ? 'bg-[#4A7043] text-white shadow-xl shadow-[#4A7043]/20 hover:bg-[#3D5C37]' 
-              : 'bg-stone-300 text-stone-500 cursor-not-allowed shadow-none'
-          )"
-        >
-          <Icon v-if="isSubmitting" icon="line-md:loading-twotone-loop" class="w-6 h-6" />
-          <Icon v-else icon="material-symbols:send-outline" class="w-6 h-6" />
-          {{ isSubmitting ? 'Mengirim Request...' : 'Kirim Request Penarikan' }}
-        </button>
+            <div class="space-y-3">
+              <!-- Rekening di Profil -->
+              <button 
+                @click="setTipeRekening('profil')"
+                type="button"
+                :class="cn(
+                  'w-full flex items-start gap-3 p-4 rounded-2xl border transition-all text-left relative overflow-hidden',
+                  tipeRekening === 'profil'
+                    ? 'bg-[#EEF3ED] border-[#4A7043]'
+                    : 'bg-white border-stone-200'
+                )"
+              >
+                <div :class="cn(
+                  'w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-all',
+                  tipeRekening === 'profil' ? 'bg-[#4A7043]/10 text-[#4A7043]' : 'bg-stone-100 text-stone-400'
+                )">
+                  <Icon icon="material-symbols:person-outline" class="w-5 h-5" />
+                </div>
+                <div class="flex-1">
+                  <h4 class="font-bold text-stone-800 text-sm">Rekening di Profil</h4>
+                  <p class="text-xs text-stone-400 leading-tight">Gunakan rekening tersimpan</p>
+                  
+                  <!-- Show profile details if complete and selected -->
+                  <div v-if="isProfileComplete" class="mt-3 text-xs text-stone-600 space-y-0.5">
+                    <p class="font-bold text-stone-800">{{ rekeningProfil.nama_bank }}</p>
+                    <p class="font-mono text-stone-700">{{ rekeningProfil.no_rekening }}</p>
+                    <p class="text-stone-500">{{ rekeningProfil.nama_rek }}</p>
+                  </div>
+                </div>
+              </button>
+
+              <!-- Rekening Lain -->
+              <button 
+                @click="setTipeRekening('lain')"
+                type="button"
+                :class="cn(
+                  'w-full flex items-start gap-3 p-4 rounded-2xl border transition-all text-left',
+                  tipeRekening === 'lain'
+                    ? 'bg-[#EEF3ED] border-[#4A7043]'
+                    : 'bg-white border-stone-200'
+                )"
+              >
+                <div :class="cn(
+                  'w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-all',
+                  tipeRekening === 'lain' ? 'bg-[#4A7043]/10 text-[#4A7043]' : 'bg-stone-100 text-stone-400'
+                )">
+                  <Icon icon="material-symbols:account-balance-wallet-outline" class="w-5 h-5" />
+                </div>
+                <div class="flex-1">
+                  <h4 class="font-bold text-stone-800 text-sm">Rekening Lain</h4>
+                  <p class="text-xs text-stone-400 leading-tight">Input rekening baru</p>
+                </div>
+              </button>
+            </div>
+
+            <!-- Profile Incomplete Alert (when trying to select Profil, or generally informing) -->
+            <div v-if="tipeRekening === 'profil' && !isProfileComplete" class="bg-[#FFFBEB] border border-amber-200 rounded-2xl p-4 flex flex-col gap-1 text-xs">
+              <span class="text-amber-800 font-medium">Anda belum mengisi data rekening di profil.</span>
+              <router-link to="/dashboard-nasabah/edit-profile" class="text-amber-800 font-bold underline decoration-1">Lengkapi profil Anda</router-link>
+            </div>
+
+            <!-- Rekening Lain Input Fields Container -->
+            <div v-if="tipeRekening === 'lain'" class="bg-[#F7F7F5] rounded-2xl p-4 space-y-4 border border-stone-100">
+              <!-- Nama Bank Select/Dropdown -->
+              <div class="space-y-1.5">
+                <label class="text-[11px] font-semibold text-stone-500 flex items-center gap-1.5">
+                  <Icon icon="material-symbols:domain" class="w-4 h-4 text-stone-400" />
+                  Nama Bank
+                </label>
+                <div class="relative">
+                  <select 
+                    v-model="form.nama_bank" 
+                    class="w-full bg-white border border-stone-200 rounded-xl py-3 px-4 text-sm text-stone-700 focus:outline-none focus:border-[#4A7043] appearance-none cursor-pointer font-medium"
+                  >
+                    <option value="" disabled selected>Pilih Bank</option>
+                    <option value="Bank BRI">Bank BRI</option>
+                    <option value="Bank BCA">Bank BCA</option>
+                    <option value="Bank Mandiri">Bank Mandiri</option>
+                    <option value="Bank BNI">Bank BNI</option>
+                    <option value="Bank BSI">Bank Syariah Indonesia (BSI)</option>
+                    <option value="CIMB Niaga">CIMB Niaga</option>
+                  </select>
+                  <div class="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-stone-400">
+                    <Icon icon="material-symbols:keyboard-arrow-down-rounded" class="w-5 h-5" />
+                  </div>
+                </div>
+              </div>
+
+              <!-- Nomor Rekening Input -->
+              <div class="space-y-1.5">
+                <label class="text-[11px] font-semibold text-stone-500 flex items-center gap-1.5">
+                  <Icon icon="material-symbols:credit-card-outline" class="w-4 h-4 text-stone-400" />
+                  Nomor Rekening
+                </label>
+                <input 
+                  v-model="form.no_rekening" 
+                  type="text" 
+                  placeholder="Masukkan nomor rekening" 
+                  class="w-full bg-white border border-stone-200 rounded-xl py-3 px-4 text-sm font-medium text-stone-700 focus:outline-none focus:border-[#4A7043]" 
+                />
+              </div>
+
+              <!-- Nama Pemilik Rekening Input -->
+              <div class="space-y-1.5">
+                <label class="text-[11px] font-semibold text-stone-500 flex items-center gap-1.5">
+                  <Icon icon="material-symbols:person-outline" class="w-4 h-4 text-stone-400" />
+                  Nama Pemilik Rekening
+                </label>
+                <input 
+                  v-model="form.nama_rek" 
+                  type="text" 
+                  placeholder="Sesuai dengan rekening bank" 
+                  class="w-full bg-white border border-stone-200 rounded-xl py-3 px-4 text-sm font-medium text-stone-700 focus:outline-none focus:border-[#4A7043]" 
+                />
+              </div>
+            </div>
+          </div>
+
+          <!-- Submit Button: Tarik Saldo -->
+          <button 
+            @click="submitRequest"
+            :disabled="isSubmitting || !isFormValid"
+            type="button"
+            :class="cn(
+              'w-full py-3.5 rounded-2xl font-bold text-sm flex items-center justify-center gap-2 transition-all active:scale-[0.98]',
+              isFormValid 
+                ? 'bg-[#4A7043] text-white shadow-md hover:bg-[#3D5C37]' 
+                : 'bg-[#D2D6DC] text-white cursor-not-allowed shadow-none'
+            )"
+          >
+            <Icon v-if="isSubmitting" icon="line-md:loading-twotone-loop" class="w-5 h-5" />
+            <span>Tarik Saldo</span>
+          </button>
+        </div>
       </div>
     </div>
 
+    <!-- Success Modal -->
     <div v-if="showSuccessModal" class="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
-      <div class="bg-white rounded-[3rem] w-full max-w-md p-10 flex flex-col items-center text-center shadow-2xl animate-in zoom-in-95 duration-300">
-        <div class="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center mb-8">
-          <Icon icon="material-symbols:check-circle-outline" class="w-16 h-16 text-green-600" />
+      <div class="bg-white rounded-[2rem] w-full max-w-md p-8 flex flex-col items-center text-center shadow-2xl animate-in zoom-in-95 duration-300">
+        <div class="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mb-6">
+          <Icon icon="material-symbols:check-circle-outline" class="w-12 h-12 text-green-600" />
         </div>
         
-        <h3 class="text-2xl font-black text-stone-800 mb-2">Request Berhasil! 💰</h3>
-        <p class="text-sm font-medium text-stone-500 mb-8 px-4 leading-relaxed">
+        <h3 class="text-xl font-bold text-stone-800 mb-2">Request Berhasil! 💰</h3>
+        <p class="text-xs text-stone-500 mb-6 px-2 leading-relaxed">
           Permintaan penarikan Anda telah dikirim ke petugas. Kami akan segera memprosesnya.
         </p>
         
-        <div class="w-full bg-[#F9F9F7] rounded-3xl p-6 border border-stone-100 mb-8">
-           <p class="text-[10px] font-black text-stone-400 uppercase tracking-widest mb-1">Tracking ID</p>
-           <p class="text-xl font-black text-[#4A7043] tracking-wider">
+        <div class="w-full bg-[#F9F9F7] rounded-2xl p-4 border border-stone-100 mb-6">
+           <p class="text-[10px] font-bold text-stone-400 uppercase tracking-widest mb-1">Tracking ID</p>
+           <p class="text-lg font-black text-[#4A7043] tracking-wider">
              #WD-{{ String(newPenarikanId).padStart(3, '0') }}
            </p>
         </div>
         
-        <div class="flex flex-col w-full gap-3">
-          <button @click="showSuccessModal = false; router.push('/dashboard-nasabah/penarikan-saya')" class="w-full py-4 rounded-2xl bg-[#4A7043] text-white font-black text-sm shadow-lg shadow-[#4A7043]/20 hover:bg-[#3D5C37] transition-all">
+        <div class="flex flex-col w-full gap-2.5">
+          <button @click="showSuccessModal = false; router.push('/dashboard-nasabah/penarikan-saya')" class="w-full py-3.5 rounded-xl bg-[#4A7043] text-white font-bold text-xs shadow-md hover:bg-[#3D5C37] transition-all">
             Lihat Tracking
           </button>
-          <button @click="showSuccessModal = false; router.push('/dashboard-nasabah')" class="w-full py-4 rounded-2xl border border-stone-200 text-stone-500 font-black text-sm hover:bg-stone-50 transition-all">
+          <button @click="showSuccessModal = false; router.push('/dashboard-nasabah')" class="w-full py-3.5 rounded-xl border border-stone-200 text-stone-500 font-bold text-xs hover:bg-stone-50 transition-all">
             Kembali ke Dashboard
           </button>
         </div>
       </div>
     </div>
-
   </DashboardLayout>
 </template>
 

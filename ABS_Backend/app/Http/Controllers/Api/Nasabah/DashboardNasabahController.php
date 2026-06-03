@@ -43,37 +43,24 @@ class DashboardNasabahController extends Controller
 
         // Penimbangan (Deposits)
         $penimbangans = Penimbangan::where('nasabah_id', $nasabah->nasabah_id)
-            ->with(['sampah.itemSampah'])
+            ->with(['sampah.itemSampah', 'penjemputan'])
             ->latest()
             ->take(5)
             ->get();
             
         foreach ($penimbangans as $p) {
-            $sampahName = $p->sampah->itemSampah->nama ?? 'Sampah';
+            $typeText = $p->penjemputan_id ? 'Jemput sampah' : 'Setor manual';
+            $descriptionText = $typeText . ' - ' . floatval($p->berat_timbang) . 'kg';
+            $price = $p->berat_timbang * ($p->sampah->itemSampah->harga_beli ?? 0);
+            
             $activities[] = [
                 'id' => 'p-' . $p->penimbangan_id,
-                'type' => 'transaksi',
+                'type' => 'setor_sampah',
                 'title' => 'Setor Sampah',
-                'description' => $sampahName . ' (' . $p->berat_timbang . ' kg)',
-                'time' => $p->created_at->diffForHumans(),
+                'description' => $descriptionText,
+                'time' => $p->created_at->format('Y-m-d'),
+                'amount' => '+Rp ' . number_format($price, 0, ',', '.'),
                 'timestamp' => $p->created_at->timestamp,
-            ];
-        }
-
-        // Penjemputan (Pickup Requests)
-        $penjemputans = Penjemputan::where('nasabah_id', $nasabah->nasabah_id)
-            ->latest()
-            ->take(5)
-            ->get();
-
-        foreach ($penjemputans as $pj) {
-            $activities[] = [
-                'id' => 'pj-' . $pj->penjemputan_id,
-                'type' => 'nasabah',
-                'title' => 'Request Penjemputan',
-                'description' => 'Status: ' . ucfirst($pj->status),
-                'time' => $pj->created_at->diffForHumans(),
-                'timestamp' => $pj->created_at->timestamp,
             ];
         }
 
@@ -84,12 +71,14 @@ class DashboardNasabahController extends Controller
             ->get();
 
         foreach ($penarikans as $pn) {
+            $bankName = $pn->nama_bank ?? 'BCA';
             $activities[] = [
                 'id' => 'pn-' . $pn->penarikan_id,
-                'type' => 'laporan',
-                'title' => 'Request Penarikan',
-                'description' => 'Rp ' . number_format($pn->jumlah, 0, ',', '.'),
-                'time' => $pn->created_at->diffForHumans(),
+                'type' => 'penarikan',
+                'title' => 'Penarikan',
+                'description' => 'Transfer Bank ' . $bankName,
+                'time' => $pn->created_at->format('Y-m-d'),
+                'amount' => '-Rp ' . number_format($pn->jumlah, 0, ',', '.'),
                 'timestamp' => $pn->created_at->timestamp,
             ];
         }
