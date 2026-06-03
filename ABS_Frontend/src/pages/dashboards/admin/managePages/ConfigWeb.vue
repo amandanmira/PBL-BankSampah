@@ -244,6 +244,29 @@
             </div>
           </div>
 
+          <!-- Pengaturan Sistem Tab -->
+          <div v-if="activeTab === 'sistem'" class="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <h2 class="text-2xl font-bold text-gray-800">Pengaturan Sistem</h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl">
+              <!-- Batas Waktu Edit -->
+              <div class="space-y-3">
+                <label class="flex items-center gap-2 text-sm font-bold text-gray-500 uppercase tracking-wider">
+                  <Icon icon="material-symbols:edit-calendar-outline" class="w-5 h-5 text-[#4A7043]" />
+                  Batas Waktu Edit Penimbangan (Jam)
+                </label>
+                <input 
+                  v-model="form.batas_waktu_edit"
+                  type="number" 
+                  min="1"
+                  placeholder="Contoh: 12"
+                  class="w-full bg-gray-50 border border-gray-100 rounded-2xl px-6 py-4 text-gray-700 font-medium focus:outline-none focus:ring-4 focus:ring-[#4A7043]/10 focus:border-[#4A7043] transition-all placeholder:text-gray-300"
+                />
+                <p class="text-xs text-gray-400 font-medium mt-2 leading-relaxed">Batas toleransi waktu petugas dapat mengedit transaksi yang sudah selesai.</p>
+              </div>
+            </div>
+          </div>
+
           <!-- Action Button -->
           <div class="mt-auto pt-10 border-t border-gray-50">
             <button 
@@ -280,6 +303,7 @@ const tabs = [
   { id: 'kontak', name: 'Informasi Kontak', icon: 'material-symbols:call-outline' },
   { id: 'quote', name: 'Quote', icon: 'material-symbols:format-quote-outline' },
   { id: 'social', name: 'Media Sosial', icon: 'mdi:instagram' },
+  { id: 'sistem', name: 'Pengaturan Sistem', icon: 'material-symbols:settings-outline' },
 ];
 
 const form = ref({
@@ -293,6 +317,7 @@ const form = ref({
   no_telp: "",
   email: "",
   lama_deadline: "",
+  batas_waktu_edit: "",
   alamat: "",
   tentang: ""
 });
@@ -307,7 +332,7 @@ if (!token) {
   router.push('/login');
 }
 
-// Function to resize image using Canvas (keeps things optimized but automatic)
+// Function to resize image using Canvas
 const resizeImage = (file, maxWidth = 512, maxHeight = 512) => {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -347,7 +372,7 @@ const resizeImage = (file, maxWidth = 512, maxHeight = 512) => {
   });
 };
 
-// ambil data awal
+// Ambil data awal dari API
 const getData = async () => {
   try {
     loading.value = true;
@@ -370,7 +395,7 @@ const getData = async () => {
   }
 };
 
-// handle file input
+// Handle file input
 const handleFile = async (e) => {
   const file = e.target.files[0];
   if (file) {
@@ -386,7 +411,7 @@ const handleFile = async (e) => {
       preview.value = URL.createObjectURL(resizedFile);
     } catch (err) {
       console.error("Resize error:", err);
-      logoFile.value = file; // Fallback to original
+      logoFile.value = file; // Fallback ke file asli
       preview.value = URL.createObjectURL(file);
     } finally {
       resizing.value = false;
@@ -394,7 +419,7 @@ const handleFile = async (e) => {
   }
 };
 
-// submit update
+// Submit update
 const updateData = async () => {
   try {
     loading.value = true;
@@ -402,6 +427,8 @@ const updateData = async () => {
     const formData = new FormData();
 
     Object.keys(form.value).forEach((key) => {
+      // Pastikan kita juga mengirim angka 0 jika admin menginput 0, 
+      // tapi menolak null atau string kosong untuk field numerik jika memungkinkan.
       if (form.value[key] !== null && form.value[key] !== "" && key !== "logo") {
         formData.append(key, form.value[key]);
       }

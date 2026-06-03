@@ -278,14 +278,28 @@ const getWasteTypes = (item) => {
     return "-";
 };
 
-// --- LOGIKA TIMER MUNDUR 12 JAM ---
+// --- LOGIKA TIMER DINAMIS ---
 const currentTime = ref(new Date());
 let timerInterval = null;
+const batasWaktuEdit = ref(12); // Default 12 jam, akan ditimpa jika ada data dari DB
+
+// Fungsi untuk mengambil durasi batas waktu dari API Web Config
+const fetchConfigWeb = async () => {
+  try {
+    const res = await axios.get('/api/web-config');
+    if (res.data && res.data.batas_waktu_edit) {
+      batasWaktuEdit.value = res.data.batas_waktu_edit;
+    }
+  } catch (err) {
+    console.error("Gagal mengambil konfigurasi web:", err);
+  }
+};
 
 onMounted(() => {
   fetchHistory();
+  fetchConfigWeb(); // Panggil konfigurasi saat halaman dimuat
   
-  // Update currentTime setiap 1 detik agar timer live
+  // Update currentTime setiap 1 detik agar timer berjalan live
   timerInterval = setInterval(() => {
     currentTime.value = new Date();
   }, 1000); 
@@ -295,7 +309,7 @@ onUnmounted(() => {
   if (timerInterval) clearInterval(timerInterval);
 });
 
-// Cek apakah transaksi belum melewati 12 jam secara live
+// Cek apakah transaksi belum melewati batas waktu dinamis
 const isEditable = (item) => {
     if (!item) return false;
     const dateString = item.updated_at || item.created_at;
@@ -303,7 +317,9 @@ const isEditable = (item) => {
 
     const transactionDate = new Date(dateString);
     const diffInHours = (currentTime.value - transactionDate) / (1000 * 60 * 60);
-    return diffInHours <= 12;
+    
+    // Bandingkan dengan batas waktu dinamis dari database
+    return diffInHours <= batasWaktuEdit.value; 
 };
 
 // Hitung Sisa Waktu Format Teks
@@ -314,7 +330,8 @@ const remainingTimeText = computed(() => {
     if (!dateString) return "";
 
     const transactionDate = new Date(dateString);
-    const deadline = new Date(transactionDate.getTime() + (12 * 60 * 60 * 1000)); // Waktu transaksi + 12 jam
+    // Tambahkan durasi jam dinamis ke waktu transaksi
+    const deadline = new Date(transactionDate.getTime() + (batasWaktuEdit.value * 60 * 60 * 1000)); 
     const diffMs = deadline - currentTime.value;
 
     if (diffMs <= 0) return "Waktu Habis";
@@ -329,15 +346,12 @@ const remainingTimeText = computed(() => {
 <template>
   <DashboardLayout title="Riwayat Transaksi">
     <div class="space-y-6">
-      <!-- Header Info -->
       <div>
         <p class="text-gray-500 text-sm">Lihat semua riwayat transaksi penjemputan, setor manual, dan penarikan yang sudah selesai</p>
       </div>
 
-      <!-- Search and Filter Section -->
       <div class="bg-white p-6 rounded-3xl shadow-sm space-y-4 border border-gray-100">
         <div class="flex flex-col md:flex-row gap-4">
-          <!-- Search Bar -->
           <div class="flex-1 relative">
             <input
               v-model="searchQuery"
@@ -351,7 +365,6 @@ const remainingTimeText = computed(() => {
           </div>
         </div>
 
-        <!-- Filter Buttons -->
         <div class="flex flex-wrap gap-2">
           <button
             v-for="filter in filters"
@@ -370,7 +383,6 @@ const remainingTimeText = computed(() => {
         </div>
       </div>
 
-      <!-- History List -->
       <div v-if="loading" class="flex justify-center py-20">
         <div class="animate-spin rounded-full h-12 w-12 border-4 border-[#4A7043] border-t-transparent"></div>
       </div>
@@ -387,7 +399,6 @@ const remainingTimeText = computed(() => {
           class="bg-white rounded-3xl p-6 border border-gray-100 hover:shadow-xl transition-all group relative overflow-hidden"
           :class="{'border-l-4 border-l-[#4A7043]': activeFilter === 'penjemputan' && item.status === 'selesai'}"
         >
-          <!-- Card Content -->
           <div class="flex flex-col md:flex-row justify-between gap-6">
             <div class="space-y-3 flex-1">
               <div class="flex items-center gap-3">
@@ -410,7 +421,6 @@ const remainingTimeText = computed(() => {
                 <p class="text-gray-400 text-xs font-medium">{{ formatDate(item.created_at) }}</p>
               </div>
 
-              <!-- Information Grid -->
               <div v-if="activeFilter !== 'penarikan'" class="grid grid-cols-2 md:grid-cols-3 gap-4 bg-gray-50 p-4 rounded-2xl mt-4">
                 <div>
                   <p class="text-[10px] text-gray-400 font-bold uppercase">Berat Actual</p>
@@ -432,14 +442,12 @@ const remainingTimeText = computed(() => {
                 </div>
               </div>
 
-              <!-- Rejection / Cancellation Reason (If any) -->
               <div v-if="(item.status === 'tolak' || item.status === 'batal') && item.ket_status" class="bg-red-50 p-4 rounded-2xl mt-4 border border-red-100">
                 <p class="text-[10px] text-red-400 font-bold uppercase">{{ item.status === 'tolak' ? 'Alasan Ditolak' : 'Alasan Dibatalkan' }}</p>
                 <p class="text-sm font-bold text-red-600">{{ item.ket_status }}</p>
               </div>
             </div>
 
-            <!-- Value Display -->
             <div class="flex flex-col items-end justify-between">
               <div class="text-right">
                 <p class="text-[10px] text-gray-400 font-bold uppercase">{{ activeFilter === 'penarikan' ? 'Jumlah Penarikan' : 'Total Nilai' }}</p>
@@ -450,7 +458,6 @@ const remainingTimeText = computed(() => {
             </div>
           </div>
 
-          <!-- Bottom Action -->
           <button
             @click="openDetail(item)"
             class="w-full mt-6 py-3 bg-[#4A7043] text-white rounded-2xl font-bold flex items-center justify-center gap-2 hover:bg-[#3d5c37] transition-all"
@@ -461,7 +468,6 @@ const remainingTimeText = computed(() => {
         </div>
       </div>
 
-      <!-- Pagination (Simple) -->
       <div v-if="pagination.last_page > 1" class="flex justify-center items-center gap-4 py-6">
         <button
           @click="fetchHistory(pagination.current_page - 1)"
@@ -481,10 +487,8 @@ const remainingTimeText = computed(() => {
       </div>
     </div>
 
-    <!-- Detail Modal -->
     <div v-if="showModal" class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
       <div class="bg-white w-full max-w-2xl rounded-[2.5rem] overflow-hidden shadow-2xl animate-in zoom-in duration-300 flex flex-col max-h-[90vh]">
-        <!-- Modal Header -->
         <div class="bg-[#4A7043] p-6 text-white flex justify-between items-center relative">
           <div>
             <h2 class="text-xl font-bold">Detail Transaksi</h2>
@@ -495,7 +499,6 @@ const remainingTimeText = computed(() => {
           </button>
         </div>
 
-        <!-- Modal Tabs (Only for Pickup/Manual) -->
         <div v-if="activeFilter !== 'penarikan'" class="p-4 flex gap-2 border-b border-gray-100">
           <button
             @click="modalActiveTab = 'penjemputan'"
@@ -519,16 +522,13 @@ const remainingTimeText = computed(() => {
           </button>
         </div>
 
-        <!-- Modal Content Scroll Area -->
         <div class="flex-1 overflow-y-auto p-6 space-y-6 custom-scrollbar">
           <div v-if="loadingDetail" class="flex justify-center py-10">
              <div class="animate-spin rounded-full h-8 w-8 border-3 border-[#4A7043] border-t-transparent"></div>
           </div>
           
           <div v-else-if="selectedItem">
-            <!-- PENARIKAN TAB / CONTENT -->
             <div v-if="activeFilter === 'penarikan'" class="space-y-6">
-                <!-- Info Penarikan -->
                 <div class="bg-gray-50 p-6 rounded-3xl space-y-4 border border-gray-100">
                     <div class="flex items-center gap-3 mb-2">
                         <Icon icon="material-symbols:account-balance-wallet-outline" class="w-5 h-5 text-[#4A7043]" />
@@ -556,7 +556,6 @@ const remainingTimeText = computed(() => {
                     </div>
                 </div>
 
-                <!-- Proof of Transfer -->
                 <div v-if="selectedItem.bukti_tf" class="space-y-4">
                     <div class="flex items-center gap-3">
                         <Icon icon="material-symbols:image-outline" class="w-5 h-5 text-[#4A7043]" />
@@ -567,16 +566,13 @@ const remainingTimeText = computed(() => {
                     </div>
                 </div>
 
-                <!-- Rejection Reason -->
                 <div v-if="selectedItem.status === 'tolak' && selectedItem.ket_status" class="bg-red-50 p-6 rounded-3xl border border-red-100">
                     <p class="text-red-500 font-bold text-sm mb-1">Alasan Penolakan:</p>
                     <p class="text-red-700 font-medium text-sm">{{ selectedItem.ket_status }}</p>
                 </div>
             </div>
 
-            <!-- PENJEMPUTAN TAB -->
             <div v-else-if="modalActiveTab === 'penjemputan'" class="space-y-6">
-                <!-- Status Badge (For Cancel/Reject) -->
                 <div v-if="selectedItem.status === 'tolak'" class="bg-red-50 p-4 rounded-2xl border border-red-100 flex items-center gap-3">
                     <div class="bg-red-100 p-2 rounded-xl text-red-600">
                         <Icon icon="material-symbols:cancel-outline" class="w-5 h-5" />
@@ -590,7 +586,6 @@ const remainingTimeText = computed(() => {
                     <span class="font-bold text-gray-600 text-sm">Dibatalkan Nasabah</span>
                 </div>
 
-                <!-- Informasi Nasabah -->
                 <div class="bg-gray-50 p-6 rounded-3xl space-y-4 border border-gray-100">
                     <div class="flex items-center gap-3 mb-2">
                         <Icon icon="material-symbols:person-outline" class="w-5 h-5 text-[#4A7043]" />
@@ -620,7 +615,6 @@ const remainingTimeText = computed(() => {
                     </div>
                 </div>
 
-                <!-- Detail Request -->
                 <div class="bg-gray-50 p-6 rounded-3xl space-y-4 border border-gray-100">
                     <div class="flex items-center gap-3 mb-2">
                         <Icon icon="material-symbols:list-alt-outline" class="w-5 h-5 text-[#4A7043]" />
@@ -638,7 +632,6 @@ const remainingTimeText = computed(() => {
                     </div>
                 </div>
 
-                <!-- Foto Sampah -->
                 <div v-if="selectedItem.foto && selectedItem.foto.length > 0" class="space-y-4">
                     <p class="text-sm font-bold text-gray-700">Foto Sampah dari Nasabah</p>
                     <div class="grid grid-cols-3 gap-2">
@@ -648,18 +641,15 @@ const remainingTimeText = computed(() => {
                     </div>
                 </div>
 
-                <!-- Catatan Nasabah -->
                 <div class="bg-yellow-50 p-6 rounded-3xl border-l-4 border-yellow-400">
                     <p class="text-[10px] text-yellow-600 font-bold uppercase">Catatan Nasabah</p>
                     <p class="text-sm font-medium text-gray-700 italic">{{ selectedItem.deskripsi || "Tidak ada catatan" }}</p>
                 </div>
 
-                <!-- Rejection Reason Section -->
                 <div v-if="selectedItem.status === 'tolak' && selectedItem.ket_status" class="bg-red-50 p-6 rounded-3xl border border-red-100">
                     <p class="text-[10px] text-red-500 font-bold uppercase">Alasan Ditolak</p>
                     <p class="text-sm font-bold text-red-600">{{ selectedItem.ket_status }}</p>
                 </div>
-                <!-- Cancellation Reason Section -->
                 <div v-if="selectedItem.status === 'batal' && selectedItem.ket_status" class="bg-gray-50 p-6 rounded-3xl border border-gray-200">
                     <div class="flex items-center gap-3 mb-2">
                          <Icon icon="material-symbols:info-outline" class="w-5 h-5 text-gray-400" />
@@ -669,7 +659,6 @@ const remainingTimeText = computed(() => {
                     <p class="text-sm font-bold text-gray-600">{{ selectedItem.ket_status }}</p>
                 </div>
 
-                <!-- Informasi Penjemputan (Tukang) -->
                 <div v-if="selectedItem.tukang" class="bg-gray-50 p-6 rounded-3xl space-y-4 border border-gray-100">
                     <div class="flex items-center gap-3 mb-2">
                         <Icon icon="material-symbols:local-shipping-outline" class="w-5 h-5 text-[#4A7043]" />
@@ -695,9 +684,7 @@ const remainingTimeText = computed(() => {
                 </div>
             </div>
 
-            <!-- PENIMBANGAN TAB -->
             <div v-else-if="modalActiveTab === 'penimbangan'" class="space-y-6">
-                <!-- Data Transaksi -->
                 <div class="bg-gray-50 p-6 rounded-3xl space-y-4 border border-gray-100">
                     <div class="flex items-center gap-3 mb-2">
                         <Icon icon="material-symbols:inventory-2-outline" class="w-5 h-5 text-[#4A7043]" />
@@ -731,7 +718,6 @@ const remainingTimeText = computed(() => {
                     </div>
                 </div>
 
-                <!-- Informasi Nasabah -->
                 <div class="bg-gray-50 p-6 rounded-3xl space-y-2 border border-gray-100">
                     <div class="flex items-center gap-3 mb-2">
                         <Icon icon="material-symbols:person-outline" class="w-5 h-5 text-[#4A7043]" />
@@ -743,7 +729,6 @@ const remainingTimeText = computed(() => {
                     <p class="font-bold text-gray-700 text-sm">NSB-{{ selectedItem.nasabah?.nasabah_id || selectedItem.penimbangan?.[0]?.nasabah?.nasabah_id }}</p>
                 </div>
 
-                <!-- Foto Sampah -->
                 <div v-if="selectedItem.penimbangan?.[0]?.foto" class="space-y-4">
                      <div class="flex items-center gap-3">
                         <Icon icon="material-symbols:camera-alt-outline" class="w-5 h-5 text-[#4A7043]" />
@@ -756,7 +741,6 @@ const remainingTimeText = computed(() => {
                     </div>
                 </div>
 
-                <!-- Detail Penimbangan -->
                 <div class="bg-gray-50 p-6 rounded-3xl space-y-4 border border-gray-100">
                     <div class="flex items-center gap-3 mb-2">
                         <Icon icon="material-symbols:balance" class="w-5 h-5 text-[#4A7043]" />
@@ -781,7 +765,6 @@ const remainingTimeText = computed(() => {
                     </div>
                 </div>
 
-                <!-- Informasi Saldo -->
                 <div v-if="selectedItem.penimbangan?.[0]?.transaksi" class="bg-green-50 p-6 rounded-3xl space-y-4 border border-green-100">
                      <div class="flex items-center gap-3 mb-2">
                         <Icon icon="material-symbols:account-balance-wallet-outline" class="w-5 h-5 text-[#4A7043]" />
@@ -806,7 +789,6 @@ const remainingTimeText = computed(() => {
           </div>
         </div>
 
-        <!-- Modal Footer dengan Tombol & Timer -->
         <div class="p-6 bg-gray-50 flex justify-center gap-4">
           <button
             @click="closeModal"
@@ -830,10 +812,8 @@ const remainingTimeText = computed(() => {
       </div>
     </div>
 
-    <!-- Edit Modal -->
     <div v-if="showEditModal" class="fixed inset-0 z-[101] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
         <div class="bg-white w-full max-w-2xl rounded-[2.5rem] overflow-hidden shadow-2xl animate-in zoom-in duration-300 flex flex-col max-h-[90vh]">
-            <!-- Edit Modal Header -->
             <div class="bg-blue-600 p-6 text-white flex justify-between items-center">
                 <div>
                     <h2 class="text-xl font-bold">Edit Penimbangan</h2>
@@ -844,13 +824,11 @@ const remainingTimeText = computed(() => {
                 </button>
             </div>
 
-            <!-- Edit Modal Content -->
             <div class="flex-1 overflow-y-auto p-6 space-y-6 custom-scrollbar">
                 <div v-if="loadingEdit" class="flex justify-center py-10">
                     <div class="animate-spin rounded-full h-8 w-8 border-3 border-blue-600 border-t-transparent"></div>
                 </div>
                 <div v-else>
-                    <!-- Item list -->
                     <div class="space-y-4">
                         <div v-for="(item, index) in editItems" :key="index" class="flex items-center gap-4 bg-gray-50 p-4 rounded-2xl">
                             <div class="flex-1 grid grid-cols-2 gap-4">
@@ -879,7 +857,6 @@ const remainingTimeText = computed(() => {
                 </div>
             </div>
 
-            <!-- Edit Modal Footer -->
             <div class="p-6 bg-gray-50 flex justify-center gap-4">
                 <button @click="closeEditModal" class="w-full py-4 bg-gray-200 text-gray-700 rounded-2xl font-bold hover:bg-gray-300 transition-all">
                     Batal

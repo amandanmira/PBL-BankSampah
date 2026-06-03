@@ -10,6 +10,7 @@ use App\Models\Sampah;
 use App\Models\Nasabah;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
+use App\Models\KonfigurasiWeb;
 
 class EditPenimbanganController extends Controller
 {
@@ -71,10 +72,14 @@ class EditPenimbanganController extends Controller
                 ], 400); 
             }
 
-            // --- Cek Batas Waktu 12 Jam ---
-            if ($transaksi->created_at->diffInHours(now()) >= 12) {
+            // --- CEK BATAS WAKTU DINAMIS ---
+            // Ambil batas waktu dari database (default 12 jika kosong/belum disetting)
+            $config = KonfigurasiWeb::first();
+            $batasWaktuEdit = $config ? $config->batas_waktu_edit : 12;
+
+            if ($transaksi->created_at->diffInHours(now()) >= $batasWaktuEdit) {
                 return response()->json([
-                    'message' => 'Batas waktu edit telah habis. Transaksi hanya dapat diedit maksimal 12 jam setelah dibuat.'
+                    'message' => "Batas waktu edit telah habis. Transaksi hanya dapat diedit maksimal {$batasWaktuEdit} jam setelah dibuat."
                 ], 400);
             }
 
