@@ -103,12 +103,7 @@ const openDetail = async (item) => {
     if (activeFilter.value === 'penjemputan') {
         endpoint = `/api/petugas/riwayat-penjemputan/${item.penjemputan_id}`;
     } else if (activeFilter.value === 'setor_manual') {
-        // For manual deposit, we might use the transaction detail or similar
-        // Based on the image, manual deposit detail also has "Penimbangan" info
-        selectedItem.value = item;
-        loadingDetail.value = false;
-        modalActiveTab.value = 'penimbangan';
-        return;
+        endpoint = `/api/petugas/riwayat-setor-manual/${item.transaksi_id}`;
     } else if (activeFilter.value === 'penarikan') {
         endpoint = `/api/petugas/riwayat-penarikan/${item.penarikan_id}`;
     }
@@ -120,6 +115,102 @@ const openDetail = async (item) => {
   } finally {
     loadingDetail.value = false;
   }
+};
+
+// Edit Modal State
+const showEditModal = ref(false);
+const loadingEdit = ref(false);
+const isSubmitting = ref(false);
+const editItems = ref([]);
+const masterSampah = ref([]);
+
+const openEditModal = async () => {
+  showModal.value = false; // Tutup modal detail dulu
+  showEditModal.value = true;
+  loadingEdit.value = true;
+
+  // Ambil data master sampah jika belum ada
+  if (masterSampah.value.length === 0) {
+    try {
+      const response = await axios.get('/api/petugas/list-sampah');
+      masterSampah.value = response.data.data;
+    } catch (err) {
+      console.error("Gagal mengambil master sampah:", err);
+      // Tampilkan notifikasi error
+    }
+  }
+
+  // Salin data item untuk diedit
+  let itemsToEdit = [];
+  if (activeFilter.value === 'penjemputan') {
+      // Ambil dari detail penjemputan yang sudah di-fetch
+      itemsToEdit = selectedItem.value?.penimbangan || [];
+  } else if (activeFilter.value === 'setor_manual') {
+      // `selectedItem` adalah data transaksi, `penimbangan` ada di dalamnya
+      itemsToEdit = selectedItem.value?.penimbangan || [];
+  }
+  
+  editItems.value = JSON.parse(JSON.stringify(itemsToEdit));
+  
+  loadingEdit.value = false;
+};
+
+const closeEditModal = () => {
+  showEditModal.value = false;
+  editItems.value = [];
+};
+
+const addItem = () => {
+  if (masterSampah.value.length > 0) {
+    editItems.value.push({
+      sampah_id: masterSampah.value[0].sampah_id,
+      berat_timbang: 0.1,
+      sampah: { // Tambahkan struktur ini agar dropdown bisa menampilkan nama
+          item_sampah: {
+              nama: masterSampah.value[0].item_sampah.nama
+          }
+      }
+    });
+  }
+};
+
+const removeItem = (index) => {
+  editItems.value.splice(index, 1);
+};
+
+const submitEdit = async () => {
+    isSubmitting.value = true;
+    try {
+        const payload = {
+            items: editItems.value.map(item => ({
+                sampah_id: item.sampah_id,
+                berat_timbang: item.berat_timbang,
+            })),
+        };
+
+        let transaksi_id;
+        if (activeFilter.value === 'penjemputan') {
+            transaksi_id = selectedItem.value?.penimbangan?.[0]?.transaksi_id;
+        } else if (activeFilter.value === 'setor_manual') {
+            transaksi_id = selectedItem.value?.transaksi_id;
+        }
+
+        if (!transaksi_id) {
+            throw new Error("ID Transaksi tidak ditemukan.");
+        }
+
+        await axios.put(`/api/petugas/penimbangan/${transaksi_id}`, payload);
+
+        closeEditModal();
+        fetchHistory(pagination.value.current_page); // Refresh list
+        // Tampilkan notifikasi sukses
+        
+    } catch (error) {
+        console.error("Gagal update penimbangan:", error);
+        // Tampilkan notifikasi error
+    } finally {
+        isSubmitting.value = false;
+    }
 };
 
 const closeModal = () => {
@@ -675,15 +766,89 @@ onMounted(() => {
         </div>
 
         <!-- Modal Footer -->
-        <div class="p-6 bg-gray-50 flex justify-center">
+        <div class="p-6 bg-gray-50 flex justify-center gap-4">
           <button
             @click="closeModal"
-            class="w-full py-4 bg-[#4A7043] text-white rounded-2xl font-bold hover:bg-[#3d5c37] transition-all"
+            class="w-full py-4 bg-gray-200 text-gray-700 rounded-2xl font-bold hover:bg-gray-300 transition-all"
           >
             Tutup
           </button>
+          
+          <!-- Tombol hanya muncul jika status selesai -->
+          <button
+            v-if="(activeFilter === 'penjemputan' || activeFilter === 'setor_manual') && modalActiveTab === 'penimbangan' && selectedItem?.status === 'selesai'"
+            @click="openEditModal"
+            class="w-full py-4 bg-[#4A7043] text-white rounded-2xl font-bold hover:bg-[#3d5c37] transition-all"
+          >
+            Edit Penimbangan
+          </button>
         </div>
       </div>
+    </div>
+
+    <!-- Edit Modal -->
+    <div v-if="showEditModal" class="fixed inset-0 z-[101] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+        <div class="bg-white w-full max-w-2xl rounded-[2.5rem] overflow-hidden shadow-2xl animate-in zoom-in duration-300 flex flex-col max-h-[90vh]">
+            <!-- Edit Modal Header -->
+            <div class="bg-blue-600 p-6 text-white flex justify-between items-center">
+                <div>
+                    <h2 class="text-xl font-bold">Edit Penimbangan</h2>
+                    <p class="text-white/60 text-xs font-medium">TXN-{{ selectedItem?.transaksi_id }}</p>
+                </div>
+                <button @click="closeEditModal" class="p-2 hover:bg-white/10 rounded-full transition-all">
+                    <Icon icon="material-symbols:close" class="w-6 h-6" />
+                </button>
+            </div>
+
+            <!-- Edit Modal Content -->
+            <div class="flex-1 overflow-y-auto p-6 space-y-6 custom-scrollbar">
+                <div v-if="loadingEdit" class="flex justify-center py-10">
+                    <div class="animate-spin rounded-full h-8 w-8 border-3 border-blue-600 border-t-transparent"></div>
+                </div>
+                <div v-else>
+                    <!-- Item list -->
+                    <div class="space-y-4">
+                        <div v-for="(item, index) in editItems" :key="index" class="flex items-center gap-4 bg-gray-50 p-4 rounded-2xl">
+                            <div class="flex-1 grid grid-cols-2 gap-4">
+                                <div>
+                                    <label class="text-xs text-gray-500">Sampah</label>
+                                    <select v-model="item.sampah_id" class="w-full p-2 border rounded-lg text-sm">
+                                        <option v-for="sampah in masterSampah" :key="sampah.sampah_id" :value="sampah.sampah_id">
+                                            {{ sampah.item_sampah.nama }}
+                                        </option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="text-xs text-gray-500">Berat (kg)</label>
+                                    <input type="number" v-model="item.berat_timbang" class="w-full p-2 border rounded-lg text-sm" />
+                                </div>
+                            </div>
+                            <button @click="removeItem(index)" class="p-2 text-red-500 hover:bg-red-100 rounded-full">
+                                <Icon icon="material-symbols:delete-outline" class="w-5 h-5" />
+                            </button>
+                        </div>
+                    </div>
+                    <button @click="addItem" class="mt-4 w-full py-3 bg-blue-100 text-blue-600 rounded-2xl font-bold flex items-center justify-center gap-2 hover:bg-blue-200 transition-all">
+                        <Icon icon="material-symbols:add" class="w-5 h-5" />
+                        Tambah Item
+                    </button>
+                </div>
+            </div>
+
+            <!-- Edit Modal Footer -->
+            <div class="p-6 bg-gray-50 flex justify-center gap-4">
+                <button @click="closeEditModal" class="w-full py-4 bg-gray-200 text-gray-700 rounded-2xl font-bold hover:bg-gray-300 transition-all">
+                    Batal
+                </button>
+                <button @click="submitEdit" class="w-full py-4 bg-blue-600 text-white rounded-2xl font-bold hover:bg-blue-700 transition-all" :disabled="isSubmitting">
+                    <span v-if="isSubmitting" class="flex items-center justify-center">
+                        <div class="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent mr-2"></div>
+                        Menyimpan...
+                    </span>
+                    <span v-else>Simpan Perubahan</span>
+                </button>
+            </div>
+        </div>
     </div>
   </DashboardLayout>
 </template>
@@ -703,4 +868,3 @@ onMounted(() => {
   background: #d1d5db;
 }
 </style>
-
