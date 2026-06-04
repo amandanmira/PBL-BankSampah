@@ -38,7 +38,9 @@ const form = ref({
   deskripsi: "",
   alamat: "",
   gudang_id: "",
-  estimasi_berat: "1-5 kg"
+  estimasi_berat: "1-5 kg",
+  rentang_hari: [],
+  rentan_waktu: ""
 });
 
 const user = JSON.parse(sessionStorage.getItem('user') || "{}");
@@ -193,6 +195,8 @@ const submitRequest = async () => {
       formData.append("foto[]", photo.file);
     });
     formData.append("estimasi_berat", form.value.estimasi_berat);
+    formData.append("rentang_hari", form.value.rentang_hari.join(','));
+    formData.append("rentan_waktu", form.value.rentan_waktu);
     formData.append("nasabah_id", user.nasabah_id);
     formData.append("gudang_id", form.value.gudang_id);
 
@@ -218,6 +222,8 @@ const submitRequest = async () => {
     selectedItems.value = [];
     selectedItemsId.value = [];
     form.value.deskripsi = "";
+    form.value.rentang_hari = [];
+    form.value.rentan_waktu = "";
     if (fileInput.value) fileInput.value.value = '';
 
   } catch (err) {
@@ -358,10 +364,62 @@ onMounted(() => {
           </div>
         </div>
 
-        <!-- Photo Upload -->
-        <div class="space-y-2.5">
-          <label class="flex items-center gap-2 text-xs font-bold text-stone-500 uppercase tracking-wider">
-            <Icon icon="material-symbols:photo-camera-outline" class="w-4 h-4 text-stone-400" />
+        <!-- Waktu Penjemputan Section -->
+        <div class="space-y-6">
+          <label class="flex items-center gap-2 text-xs font-black text-stone-400 uppercase tracking-widest">
+            <Icon icon="material-symbols:event-available-outline" class="w-4 h-4" />
+            Preferensi Waktu Penjemputan
+          </label>
+          
+          <!-- Rentang Hari -->
+          <div class="space-y-3">
+            <label class="block text-[10px] font-black text-stone-400 uppercase tracking-widest ml-1">Pilih Hari (Bisa lebih dari satu)</label>
+            <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-7 gap-3">
+              <button 
+                v-for="hari in ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu']"
+                :key="hari"
+                @click="() => {
+                  const index = form.rentang_hari.indexOf(hari);
+                  if (index > -1) form.rentang_hari.splice(index, 1);
+                  else form.rentang_hari.push(hari);
+                }"
+                :class="[
+                  'py-3 px-2 rounded-xl text-xs font-black transition-all border-2',
+                  form.rentang_hari.includes(hari) 
+                    ? 'bg-[#4A7043] text-white border-[#4A7043]' 
+                    : 'bg-white border-stone-100 hover:border-stone-200 text-stone-500'
+                ]"
+              >
+                {{ hari }}
+              </button>
+            </div>
+          </div>
+
+          <!-- Rentang Waktu -->
+          <div class="space-y-3">
+            <label class="block text-[10px] font-black text-stone-400 uppercase tracking-widest ml-1">Pilih Rentang Waktu</label>
+            <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+              <button 
+                v-for="waktu in ['Pagi (08:00-12:00)', 'Siang (12:00-15:00)', 'Sore (15:00-17:00)']"
+                :key="waktu"
+                @click="form.rentan_waktu = waktu"
+                :class="[
+                  'py-3 px-4 rounded-xl text-xs font-black transition-all border-2 text-left',
+                  form.rentan_waktu === waktu 
+                    ? 'bg-[#4A7043] text-white border-[#4A7043]' 
+                    : 'bg-white border-stone-100 hover:border-stone-200 text-stone-600'
+                ]"
+              >
+                {{ waktu }}
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Photo Upload (Updated with Icon) -->
+        <div class="space-y-3">
+          <label class="flex items-center gap-2 text-xs font-black text-stone-400 uppercase tracking-widest">
+            <Icon icon="material-symbols:photo-camera-outline" class="w-4 h-4" />
             Foto Sampah yang Sudah Ditata <span class="text-red-500">*</span>
           </label>
           <div 

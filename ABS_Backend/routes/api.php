@@ -31,6 +31,7 @@ use App\Http\Controllers\Api\Petugas\KonfirmasiPenarikanController;
 use App\Http\Controllers\Api\Petugas\PenimbanganController;
 use App\Http\Controllers\Api\Petugas\RiwayatPenjemputanController;
 use App\Http\Controllers\Api\Manager\DashboardManagerController;
+use App\Http\Controllers\Api\Petugas\EditPenimbanganController;
 
 Route::post('login', [AuthController::class, 'login']);
 Route::post('register-pengepul', [AuthController::class, 'registerPengepul']);
@@ -134,6 +135,7 @@ Route::prefix('petugas')->middleware(['auth:sanctum', 'role:petugas'])->group(fu
     Route::get('/riwayat-penjemputan', [RiwayatPenjemputanController::class, 'riwayatPenjemputan']);
     Route::get('/riwayat-penjemputan/{id}', [RiwayatPenjemputanController::class, 'show']);
     Route::get('/riwayat-setor-manual', [KonfirmasiPenjemputanController::class, 'riwayatSetorManual']);
+    Route::get('/riwayat-setor-manual/{id}', [KonfirmasiPenjemputanController::class, 'showRiwayatSetorManual']);
     Route::put('/penjemputan/{penjemputan}/terima', [KonfirmasiPenjemputanController::class, 'terima']);
     Route::put('/penjemputan/{penjemputan}/tolak', [KonfirmasiPenjemputanController::class, 'tolak']);
     Route::put('/penjemputan/{penjemputan}/dijemput', [KonfirmasiPenjemputanController::class, 'dijemput']);
@@ -150,6 +152,10 @@ Route::prefix('petugas')->middleware(['auth:sanctum', 'role:petugas'])->group(fu
     //penimbangan antar sendiri
     Route::get('/list-nasabah', [PenimbanganController::class, 'listNasabah']);
     Route::post('/penimbangan-antar-sendiri', [PenimbanganController::class, 'penimbanganAntarSendiri']);
+
+    // Edit Penimbangan
+    Route::get('/penimbangan/{id}', [EditPenimbanganController::class, 'show']);
+    Route::put('/penimbangan/{id}', [EditPenimbanganController::class, 'update']);
 
     Route::get('/summary-laporan', [SummaryLaporanController::class, 'index']);
 

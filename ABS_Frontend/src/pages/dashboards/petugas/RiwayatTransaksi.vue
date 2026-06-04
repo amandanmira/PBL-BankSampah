@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, computed, inject, watch } from "vue";
+import { ref, onMounted, onUnmounted, computed, inject, watch } from "vue";
 import DashboardLayout from "@/layouts/DashboardLayout.vue";
 import { Icon } from "@iconify/vue";
 import { checkRole } from "@/utils";
@@ -103,12 +103,7 @@ const openDetail = async (item) => {
     if (activeFilter.value === 'penjemputan') {
         endpoint = `/api/petugas/riwayat-penjemputan/${item.penjemputan_id}`;
     } else if (activeFilter.value === 'setor_manual') {
-        // For manual deposit, we might use the transaction detail or similar
-        // Based on the image, manual deposit detail also has "Penimbangan" info
-        selectedItem.value = item;
-        loadingDetail.value = false;
-        modalActiveTab.value = 'penimbangan';
-        return;
+        endpoint = `/api/petugas/riwayat-setor-manual/${item.transaksi_id}`;
     } else if (activeFilter.value === 'penarikan') {
         endpoint = `/api/petugas/riwayat-penarikan/${item.penarikan_id}`;
     }
@@ -120,6 +115,100 @@ const openDetail = async (item) => {
   } finally {
     loadingDetail.value = false;
   }
+};
+
+// Edit Modal State
+const showEditModal = ref(false);
+const loadingEdit = ref(false);
+const isSubmitting = ref(false);
+const editItems = ref([]);
+const masterSampah = ref([]);
+
+const openEditModal = async () => {
+  showModal.value = false; // Tutup modal detail dulu
+  showEditModal.value = true;
+  loadingEdit.value = true;
+
+  // Ambil data master sampah jika belum ada
+  if (masterSampah.value.length === 0) {
+    try {
+      const response = await axios.get('/api/petugas/list-sampah');
+      masterSampah.value = response.data.data;
+    } catch (err) {
+      console.error("Gagal mengambil master sampah:", err);
+    }
+  }
+
+  // Salin data item untuk diedit
+  let itemsToEdit = [];
+  if (activeFilter.value === 'penjemputan') {
+      itemsToEdit = selectedItem.value?.penimbangan || [];
+  } else if (activeFilter.value === 'setor_manual') {
+      itemsToEdit = selectedItem.value?.penimbangan || [];
+  }
+  
+  editItems.value = JSON.parse(JSON.stringify(itemsToEdit));
+  
+  loadingEdit.value = false;
+};
+
+const closeEditModal = () => {
+  showEditModal.value = false;
+  editItems.value = [];
+};
+
+const addItem = () => {
+  if (masterSampah.value.length > 0) {
+    editItems.value.push({
+      sampah_id: masterSampah.value[0].sampah_id,
+      berat_timbang: 0.1,
+      sampah: {
+          item_sampah: {
+              nama: masterSampah.value[0].item_sampah.nama
+          }
+      }
+    });
+  }
+};
+
+const removeItem = (index) => {
+  editItems.value.splice(index, 1);
+};
+
+const submitEdit = async () => {
+    isSubmitting.value = true;
+    try {
+        const payload = {
+            items: editItems.value.map(item => ({
+                sampah_id: item.sampah_id,
+                berat_timbang: item.berat_timbang,
+            })),
+        };
+
+        let transaksi_id;
+        if (activeFilter.value === 'penjemputan') {
+            transaksi_id = selectedItem.value?.penimbangan?.[0]?.transaksi_id;
+        } else if (activeFilter.value === 'setor_manual') {
+            transaksi_id = selectedItem.value?.transaksi_id;
+        }
+
+        if (!transaksi_id) {
+            throw new Error("ID Transaksi tidak ditemukan.");
+        }
+
+        await axios.put(`/api/petugas/penimbangan/${transaksi_id}`, payload);
+
+        closeEditModal();
+        fetchHistory(pagination.value.current_page); // Refresh list
+        
+    } catch (error) {
+        console.error("Gagal update penimbangan:", error);
+        if(error.response && error.response.data && error.response.data.message){
+             alert(error.response.data.message);
+        }
+    } finally {
+        isSubmitting.value = false;
+    }
 };
 
 const closeModal = () => {
@@ -189,23 +278,80 @@ const getWasteTypes = (item) => {
     return "-";
 };
 
+// --- LOGIKA TIMER DINAMIS ---
+const currentTime = ref(new Date());
+let timerInterval = null;
+const batasWaktuEdit = ref(12); // Default 12 jam, akan ditimpa jika ada data dari DB
+
+// Fungsi untuk mengambil durasi batas waktu dari API Web Config
+const fetchConfigWeb = async () => {
+  try {
+    const res = await axios.get('/api/web-config');
+    if (res.data && res.data.batas_waktu_edit) {
+      batasWaktuEdit.value = res.data.batas_waktu_edit;
+    }
+  } catch (err) {
+    console.error("Gagal mengambil konfigurasi web:", err);
+  }
+};
+
 onMounted(() => {
   fetchHistory();
+  fetchConfigWeb(); // Panggil konfigurasi saat halaman dimuat
+  
+  // Update currentTime setiap 1 detik agar timer berjalan live
+  timerInterval = setInterval(() => {
+    currentTime.value = new Date();
+  }, 1000); 
+});
+
+onUnmounted(() => {
+  if (timerInterval) clearInterval(timerInterval);
+});
+
+// Cek apakah transaksi belum melewati batas waktu dinamis
+const isEditable = (item) => {
+    if (!item) return false;
+    const dateString = item.updated_at || item.created_at;
+    if (!dateString) return false;
+
+    const transactionDate = new Date(dateString);
+    const diffInHours = (currentTime.value - transactionDate) / (1000 * 60 * 60);
+    
+    // Bandingkan dengan batas waktu dinamis dari database
+    return diffInHours <= batasWaktuEdit.value; 
+};
+
+// Hitung Sisa Waktu Format Teks
+const remainingTimeText = computed(() => {
+    if (!selectedItem.value) return "";
+    
+    const dateString = selectedItem.value.updated_at || selectedItem.value.created_at;
+    if (!dateString) return "";
+
+    const transactionDate = new Date(dateString);
+    // Tambahkan durasi jam dinamis ke waktu transaksi
+    const deadline = new Date(transactionDate.getTime() + (batasWaktuEdit.value * 60 * 60 * 1000)); 
+    const diffMs = deadline - currentTime.value;
+
+    if (diffMs <= 0) return "Waktu Habis";
+
+    const hours = Math.floor(diffMs / (1000 * 60 * 60));
+    const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+    
+    return `${hours} jam ${minutes} menit`;
 });
 </script>
 
 <template>
   <DashboardLayout title="Riwayat Transaksi">
     <div class="space-y-6">
-      <!-- Header Info -->
       <div>
         <p class="text-gray-500 text-sm">Lihat semua riwayat transaksi penjemputan, setor manual, dan penarikan yang sudah selesai</p>
       </div>
 
-      <!-- Search and Filter Section -->
       <div class="bg-white p-6 rounded-3xl shadow-sm space-y-4 border border-gray-100">
         <div class="flex flex-col md:flex-row gap-4">
-          <!-- Search Bar -->
           <div class="flex-1 relative">
             <input
               v-model="searchQuery"
@@ -219,7 +365,6 @@ onMounted(() => {
           </div>
         </div>
 
-        <!-- Filter Buttons -->
         <div class="flex flex-wrap gap-2">
           <button
             v-for="filter in filters"
@@ -238,7 +383,6 @@ onMounted(() => {
         </div>
       </div>
 
-      <!-- History List -->
       <div v-if="loading" class="flex justify-center py-20">
         <div class="animate-spin rounded-full h-12 w-12 border-4 border-[#4A7043] border-t-transparent"></div>
       </div>
@@ -255,7 +399,6 @@ onMounted(() => {
           class="bg-white rounded-3xl p-6 border border-gray-100 hover:shadow-xl transition-all group relative overflow-hidden"
           :class="{'border-l-4 border-l-[#4A7043]': activeFilter === 'penjemputan' && item.status === 'selesai'}"
         >
-          <!-- Card Content -->
           <div class="flex flex-col md:flex-row justify-between gap-6">
             <div class="space-y-3 flex-1">
               <div class="flex items-center gap-3">
@@ -278,7 +421,6 @@ onMounted(() => {
                 <p class="text-gray-400 text-xs font-medium">{{ formatDate(item.created_at) }}</p>
               </div>
 
-              <!-- Information Grid -->
               <div v-if="activeFilter !== 'penarikan'" class="grid grid-cols-2 md:grid-cols-3 gap-4 bg-gray-50 p-4 rounded-2xl mt-4">
                 <div>
                   <p class="text-[10px] text-gray-400 font-bold uppercase">Berat Actual</p>
@@ -300,14 +442,12 @@ onMounted(() => {
                 </div>
               </div>
 
-              <!-- Rejection / Cancellation Reason (If any) -->
               <div v-if="(item.status === 'tolak' || item.status === 'batal') && item.ket_status" class="bg-red-50 p-4 rounded-2xl mt-4 border border-red-100">
                 <p class="text-[10px] text-red-400 font-bold uppercase">{{ item.status === 'tolak' ? 'Alasan Ditolak' : 'Alasan Dibatalkan' }}</p>
                 <p class="text-sm font-bold text-red-600">{{ item.ket_status }}</p>
               </div>
             </div>
 
-            <!-- Value Display -->
             <div class="flex flex-col items-end justify-between">
               <div class="text-right">
                 <p class="text-[10px] text-gray-400 font-bold uppercase">{{ activeFilter === 'penarikan' ? 'Jumlah Penarikan' : 'Total Nilai' }}</p>
@@ -318,7 +458,6 @@ onMounted(() => {
             </div>
           </div>
 
-          <!-- Bottom Action -->
           <button
             @click="openDetail(item)"
             class="w-full mt-6 py-3 bg-[#4A7043] text-white rounded-2xl font-bold flex items-center justify-center gap-2 hover:bg-[#3d5c37] transition-all"
@@ -329,7 +468,6 @@ onMounted(() => {
         </div>
       </div>
 
-      <!-- Pagination (Simple) -->
       <div v-if="pagination.last_page > 1" class="flex justify-center items-center gap-4 py-6">
         <button
           @click="fetchHistory(pagination.current_page - 1)"
@@ -349,10 +487,8 @@ onMounted(() => {
       </div>
     </div>
 
-    <!-- Detail Modal -->
     <div v-if="showModal" class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
       <div class="bg-white w-full max-w-2xl rounded-[2.5rem] overflow-hidden shadow-2xl animate-in zoom-in duration-300 flex flex-col max-h-[90vh]">
-        <!-- Modal Header -->
         <div class="bg-[#4A7043] p-6 text-white flex justify-between items-center relative">
           <div>
             <h2 class="text-xl font-bold">Detail Transaksi</h2>
@@ -363,7 +499,6 @@ onMounted(() => {
           </button>
         </div>
 
-        <!-- Modal Tabs (Only for Pickup/Manual) -->
         <div v-if="activeFilter !== 'penarikan'" class="p-4 flex gap-2 border-b border-gray-100">
           <button
             @click="modalActiveTab = 'penjemputan'"
@@ -387,16 +522,13 @@ onMounted(() => {
           </button>
         </div>
 
-        <!-- Modal Content Scroll Area -->
         <div class="flex-1 overflow-y-auto p-6 space-y-6 custom-scrollbar">
           <div v-if="loadingDetail" class="flex justify-center py-10">
              <div class="animate-spin rounded-full h-8 w-8 border-3 border-[#4A7043] border-t-transparent"></div>
           </div>
           
           <div v-else-if="selectedItem">
-            <!-- PENARIKAN TAB / CONTENT -->
             <div v-if="activeFilter === 'penarikan'" class="space-y-6">
-                <!-- Info Penarikan -->
                 <div class="bg-gray-50 p-6 rounded-3xl space-y-4 border border-gray-100">
                     <div class="flex items-center gap-3 mb-2">
                         <Icon icon="material-symbols:account-balance-wallet-outline" class="w-5 h-5 text-[#4A7043]" />
@@ -424,7 +556,6 @@ onMounted(() => {
                     </div>
                 </div>
 
-                <!-- Proof of Transfer -->
                 <div v-if="selectedItem.bukti_tf" class="space-y-4">
                     <div class="flex items-center gap-3">
                         <Icon icon="material-symbols:image-outline" class="w-5 h-5 text-[#4A7043]" />
@@ -435,16 +566,13 @@ onMounted(() => {
                     </div>
                 </div>
 
-                <!-- Rejection Reason -->
                 <div v-if="selectedItem.status === 'tolak' && selectedItem.ket_status" class="bg-red-50 p-6 rounded-3xl border border-red-100">
                     <p class="text-red-500 font-bold text-sm mb-1">Alasan Penolakan:</p>
                     <p class="text-red-700 font-medium text-sm">{{ selectedItem.ket_status }}</p>
                 </div>
             </div>
 
-            <!-- PENJEMPUTAN TAB -->
             <div v-else-if="modalActiveTab === 'penjemputan'" class="space-y-6">
-                <!-- Status Badge (For Cancel/Reject) -->
                 <div v-if="selectedItem.status === 'tolak'" class="bg-red-50 p-4 rounded-2xl border border-red-100 flex items-center gap-3">
                     <div class="bg-red-100 p-2 rounded-xl text-red-600">
                         <Icon icon="material-symbols:cancel-outline" class="w-5 h-5" />
@@ -458,7 +586,6 @@ onMounted(() => {
                     <span class="font-bold text-gray-600 text-sm">Dibatalkan Nasabah</span>
                 </div>
 
-                <!-- Informasi Nasabah -->
                 <div class="bg-gray-50 p-6 rounded-3xl space-y-4 border border-gray-100">
                     <div class="flex items-center gap-3 mb-2">
                         <Icon icon="material-symbols:person-outline" class="w-5 h-5 text-[#4A7043]" />
@@ -488,7 +615,6 @@ onMounted(() => {
                     </div>
                 </div>
 
-                <!-- Detail Request -->
                 <div class="bg-gray-50 p-6 rounded-3xl space-y-4 border border-gray-100">
                     <div class="flex items-center gap-3 mb-2">
                         <Icon icon="material-symbols:list-alt-outline" class="w-5 h-5 text-[#4A7043]" />
@@ -506,7 +632,6 @@ onMounted(() => {
                     </div>
                 </div>
 
-                <!-- Foto Sampah -->
                 <div v-if="selectedItem.foto && selectedItem.foto.length > 0" class="space-y-4">
                     <p class="text-sm font-bold text-gray-700">Foto Sampah dari Nasabah</p>
                     <div class="grid grid-cols-3 gap-2">
@@ -516,18 +641,15 @@ onMounted(() => {
                     </div>
                 </div>
 
-                <!-- Catatan Nasabah -->
                 <div class="bg-yellow-50 p-6 rounded-3xl border-l-4 border-yellow-400">
                     <p class="text-[10px] text-yellow-600 font-bold uppercase">Catatan Nasabah</p>
                     <p class="text-sm font-medium text-gray-700 italic">{{ selectedItem.deskripsi || "Tidak ada catatan" }}</p>
                 </div>
 
-                <!-- Rejection Reason Section -->
                 <div v-if="selectedItem.status === 'tolak' && selectedItem.ket_status" class="bg-red-50 p-6 rounded-3xl border border-red-100">
                     <p class="text-[10px] text-red-500 font-bold uppercase">Alasan Ditolak</p>
                     <p class="text-sm font-bold text-red-600">{{ selectedItem.ket_status }}</p>
                 </div>
-                <!-- Cancellation Reason Section -->
                 <div v-if="selectedItem.status === 'batal' && selectedItem.ket_status" class="bg-gray-50 p-6 rounded-3xl border border-gray-200">
                     <div class="flex items-center gap-3 mb-2">
                          <Icon icon="material-symbols:info-outline" class="w-5 h-5 text-gray-400" />
@@ -537,7 +659,6 @@ onMounted(() => {
                     <p class="text-sm font-bold text-gray-600">{{ selectedItem.ket_status }}</p>
                 </div>
 
-                <!-- Informasi Penjemputan (Tukang) -->
                 <div v-if="selectedItem.tukang" class="bg-gray-50 p-6 rounded-3xl space-y-4 border border-gray-100">
                     <div class="flex items-center gap-3 mb-2">
                         <Icon icon="material-symbols:local-shipping-outline" class="w-5 h-5 text-[#4A7043]" />
@@ -563,9 +684,7 @@ onMounted(() => {
                 </div>
             </div>
 
-            <!-- PENIMBANGAN TAB -->
             <div v-else-if="modalActiveTab === 'penimbangan'" class="space-y-6">
-                <!-- Data Transaksi -->
                 <div class="bg-gray-50 p-6 rounded-3xl space-y-4 border border-gray-100">
                     <div class="flex items-center gap-3 mb-2">
                         <Icon icon="material-symbols:inventory-2-outline" class="w-5 h-5 text-[#4A7043]" />
@@ -599,7 +718,6 @@ onMounted(() => {
                     </div>
                 </div>
 
-                <!-- Informasi Nasabah -->
                 <div class="bg-gray-50 p-6 rounded-3xl space-y-2 border border-gray-100">
                     <div class="flex items-center gap-3 mb-2">
                         <Icon icon="material-symbols:person-outline" class="w-5 h-5 text-[#4A7043]" />
@@ -611,7 +729,6 @@ onMounted(() => {
                     <p class="font-bold text-gray-700 text-sm">NSB-{{ selectedItem.nasabah?.nasabah_id || selectedItem.penimbangan?.[0]?.nasabah?.nasabah_id }}</p>
                 </div>
 
-                <!-- Foto Sampah -->
                 <div v-if="selectedItem.penimbangan?.[0]?.foto" class="space-y-4">
                      <div class="flex items-center gap-3">
                         <Icon icon="material-symbols:camera-alt-outline" class="w-5 h-5 text-[#4A7043]" />
@@ -624,7 +741,6 @@ onMounted(() => {
                     </div>
                 </div>
 
-                <!-- Detail Penimbangan -->
                 <div class="bg-gray-50 p-6 rounded-3xl space-y-4 border border-gray-100">
                     <div class="flex items-center gap-3 mb-2">
                         <Icon icon="material-symbols:balance" class="w-5 h-5 text-[#4A7043]" />
@@ -649,7 +765,6 @@ onMounted(() => {
                     </div>
                 </div>
 
-                <!-- Informasi Saldo -->
                 <div v-if="selectedItem.penimbangan?.[0]?.transaksi" class="bg-green-50 p-6 rounded-3xl space-y-4 border border-green-100">
                      <div class="flex items-center gap-3 mb-2">
                         <Icon icon="material-symbols:account-balance-wallet-outline" class="w-5 h-5 text-[#4A7043]" />
@@ -674,16 +789,87 @@ onMounted(() => {
           </div>
         </div>
 
-        <!-- Modal Footer -->
-        <div class="p-6 bg-gray-50 flex justify-center">
+        <div class="p-6 bg-gray-50 flex justify-center gap-4">
           <button
             @click="closeModal"
-            class="w-full py-4 bg-[#4A7043] text-white rounded-2xl font-bold hover:bg-[#3d5c37] transition-all"
+            class="w-full py-4 bg-gray-200 text-gray-700 rounded-2xl font-bold hover:bg-gray-300 transition-all"
           >
             Tutup
           </button>
+          
+          <button
+            v-if="(activeFilter === 'penjemputan' || activeFilter === 'setor_manual') && modalActiveTab === 'penimbangan' && selectedItem?.status === 'selesai' && isEditable(selectedItem)"
+            @click="openEditModal"
+            class="w-full py-2 bg-[#4A7043] text-white rounded-2xl hover:bg-[#3d5c37] transition-all flex flex-col items-center justify-center gap-0.5"
+          >
+            <span class="font-bold">Edit Penimbangan</span>
+            <span class="text-[10px] font-medium bg-white/20 px-2.5 py-0.5 rounded-full flex items-center gap-1 shadow-sm mt-0.5">
+              <Icon icon="material-symbols:timer-outline" class="w-3 h-3" />
+              Sisa Waktu: {{ remainingTimeText }}
+            </span>
+          </button>
         </div>
       </div>
+    </div>
+
+    <div v-if="showEditModal" class="fixed inset-0 z-[101] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+        <div class="bg-white w-full max-w-2xl rounded-[2.5rem] overflow-hidden shadow-2xl animate-in zoom-in duration-300 flex flex-col max-h-[90vh]">
+            <div class="bg-blue-600 p-6 text-white flex justify-between items-center">
+                <div>
+                    <h2 class="text-xl font-bold">Edit Penimbangan</h2>
+                    <p class="text-white/60 text-xs font-medium">TXN-{{ selectedItem?.transaksi_id }}</p>
+                </div>
+                <button @click="closeEditModal" class="p-2 hover:bg-white/10 rounded-full transition-all">
+                    <Icon icon="material-symbols:close" class="w-6 h-6" />
+                </button>
+            </div>
+
+            <div class="flex-1 overflow-y-auto p-6 space-y-6 custom-scrollbar">
+                <div v-if="loadingEdit" class="flex justify-center py-10">
+                    <div class="animate-spin rounded-full h-8 w-8 border-3 border-blue-600 border-t-transparent"></div>
+                </div>
+                <div v-else>
+                    <div class="space-y-4">
+                        <div v-for="(item, index) in editItems" :key="index" class="flex items-center gap-4 bg-gray-50 p-4 rounded-2xl">
+                            <div class="flex-1 grid grid-cols-2 gap-4">
+                                <div>
+                                    <label class="text-xs text-gray-500">Sampah</label>
+                                    <select v-model="item.sampah_id" class="w-full p-2 border rounded-lg text-sm">
+                                        <option v-for="sampah in masterSampah" :key="sampah.sampah_id" :value="sampah.sampah_id">
+                                            {{ sampah.item_sampah.nama }}
+                                        </option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="text-xs text-gray-500">Berat (kg)</label>
+                                    <input type="number" v-model="item.berat_timbang" class="w-full p-2 border rounded-lg text-sm" />
+                                </div>
+                            </div>
+                            <button @click="removeItem(index)" class="p-2 text-red-500 hover:bg-red-100 rounded-full">
+                                <Icon icon="material-symbols:delete-outline" class="w-5 h-5" />
+                            </button>
+                        </div>
+                    </div>
+                    <button @click="addItem" class="mt-4 w-full py-3 bg-blue-100 text-blue-600 rounded-2xl font-bold flex items-center justify-center gap-2 hover:bg-blue-200 transition-all">
+                        <Icon icon="material-symbols:add" class="w-5 h-5" />
+                        Tambah Item
+                    </button>
+                </div>
+            </div>
+
+            <div class="p-6 bg-gray-50 flex justify-center gap-4">
+                <button @click="closeEditModal" class="w-full py-4 bg-gray-200 text-gray-700 rounded-2xl font-bold hover:bg-gray-300 transition-all">
+                    Batal
+                </button>
+                <button @click="submitEdit" class="w-full py-4 bg-blue-600 text-white rounded-2xl font-bold hover:bg-blue-700 transition-all" :disabled="isSubmitting">
+                    <span v-if="isSubmitting" class="flex items-center justify-center">
+                        <div class="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent mr-2"></div>
+                        Menyimpan...
+                    </span>
+                    <span v-else>Simpan Perubahan</span>
+                </button>
+            </div>
+        </div>
     </div>
   </DashboardLayout>
 </template>
@@ -703,4 +889,3 @@ onMounted(() => {
   background: #d1d5db;
 }
 </style>
-

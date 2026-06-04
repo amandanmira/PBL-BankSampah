@@ -340,19 +340,14 @@ onMounted(() => {
                 <p class="text-[10px] font-black text-stone-400 uppercase tracking-widest mb-1">Jenis Sampah</p>
                 <p class="font-black text-stone-800 text-lg">{{ request.detail_penjemputan?.map(d => d.sampah?.item_sampah?.nama).join(', ') || 'Tidak ada' }}</p>
               </div>
-              
-              <!-- Additional Info for Proses/Dijemput/Perlu Input Data -->
-              <template v-if="['proses', 'dijemput', 'perlu_input'].includes(request.status)">
-                <div class="pt-2 border-t border-stone-100">
-                  <p class="text-[10px] font-black text-stone-400 uppercase tracking-widest mb-1">Jadwal Penjemputan</p>
-                  <p class="font-black text-stone-800 text-lg">{{ request.jadwal ? formatDate(request.jadwal) : '-' }}</p>
-                </div>
-                <div class="pt-2 border-t border-stone-100">
-                  <p class="text-[10px] font-black text-stone-400 uppercase tracking-widest mb-1">Tukang Penjemputan</p>
-                  <p class="font-black text-stone-800 text-lg">{{ request.tukang?.nama || request.selectedTukang?.nama || '-' }}</p>
-                </div>
-              </template>
-
+              <div class="md:col-span-2 pt-2 border-t border-stone-100">
+                  <p class="text-[10px] font-black text-stone-400 uppercase tracking-widest mb-1">Preferensi Waktu Jemput</p>
+                  <p class="font-bold text-stone-800 text-sm">{{ request.rentang_hari || 'Belum diatur' }} &bull; {{ request.rentan_waktu || 'Belum diatur' }}</p>
+              </div>
+              <div class="md:col-span-2">
+                <p class="text-[10px] font-black text-stone-400 uppercase tracking-widest mb-1">Tukang Ditugaskan</p>
+                <p class="font-black text-stone-800 text-lg">{{ request.tukang?.nama || request.selectedTukang?.nama || '-' }}</p>
+              </div>
               <div v-if="request.deskripsi?.split('|')[2]" class="md:col-span-2 pt-2 border-t border-stone-100">
                 <p class="text-[10px] font-black text-stone-400 uppercase tracking-widest mb-1">Keterangan Tambahan</p>
                 <p class="text-xs font-bold text-stone-600">{{ request.deskripsi?.split('|')[2] }}</p>
@@ -673,6 +668,27 @@ onMounted(() => {
                       {{ jenis.trim() }}
                     </span>
                   </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Preferensi Waktu -->
+          <div class="bg-white rounded-2xl p-6 shadow-sm border border-stone-100 space-y-4">
+            <h5 class="text-sm font-black text-stone-800 mb-2">Preferensi Waktu Penjemputan</h5>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div class="flex items-start gap-3">
+                <Icon icon="material-symbols:date-range-outline" class="w-5 h-5 text-stone-400 mt-0.5" />
+                <div>
+                  <p class="text-[10px] font-black text-stone-400 uppercase tracking-widest">Preferensi Hari</p>
+                  <p class="font-bold text-stone-800">{{ detailRequest.rentang_hari || 'Belum diatur oleh nasabah' }}</p>
+                </div>
+              </div>
+              <div class="flex items-start gap-3">
+                <Icon icon="material-symbols:schedule-outline" class="w-5 h-5 text-stone-400 mt-0.5" />
+                <div>
+                  <p class="text-[10px] font-black text-stone-400 uppercase tracking-widest">Preferensi Waktu</p>
+                  <p class="font-bold text-stone-800">{{ detailRequest.rentan_waktu || 'Tidak diatur oleh nasabah' }}</p>
                 </div>
               </div>
             </div>
