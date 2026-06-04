@@ -521,13 +521,7 @@ onMounted(() => {
               </div>
             </template>
             <template v-else>
-              <button
-                @click="handleProfileClick"
-                class="p-2 hover:bg-white/10 rounded-full transition-all shrink-0 cursor-pointer text-white flex items-center justify-center"
-                title="Profil Saya"
-              >
-                <Icon icon="material-symbols:account-circle-outline" class="w-6 h-6 lg:w-7 h-7 text-white" />
-              </button>
+              <!-- Profile button removed -->
             </template>
           </div>
         </div>
