@@ -481,11 +481,14 @@ L.Icon.Default.mergeOptions({
   iconUrl: markerIcon,
   shadowUrl: markerShadow,
 });
+import { checkRole } from '@/utils';
 import DashboardLayout from "@/layouts/DashboardLayout.vue";
 import { Icon } from "@iconify/vue";
 import { cn } from "@/lib/utils";
 
 const axios = inject('axios');
+
+checkRole('nasabah');
 
 const activeTab = ref('pribadi');
 const tabs = [
@@ -520,7 +523,7 @@ const passwordForm = ref({
 
 const user = computed(() => {
   try {
-    return JSON.parse(sessionStorage.getItem("user") || "{}");
+    return JSON.parse(localStorage.getItem("user") || "{}");
   } catch (e) { return {}; }
 });
 
@@ -690,7 +693,7 @@ const updateProfile = async () => {
     const id = user.value.nasabah_id;
     const res = await axios.put(`/api/nasabah/edit-profile/${id}`, form.value);
     
-    sessionStorage.setItem("user", JSON.stringify(res.data.data));
+    localStorage.setItem("user", JSON.stringify(res.data.data));
     originalForm.value = { ...res.data.data };
     
     successMessage.value = "Profil berhasil diperbarui!";

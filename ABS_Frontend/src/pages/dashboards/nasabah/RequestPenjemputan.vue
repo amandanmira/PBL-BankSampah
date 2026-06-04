@@ -41,7 +41,7 @@ const form = ref({
   estimasi_berat: "1-5 kg"
 });
 
-const user = JSON.parse(sessionStorage.getItem('user') || "{}");
+const user = JSON.parse(localStorage.getItem('user') || "{}");
 
 // Selected Gudang Info
 const selectedGudang = computed(() => {

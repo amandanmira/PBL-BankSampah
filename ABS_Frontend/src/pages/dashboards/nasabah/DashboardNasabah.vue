@@ -13,7 +13,7 @@ import { checkRole } from "@/utils";
 checkRole("nasabah");
 
 const axios = inject("axios");
-const user = ref(JSON.parse(sessionStorage.getItem("user") || "{}"));
+const user = ref(JSON.parse(localStorage.getItem("user") || "{}"));
 const loading = ref(true);
 
 // Data Statistik Ringkasan

@@ -1,12 +1,17 @@
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, watch, nextTick } from 'vue'
 import { inject } from 'vue'
+import { useRoute } from 'vue-router'
+import { checkRole } from '@/utils'
 import DashboardLayout from '@/layouts/DashboardLayout.vue'
 import { Icon } from '@iconify/vue'
 import { cn } from '@/lib/utils'
 import Swal from 'sweetalert2'
 
+checkRole('nasabah')
+
 const axios = inject('axios')
+const route = useRoute()
 const loading = ref(false)
 const transactions = ref([])
 const manualTransactions = ref([])
@@ -16,11 +21,18 @@ const searchQuery = ref('')
 const showDetailModal = ref(false)
 const selectedItem = ref(null)
 const currentPhotoIndex = ref(0)
+const currentTimbangPhotoIndex = ref(0)
 const activeDetailTab = ref('jemput') // 'jemput' or 'timbang'
+
+const timbangPhotos = computed(() => {
+  if (!selectedItem.value || !selectedItem.value.penimbangan) return []
+  return selectedItem.value.penimbangan.map(p => p.foto).filter(f => f)
+})
 
 const openDetail = (item) => {
   selectedItem.value = item
   currentPhotoIndex.value = 0
+  currentTimbangPhotoIndex.value = 0
   if (activeMainTab.value === 'jemput') {
     activeDetailTab.value = 'jemput'
   } else {
@@ -69,6 +81,40 @@ const fetchTransactions = async () => {
     console.log(manualRes.data.data)
     transactions.value = penjemputanRes.data.data || []
     manualTransactions.value = manualRes.data.data || []
+
+    // Auto-focus logic
+    if (route.query.highlight_id) {
+      const highlightId = parseInt(route.query.highlight_id)
+      const targetTransaction = transactions.value.find(t => t.penjemputan_id === highlightId)
+      
+      if (targetTransaction) {
+        activeMainTab.value = 'jemput'
+        
+        if (targetTransaction.status === 'dijemput' || targetTransaction.status === 'perlu_input') {
+          activeStatusFilter.value = 'dijemput'
+        } else if (['pending', 'menunggu_persetujuan', 'jadwal_ditolak'].includes(targetTransaction.status)) {
+          activeStatusFilter.value = 'pending'
+        } else {
+          activeStatusFilter.value = targetTransaction.status
+        }
+
+        nextTick(() => {
+          const cardElement = document.getElementById(`transaction-card-${highlightId}`)
+          if (cardElement) {
+            // Scroll to card
+            cardElement.scrollIntoView({ behavior: 'smooth', block: 'center' })
+            
+            // Add temporary highlight ring
+            cardElement.classList.add('ring-4', 'ring-[#4A7043]', 'ring-offset-2', 'animate-pulse')
+            
+            // Remove highlight after 5 seconds
+            setTimeout(() => {
+              cardElement.classList.remove('ring-4', 'ring-[#4A7043]', 'ring-offset-2', 'animate-pulse')
+            }, 5000)
+          }
+        })
+      }
+    }
   } catch (error) {
     console.error('Failed to fetch transactions:', error)
   } finally {
@@ -366,6 +412,7 @@ onMounted(() => {
             <div
               v-for="item in filteredTransactions"
               :key="activeMainTab === 'jemput' ? item.penjemputan_id : item.transaksi_id"
+              :id="`transaction-card-${activeMainTab === 'jemput' ? item.penjemputan_id : item.transaksi_id}`"
               class="group bg-white border border-gray-100 rounded-3xl p-5 hover:border-[#4A7043]/30 hover:shadow-xl hover:shadow-[#4A7043]/5 transition-all duration-500"
             >
               <div class="flex flex-col md:flex-row gap-6">
@@ -479,14 +526,14 @@ onMounted(() => {
                         }}</span
                       >
                     </div>
-                    <div class="flex items-center gap-2 text-[#4A7043]">
-                      <Icon icon="material-symbols:location-on-outline" class="w-4 h-4" />
-                      <span class="text-xs font-black">
+                    <div class="flex items-center gap-2 text-[#4A7043] max-w-[200px]">
+                      <Icon icon="material-symbols:warehouse-outline" class="w-4 h-4 shrink-0" />
+                      <span class="text-xs font-black truncate">
                         <template v-if="activeMainTab === 'jemput'">{{
-                          item.gudang?.nama || 'Lokasi tidak diset'
+                          item.gudang?.alamat || 'Alamat gudang tidak diset'
                         }}</template>
                         <template v-else>{{
-                          item.penimbangan?.[0]?.tukang?.gudang?.nama || 'Lokasi tidak diset'
+                          item.penimbangan?.[0]?.tukang?.gudang?.alamat || 'Alamat gudang tidak diset'
                         }}</template>
                       </span>
                     </div>
@@ -737,12 +784,12 @@ onMounted(() => {
             <!-- Gudang -->
             <div class="flex items-start gap-3">
               <div class="w-8 h-8 rounded-xl bg-stone-100 text-stone-500 flex items-center justify-center shrink-0">
-                <Icon icon="material-symbols:domain-outline" class="w-4.5 h-4.5 text-stone-400" />
+                <Icon icon="material-symbols:warehouse-outline" class="w-4.5 h-4.5 text-stone-400" />
               </div>
               <div class="space-y-0.5">
                 <p class="text-[10px] text-stone-400 font-semibold uppercase tracking-wider">Nama Gudang</p>
                 <p class="font-bold text-[#4A7043] text-sm">
-                  {{ selectedItem.gudang?.nama || 'Gudang Pusat Surakarta' }}
+                  {{ selectedItem.gudang?.alamat || 'Belum diset' }}
                 </p>
               </div>
             </div>
@@ -980,18 +1027,44 @@ onMounted(() => {
 
             <!-- Foto Sampah -->
             <div class="bg-white rounded-2xl p-4 shadow-sm border border-stone-100 space-y-2">
-              <p class="text-xs font-bold text-stone-800">Foto Sampah</p>
-              <div class="relative aspect-video rounded-xl overflow-hidden bg-stone-50 border border-stone-100">
+              <p class="text-xs font-bold text-stone-800">Foto Sampah Penimbangan</p>
+              
+              <!-- Image Carousel Container -->
+              <div class="relative aspect-video rounded-xl overflow-hidden bg-stone-50 border border-stone-100 group">
                 <img
-                  v-if="selectedItem.foto && selectedItem.foto.length > 0"
-                  :src="`${axios.defaults.baseURL}/storage/${selectedItem.foto[0]}`"
-                  class="w-full h-full object-cover"
+                  v-if="timbangPhotos && timbangPhotos.length > 0"
+                  :src="`${axios.defaults.baseURL}/storage/${timbangPhotos[currentTimbangPhotoIndex]}`"
+                  class="w-full h-full object-cover transition-all duration-500"
                 />
-                <div v-else class="w-full h-full flex items-center justify-center text-stone-300">
+                <div v-else class="w-full h-full flex flex-col items-center justify-center text-stone-300 gap-1.5">
                   <Icon icon="material-symbols:image-outline" class="w-10 h-10" />
+                  <p class="text-[10px] font-bold uppercase tracking-widest">Tidak ada foto</p>
                 </div>
+
+                <!-- Indicators -->
+                <div 
+                  v-if="timbangPhotos && timbangPhotos.length > 0"
+                  class="absolute bottom-3 left-1/2 -translate-x-1/2 bg-black/60 text-white text-[10px] px-2.5 py-0.5 rounded-full font-bold"
+                >
+                  {{ currentTimbangPhotoIndex + 1 }} / {{ timbangPhotos.length }}
+                </div>
+
+                <!-- Left/Right Controls -->
+                <template v-if="timbangPhotos && timbangPhotos.length > 1">
+                  <button
+                    @click="currentTimbangPhotoIndex = currentTimbangPhotoIndex === 0 ? timbangPhotos.length - 1 : currentTimbangPhotoIndex - 1"
+                    class="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 bg-white/80 hover:bg-white text-stone-800 rounded-full flex items-center justify-center shadow-sm opacity-0 group-hover:opacity-100 transition-all active:scale-95"
+                  >
+                    <Icon icon="material-symbols:chevron-left-rounded" class="w-6 h-6" />
+                  </button>
+                  <button
+                    @click="currentTimbangPhotoIndex = currentTimbangPhotoIndex === timbangPhotos.length - 1 ? 0 : currentTimbangPhotoIndex + 1"
+                    class="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 bg-white/80 hover:bg-white text-stone-800 rounded-full flex items-center justify-center shadow-sm opacity-0 group-hover:opacity-100 transition-all active:scale-95"
+                  >
+                    <Icon icon="material-symbols:chevron-right-rounded" class="w-6 h-6" />
+                  </button>
+                </template>
               </div>
-              <p class="text-[10px] text-center text-stone-400">Klik foto untuk memperbesar</p>
             </div>
 
             <!-- Detail Sampah Weighing Breakdown -->

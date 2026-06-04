@@ -244,12 +244,15 @@
 <script setup>
 import { ref, computed, onMounted, inject } from "vue";
 import { useRouter } from "vue-router";
+import { checkRole } from '@/utils';
 import DashboardLayout from "@/layouts/DashboardLayout.vue";
 import { Icon } from "@iconify/vue";
 import { cn } from "@/lib/utils";
 
 const axios = inject('axios');
 const router = useRouter();
+
+checkRole('nasabah');
 
 const saldoTersedia = ref(0);
 const completionPercentage = ref(0);

@@ -10,16 +10,17 @@ import { useRouter } from "vue-router";
 
 const router = useRouter()
 
-const role = sessionStorage.getItem('role')
-const user = JSON.parse(sessionStorage.getItem('user'))
+const role = sessionStorage.getItem('role') || localStorage.getItem('role')
+const user = JSON.parse(sessionStorage.getItem('user') || localStorage.getItem('user') || 'null')
 
 const logout = async () => {
   try {
-    const token = sessionStorage.getItem("token")
+    const token = sessionStorage.getItem("token") || localStorage.getItem("token")
     const headers = { 'Authorization': `Bearer ${token}` }
 
     const res = await axios.post("/api/logout", {}, { headers })
     sessionStorage.clear()
+    localStorage.clear()
     router.push("/login")
   } catch (error) {
     console.log(error.response)

@@ -8,13 +8,13 @@ import { useRouter } from 'vue-router';
 
 const router = useRouter();
 
-const token = sessionStorage.getItem('token')
+const token = localStorage.getItem('token')
 
 if (!token) {
   throw new Error('Otentikasi diperlukan.')
 }
 
-const user = ref(JSON.parse(sessionStorage.getItem("user")));
+const user = ref(JSON.parse(localStorage.getItem("user")));
 
 const headers = { 'Authorization': `Bearer ${token}` }
 

@@ -73,11 +73,11 @@ const error = ref(null)
 const fetchData = async () => {
   loading.value = true
   try {
-    const token = sessionStorage.getItem('token')
+    const token = localStorage.getItem('token')
     if (!token) {
       throw new Error('Otentikasi diperlukan.')
     }
-    const user = JSON.parse(sessionStorage.getItem('user'))
+    const user = JSON.parse(localStorage.getItem('user'))
     if (!user || !user.nasabah_id) {
       throw new Error('Data pengguna tidak ditemukan.')
     }

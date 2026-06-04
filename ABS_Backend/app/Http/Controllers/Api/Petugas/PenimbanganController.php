@@ -8,6 +8,8 @@ use Illuminate\Support\Facades\Auth;
 use App\Models\Penimbangan;
 use Illuminate\Http\Request;
 use App\Models\Sampah;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\StatusPenjemputanMail;
 
 class PenimbanganController extends Controller
 {
@@ -86,6 +88,10 @@ public function penimbangan(Request $request)
             $transaksi->total_harga = $total_semua_harga;
             $transaksi->saldo_sesudah = $nasabah->saldo;
             $transaksi->save();
+
+            if ($penjemputan->nasabah && $penjemputan->nasabah->email) {
+                Mail::to($penjemputan->nasabah->email)->send(new StatusPenjemputanMail($penjemputan, 'selesai'));
+            }
 
             DB::commit();
 

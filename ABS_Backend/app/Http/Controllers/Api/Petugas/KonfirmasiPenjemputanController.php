@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\Penjemputan;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\StatusPenjemputanMail;
 
 class KonfirmasiPenjemputanController extends Controller
 {
@@ -77,6 +79,10 @@ class KonfirmasiPenjemputanController extends Controller
         }
         $penjemputan->save();
 
+        if ($penjemputan->nasabah && $penjemputan->nasabah->email) {
+            Mail::to($penjemputan->nasabah->email)->send(new StatusPenjemputanMail($penjemputan, 'menunggu_persetujuan'));
+        }
+
         return response()->json(['message' => 'Menunggu persetujuan nasabah'], 200);
     }
 
@@ -109,6 +115,10 @@ class KonfirmasiPenjemputanController extends Controller
         $penjemputan->status = 'dijemput';
         $penjemputan->save();
 
+        if ($penjemputan->nasabah && $penjemputan->nasabah->email) {
+            Mail::to($penjemputan->nasabah->email)->send(new StatusPenjemputanMail($penjemputan, 'dijemput'));
+        }
+
         return response()->json(['message' => 'Status diubah menjadi Dijemput'], 200);
     }
 
@@ -116,6 +126,10 @@ class KonfirmasiPenjemputanController extends Controller
     {
         $penjemputan->status = 'perlu_input';
         $penjemputan->save();
+
+        if ($penjemputan->nasabah && $penjemputan->nasabah->email) {
+            Mail::to($penjemputan->nasabah->email)->send(new StatusPenjemputanMail($penjemputan, 'perlu_input'));
+        }
 
         return response()->json(['message' => 'Status diubah menjadi Perlu Input Data'], 200);
     }

@@ -24,7 +24,7 @@ const toggleSidebar = () => {
   }
 };
 
-const role = computed(() => sessionStorage.getItem("role")?.toLowerCase());
+const role = computed(() => (sessionStorage.getItem("role") || localStorage.getItem("role"))?.toLowerCase());
 
 const menuItems = computed(() => {
   console.log("Current role in sidebar:", role.value);
@@ -79,6 +79,7 @@ const menuItems = computed(() => {
 
 const handleLogout = () => {
   sessionStorage.clear();
+  localStorage.clear();
   router.push("/login");
 };
 
@@ -105,7 +106,7 @@ const handleProfileClick = () => {
 
 const user = computed(() => {
   try {
-    return JSON.parse(sessionStorage.getItem("user") || "{}");
+    return JSON.parse(sessionStorage.getItem("user") || localStorage.getItem("user") || "{}");
   } catch (e) {
     return {};
   }
@@ -156,7 +157,7 @@ const saveLastVisited = () => {
 
 const fetchMenuUpdates = async () => {
   try {
-    const token = sessionStorage.getItem('token');
+    const token = sessionStorage.getItem('token') || localStorage.getItem('token');
     if (!token) return;
     const res = await axios.get(`${axios.defaults.baseURL}/api/menu-updates`, {
       headers: { Authorization: `Bearer ${token}` }

@@ -86,7 +86,7 @@ const filteredPenjemputans = computed(() => {
 // Fungsi untuk mengambil data Tukang
 const fetchTukang = async () => {
   try {
-    const token = sessionStorage.getItem("token");
+    const token = localStorage.getItem("token");
     const headers = { Authorization: `Bearer ${token}` };
     const response = await axios.get("http://localhost:8000/api/petugas/tukang", { headers });
     listTukang.value = response.data.data;
@@ -98,7 +98,7 @@ const fetchTukang = async () => {
 const fetchData = async () => {
   loading.value = true;
   try {
-    const token = sessionStorage.getItem("token");
+    const token = localStorage.getItem("token");
     if (!token) throw new Error("Otentikasi diperlukan.");
     const headers = { Authorization: `Bearer ${token}` };
 
@@ -132,7 +132,7 @@ const handleTerima = async (penjemputan) => {
   }
 
   try {
-    const token = sessionStorage.getItem("token");
+    const token = localStorage.getItem("token");
     const headers = { Authorization: `Bearer ${token}` };
     
     // Kirim tukang_id ke backend
@@ -161,7 +161,7 @@ const handleTolak = async (id) => {
   }
 
   try {
-    const token = sessionStorage.getItem("token");
+    const token = localStorage.getItem("token");
     const headers = { Authorization: `Bearer ${token}` };
     const data = { ket_status: alasan };
 

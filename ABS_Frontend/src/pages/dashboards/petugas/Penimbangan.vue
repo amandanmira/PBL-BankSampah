@@ -479,7 +479,7 @@ const goToPreview = () => {
 
 const fetchData = async () => {
   try {
-    const token = sessionStorage.getItem("token");
+    const token = localStorage.getItem("token");
     if (!token) throw new Error("Otentikasi diperlukan.");
     const penjemputanId = route.params.id;
     const headers = { Authorization: `Bearer ${token}` };
@@ -494,7 +494,7 @@ const fetchData = async () => {
 
 const fetchListKategori = async () => {
   try {
-    const token = sessionStorage.getItem("token");
+    const token = localStorage.getItem("token");
     const headers = { Authorization: `Bearer ${token}` };
     const response = await axios.get("http://localhost:8000/api/petugas/list-kategori", { headers });
     listKategori.value = response.data.data;
@@ -505,7 +505,7 @@ const fetchListKategori = async () => {
 
 const fetchListSampah = async () => {
   try {
-    const token = sessionStorage.getItem("token");
+    const token = localStorage.getItem("token");
     const headers = { Authorization: `Bearer ${token}` };
     const response = await axios.get("http://localhost:8000/api/petugas/list-sampah", { headers });
     listSampah.value = response.data.data;
@@ -518,7 +518,7 @@ const submitPenimbangan = async () => {
   isSubmitting.value = true;
   
   try {
-    const token = sessionStorage.getItem("token");
+    const token = localStorage.getItem("token");
     const headers = { 
       Authorization: `Bearer ${token}`,
       "Content-Type": "multipart/form-data" 
