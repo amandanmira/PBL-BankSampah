@@ -67,6 +67,7 @@ const fetchData = async () => {
 
     if (data.user) {
       user.value = { ...user.value, ...data.user };
+      sessionStorage.setItem("user", JSON.stringify(user.value));
     }
 
     stats.value[0].value = formatRupiah(data.stats.saldo_tersedia);

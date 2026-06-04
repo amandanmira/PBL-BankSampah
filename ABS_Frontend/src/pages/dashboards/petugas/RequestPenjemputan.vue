@@ -55,7 +55,6 @@ const fetchWorkers = async () => {
   }
 };
 
-// Computed
 const filteredRequests = computed(() => {
   let filtered = requests.value;
 
@@ -80,6 +79,11 @@ const filteredRequests = computed(() => {
   }
 
   return filtered;
+});
+
+const filteredWorkers = computed(() => {
+  if (!selectedRequest.value) return [];
+  return workers.value.filter(w => w.gudang_id === selectedRequest.value.gudang_id);
 });
 
 const getCount = (filter) => {
@@ -538,7 +542,7 @@ onMounted(() => {
         
         <div class="flex-1 overflow-y-auto p-8 pt-4 space-y-4">
           <div 
-            v-for="worker in workers" 
+            v-for="worker in filteredWorkers" 
             :key="worker.tukang_id"
             @click="selectWorker(worker)"
             class="bg-[#4A7043] rounded-2xl p-5 text-white flex items-center gap-6 cursor-pointer hover:scale-[1.02] active:scale-[0.98] transition-all group"
@@ -570,8 +574,8 @@ onMounted(() => {
             </div>
           </div>
 
-          <div v-if="workers.length === 0" class="text-center py-10">
-            <p class="text-stone-400 font-bold">Tidak ada tukang yang tersedia.</p>
+          <div v-if="filteredWorkers.length === 0" class="text-center py-10">
+            <p class="text-stone-400 font-bold">Tidak ada tukang yang tersedia di gudang ini.</p>
           </div>
         </div>
       </div>

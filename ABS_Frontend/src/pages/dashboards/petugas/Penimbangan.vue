@@ -184,7 +184,7 @@
               </div>
               <div class="pt-3 border-t border-stone-200 flex items-center gap-2">
                 <p class="text-xs font-bold text-stone-500">Saldo Saat Ini:</p>
-                <p class="text-xs font-black text-[#4A7043]">{{ formatRupiah(saldoSaatIni) }} <span class="text-stone-400 font-medium">*statis</span></p>
+                <p class="text-xs font-black text-[#4A7043]">{{ formatRupiah(saldoSaatIni) }}</p>
               </div>
             </div>
 
@@ -393,14 +393,80 @@ const receiptData = ref(null);
 
 const formRows = ref([{ kategori_id: "", sampah_id: "", berat_timbang: "", foto: null, fotoPreview: null }]);
 
-const saldoSaatIni = 320000;
-const saldoSetelahTransaksi = computed(() => saldoSaatIni + totalNilai.value);
+const saldoSaatIni = computed(() => {
+  return penjemputan.value?.nasabah?.saldo ? Number(penjemputan.value.nasabah.saldo) : 0;
+});
+const saldoSetelahTransaksi = computed(() => saldoSaatIni.value + totalNilai.value);
 
-const handleFileUpload = (event, index) => {
+const compressImage = (file) => {
+  return new Promise((resolve) => {
+    if (file.size <= 1024 * 1024 || !file.type.startsWith('image/')) {
+      resolve(file);
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        let width = img.width;
+        let height = img.height;
+
+        const MAX_WIDTH = 1600;
+        const MAX_HEIGHT = 1600;
+        if (width > height) {
+          if (width > MAX_WIDTH) {
+            height = Math.round((height * MAX_WIDTH) / width);
+            width = MAX_WIDTH;
+          }
+        } else {
+          if (height > MAX_HEIGHT) {
+            width = Math.round((width * MAX_HEIGHT) / height);
+            height = MAX_HEIGHT;
+          }
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+
+        let quality = 0.8;
+        const checkAndCompress = (q) => {
+          canvas.toBlob((blob) => {
+            if (!blob) {
+              resolve(file);
+              return;
+            }
+            
+            if (blob.size > 1024 * 1024 && q > 0.3) {
+              checkAndCompress(q - 0.15);
+            } else {
+              const compressedFile = new File([blob], file.name, {
+                type: 'image/jpeg',
+                lastModified: Date.now()
+              });
+              resolve(compressedFile);
+            }
+          }, 'image/jpeg', q);
+        };
+
+        checkAndCompress(quality);
+      };
+      img.src = event.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+};
+
+const handleFileUpload = async (event, index) => {
   const file = event.target.files[0];
   if (file) {
-    formRows.value[index].foto = file;
-    formRows.value[index].fotoPreview = URL.createObjectURL(file);
+    const compressedFile = await compressImage(file);
+    formRows.value[index].foto = compressedFile;
+    formRows.value[index].fotoPreview = URL.createObjectURL(compressedFile);
   }
 };
 

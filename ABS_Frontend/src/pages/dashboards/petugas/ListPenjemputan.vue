@@ -42,7 +42,7 @@
             <template v-if="penjemputan.status === 'pending'">
               <select v-model="penjemputan.selectedTukang" class="select-tukang">
                 <option value="" disabled selected>-- Pilih Tukang --</option>
-                <option v-for="tukang in listTukang" :key="tukang.tukang_id" :value="tukang.tukang_id">
+                <option v-for="tukang in filterTukangByGudang(penjemputan.gudang_id)" :key="tukang.tukang_id" :value="tukang.tukang_id">
                   {{ tukang.nama }}
                 </option>
               </select>
@@ -82,6 +82,10 @@ const error = ref(null);
 const filteredPenjemputans = computed(() => {
   return allPenjemputans.value.filter((p) => p.status === "pending" || p.status === "proses");
 });
+
+const filterTukangByGudang = (gudangId) => {
+  return listTukang.value.filter(t => t.gudang_id === gudangId);
+};
 
 // Fungsi untuk mengambil data Tukang
 const fetchTukang = async () => {

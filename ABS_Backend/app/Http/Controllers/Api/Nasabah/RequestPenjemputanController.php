@@ -10,7 +10,7 @@ class RequestPenjemputanController extends Controller
 {
     public function store(Request $request) {
         $validated = $request->validate([
-            'deskripsi' => 'required|string',
+            'deskripsi' => 'nullable|string',
             'alamat' => 'required|string',
             'estimasi_berat' => 'required|string',
             'rentang_hari' => 'nullable|string',
@@ -31,7 +31,7 @@ class RequestPenjemputanController extends Controller
         $validated['foto'] = $fotoPaths;
 
         $penjemputan = Penjemputan::create([
-            'deskripsi' => $validated['deskripsi'],
+            'deskripsi' => $validated['deskripsi'] ?? null,
             'alamat' => $validated['alamat'],
             'estimasi_berat' => $validated['estimasi_berat'],
             'rentang_hari' => $validated['rentang_hari'] ?? null,

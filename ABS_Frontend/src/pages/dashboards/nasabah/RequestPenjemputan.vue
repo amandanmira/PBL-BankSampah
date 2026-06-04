@@ -115,7 +115,70 @@ const fetchGudang = async () => {
   }
 };
 
-const handleFile = (e) => {
+const compressImage = (file) => {
+  return new Promise((resolve) => {
+    if (file.size <= 1024 * 1024 || !file.type.startsWith('image/')) {
+      resolve(file);
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        let width = img.width;
+        let height = img.height;
+
+        const MAX_WIDTH = 1600;
+        const MAX_HEIGHT = 1600;
+        if (width > height) {
+          if (width > MAX_WIDTH) {
+            height = Math.round((height * MAX_WIDTH) / width);
+            width = MAX_WIDTH;
+          }
+        } else {
+          if (height > MAX_HEIGHT) {
+            width = Math.round((width * MAX_HEIGHT) / height);
+            height = MAX_HEIGHT;
+          }
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+
+        let quality = 0.8;
+        const checkAndCompress = (q) => {
+          canvas.toBlob((blob) => {
+            if (!blob) {
+              resolve(file);
+              return;
+            }
+            
+            if (blob.size > 1024 * 1024 && q > 0.3) {
+              checkAndCompress(q - 0.15);
+            } else {
+              const compressedFile = new File([blob], file.name, {
+                type: 'image/jpeg',
+                lastModified: Date.now()
+              });
+              resolve(compressedFile);
+            }
+          }, 'image/jpeg', q);
+        };
+
+        checkAndCompress(quality);
+      };
+      img.src = event.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+};
+
+const handleFile = async (e) => {
   const files = Array.from(e.target.files);
   if (uploadedPhotos.value.length + files.length > 3) {
     alert("Maksimal hanya bisa mengupload 3 foto.");
@@ -123,14 +186,15 @@ const handleFile = (e) => {
     return;
   }
   
-  files.forEach(file => {
+  for (const file of files) {
     if (uploadedPhotos.value.length < 3) {
+      const compressedFile = await compressImage(file);
       uploadedPhotos.value.push({
-        file: file,
-        previewUrl: URL.createObjectURL(file)
+        file: compressedFile,
+        previewUrl: URL.createObjectURL(compressedFile)
       });
     }
-  });
+  }
   
   if (fileInput.value) fileInput.value.value = '';
 };
@@ -168,9 +232,16 @@ const submitRequest = async () => {
     alert("Silakan pilih gudang tujuan.");
     return;
   }
-  if (!form.value.alamat && addressType.value === 'alamat_baru') {
-    alert("Silakan isi alamat lengkap.");
-    return;
+  if (addressType.value === 'alamat_profil') {
+    if (!user.alamat || user.alamat.trim() === '' || user.alamat === '-') {
+      alert("Alamat di profil Anda belum diisi. Silakan isi alamat di profil terlebih dahulu.");
+      return;
+    }
+  } else {
+    if (!form.value.alamat || form.value.alamat.trim() === '') {
+      alert("Silakan isi alamat lengkap.");
+      return;
+    }
   }
   if (uploadedPhotos.value.length === 0) {
     alert("Silakan upload minimal satu foto sampah.");
@@ -228,7 +299,14 @@ const submitRequest = async () => {
 
   } catch (err) {
     console.error("Failed to submit request:", err);
-    alert("Gagal mengirim request. Pastikan semua data terisi.");
+    if (err.response && err.response.data && err.response.data.errors) {
+      const messages = Object.values(err.response.data.errors).flat().join("\n");
+      alert("Gagal mengirim request:\n" + messages);
+    } else if (err.response && err.response.data && err.response.data.message) {
+      alert("Gagal mengirim request: " + err.response.data.message);
+    } else {
+      alert("Gagal mengirim request. Pastikan semua data terisi.");
+    }
   } finally {
     loading.value = false;
   }
@@ -254,7 +332,7 @@ onMounted(() => {
       <div class="flex gap-4 p-2 bg-white rounded-[2rem] shadow-sm border border-stone-100/50">
         <button 
           type="button"
-          @click="activeTab = 'Jemput Sampah'; addressType = 'alamat_baru'; form.alamat = ''"
+          @click="activeTab = 'Jemput Sampah'; addressType = 'alamat_profil'; form.alamat = user.alamat || ''"
           :class="[
             'flex-1 flex items-center justify-center gap-2.5 py-4 rounded-[1.5rem] text-sm font-bold transition-all cursor-pointer border border-transparent',
             activeTab === 'Jemput Sampah' ? 'bg-[#4A7043] text-white shadow-md' : 'bg-[#F5F5F0] text-stone-500 hover:bg-stone-100'
