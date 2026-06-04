@@ -66,7 +66,7 @@ class ProfileController extends Controller
             'no_telp' => 'nullable|string|max:16',
             'alamat' => 'nullable|string',
             'gmap' => 'nullable|string',
-            'nama_bank' => 'nullable|string|max:50',
+            'nama_bank' => 'nullable|string|in:BRI,BCA,DANA,Bank Jago,Bank Mandiri,BNI,OVO,GoPay,LinkAja,ShopeePay,CIMB Niaga,Bank Permata,BSI',
             'no_rekening' => 'nullable|string|max:20',
             'nama_rek' => 'nullable|string|max:50',
         ]);

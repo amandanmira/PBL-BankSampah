@@ -423,10 +423,34 @@ class LaporanController extends Controller
         }
         $summary = $summaryQuery->select(
             DB::raw('COUNT(penarikan_id) as total_penarikan'),
-            DB::raw('COALESCE(SUM(jumlah), 0) as total_nilai'),
+            DB::raw('COALESCE(SUM(CASE WHEN status = "selesai" THEN jumlah ELSE 0 END), 0) as total_nilai_selesai'),
+            DB::raw('COALESCE(SUM(CASE WHEN status = "tolak" THEN jumlah ELSE 0 END), 0) as total_nilai_tolak'),
             DB::raw('COUNT(CASE WHEN status = "selesai" THEN 1 END) as status_selesai'),
-            DB::raw('COUNT(CASE WHEN status = "pending" THEN 1 END) as status_pending')
+            DB::raw('COUNT(CASE WHEN status = "tolak" THEN 1 END) as status_tolak'),
+            DB::raw('COUNT(CASE WHEN status = "pending" THEN 1 END) as status_pending'),
+            DB::raw('COUNT(CASE WHEN status = "batal" THEN 1 END) as status_batal')
         )->first();
+
+        // Bank distribution query
+        $bankDistributionQuery = DB::table('penarikans')
+            ->where('status', 'selesai');
+        $applyDateRange($bankDistributionQuery);
+        if ($gudangId) {
+            $bankDistributionQuery->whereExists(function ($query) use ($gudangId) {
+                $query->select(DB::raw(1))
+                    ->from('petugas')
+                    ->whereColumn('petugas.petugas_id', 'penarikans.petugas_id')
+                    ->where('petugas.gudang_id', $gudangId);
+            });
+        }
+        $bankDistribution = $bankDistributionQuery->select(
+            'nama_bank',
+            DB::raw('COUNT(penarikan_id) as jumlah_transaksi'),
+            DB::raw('SUM(jumlah) as total_nominal')
+        )
+        ->groupBy('nama_bank')
+        ->orderByDesc('total_nominal')
+        ->get();
 
         // 2. Table: Gudang details (alamat gudang join dari petugas)
         $gudangReportQuery = DB::table('gudangs')
@@ -539,7 +563,8 @@ class LaporanController extends Controller
             'topNasabahByAmount',
             'config',
             'startDate',
-            'endDate'
+            'endDate',
+            'bankDistribution'
         ]));
 
         $pdfBase64 = base64_encode($pdf->output());

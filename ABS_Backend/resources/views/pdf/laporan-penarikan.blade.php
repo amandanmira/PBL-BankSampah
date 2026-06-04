@@ -10,8 +10,8 @@
 
         body {
             font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-            color: #333;
-            font-size: 12px;
+            color: #333333;
+            font-size: 11px;
             line-height: 1.4;
         }
 
@@ -21,7 +21,7 @@
             left: 0;
             right: 0;
             height: 80px;
-            border-bottom: 2px solid #2d4a3e;
+            border-bottom: 2px solid #4A7043;
             padding-bottom: 10px;
         }
 
@@ -44,14 +44,14 @@
             margin: 0;
             font-size: 18px;
             text-transform: uppercase;
-            color: #2d4a3e;
+            color: #4A7043;
             font-weight: bold;
         }
 
         #kop-surat .info p {
             margin: 3px 0;
-            font-size: 11px;
-            color: #555;
+            font-size: 10px;
+            color: #666666;
         }
 
         #footer {
@@ -60,9 +60,9 @@
             left: 0;
             right: 0;
             text-align: center;
-            font-size: 10px;
-            color: #777;
-            border-top: 1px solid #ddd;
+            font-size: 9px;
+            color: #888888;
+            border-top: 1px solid #e1e8e4;
             padding-top: 6px;
         }
 
@@ -73,143 +73,260 @@
         .title-section {
             text-align: center;
             margin-top: 10px;
-            margin-bottom: 25px;
+            margin-bottom: 20px;
         }
 
         .title-section h1 {
             margin: 0;
-            font-size: 18px;
-            color: #2d4a3e;
+            font-size: 16px;
+            color: #4A7043;
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
 
         .title-section p {
-            margin: 5px 0 0 0;
-            font-size: 11px;
-            color: #666;
-        }
-
-        /* Summary Cards / Boxes */
-        .summary-container {
-            width: 100%;
-            margin-bottom: 25px;
-            border-collapse: collapse;
-        }
-
-        .summary-card {
-            background-color: #f8faf9;
-            border: 1px solid #e1e8e4;
-            border-radius: 8px;
-            padding: 12px;
-            text-align: center;
-        }
-
-        .summary-card .label {
+            margin: 4px 0 0 0;
             font-size: 10px;
-            text-transform: uppercase;
-            color: #666;
-            margin-bottom: 5px;
-            font-weight: bold;
-            letter-spacing: 0.5px;
+            color: #666666;
         }
 
-        .summary-card .value {
-            font-size: 16px;
-            font-weight: bold;
-            color: #2d4a3e;
-        }
-
-        .summary-card .sub-value {
-            font-size: 9px;
-            color: #888;
-            margin-top: 3px;
-        }
-
-        /* Tables styling */
-        .section-title {
-            font-size: 13px;
-            color: #2d4a3e;
-            border-bottom: 2px solid #e1e8e4;
-            padding-bottom: 5px;
-            margin-top: 25px;
+        /* Section Header with Green Bar */
+        .section-header {
+            margin-top: 20px;
             margin-bottom: 12px;
-            text-transform: uppercase;
+        }
+        .section-header .bar {
+            display: inline-block;
+            width: 4px;
+            height: 14px;
+            background-color: #4A7043;
+            vertical-align: middle;
+            margin-right: 6px;
+            border-radius: 2px;
+        }
+        .section-header .text {
+            font-size: 11px;
             font-weight: bold;
+            color: #2D3748;
+            text-transform: uppercase;
             letter-spacing: 0.5px;
+            vertical-align: middle;
         }
 
-        table.data-table {
+        /* Summary Cards Table */
+        .card-table {
             width: 100%;
             border-collapse: collapse;
             margin-bottom: 20px;
         }
-
-        table.data-table th {
-            background-color: #2d4a3e;
-            color: white;
-            font-weight: bold;
-            text-align: left;
-            padding: 8px 10px;
-            font-size: 11px;
-            text-transform: uppercase;
-            border: 1px solid #2d4a3e;
+        .card-td {
+            width: 32%;
+            vertical-align: top;
         }
-
-        table.data-table td {
-            padding: 8px 10px;
-            border: 1px solid #e1e8e4;
-            font-size: 11px;
+        .card-spacer {
+            width: 2%;
         }
-
-        table.data-table tr:nth-child(even) td {
+        .card-box {
             background-color: #f8faf9;
+            border: 1px solid #e1e8e4;
+            border-radius: 12px;
+            padding: 14px 12px;
+            text-align: left;
+        }
+        .card-box-danger {
+            background-color: #FFFDF5;
+            border: 1px solid #FBE8C5;
+            border-radius: 12px;
+            padding: 14px 12px;
+            text-align: left;
+        }
+        .card-label {
+            font-size: 9px;
+            font-weight: bold;
+            color: #888888;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 6px;
+        }
+        .card-value {
+            font-size: 20px;
+            font-weight: bold;
+            color: #2D3748;
+            margin-bottom: 4px;
+        }
+        .card-value-green {
+            font-size: 20px;
+            font-weight: bold;
+            color: #4A7043;
+            margin-bottom: 4px;
+        }
+        .card-value-danger {
+            font-size: 20px;
+            font-weight: bold;
+            color: #D97706;
+            margin-bottom: 4px;
+        }
+        .card-desc {
+            font-size: 9px;
+            color: #a0a0a0;
+        }
+
+        /* Table and layout */
+        .dist-table {
+            width: 100%;
+            border-spacing: 0;
+            border: 1px solid #e1e8e4;
+            border-radius: 12px;
+            background-color: #ffffff;
+            margin-bottom: 20px;
+        }
+        .dist-table th {
+            padding: 10px 14px;
+            font-size: 9px;
+            font-weight: bold;
+            color: #888888;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            text-align: left;
+            background-color: #fafbfa;
+            border-bottom: 1px solid #e1e8e4;
+        }
+        .dist-table td {
+            border-bottom: 1px solid #f0f3f1;
+            padding: 10px 14px;
+            font-size: 11px;
+            color: #333333;
+            vertical-align: middle;
+        }
+        .dist-table tr:last-child td {
+            border-bottom: none;
+        }
+        .dist-table .total-row td {
+            background-color: #fafbfa;
+            font-weight: bold;
+            border-top: 1px solid #e1e8e4;
+        }
+
+        /* Rounded corners for dist-table spacing */
+        .dist-table tr:first-child th:first-child {
+            border-top-left-radius: 12px;
+        }
+        .dist-table tr:first-child th:last-child {
+            border-top-right-radius: 12px;
+        }
+        .dist-table tr:last-child td:first-child {
+            border-bottom-left-radius: 12px;
+        }
+        .dist-table tr:last-child td:last-child {
+            border-bottom-right-radius: 12px;
+        }
+
+        /* Badge Icon */
+        .badge-icon {
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            line-height: 24px;
+            text-align: center;
+            background-color: #5D7A56;
+            color: #ffffff;
+            font-weight: bold;
+            font-size: 10px;
+            border-radius: 6px;
+            margin-right: 8px;
+            vertical-align: middle;
+        }
+        .bank-name {
+            font-size: 11px;
+            font-weight: bold;
+            color: #333333;
+            vertical-align: middle;
         }
 
         .text-right {
             text-align: right;
         }
-
         .text-center {
             text-align: center;
         }
-
         .font-bold {
             font-weight: bold;
         }
-
-        /* Top Nasabah Grid Layout */
-        .grid-table {
-            width: 100%;
+        .font-medium {
+            font-weight: 500;
         }
 
-        .grid-col {
-            width: 48%;
+        /* Rasio Section Container */
+        .rasio-box {
+            border: 1px solid #e1e8e4;
+            border-radius: 12px;
+            background-color: #ffffff;
+            padding: 16px;
+            margin-bottom: 20px;
+        }
+
+        /* Progress Bar */
+        .progress-bar-table {
+            width: 100%;
+            height: 12px;
+            border-collapse: collapse;
+            border-radius: 6px;
+            overflow: hidden;
+            background-color: #e1e8e4;
+            margin-bottom: 16px;
+        }
+        .progress-selesai {
+            background-color: #4A7043;
+            height: 12px;
+            padding: 0;
+        }
+        .progress-tolak {
+            background-color: #FFB703;
+            height: 12px;
+            padding: 0;
+        }
+
+        /* Legend Layout */
+        .legend-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .legend-col {
             vertical-align: top;
         }
-
-        .grid-spacer {
-            width: 4%;
+        .legend-item {
+            margin-bottom: 4px;
         }
-
-        .badge-selesai {
-            background-color: #d1e7dd;
-            color: #0f5132;
-            padding: 2px 6px;
-            border-radius: 4px;
+        .dot {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 6px;
+            vertical-align: middle;
+        }
+        .dot-selesai {
+            background-color: #4A7043;
+        }
+        .dot-tolak {
+            background-color: #FFB703;
+        }
+        .legend-label {
             font-size: 9px;
             font-weight: bold;
-            display: inline-block;
+            color: #888888;
+            letter-spacing: 0.5px;
+            vertical-align: middle;
         }
-
-        .badge-pending {
-            background-color: #fff3cd;
-            color: #664d03;
-            padding: 2px 6px;
-            border-radius: 4px;
-            font-size: 9px;
+        .legend-percentage {
+            font-size: 20px;
             font-weight: bold;
-            display: inline-block;
+            color: #333333;
+            margin-bottom: 2px;
+        }
+        .legend-desc {
+            font-size: 9px;
+            color: #888888;
         }
     </style>
 </head>
@@ -253,143 +370,146 @@
         </p>
     </div>
 
-    {{-- Summary Cards (Kolom) --}}
-    <table class="summary-container">
+    @php
+        $status_selesai = $summary->status_selesai ?? 0;
+        $status_tolak = $summary->status_tolak ?? 0;
+        $status_pending = $summary->status_pending ?? 0;
+        $total_final = $status_selesai + $status_tolak;
+        
+        $selesai_percentage = $total_final > 0 ? round(($status_selesai / $total_final) * 100) : 0;
+        $tolak_percentage = $total_final > 0 ? 100 - $selesai_percentage : 0;
+        
+        $total_nilai_selesai = $summary->total_nilai_selesai ?? 0;
+        $total_nilai_tolak = $summary->total_nilai_tolak ?? 0;
+    @endphp
+
+    {{-- 1. Status Final Transaksi --}}
+    <div class="section-header">
+        <span class="bar"></span><span class="text">Status Final Transaksi</span>
+    </div>
+
+    <table class="card-table">
         <tr>
-            <td width="23%">
-                <div class="summary-card">
-                    <div class="label">Total Penarikan</div>
-                    <div class="value">{{ number_format($summary->total_penarikan, 0, ',', '.') }}</div>
-                    <div class="sub-value">Transaksi</div>
+            <td class="card-td">
+                <div class="card-box">
+                    <div class="card-label">Total Transaksi Final</div>
+                    <div class="card-value">{{ number_format($total_final, 0, ',', '.') }}</div>
+                    <div class="card-desc">transaksi tercatat</div>
                 </div>
             </td>
-            <td width="2%">&nbsp;</td>
-            <td width="23%">
-                <div class="summary-card">
-                    <div class="label">Total Nilai</div>
-                    <div class="value">Rp {{ number_format($summary->total_nilai, 0, ',', '.') }}</div>
-                    <div class="sub-value">Nominal Penarikan</div>
+            <td class="card-spacer">&nbsp;</td>
+            <td class="card-td">
+                <div class="card-box">
+                    <div class="card-label">Total Nominal Selesai</div>
+                    <div class="card-value-green">Rp {{ number_format($total_nilai_selesai, 0, ',', '.') }}</div>
+                    <div class="card-desc">sudah dicairkan</div>
                 </div>
             </td>
-            <td width="2%">&nbsp;</td>
-            <td width="23%">
-                <div class="summary-card">
-                    <div class="label">Status Selesai</div>
-                    <div class="value">{{ number_format($summary->status_selesai, 0, ',', '.') }}</div>
-                    <div class="sub-value">Transaksi Disetujui</div>
-                </div>
-            </td>
-            <td width="2%">&nbsp;</td>
-            <td width="23%">
-                <div class="summary-card">
-                    <div class="label">Status Pending</div>
-                    <div class="value">{{ number_format($summary->status_pending, 0, ',', '.') }}</div>
-                    <div class="sub-value">Menunggu Konfirmasi</div>
+            <td class="card-spacer">&nbsp;</td>
+            <td class="card-td">
+                <div class="card-box-danger">
+                    <div class="card-label">Total Ditolak</div>
+                    <div class="card-value-danger">{{ number_format($status_tolak, 0, ',', '.') }}</div>
+                    <div class="card-desc">transaksi gagal</div>
                 </div>
             </td>
         </tr>
     </table>
 
-    {{-- Tabel Gudang --}}
-    <div class="section-title">Rekapitulasi Berdasarkan Gudang</div>
-    <table class="data-table">
+    {{-- 2. Distribusi Bank Tujuan --}}
+    <div class="section-header">
+        <span class="bar"></span><span class="text">Distribusi Bank Tujuan</span>
+    </div>
+
+    <table class="dist-table">
         <thead>
             <tr>
-                <th width="5%" class="text-center">No</th>
-                <th width="45%">Alamat Gudang</th>
-                <th width="15%" class="text-center">Total Penarikan</th>
-                <th width="15%" class="text-right">Total Nilai</th>
-                <th width="10%" class="text-center">Selesai</th>
-                <th width="10%" class="text-center">Pending</th>
+                <th width="50%">Nama Bank / E-Wallet</th>
+                <th width="20%" class="text-center">Jml Transaksi</th>
+                <th width="30%" class="text-right">Total Nominal</th>
             </tr>
         </thead>
         <tbody>
-            @forelse ($gudangReport as $index => $gudang)
+            @php
+                $total_dist_transaksi = 0;
+                $total_dist_nominal = 0;
+            @endphp
+            @forelse ($bankDistribution as $bank)
+                @php
+                    $total_dist_transaksi += $bank->jumlah_transaksi;
+                    $total_dist_nominal += $bank->total_nominal;
+                    $words = explode(' ', trim($bank->nama_bank ?? ''));
+                    if (count($words) >= 2) {
+                        $initials = strtoupper(substr($words[0], 0, 1) . substr($words[1], 0, 1));
+                    } else {
+                        $initials = strtoupper(substr($words[0] ?? '??', 0, 2));
+                    }
+                @endphp
                 <tr>
-                    <td class="text-center">{{ $index + 1 }}</td>
-                    <td>{{ $gudang['alamat'] }}</td>
-                    <td class="text-center font-bold">{{ number_format($gudang['total_penarikan'], 0, ',', '.') }}</td>
-                    <td class="text-right font-bold">Rp {{ number_format($gudang['total_nilai'], 0, ',', '.') }}</td>
-                    <td class="text-center"><span class="badge-selesai">{{ number_format($gudang['status_selesai'], 0, ',', '.') }}</span></td>
-                    <td class="text-center"><span class="badge-pending">{{ number_format($gudang['status_pending'], 0, ',', '.') }}</span></td>
+                    <td>
+                        <span class="badge-icon">{{ $initials }}</span>
+                        <span class="bank-name">{{ $bank->nama_bank }}</span>
+                    </td>
+                    <td class="text-center font-medium">{{ number_format($bank->jumlah_transaksi, 0, ',', '.') }}</td>
+                    <td class="text-right font-bold">Rp {{ number_format($bank->total_nominal, 0, ',', '.') }}</td>
                 </tr>
             @empty
                 <tr>
-                    <td colspan="6" class="text-center">Tidak ada data penarikan untuk periode ini.</td>
+                    <td colspan="3" class="text-center" style="padding: 20px; color: #888888;">Tidak ada data distribusi bank untuk periode ini.</td>
                 </tr>
             @endforelse
+            @if(count($bankDistribution) > 0)
+                <tr class="total-row">
+                    <td class="font-bold" style="padding-left: 14px;">Total</td>
+                    <td class="text-center font-bold">{{ number_format($total_dist_transaksi, 0, ',', '.') }}</td>
+                    <td class="text-right font-bold" style="color: #4A7043;">Rp {{ number_format($total_dist_nominal, 0, ',', '.') }}</td>
+                </tr>
+            @endif
         </tbody>
     </table>
 
-    <div style="page-break-after: always;"></div>
+    {{-- 3. Rasio Keberhasilan Transfer --}}
+    <div class="section-header">
+        <span class="bar"></span><span class="text">Rasio Keberhasilan Transfer</span>
+    </div>
 
-    {{-- Top 5 Nasabah --}}
-    <div class="section-title">Top 5 Nasabah Teraktif</div>
-    
-    <table class="grid-table">
-        <tr>
-            <!-- Kolom 1: Berdasarkan Jumlah Penarikan -->
-            <td class="grid-col">
-                <div style="font-size: 12px; font-weight: bold; color: #2d4a3e; margin-bottom: 8px; border-bottom: 1px solid #e1e8e4; padding-bottom: 4px;">
-                    Berdasarkan Jumlah Penarikan
-                </div>
-                <table class="data-table">
-                    <thead>
-                        <tr>
-                            <th width="10%" class="text-center">No</th>
-                            <th width="55%">Nama Nasabah</th>
-                            <th width="35%" class="text-center">Jml Transaksi</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse ($topNasabahByCount as $index => $nasabah)
-                            <tr>
-                                <td class="text-center">{{ $index + 1 }}</td>
-                                <td>{{ $nasabah->nama }}</td>
-                                <td class="text-center font-bold">{{ number_format($nasabah->total_penarikan) }}x</td>
-                            </tr>
-                        @empty
-                            <tr>
-                                <td colspan="3" class="text-center">Tidak ada data.</td>
-                            </tr>
-                        @endforelse
-                    </tbody>
-                </table>
-            </td>
+    <div class="rasio-box">
+        <table class="progress-bar-table">
+            <tr>
+                @if($total_final > 0)
+                    @if($selesai_percentage > 0)
+                        <td class="progress-selesai" style="width: {{ $selesai_percentage }}%;"></td>
+                    @endif
+                    @if($tolak_percentage > 0)
+                        <td class="progress-tolak" style="width: {{ $tolak_percentage }}%;"></td>
+                    @endif
+                @else
+                    <td style="background-color: #e1e8e4; height: 12px;"></td>
+                @endif
+            </tr>
+        </table>
 
-            <!-- Spacer -->
-            <td class="grid-spacer">&nbsp;</td>
-
-            <!-- Kolom 2: Berdasarkan Total Nilai Penarikan -->
-            <td class="grid-col">
-                <div style="font-size: 12px; font-weight: bold; color: #2d4a3e; margin-bottom: 8px; border-bottom: 1px solid #e1e8e4; padding-bottom: 4px;">
-                    Berdasarkan Total Nilai Penarikan
-                </div>
-                <table class="data-table">
-                    <thead>
-                        <tr>
-                            <th width="10%" class="text-center">No</th>
-                            <th width="50%">Nama Nasabah</th>
-                            <th width="40%" class="text-right">Total Nilai</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse ($topNasabahByAmount as $index => $nasabah)
-                            <tr>
-                                <td class="text-center">{{ $index + 1 }}</td>
-                                <td>{{ $nasabah->nama }}</td>
-                                <td class="text-right font-bold">Rp {{ number_format($nasabah->total_nilai, 0, ',', '.') }}</td>
-                            </tr>
-                        @empty
-                            <tr>
-                                <td colspan="3" class="text-center">Tidak ada data.</td>
-                            </tr>
-                        @endforelse
-                    </tbody>
-                </table>
-            </td>
-        </tr>
-    </table>
+        <table class="legend-table">
+            <tr>
+                <td class="legend-col" width="50%">
+                    <div class="legend-item">
+                        <span class="dot dot-selesai"></span>
+                        <span class="legend-label">SELESAI</span>
+                    </div>
+                    <div class="legend-percentage">{{ $selesai_percentage }}%</div>
+                    <div class="legend-desc">{{ number_format($status_selesai, 0, ',', '.') }} transaksi - Rp {{ number_format($total_nilai_selesai, 0, ',', '.') }}</div>
+                </td>
+                <td class="legend-col" width="50%">
+                    <div class="legend-item">
+                        <span class="dot dot-tolak"></span>
+                        <span class="legend-label">DITOLAK</span>
+                    </div>
+                    <div class="legend-percentage">{{ $tolak_percentage }}%</div>
+                    <div class="legend-desc">{{ number_format($status_tolak, 0, ',', '.') }} transaksi - Rp {{ number_format($total_nilai_tolak, 0, ',', '.') }}</div>
+                </td>
+            </tr>
+        </table>
+    </div>
 
 </body>
 </html>
