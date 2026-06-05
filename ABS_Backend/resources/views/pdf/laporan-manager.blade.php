@@ -3,13 +3,14 @@
 <head>
     <meta charset="utf-8">
     <title>Laporan Riwayat Sampah</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap">
     <style>
         @page {
             margin: 40px 40px 40px 40px;
         }
 
         body {
-            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            font-family: 'Plus Jakarta Sans', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
             color: #2D3748;
             font-size: 12px;
             line-height: 1.4;
