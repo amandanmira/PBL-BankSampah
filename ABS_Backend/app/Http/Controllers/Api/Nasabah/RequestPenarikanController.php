@@ -90,7 +90,7 @@ class RequestPenarikanController extends Controller
         $validated = $request->validate([
             'jumlah' => 'required|integer|min:1',
             'no_rekening' => 'required|string',
-            'nama_bank' => 'required|string',
+            'nama_bank' => 'required|string|in:BRI,BCA,DANA,Bank Jago,Bank Mandiri,BNI,OVO,GoPay,LinkAja,ShopeePay,CIMB Niaga,Bank Permata,BSI',
             'nama_rek' => 'required|string',
         ]);
 

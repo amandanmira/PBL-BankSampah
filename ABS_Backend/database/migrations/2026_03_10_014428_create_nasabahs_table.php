@@ -24,7 +24,7 @@ return new class extends Migration
             $table->string('verification_token')->nullable();
             $table->text('ket_status')->nullable();
             $table->string('no_rekening', 20)->nullable();
-            $table->string('nama_bank', 50)->nullable();
+            $table->enum('nama_bank', ['BRI', 'BCA', 'DANA', 'Bank Jago', 'Bank Mandiri', 'BNI', 'OVO', 'GoPay', 'LinkAja', 'ShopeePay', 'CIMB Niaga', 'Bank Permata', 'BSI'])->nullable();
             $table->string('nama_rek', 50)->nullable();
             $table->decimal('saldo', 15, 2)->default(0);
             $table->timestamps();

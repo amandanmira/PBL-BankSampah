@@ -176,6 +176,7 @@ Route::middleware(['auth:sanctum', 'role:petugas|manager'])->group(function () {
     Route::get('/laporan/list-gudang', [LaporanController::class, 'indexGudang']);
     Route::get('/cetak-laporan/excel', [LaporanController::class, 'exportExcel']);
     Route::get('/cetak-laporan/pdf', [LaporanController::class, 'exportPdf']);
+    Route::get('/cetak-laporan/penarikan/pdf', [LaporanController::class, 'exportPenarikanPdf']);
 
 });
 

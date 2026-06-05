@@ -188,12 +188,18 @@
                 <Icon icon="material-symbols:account-balance-outline" class="w-4 h-4 text-[#4A7043]" />
                 Nama Bank
               </label>
-              <input 
-                v-model="form.nama_bank" 
-                type="text" 
-                placeholder="Masukkan nama bank"
-                class="w-full bg-white border border-stone-200 rounded-2xl py-3 px-4 text-xs font-bold text-stone-700 focus:outline-none focus:border-[#4A7043] transition-all" 
-              />
+              <div class="relative">
+                <select 
+                  v-model="form.nama_bank" 
+                  class="w-full bg-white border border-stone-200 rounded-2xl py-3 pl-4 pr-10 text-xs font-bold text-stone-700 focus:outline-none focus:border-[#4A7043] transition-all appearance-none"
+                >
+                  <option value="" disabled>Pilih nama bank / e-wallet</option>
+                  <option v-for="bank in listBank" :key="bank" :value="bank">{{ bank }}</option>
+                </select>
+                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-stone-400">
+                  <Icon icon="material-symbols:keyboard-arrow-down" class="w-5 h-5" />
+                </div>
+              </div>
             </div>
 
             <!-- Nomor Rekening -->
@@ -486,6 +492,22 @@ import { Icon } from "@iconify/vue";
 import { cn } from "@/lib/utils";
 
 const axios = inject('axios');
+
+const listBank = [
+  'BRI',
+  'BCA',
+  'DANA',
+  'Bank Jago',
+  'Bank Mandiri',
+  'BNI',
+  'OVO',
+  'GoPay',
+  'LinkAja',
+  'ShopeePay',
+  'CIMB Niaga',
+  'Bank Permata',
+  'BSI'
+];
 
 const activeTab = ref('pribadi');
 const tabs = [
