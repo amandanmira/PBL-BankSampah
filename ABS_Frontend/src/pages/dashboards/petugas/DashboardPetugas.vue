@@ -12,7 +12,7 @@ const loading = ref(true);
 
 const user = computed(() => {
   try {
-    return JSON.parse(localStorage.getItem("user") || "{}");
+    return JSON.parse(sessionStorage.getItem("user") || "{}");
   } catch (e) {
     return {};
   }

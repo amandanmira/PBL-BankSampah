@@ -41,7 +41,7 @@ const form = ref({
   estimasi_berat: "1-5 kg"
 });
 
-const user = JSON.parse(localStorage.getItem('user') || "{}");
+const user = JSON.parse(sessionStorage.getItem('user') || "{}");
 
 // Selected Gudang Info
 const selectedGudang = computed(() => {
@@ -187,7 +187,7 @@ const submitRequest = async () => {
     const typesStr = selectedItems.value.join(", ");
     const combinedDesc = `${form.value.estimasi_berat}|${typesStr}|${form.value.deskripsi}`;
     
-    formData.append("deskripsi", form.value.deskripsi);
+    formData.append("deskripsi", combinedDesc);
     formData.append("alamat", addressType.value === 'alamat_profil' ? (user.alamat || '-') : form.value.alamat);
     uploadedPhotos.value.forEach((photo) => {
       formData.append("foto[]", photo.file);

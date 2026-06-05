@@ -4,9 +4,7 @@ import axios from 'axios'
 import { useRouter } from "vue-router";
 
 const router = useRouter()
-
 const token = sessionStorage.getItem("token")
-
 const isMenuOpen = ref(false);
 const webConfig = ref({ logo: null });
 

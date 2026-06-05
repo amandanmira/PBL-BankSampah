@@ -6,13 +6,13 @@ import { Icon } from "@iconify/vue";
 
 const route = useRoute();
 const router = useRouter();
-const token = localStorage.getItem('token');
+const token = sessionStorage.getItem('token');
 
 if (!token) {
   router.push('/login');
 }
 
-const user = ref(JSON.parse(localStorage.getItem("user")) || {});
+const user = ref(JSON.parse(sessionStorage.getItem("user")) || {});
 const headers = { 'Authorization': `Bearer ${token}` };
 
 const startDate = route.query.start_date;

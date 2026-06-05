@@ -204,15 +204,9 @@ const handleLogin = async () => {
 
     const role = response.data.role
 
-    if (role === 'nasabah' || role === 'petugas') {
-      localStorage.setItem('user', JSON.stringify(response.data.user))
-      localStorage.setItem('role', role)
-      localStorage.setItem('token', response.data.token)
-    } else {
-      sessionStorage.setItem('user', JSON.stringify(response.data.user))
-      sessionStorage.setItem('role', role)
-      sessionStorage.setItem('token', response.data.token)
-    }
+    sessionStorage.setItem('user', JSON.stringify(response.data.user))
+    sessionStorage.setItem('role', role)
+    sessionStorage.setItem('token', response.data.token)
 
     const redirectUrl = route.query.redirect
 

@@ -80,7 +80,7 @@ const loadingDetail = ref(false);
 
 const fetchData = async () => {
   try {
-    const token = localStorage.getItem("token");
+    const token = sessionStorage.getItem("token");
     const headers = { Authorization: `Bearer ${token}` };
     const response = await axios.get("http://localhost:8000/api/petugas/riwayat-penarikan", { headers });
     allPenarikans.value = response.data.data;
@@ -95,7 +95,7 @@ const openDetail = async (id) => {
   showModal.value = true;
   loadingDetail.value = true;
   try {
-    const token = localStorage.getItem("token");
+    const token = sessionStorage.getItem("token");
     const headers = { Authorization: `Bearer ${token}` };
     const response = await axios.get(`http://localhost:8000/api/petugas/riwayat-penarikan/${id}`, { headers });
     detail.value = response.data.data;

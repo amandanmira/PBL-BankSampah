@@ -889,7 +889,7 @@ onMounted(() => {
               <div class="space-y-0.5 flex-1">
                 <p class="text-[10px] text-stone-400 font-semibold uppercase tracking-wider">Catatan</p>
                 <p class="font-medium text-stone-500 text-xs italic">
-                  "{{ selectedItem.deskripsi || 'Tidak ada catatan' }}"
+                  "{{ selectedItem.deskripsi?.includes('|') ? (selectedItem.deskripsi.split('|')[2] || 'Tidak ada catatan') : (selectedItem.deskripsi || 'Tidak ada catatan') }}"
                 </p>
               </div>
             </div>

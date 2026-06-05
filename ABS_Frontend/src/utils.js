@@ -2,7 +2,7 @@ import { useRouter } from 'vue-router'
 
 export function checkRole(approvedRole) {
   const router = useRouter()
-  const role = sessionStorage.getItem('role') || localStorage.getItem('role')
+  const role = sessionStorage.getItem('role')
 
   if (role === null) {
     // alert('Silakan login terlebih dahulu!')
@@ -16,7 +16,7 @@ export function checkRole(approvedRole) {
 
 export function redirectLogin() {
   const router = useRouter()
-  const role = sessionStorage.getItem('role') || localStorage.getItem('role')
+  const role = sessionStorage.getItem('role')
 
   if (role !== null) {
     router.back()

@@ -523,7 +523,7 @@ const passwordForm = ref({
 
 const user = computed(() => {
   try {
-    return JSON.parse(localStorage.getItem("user") || "{}");
+    return JSON.parse(sessionStorage.getItem("user") || "{}");
   } catch (e) { return {}; }
 });
 
@@ -693,7 +693,7 @@ const updateProfile = async () => {
     const id = user.value.nasabah_id;
     const res = await axios.put(`/api/nasabah/edit-profile/${id}`, form.value);
     
-    localStorage.setItem("user", JSON.stringify(res.data.data));
+    sessionStorage.setItem("user", JSON.stringify(res.data.data));
     originalForm.value = { ...res.data.data };
     
     successMessage.value = "Profil berhasil diperbarui!";

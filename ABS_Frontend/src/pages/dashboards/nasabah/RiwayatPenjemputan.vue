@@ -23,7 +23,7 @@
       <tbody>
         <tr v-for="penjemputan in allPenjemputans" :key="penjemputan.penjemputan_id">
           <td>{{ penjemputan.penjemputan_id }}</td>
-          <td>{{ penjemputan.deskripsi }}</td>
+          <td>{{ penjemputan.deskripsi?.includes('|') ? (penjemputan.deskripsi.split('|')[2] || 'Tidak ada catatan') : (penjemputan.deskripsi || '-') }}</td>
           <td>{{ penjemputan.alamat }}</td>
           <td>
             <div
@@ -73,11 +73,11 @@ const error = ref(null)
 const fetchData = async () => {
   loading.value = true
   try {
-    const token = localStorage.getItem('token')
+    const token = sessionStorage.getItem('token')
     if (!token) {
       throw new Error('Otentikasi diperlukan.')
     }
-    const user = JSON.parse(localStorage.getItem('user'))
+    const user = JSON.parse(sessionStorage.getItem('user'))
     if (!user || !user.nasabah_id) {
       throw new Error('Data pengguna tidak ditemukan.')
     }

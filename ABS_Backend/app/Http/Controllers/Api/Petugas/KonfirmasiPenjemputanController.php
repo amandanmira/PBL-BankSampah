@@ -106,6 +106,9 @@ class KonfirmasiPenjemputanController extends Controller
         $penjemputan->petugas_id = Auth::id(); // Mengisi ID petugas yang sedang login
         $penjemputan->save();
 
+        if ($penjemputan->nasabah && $penjemputan->nasabah->email) {
+            Mail::to($penjemputan->nasabah->email)->send(new StatusPenjemputanMail($penjemputan, 'tolak'));
+        }
 
         return response()->json(['message' => 'Registrasi penjemputan ditolak'], 200);
     }

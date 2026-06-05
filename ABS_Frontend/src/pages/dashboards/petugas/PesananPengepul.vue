@@ -24,7 +24,7 @@ const searchQuery = ref("");
 const activeFilter = ref("perlu_validasi"); // perlu_validasi, siap_diambil, selesai, ditolak
 const isSubmitting = ref(false);
 
-const user = ref(JSON.parse(localStorage.getItem('user') || '{}'));
+const user = ref(JSON.parse(sessionStorage.getItem('user') || '{}'));
 const currentGudangId = computed(() => user.value.gudang_id);
 const currentGudangNama = computed(() => user.value.gudang?.nama || `Gudang ${user.value.gudang_id}`);
 

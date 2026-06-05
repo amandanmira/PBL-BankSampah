@@ -144,6 +144,11 @@
                 <div class="status-badge">PENJEMPUTAN SELESAI ✅</div>
                 <h2>Halo, {{ $penjemputan->nasabah->nama }}!</h2>
                 <p>Terima kasih! Proses penjemputan dan penimbangan sampah Anda telah selesai. Saldo dari transaksi ini telah berhasil ditambahkan ke akun Anda.</p>
+
+            @elseif($status_type == 'tolak')
+                <div class="status-badge" style="background-color: #FFEBEE; color: #C62828; border-color: #FFCDD2;">PENJEMPUTAN DITOLAK ❌</div>
+                <h2>Halo, {{ $penjemputan->nasabah->nama }}!</h2>
+                <p>Mohon maaf, permintaan penjemputan sampah Anda telah <strong>ditolak</strong> oleh petugas kami. Alasan penolakan: <strong>{{ $penjemputan->ket_status ?? 'Tidak ada keterangan tambahan' }}</strong>.</p>
             @endif
 
             <div class="details-card">
