@@ -31,6 +31,7 @@ use App\Http\Controllers\Api\Petugas\KonfirmasiPenarikanController;
 use App\Http\Controllers\Api\Petugas\PenimbanganController;
 use App\Http\Controllers\Api\Petugas\RiwayatPenjemputanController;
 use App\Http\Controllers\Api\Manager\DashboardManagerController;
+use App\Http\Controllers\Api\Petugas\EditPenimbanganController;
 
 Route::post('login', [AuthController::class, 'login']);
 Route::post('register-pengepul', [AuthController::class, 'registerPengepul']);
@@ -134,6 +135,7 @@ Route::prefix('petugas')->middleware(['auth:sanctum', 'role:petugas'])->group(fu
     Route::get('/riwayat-penjemputan', [RiwayatPenjemputanController::class, 'riwayatPenjemputan']);
     Route::get('/riwayat-penjemputan/{id}', [RiwayatPenjemputanController::class, 'show']);
     Route::get('/riwayat-setor-manual', [KonfirmasiPenjemputanController::class, 'riwayatSetorManual']);
+    Route::get('/riwayat-setor-manual/{id}', [KonfirmasiPenjemputanController::class, 'showRiwayatSetorManual']);
     Route::put('/penjemputan/{penjemputan}/terima', [KonfirmasiPenjemputanController::class, 'terima']);
     Route::put('/penjemputan/{penjemputan}/tolak', [KonfirmasiPenjemputanController::class, 'tolak']);
     Route::put('/penjemputan/{penjemputan}/dijemput', [KonfirmasiPenjemputanController::class, 'dijemput']);
@@ -151,19 +153,21 @@ Route::prefix('petugas')->middleware(['auth:sanctum', 'role:petugas'])->group(fu
     Route::get('/list-nasabah', [PenimbanganController::class, 'listNasabah']);
     Route::post('/penimbangan-antar-sendiri', [PenimbanganController::class, 'penimbanganAntarSendiri']);
 
+    // Edit Penimbangan
+    Route::get('/penimbangan/{id}', [EditPenimbanganController::class, 'show']);
+    Route::put('/penimbangan/{id}', [EditPenimbanganController::class, 'update']);
+
     Route::get('/summary-laporan', [SummaryLaporanController::class, 'index']);
 
     // Dashboard Stats
     Route::get('/dashboard-stats', [DashboardPetugasController::class, 'index']);
 
     // Pesanan Pengepul Petugas
-    Route::prefix('petugas')->group(function () {
-        Route::get('/pesanan-pengepul', [App\Http\Controllers\Api\Petugas\PesananPengepulController::class, 'index']);
-        Route::put('/pesanan-pengepul/{id}/approve-stok', [App\Http\Controllers\Api\Petugas\PesananPengepulController::class, 'approveStock']);
-        Route::put('/pesanan-pengepul/{id}/tolak', [App\Http\Controllers\Api\Petugas\PesananPengepulController::class, 'rejectOrder']);
-        Route::put('/pesanan-pengepul/{id}/verifikasi-pembayaran', [App\Http\Controllers\Api\Petugas\PesananPengepulController::class, 'verifyPayment']);
-        Route::put('/pesanan-pengepul/{id}/selesai', [App\Http\Controllers\Api\Petugas\PesananPengepulController::class, 'completeOrder']);
-    });
+    Route::get('/pesanan-pengepul', [App\Http\Controllers\Api\Petugas\PesananPengepulController::class, 'index']);
+    Route::put('/pesanan-pengepul/{id}/approve-stok', [App\Http\Controllers\Api\Petugas\PesananPengepulController::class, 'approveStock']);
+    Route::put('/pesanan-pengepul/{id}/tolak', [App\Http\Controllers\Api\Petugas\PesananPengepulController::class, 'rejectOrder']);
+    Route::put('/pesanan-pengepul/{id}/verifikasi-pembayaran', [App\Http\Controllers\Api\Petugas\PesananPengepulController::class, 'verifyPayment']);
+    Route::put('/pesanan-pengepul/{id}/selesai', [App\Http\Controllers\Api\Petugas\PesananPengepulController::class, 'completeOrder']);
 });
 
 Route::middleware(['auth:sanctum', 'role:petugas|manager'])->group(function () {
@@ -172,6 +176,7 @@ Route::middleware(['auth:sanctum', 'role:petugas|manager'])->group(function () {
     Route::get('/laporan/list-gudang', [LaporanController::class, 'indexGudang']);
     Route::get('/cetak-laporan/excel', [LaporanController::class, 'exportExcel']);
     Route::get('/cetak-laporan/pdf', [LaporanController::class, 'exportPdf']);
+    Route::get('/cetak-laporan/penarikan/pdf', [LaporanController::class, 'exportPenarikanPdf']);
 
 });
 

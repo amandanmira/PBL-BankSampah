@@ -12,9 +12,11 @@ class RequestPenjemputanController extends Controller
 {
     public function store(Request $request) {
         $validated = $request->validate([
-            'deskripsi' => 'required|string',
+            'deskripsi' => 'nullable|string',
             'alamat' => 'required|string',
             'estimasi_berat' => 'required|string',
+            'rentang_hari' => 'nullable|string',
+            'rentan_waktu' => 'nullable|string',
             'foto' => 'required|array|max:3',
             'foto.*' => 'image|mimes:jpg,jpeg,png,webp|max:4096',
             'nasabah_id' => 'required',
@@ -31,9 +33,11 @@ class RequestPenjemputanController extends Controller
         $validated['foto'] = $fotoPaths;
 
         $penjemputan = Penjemputan::create([
-            'deskripsi' => $validated['deskripsi'],
+            'deskripsi' => $validated['deskripsi'] ?? null,
             'alamat' => $validated['alamat'],
             'estimasi_berat' => $validated['estimasi_berat'],
+            'rentang_hari' => $validated['rentang_hari'] ?? null,
+            'rentan_waktu' => $validated['rentan_waktu'] ?? null,
             'foto' => $validated['foto'],
             'status' => 'pending',
             'nasabah_id' => $validated['nasabah_id'],

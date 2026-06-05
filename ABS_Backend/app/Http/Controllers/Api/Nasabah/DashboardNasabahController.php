@@ -159,6 +159,9 @@ class DashboardNasabahController extends Controller
             'user' => [
                 'nama' => $nasabah->nama,
                 'username' => $nasabah->username,
+                'saldo' => $nasabah->saldo,
+                'saldo_tersedia' => $nasabah->saldo_tersedia,
+                'alamat' => $nasabah->alamat,
             ],
             'chart_data' => $chartData,
             'top_nasabah' => $topNasabah,

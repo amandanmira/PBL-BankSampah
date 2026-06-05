@@ -30,6 +30,7 @@ class WebController extends Controller
             'linkedin' => 'nullable|string',
             'youtube' => 'nullable|string',
             'no_telp' => 'nullable|string|max:16',
+            'batas_waktu_edit' => 'nullable|integer|min:1',
             'email' => 'nullable|email|max:50',
             'lama_deadline' => 'nullable|integer',
             'alamat' => 'nullable|string',

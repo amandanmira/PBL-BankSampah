@@ -131,12 +131,18 @@
                 <Icon icon="material-symbols:domain" class="w-4 h-4 text-stone-400" />
                 Nama Bank
               </label>
-              <input 
-                v-model="form.nama_bank" 
-                type="text" 
-                placeholder="Masukkan nama bank" 
-                class="w-full bg-white border border-stone-200 rounded-xl py-3 px-4 text-sm font-medium text-stone-700 focus:outline-none focus:border-[#4A7043] focus:ring-1 focus:ring-[#4A7043]" 
-              />
+              <div class="relative">
+                <select 
+                  v-model="form.nama_bank" 
+                  class="w-full bg-white border border-stone-200 rounded-xl py-3 pl-4 pr-10 text-sm font-medium text-stone-700 focus:outline-none focus:border-[#4A7043] focus:ring-1 focus:ring-[#4A7043] appearance-none"
+                >
+                  <option value="" disabled>Pilih nama bank / e-wallet</option>
+                  <option v-for="bank in listBank" :key="bank" :value="bank">{{ bank }}</option>
+                </select>
+                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-stone-400">
+                  <Icon icon="material-symbols:keyboard-arrow-down" class="w-5 h-5" />
+                </div>
+              </div>
             </div>
 
             <!-- Nomor Rekening Input -->
@@ -253,6 +259,21 @@ const axios = inject('axios');
 const router = useRouter();
 
 checkRole('nasabah');
+const listBank = [
+  'BRI',
+  'BCA',
+  'DANA',
+  'Bank Jago',
+  'Bank Mandiri',
+  'BNI',
+  'OVO',
+  'GoPay',
+  'LinkAja',
+  'ShopeePay',
+  'CIMB Niaga',
+  'Bank Permata',
+  'BSI'
+];
 
 const saldoTersedia = ref(0);
 const completionPercentage = ref(0);

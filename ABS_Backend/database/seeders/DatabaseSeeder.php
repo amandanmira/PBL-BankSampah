@@ -249,6 +249,7 @@ class DatabaseSeeder extends Seeder
             'username' => 'manager',
             'email' => 'manager@abs.com',
             'password' => Hash::make('manager123'),
+            'status' => 'aktif',
         ]);
 
         Admin::create([

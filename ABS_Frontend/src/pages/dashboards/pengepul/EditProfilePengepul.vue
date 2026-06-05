@@ -12,43 +12,43 @@
       </div>
 
       <!-- Main Profile Box -->
-      <div class="bg-white rounded-[2.5rem] p-8 shadow-sm border border-stone-100 overflow-hidden">
+      <div class="bg-white rounded-3xl p-4 md:p-8 shadow-sm border border-stone-100 overflow-hidden">
         
         <!-- Tab Headers -->
-        <div class="flex border border-stone-200 bg-stone-50/50 rounded-2xl p-1.5 mb-8">
+        <div class="flex border border-stone-200 bg-stone-50/50 rounded-2xl p-1 mb-6">
           <button 
             v-for="tab in tabs" 
             :key="tab.id"
             @click="activeTab = tab.id"
             :class="cn(
-              'flex-1 py-3 text-xs md:text-sm font-bold transition-all flex items-center justify-center gap-2 rounded-xl',
+              'py-2.5 text-xs md:text-sm font-bold transition-all duration-300 flex items-center justify-center gap-1.5 rounded-xl cursor-pointer',
               activeTab === tab.id 
-                ? 'bg-white border border-[#4A7043] text-[#4A7043] shadow-sm' 
-                : 'text-stone-500 hover:text-stone-800 bg-transparent border-transparent'
+                ? 'flex-1 bg-white border border-[#4A7043] text-[#4A7043] shadow-sm px-4' 
+                : 'flex-none w-12 md:flex-1 text-stone-500 hover:text-stone-850 bg-transparent border-transparent'
             )"
           >
-            <Icon :icon="tab.icon" class="w-4.5 h-4.5" />
-            {{ tab.name }}
+            <Icon :icon="tab.icon" class="w-4.5 h-4.5 shrink-0" />
+            <span :class="[activeTab === tab.id ? 'inline' : 'hidden md:inline']">{{ tab.name }}</span>
           </button>
         </div>
 
         <!-- Tab Contents -->
-        <div class="space-y-6">
+        <div class="space-y-5">
           
           <!-- TAB 1: INFORMASI PRIBADI -->
-          <div v-if="activeTab === 'pribadi'" class="space-y-6 animate-in slide-in-from-bottom-4 duration-300">
-            <div class="grid grid-cols-1 gap-6">
+          <div v-if="activeTab === 'pribadi'" class="space-y-5 animate-in slide-in-from-bottom-4 duration-300">
+            <div class="grid grid-cols-1 gap-5">
               
               <!-- Username -->
               <div class="space-y-1">
-                <label class="flex items-center gap-2 text-xs font-bold text-[#4A7043] uppercase tracking-wider mb-2">
-                  <Icon icon="material-symbols:person-outline" class="w-4.5 h-4.5" />
+                <label class="flex items-center gap-2 text-xs md:text-sm font-bold text-stone-700 mb-1.5">
+                  <Icon icon="material-symbols:person-outline" class="w-4 h-4 text-stone-500" />
                   Username<span class="text-red-500">*</span>
                 </label>
                 <input 
                   v-model="form.username" 
                   type="text" 
-                  class="w-full bg-[#EEF0ED] border-0 rounded-xl py-4 px-5 text-sm font-bold text-stone-700 focus:outline-none focus:ring-2 focus:ring-[#4A7043]/20 focus:bg-white transition-all duration-200" 
+                  class="w-full bg-[#EEF0ED] border-0 rounded-xl py-2.5 px-3.5 text-xs md:text-sm font-semibold text-stone-700 focus:outline-none focus:ring-2 focus:ring-[#4A7043]/20 focus:bg-white transition-all duration-200" 
                   placeholder="Masukkan Username"
                 />
                 <p v-if="errors.username" class="text-xs text-red-600 font-bold mt-1">{{ errors.username[0] }}</p>
@@ -56,14 +56,14 @@
 
               <!-- Nama Lembaga -->
               <div class="space-y-1">
-                <label class="flex items-center gap-2 text-xs font-bold text-[#4A7043] uppercase tracking-wider mb-2">
-                  <Icon icon="material-symbols:person-outline" class="w-4.5 h-4.5" />
+                <label class="flex items-center gap-2 text-xs md:text-sm font-bold text-stone-700 mb-1.5">
+                  <Icon icon="material-symbols:person-outline" class="w-4 h-4 text-stone-500" />
                   Nama Lembaga<span class="text-red-500">*</span>
                 </label>
                 <input 
                   v-model="form.nama_lembaga" 
                   type="text" 
-                  class="w-full bg-[#EEF0ED] border-0 rounded-xl py-4 px-5 text-sm font-bold text-stone-700 focus:outline-none focus:ring-2 focus:ring-[#4A7043]/20 focus:bg-white transition-all duration-200" 
+                  class="w-full bg-[#EEF0ED] border-0 rounded-xl py-2.5 px-3.5 text-xs md:text-sm font-semibold text-stone-700 focus:outline-none focus:ring-2 focus:ring-[#4A7043]/20 focus:bg-white transition-all duration-200" 
                   placeholder="Masukkan Nama Lembaga"
                 />
                 <p v-if="errors.nama_lembaga" class="text-xs text-red-600 font-bold mt-1">{{ errors.nama_lembaga[0] }}</p>
@@ -71,14 +71,14 @@
 
               <!-- Nama Lengkap -->
               <div class="space-y-1">
-                <label class="flex items-center gap-2 text-xs font-bold text-[#4A7043] uppercase tracking-wider mb-2">
-                  <Icon icon="material-symbols:person-outline" class="w-4.5 h-4.5" />
+                <label class="flex items-center gap-2 text-xs md:text-sm font-bold text-stone-700 mb-1.5">
+                  <Icon icon="material-symbols:person-outline" class="w-4 h-4 text-stone-500" />
                   Nama Lengkap<span class="text-red-500">*</span>
                 </label>
                 <input 
                   v-model="form.nama" 
                   type="text" 
-                  class="w-full bg-[#EEF0ED] border-0 rounded-xl py-4 px-5 text-sm font-bold text-stone-700 focus:outline-none focus:ring-2 focus:ring-[#4A7043]/20 focus:bg-white transition-all duration-200" 
+                  class="w-full bg-[#EEF0ED] border-0 rounded-xl py-2.5 px-3.5 text-xs md:text-sm font-semibold text-stone-700 focus:outline-none focus:ring-2 focus:ring-[#4A7043]/20 focus:bg-white transition-all duration-200" 
                   placeholder="Masukkan Nama Lengkap"
                 />
                 <p v-if="errors.nama" class="text-xs text-red-600 font-bold mt-1">{{ errors.nama[0] }}</p>
@@ -86,29 +86,29 @@
 
               <!-- Email (Read-only) -->
               <div class="space-y-1 opacity-70">
-                <label class="flex items-center gap-2 text-xs font-bold text-[#4A7043] uppercase tracking-wider mb-2">
-                  <Icon icon="material-symbols:description-outline" class="w-4.5 h-4.5" />
+                <label class="flex items-center gap-2 text-xs md:text-sm font-bold text-stone-700 mb-1.5">
+                  <Icon icon="material-symbols:description-outline" class="w-4 h-4 text-stone-500" />
                   Email<span class="text-red-500">*</span>
                 </label>
                 <input 
                   :value="form.email" 
                   type="email" 
                   disabled 
-                  class="w-full bg-[#EEF0ED] border-0 rounded-xl py-4 px-5 text-sm font-bold text-stone-500 cursor-not-allowed" 
+                  class="w-full bg-[#EEF0ED] border-0 rounded-xl py-2.5 px-3.5 text-xs md:text-sm font-semibold text-stone-500 cursor-not-allowed" 
                 />
                 <p class="text-[10px] font-bold text-stone-400 mt-1 italic">* Email tidak dapat diubah secara mandiri</p>
               </div>
 
               <!-- Nomor Telepon -->
               <div class="space-y-1">
-                <label class="flex items-center gap-2 text-xs font-bold text-[#4A7043] uppercase tracking-wider mb-2">
-                  <Icon icon="material-symbols:description-outline" class="w-4.5 h-4.5" />
+                <label class="flex items-center gap-2 text-xs md:text-sm font-bold text-stone-700 mb-1.5">
+                  <Icon icon="material-symbols:description-outline" class="w-4 h-4 text-stone-500" />
                   Nomor Telepon<span class="text-red-500">*</span>
                 </label>
                 <input 
                   v-model="form.no_telp" 
                   type="text" 
-                  class="w-full bg-[#EEF0ED] border-0 rounded-xl py-4 px-5 text-sm font-bold text-stone-700 focus:outline-none focus:ring-2 focus:ring-[#4A7043]/20 focus:bg-white transition-all duration-200" 
+                  class="w-full bg-[#EEF0ED] border-0 rounded-xl py-2.5 px-3.5 text-xs md:text-sm font-semibold text-stone-700 focus:outline-none focus:ring-2 focus:ring-[#4A7043]/20 focus:bg-white transition-all duration-200" 
                   placeholder="Masukkan Nomor Telepon"
                 />
                 <p v-if="errors.no_telp" class="text-xs text-red-600 font-bold mt-1">{{ errors.no_telp[0] }}</p>
@@ -116,15 +116,15 @@
 
               <!-- Alamat Lengkap -->
               <div class="space-y-1">
-                <label class="flex items-center gap-2 text-xs font-bold text-[#4A7043] uppercase tracking-wider mb-2">
-                  <Icon icon="material-symbols:description-outline" class="w-4.5 h-4.5" />
+                <label class="flex items-center gap-2 text-xs md:text-sm font-bold text-stone-700 mb-1.5">
+                  <Icon icon="material-symbols:description-outline" class="w-4 h-4 text-stone-500" />
                   Alamat Lengkap<span class="text-red-500">*</span>
                 </label>
                 <textarea 
                   v-model="form.alamat" 
-                  rows="4" 
-                  class="w-full bg-[#EEF0ED] border-0 rounded-xl py-4 px-5 text-sm font-bold text-stone-700 focus:outline-none focus:ring-2 focus:ring-[#4A7043]/20 focus:bg-white transition-all duration-200 resize-none" 
-                  placeholder="Masukkan Alamat Lengkap"
+                  rows="3" 
+                  class="w-full bg-[#EEF0ED] border-0 rounded-xl py-2.5 px-3.5 text-xs md:text-sm font-semibold text-stone-700 focus:outline-none focus:ring-2 focus:ring-[#4A7043]/20 focus:bg-white transition-all duration-200 resize-none" 
+                  placeholder="Masukkan alamat lengkap"
                 ></textarea>
                 <p v-if="errors.alamat" class="text-xs text-red-600 font-bold mt-1">{{ errors.alamat[0] }}</p>
               </div>
@@ -132,36 +132,36 @@
             </div>
 
             <!-- Submit Button -->
-            <div class="pt-6">
+            <div class="pt-4">
               <button 
                 @click="updateProfile"
                 :disabled="isUpdating"
-                class="w-full bg-[#4A7043] hover:bg-[#3D5C37] text-white py-4.5 rounded-2xl font-bold text-sm flex items-center justify-center gap-2 transition-all duration-200 disabled:opacity-50 shadow-lg shadow-[#4A7043]/10 active:scale-[0.99] cursor-pointer"
+                class="w-full bg-[#4A7043] hover:bg-[#3D5C37] text-white py-3 rounded-xl font-bold text-xs md:text-sm flex items-center justify-center gap-2 transition-all duration-200 disabled:opacity-50 shadow-sm cursor-pointer"
               >
                 <Icon v-if="isUpdating" icon="line-md:loading-twotone-loop" class="w-5 h-5" />
-                <Icon v-else icon="material-symbols:description-outline" class="w-5 h-5" />
+                <Icon v-else icon="material-symbols:save-outline" class="w-5 h-5" />
                 Simpan Perubahan
               </button>
             </div>
           </div>
 
           <!-- TAB 2: UBAH PASSWORD -->
-          <div v-if="activeTab === 'password'" class="space-y-6 animate-in slide-in-from-bottom-4 duration-300">
+          <div v-if="activeTab === 'password'" class="space-y-5 animate-in slide-in-from-bottom-4 duration-300">
             
-            <div class="space-y-6">
+            <div class="space-y-5">
               
               <!-- Password Baru -->
               <div class="space-y-1">
-                <label class="flex items-center gap-2 text-xs font-bold text-[#4A7043] uppercase tracking-wider mb-2">
-                  <Icon icon="material-symbols:lock-outline" class="w-4.5 h-4.5" />
+                <label class="flex items-center gap-2 text-xs md:text-sm font-bold text-stone-700 mb-1.5">
+                  <Icon icon="material-symbols:lock-outline" class="w-4 h-4 text-stone-500" />
                   Password Baru<span class="text-red-500">*</span>
                 </label>
                 <div class="relative">
                   <input 
                     v-model="passwordForm.password" 
                     :type="showPassword ? 'text' : 'password'" 
-                    class="w-full bg-[#EEF0ED] border-0 rounded-xl py-4 px-5 text-sm font-bold text-stone-700 focus:outline-none focus:ring-2 focus:ring-[#4A7043]/20 focus:bg-white transition-all duration-200" 
-                    placeholder="Masukkan password baru" 
+                    class="w-full bg-[#EEF0ED] border-0 rounded-xl py-2.5 px-3.5 text-xs md:text-sm font-semibold text-stone-700 focus:outline-none focus:ring-2 focus:ring-[#4A7043]/20 focus:bg-white transition-all duration-200" 
+                    placeholder="Kosongkan jika tidak ingin mengubah" 
                   />
                   <button @click="showPassword = !showPassword" class="absolute right-4 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-600 transition-colors cursor-pointer">
                     <Icon :icon="showPassword ? 'material-symbols:visibility-off-outline' : 'material-symbols:visibility-outline'" class="w-5 h-5" />
@@ -173,14 +173,14 @@
 
               <!-- Konfirmasi Password -->
               <div class="space-y-1">
-                <label class="flex items-center gap-2 text-xs font-bold text-[#4A7043] uppercase tracking-wider mb-2">
-                  <Icon icon="material-symbols:lock-outline" class="w-4.5 h-4.5" />
+                <label class="flex items-center gap-2 text-xs md:text-sm font-bold text-stone-700 mb-1.5">
+                  <Icon icon="material-symbols:lock-outline" class="w-4 h-4 text-stone-500" />
                   Konfirmasi Password<span class="text-red-500">*</span>
                 </label>
                 <input 
                   v-model="passwordForm.password_confirmation" 
                   :type="showPassword ? 'text' : 'password'" 
-                  class="w-full bg-[#EEF0ED] border-0 rounded-xl py-4 px-5 text-sm font-bold text-stone-700 focus:outline-none focus:ring-2 focus:ring-[#4A7043]/20 focus:bg-white transition-all duration-200" 
+                  class="w-full bg-[#EEF0ED] border-0 rounded-xl py-2.5 px-3.5 text-xs md:text-sm font-semibold text-stone-700 focus:outline-none focus:ring-2 focus:ring-[#4A7043]/20 focus:bg-white transition-all duration-200" 
                   placeholder="Ulangi password baru" 
                 />
               </div>
@@ -188,14 +188,14 @@
             </div>
 
             <!-- Submit Button -->
-            <div class="pt-6">
+            <div class="pt-4">
               <button 
                 @click="updatePassword"
                 :disabled="isUpdating || !isPasswordFormValid"
-                class="w-full bg-[#4A7043] hover:bg-[#3D5C37] text-white py-4.5 rounded-2xl font-bold text-sm flex items-center justify-center gap-2 transition-all duration-200 disabled:opacity-50 shadow-lg shadow-[#4A7043]/10 active:scale-[0.99] cursor-pointer"
+                class="w-full bg-[#4A7043] hover:bg-[#3D5C37] text-white py-3 rounded-xl font-bold text-xs md:text-sm flex items-center justify-center gap-2 transition-all duration-200 disabled:opacity-50 shadow-sm cursor-pointer"
               >
                 <Icon v-if="isUpdating" icon="line-md:loading-twotone-loop" class="w-5 h-5" />
-                <Icon v-else icon="material-symbols:description-outline" class="w-5 h-5" />
+                <Icon v-else icon="material-symbols:save-outline" class="w-5 h-5" />
                 Simpan Perubahan
               </button>
             </div>
@@ -227,11 +227,11 @@
               />
 
               <!-- KTP Box -->
-              <div class="bg-white rounded-3xl p-6 border border-stone-200/60 shadow-sm space-y-4">
+              <div class="bg-white rounded-3xl p-5 border border-stone-200/60 shadow-sm space-y-4">
                 <div class="flex justify-between items-center">
                   <div class="flex items-center gap-2 text-stone-700">
                     <Icon icon="material-symbols:description-outline" class="w-5 h-5 text-[#4A7043]" />
-                    <span class="text-sm font-bold text-stone-800">KTP (Kartu Tanda Penduduk)</span><span class="text-red-500">*</span>
+                    <span class="text-sm font-bold text-stone-850">KTP (Kartu Tanda Penduduk)</span><span class="text-red-500">*</span>
                   </div>
                   <div v-if="form.ktp" class="flex items-center gap-1.5 text-green-600 bg-green-50 px-3 py-1 rounded-full text-xs font-bold">
                     <Icon icon="material-symbols:check" class="w-3.5 h-3.5" />
@@ -267,7 +267,7 @@
                 <button 
                   @click="triggerKtpUpload"
                   :disabled="isUploading"
-                  class="w-full bg-[#EEF0ED]/60 hover:bg-[#EEF0ED] text-[#4A7043] border border-stone-200/50 py-3.5 rounded-xl font-bold text-xs md:text-sm flex items-center justify-center gap-2 transition-all duration-200 active:scale-[0.99] cursor-pointer"
+                  class="w-full bg-[#EEF0ED]/65 hover:bg-[#EEF0ED] text-[#4A7043] border border-stone-200/50 py-3 rounded-xl font-bold text-xs md:text-sm flex items-center justify-center gap-2 transition-all duration-200 active:scale-[0.99] cursor-pointer"
                 >
                   <Icon icon="material-symbols:upload" class="w-4.5 h-4.5" />
                   Ganti KTP
@@ -275,11 +275,11 @@
               </div>
 
               <!-- NPWP Box -->
-              <div class="bg-white rounded-3xl p-6 border border-stone-200/60 shadow-sm space-y-4">
+              <div class="bg-white rounded-3xl p-5 border border-stone-200/60 shadow-sm space-y-4">
                 <div class="flex justify-between items-center">
                   <div class="flex items-center gap-2 text-stone-700">
                     <Icon icon="material-symbols:description-outline" class="w-5 h-5 text-[#4A7043]" />
-                    <span class="text-sm font-bold text-stone-800">NPWP (Nomor Pokok Wajib Pajak)</span><span class="text-red-500">*</span>
+                    <span class="text-sm font-bold text-stone-850">NPWP (Nomor Pokok Wajib Pajak)</span><span class="text-red-500">*</span>
                   </div>
                   <div v-if="form.npwp" class="flex items-center gap-1.5 text-green-600 bg-green-50 px-3 py-1 rounded-full text-xs font-bold">
                     <Icon icon="material-symbols:check" class="w-3.5 h-3.5" />
@@ -315,7 +315,7 @@
                 <button 
                   @click="triggerNpwpUpload"
                   :disabled="isUploading"
-                  class="w-full bg-[#EEF0ED]/60 hover:bg-[#EEF0ED] text-[#4A7043] border border-stone-200/50 py-3.5 rounded-xl font-bold text-xs md:text-sm flex items-center justify-center gap-2 transition-all duration-200 active:scale-[0.99] cursor-pointer"
+                  class="w-full bg-[#EEF0ED]/65 hover:bg-[#EEF0ED] text-[#4A7043] border border-stone-200/50 py-3 rounded-xl font-bold text-xs md:text-sm flex items-center justify-center gap-2 transition-all duration-200 active:scale-[0.99] cursor-pointer"
                 >
                   <Icon icon="material-symbols:upload" class="w-4.5 h-4.5" />
                   Ganti NPWP
@@ -328,9 +328,9 @@
             <div class="pt-6">
               <button 
                 @click="confirmDocuments"
-                class="w-full bg-[#4A7043] hover:bg-[#3D5C37] text-white py-4.5 rounded-2xl font-bold text-sm flex items-center justify-center gap-2 transition-all duration-200 active:scale-[0.99] cursor-pointer"
+                class="w-full bg-[#4A7043] hover:bg-[#3D5C37] text-white py-4 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all duration-200 active:scale-[0.99] cursor-pointer"
               >
-                <Icon icon="material-symbols:description-outline" class="w-5 h-5" />
+                <Icon icon="material-symbols:save-outline" class="w-5 h-5" />
                 Simpan Perubahan
               </button>
             </div>

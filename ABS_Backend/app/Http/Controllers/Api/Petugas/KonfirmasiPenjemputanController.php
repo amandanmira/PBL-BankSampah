@@ -205,4 +205,20 @@ class KonfirmasiPenjemputanController extends Controller
 
         return response()->json($transactions, 200);
     }
+
+    public function showRiwayatSetorManual($id)
+    {
+        $transaksi = \App\Models\TransaksiNasabah::with([
+            'penimbangan.sampah.itemSampah',
+            'penimbangan.nasabah',
+            'penimbangan.tukang.gudang',
+            'petugas'
+        ])->find($id);
+
+        if (!$transaksi) {
+            return response()->json(['message' => 'Data transaksi tidak ditemukan'], 404);
+        }
+
+        return response()->json(['data' => $transaksi], 200);
+    }
 }

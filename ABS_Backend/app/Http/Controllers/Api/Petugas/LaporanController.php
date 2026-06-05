@@ -309,6 +309,32 @@ class LaporanController extends Controller
                 'total_stok' => $item->total_stok,
             ];
         });
+        $transaksiNasabahData = \App\Models\TransaksiNasabah::whereBetween('created_at', [$startDate, $endDate])
+            ->where('status', 'selesai')
+            ->when($gudangId, function ($query) use ($gudangId) {
+                $query->whereHas('penimbangan.sampah.gudang', function ($q) use ($gudangId) {
+                    $q->where('gudang_id', $gudangId);
+                });
+            })
+            ->when($sampah, function ($query) use ($sampah) {
+                $query->whereHas('penimbangan.sampah', function ($q) use ($sampah) {
+                    $q->whereIn('item_id', $sampah);
+                });
+            })
+            ->with('penimbangan')
+            ->get();
+
+        $nasabahJemputCount = $transaksiNasabahData->where('tipe_transaksi', 'dijemput')->count();
+        $nasabahSetorCount = $transaksiNasabahData->where('tipe_transaksi', 'antar_sendiri')->count();
+
+        $nasabahJemputWeight = $transaksiNasabahData->where('tipe_transaksi', 'dijemput')->flatMap(function ($t) {
+            return $t->penimbangan;
+        })->sum('berat_timbang');
+
+        $nasabahSetorWeight = $transaksiNasabahData->where('tipe_transaksi', 'antar_sendiri')->flatMap(function ($t) {
+            return $t->penimbangan;
+        })->sum('berat_timbang');
+
         $dataStatistik = [
             'total_transaksi' => $transaksiPengepulData->count(),
             'total_transaksi_selesai' => $transaksiPengepulData->where('status', 'selesai')->count(),
@@ -317,6 +343,10 @@ class LaporanController extends Controller
                 $q->where('gudang_id', $gudangId);
             })
             ->sum('stok'),
+            'nasabah_jemput_count' => $nasabahJemputCount,
+            'nasabah_setor_count' => $nasabahSetorCount,
+            'nasabah_jemput_weight' => $nasabahJemputWeight,
+            'nasabah_setor_weight' => $nasabahSetorWeight,
         ];
         $totalStokItem = $itemSampahData->map(function ($item) use ($dataStatistik) {
             $total = $dataStatistik['total_stok'];
@@ -342,4 +372,209 @@ class LaporanController extends Controller
             ]
         ]);
     }
+
+    public function exportPenarikanPdf(Request $request)
+    {
+        $startDate = null;
+        $endDate = Carbon::now()->endOfDay();
+        $gudangId = $request->query('gudang_id') ?: $request->gudang_id;
+
+        $durasi = $request->query('durasi');
+        if ($durasi && $durasi !== 'Semua Waktu') {
+            if ($durasi === '1 Minggu Terakhir') {
+                $startDate = Carbon::now()->subWeek()->startOfDay();
+            } elseif ($durasi === '1 Bulan Terakhir') {
+                $startDate = Carbon::now()->subMonth()->startOfDay();
+            } elseif ($durasi === '3 Bulan Terakhir') {
+                $startDate = Carbon::now()->subMonths(3)->startOfDay();
+            }
+        } elseif ($request->start_date || $request->end_date) {
+            if ($request->start_date) {
+                $startDate = Carbon::parse($request->start_date)->startOfDay();
+            }
+            if ($request->end_date) {
+                $endDate = Carbon::parse($request->end_date)->endOfDay();
+            }
+        } else {
+            // Default: 1 Bulan Terakhir
+            $startDate = Carbon::now()->subMonth()->startOfDay();
+        }
+
+        // Helper function to apply date range
+        $applyDateRange = function($q) use ($startDate, $endDate) {
+            if ($startDate) {
+                $q->where('created_at', '>=', $startDate);
+            }
+            if ($endDate) {
+                $q->where('created_at', '<=', $endDate);
+            }
+        };
+
+        // 1. Grand totals (kolom)
+        $summaryQuery = DB::table('penarikans');
+        $applyDateRange($summaryQuery);
+        if ($gudangId) {
+            $summaryQuery->whereExists(function ($query) use ($gudangId) {
+                $query->select(DB::raw(1))
+                    ->from('petugas')
+                    ->whereColumn('petugas.petugas_id', 'penarikans.petugas_id')
+                    ->where('petugas.gudang_id', $gudangId);
+            });
+        }
+        $summary = $summaryQuery->select(
+            DB::raw('COUNT(penarikan_id) as total_penarikan'),
+            DB::raw('COALESCE(SUM(CASE WHEN status = "selesai" THEN jumlah ELSE 0 END), 0) as total_nilai_selesai'),
+            DB::raw('COALESCE(SUM(CASE WHEN status = "tolak" THEN jumlah ELSE 0 END), 0) as total_nilai_tolak'),
+            DB::raw('COUNT(CASE WHEN status = "selesai" THEN 1 END) as status_selesai'),
+            DB::raw('COUNT(CASE WHEN status = "tolak" THEN 1 END) as status_tolak'),
+            DB::raw('COUNT(CASE WHEN status = "pending" THEN 1 END) as status_pending'),
+            DB::raw('COUNT(CASE WHEN status = "batal" THEN 1 END) as status_batal')
+        )->first();
+
+        // Bank distribution query
+        $bankDistributionQuery = DB::table('penarikans')
+            ->where('status', 'selesai');
+        $applyDateRange($bankDistributionQuery);
+        if ($gudangId) {
+            $bankDistributionQuery->whereExists(function ($query) use ($gudangId) {
+                $query->select(DB::raw(1))
+                    ->from('petugas')
+                    ->whereColumn('petugas.petugas_id', 'penarikans.petugas_id')
+                    ->where('petugas.gudang_id', $gudangId);
+            });
+        }
+        $bankDistribution = $bankDistributionQuery->select(
+            'nama_bank',
+            DB::raw('COUNT(penarikan_id) as jumlah_transaksi'),
+            DB::raw('SUM(jumlah) as total_nominal')
+        )
+        ->groupBy('nama_bank')
+        ->orderByDesc('total_nominal')
+        ->get();
+
+        // 2. Table: Gudang details (alamat gudang join dari petugas)
+        $gudangReportQuery = DB::table('gudangs')
+            ->leftJoin('petugas', 'gudangs.gudang_id', '=', 'petugas.gudang_id')
+            ->leftJoin('penarikans', function($join) use ($startDate, $endDate) {
+                $join->on('petugas.petugas_id', '=', 'penarikans.petugas_id');
+                if ($startDate) {
+                    $join->where('penarikans.created_at', '>=', $startDate);
+                }
+                if ($endDate) {
+                    $join->where('penarikans.created_at', '<=', $endDate);
+                }
+            });
+        
+        if ($gudangId) {
+            $gudangReportQuery->where('gudangs.gudang_id', $gudangId);
+        }
+
+        $gudangReport = $gudangReportQuery->select(
+                'gudangs.alamat as alamat',
+                DB::raw('COUNT(penarikans.penarikan_id) as total_penarikan'),
+                DB::raw('COALESCE(SUM(penarikans.jumlah), 0) as total_nilai'),
+                DB::raw('COUNT(CASE WHEN penarikans.status = "selesai" THEN 1 END) as status_selesai'),
+                DB::raw('COUNT(CASE WHEN penarikans.status = "pending" THEN 1 END) as status_pending')
+            )
+            ->groupBy('gudangs.gudang_id', 'gudangs.alamat')
+            ->get()
+            ->map(function ($item) {
+                return (array) $item;
+            })
+            ->toArray();
+
+        // Unassigned (Pending) Penarikans (no petugas_id yet) - only show when not filtering by warehouse
+        if (!$gudangId) {
+            $unassignedQuery = DB::table('penarikans')->whereNull('petugas_id');
+            $applyDateRange($unassignedQuery);
+            $unassigned = $unassignedQuery->select(
+                DB::raw('"Belum Diproses (Tanpa Gudang)" as alamat'),
+                DB::raw('COUNT(penarikan_id) as total_penarikan'),
+                DB::raw('COALESCE(SUM(jumlah), 0) as total_nilai'),
+                DB::raw('COUNT(CASE WHEN status = "selesai" THEN 1 END) as status_selesai'),
+                DB::raw('COUNT(CASE WHEN status = "pending" THEN 1 END) as status_pending')
+            )->first();
+
+            if ($unassigned && $unassigned->total_penarikan > 0) {
+                $gudangReport[] = (array) $unassigned;
+            }
+        }
+
+        // 3. Top 5 Nasabah by Jumlah Penarikan (frequency)
+        $topNasabahByCountQuery = Nasabah::select('nasabahs.nasabah_id', 'nasabahs.nama')
+            ->join('penarikans', 'nasabahs.nasabah_id', '=', 'penarikans.nasabah_id')
+            ->where('penarikans.status', 'selesai');
+        
+        if ($startDate) {
+            $topNasabahByCountQuery->where('penarikans.created_at', '>=', $startDate);
+        }
+        if ($endDate) {
+            $topNasabahByCountQuery->where('penarikans.created_at', '<=', $endDate);
+        }
+        if ($gudangId) {
+            $topNasabahByCountQuery->whereExists(function ($query) use ($gudangId) {
+                $query->select(DB::raw(1))
+                    ->from('petugas')
+                    ->whereColumn('petugas.petugas_id', 'penarikans.petugas_id')
+                    ->where('petugas.gudang_id', $gudangId);
+            });
+        }
+        
+        $topNasabahByCount = $topNasabahByCountQuery
+            ->selectRaw('count(penarikans.penarikan_id) as total_penarikan, sum(penarikans.jumlah) as total_nilai')
+            ->groupBy('nasabahs.nasabah_id', 'nasabahs.nama')
+            ->orderByDesc('total_penarikan')
+            ->limit(5)
+            ->get();
+
+        // 4. Top 5 Nasabah by Total Nilai Penarikan (amount)
+        $topNasabahByAmountQuery = Nasabah::select('nasabahs.nasabah_id', 'nasabahs.nama')
+            ->join('penarikans', 'nasabahs.nasabah_id', '=', 'penarikans.nasabah_id')
+            ->where('penarikans.status', 'selesai');
+        
+        if ($startDate) {
+            $topNasabahByAmountQuery->where('penarikans.created_at', '>=', $startDate);
+        }
+        if ($endDate) {
+            $topNasabahByAmountQuery->where('penarikans.created_at', '<=', $endDate);
+        }
+        if ($gudangId) {
+            $topNasabahByAmountQuery->whereExists(function ($query) use ($gudangId) {
+                $query->select(DB::raw(1))
+                    ->from('petugas')
+                    ->whereColumn('petugas.petugas_id', 'penarikans.petugas_id')
+                    ->where('petugas.gudang_id', $gudangId);
+            });
+        }
+
+        $topNasabahByAmount = $topNasabahByAmountQuery
+            ->selectRaw('count(penarikans.penarikan_id) as total_penarikan, sum(penarikans.jumlah) as total_nilai')
+            ->groupBy('nasabahs.nasabah_id', 'nasabahs.nama')
+            ->orderByDesc('total_nilai')
+            ->limit(5)
+            ->get();
+
+        $config = KonfigurasiWeb::firstOrCreate([]);
+
+        $pdf = Pdf::loadView('pdf.laporan-penarikan', compact([
+            'summary',
+            'gudangReport',
+            'topNasabahByCount',
+            'topNasabahByAmount',
+            'config',
+            'startDate',
+            'endDate',
+            'bankDistribution'
+        ]));
+
+        $pdfBase64 = base64_encode($pdf->output());
+
+        return response()->json([
+            'status' => 'success',
+            'data' => [
+                'pdf_base64' => $pdfBase64
+            ]
+        ]);
+    }
 }
+

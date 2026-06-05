@@ -14,6 +14,8 @@ class Penjemputan extends Model
         'foto',
         'jadwal',
         'estimasi_berat',
+        'rentang_hari',
+        'rentan_waktu',
         'status',
         'ket_status',
         'tukang_id',
