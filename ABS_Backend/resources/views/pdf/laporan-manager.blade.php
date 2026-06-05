@@ -598,19 +598,34 @@
                 <td class="column-td" style="padding-right: 15px;">
                     <div class="section-header">Distribusi Jenis Sampah</div>
                     <div style="margin-top: 10px;">
-                        @foreach($jenisSampahList as $item)
-                            <div class="progress-list-item">
-                                <span class="progress-list-label">{{ $item['nama'] }}</span>
-                                <div class="progress-list-track">
-                                    <div class="progress-list-fill" style="width: {{ $item['persentase'] }}%;">
-                                        @if($item['persentase'] > 15)
-                                            <div class="progress-list-val-inside">{{ number_format($item['berat'], 1, ',', '.') }} kg</div>
-                                        @endif
+                        <table style="width: 100%; border-collapse: collapse; margin-top: 5px;">
+                            @foreach($jenisSampahList as $item)
+                            <tr>
+                                <td style="width: 75px; font-weight: bold; color: #4A5568; font-size: 11px; padding: 6px 0; vertical-align: middle;">
+                                    {{ $item['nama'] }}
+                                </td>
+                                <td style="padding: 6px 0; vertical-align: middle;">
+                                    <div style="width: 100%; height: 16px; background-color: #F8FAF6; border: 1px solid #E2E8F0; border-radius: 8px; overflow: hidden; position: relative;">
+                                        @php
+                                            $widthVal = max($item['persentase'], 18);
+                                        @endphp
+                                        <div style="width: {{ $item['persentase'] }}%; min-width: 45px; height: 16px; background-color: #4A7043; border-radius: 8px; overflow: hidden;">
+                                            <table style="width: 100%; height: 16px; border-collapse: collapse; margin: 0; padding: 0; border: none;">
+                                                <tr style="border: none; background: transparent;">
+                                                    <td style="text-align: right; vertical-align: middle; color: #ffffff; font-size: 9px; font-weight: bold; padding-right: 6px; line-height: 1; border: none; background: transparent; white-space: nowrap;">
+                                                        {{ number_format($item['berat'], 1, ',', '.') }} kg
+                                                    </td>
+                                                </tr>
+                                            </table>
+                                        </div>
                                     </div>
-                                </div>
-                                <span class="progress-list-percentage">{{ number_format($item['persentase'], 1, ',', '.') }}%</span>
-                            </div>
-                        @endforeach
+                                </td>
+                                <td style="width: 45px; text-align: right; font-weight: bold; font-size: 11px; color: #718096; padding: 6px 0; vertical-align: middle;">
+                                    {{ number_format($item['persentase'], 1, ',', '.') }}%
+                                </td>
+                            </tr>
+                            @endforeach
+                        </table>
                     </div>
                 </td>
                 
@@ -619,13 +634,19 @@
                     <div class="section-header">Top Nasabah</div>
                     <div style="margin-top: 10px;">
                         @foreach($topNasabah as $index => $n)
-                            <div class="nasabah-card">
-                                <span class="nasabah-rank-circle">{{ $index + 1 }}</span>
-                                <div class="nasabah-info">
-                                    <div class="nasabah-name">{{ $n['nama'] }}</div>
-                                    <div class="nasabah-stats">{{ $n['transaksi'] }} transaksi &bull; {{ number_format($n['berat'], 1, ',', '.') }} kg</div>
-                                </div>
-                            </div>
+                            <table style="width: 100%; border-collapse: collapse; background-color: #F8FAF6; border: 1px solid #E2E8F0; border-radius: 12px; margin-bottom: 8px;">
+                                <tr>
+                                    <td style="width: 35px; padding: 10px; vertical-align: middle; text-align: center;">
+                                        <div style="background-color: #4A7043; color: #ffffff; width: 22px; height: 22px; border-radius: 11px; text-align: center; line-height: 22px; font-weight: bold; font-size: 11px; margin: 0 auto;">
+                                            {{ $index + 1 }}
+                                        </div>
+                                    </td>
+                                    <td style="padding: 10px 10px 10px 0; vertical-align: middle; text-align: left;">
+                                        <div style="font-weight: bold; color: #2D3748; font-size: 11px; line-height: 1.2;">{{ $n['nama'] }}</div>
+                                        <div style="color: #718096; font-size: 9px; margin-top: 3px; line-height: 1;">{{ $n['transaksi'] }} transaksi &bull; {{ number_format($n['berat'], 1, ',', '.') }} kg</div>
+                                    </td>
+                                </tr>
+                            </table>
                         @endforeach
                     </div>
                 </td>
@@ -750,19 +771,31 @@
         {{-- Distribusi Jenis Sampah (Full Width in Semua Gudang version) --}}
         <div class="section-header">Distribusi Jenis Sampah</div>
         <div style="margin-top: 10px; background-color: #ffffff; border: 1px solid #E2E8F0; border-radius: 12px; padding: 15px;">
-            @foreach($jenisSampahList as $item)
-                <div class="progress-list-item" style="margin-bottom: 12px;">
-                    <span class="progress-list-label" style="width: 100px;">{{ $item['nama'] }}</span>
-                    <div class="progress-list-track" style="width: 500px;">
-                        <div class="progress-list-fill" style="width: {{ $item['persentase'] }}%;">
-                            @if($item['persentase'] > 10)
-                                <div class="progress-list-val-inside">{{ number_format($item['berat'], 1, ',', '.') }} kg</div>
-                            @endif
+            <table style="width: 100%; border-collapse: collapse;">
+                @foreach($jenisSampahList as $item)
+                <tr>
+                    <td style="width: 100px; font-weight: bold; color: #4A5568; font-size: 11px; padding: 8px 0; vertical-align: middle;">
+                        {{ $item['nama'] }}
+                    </td>
+                    <td style="padding: 8px 0; vertical-align: middle;">
+                        <div style="width: 100%; height: 16px; background-color: #F8FAF6; border: 1px solid #E2E8F0; border-radius: 8px; overflow: hidden; position: relative;">
+                            <div style="width: {{ $item['persentase'] }}%; min-width: 45px; height: 16px; background-color: #4A7043; border-radius: 8px; overflow: hidden;">
+                                <table style="width: 100%; height: 16px; border-collapse: collapse; margin: 0; padding: 0; border: none;">
+                                    <tr style="border: none; background: transparent;">
+                                        <td style="text-align: right; vertical-align: middle; color: #ffffff; font-size: 9px; font-weight: bold; padding-right: 8px; line-height: 1; border: none; background: transparent; white-space: nowrap;">
+                                            {{ number_format($item['berat'], 1, ',', '.') }} kg
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
                         </div>
-                    </div>
-                    <span class="progress-list-percentage" style="width: 50px;">{{ number_format($item['persentase'], 1, ',', '.') }}%</span>
-                </div>
-            @endforeach
+                    </td>
+                    <td style="width: 50px; text-align: right; font-weight: bold; font-size: 11px; color: #718096; padding: 8px 0; vertical-align: middle;">
+                        {{ number_format($item['persentase'], 1, ',', '.') }}%
+                    </td>
+                </tr>
+                @endforeach
+            </table>
         </div>
 
         {{-- Ringkasan Penjualan Ke Pengepul --}}

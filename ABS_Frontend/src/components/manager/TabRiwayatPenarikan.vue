@@ -7,6 +7,50 @@ import { getAuditPenarikanData, getAuditPenarikanSummary, exportPenarikanPdf, ge
 
 const isLoadingPenarikan = ref(false);
 const currentPagePenarikan = ref(1);
+const isLaporanModalOpen = ref(false);
+const isDetailModalOpen = ref(false);
+const selectedDetailRow = ref(null);
+
+const openDetailModal = (row) => {
+  selectedDetailRow.value = row;
+  isDetailModalOpen.value = true;
+};
+
+const handleExportCsv = () => {
+  if (!tableDataPenarikan.value.length) {
+    Swal.fire({
+      icon: 'info',
+      title: 'Tidak ada data',
+      text: 'Tidak ada data penarikan untuk diekspor.',
+      confirmButtonColor: '#4A7043'
+    });
+    return;
+  }
+  
+  const headers = ['ID Penarikan', 'Tanggal', 'Nasabah', 'Nominal', 'Status', 'Bank/E-Wallet', 'No Rekening', 'Nama Rekening', 'Petugas', 'Gudang'];
+  const rows = tableDataPenarikan.value.map(row => [
+    row.id,
+    row.tanggal,
+    row.nasabah,
+    row.nominal.replace(/[^\d]/g, ''),
+    row.status,
+    row.nama_bank || '-',
+    `'${row.no_rekening || ''}`,
+    row.nama_rek || '-',
+    row.petugas || '-',
+    row.gudang || '-'
+  ]);
+  
+  const csvContent = "\uFEFF" + [headers.join(','), ...rows.map(e => e.map(val => `"${val || ''}"`).join(','))].join('\n');
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.setAttribute("href", url);
+  link.setAttribute("download", `Riwayat_Penarikan_Saldo_${dayjs().format('YYYYMMDD')}.csv`);
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+};
 const totalPagesPenarikan = ref(1);
 const itemsPerPage = ref(10);
 const searchQueryPenarikan = ref('');
@@ -260,7 +304,7 @@ onMounted(async () => {
       <div class="flex flex-row gap-2 w-auto shrink-0">
         <div class="relative w-48 sm:w-64 flex items-center shrink-0">
           <Icon icon="material-symbols:search" class="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400 w-4 h-4" />
-          <input type="text" v-model="searchQueryPenarikan" @input="handleSearchPenarikan" placeholder="Cari ID, nasabah..." class="w-full pl-9 pr-3 py-1.5 bg-white border border-stone-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-[#4A7043]/20 focus:border-[#4A7043] transition-colors text-stone-700" />
+          <input type="text" v-model="searchQueryPenarikan" @input="handleSearchPenarikan" placeholder="Cari ID, nasabah, metode..." class="w-full pl-9 pr-3 py-1.5 bg-white border border-stone-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-[#4A7043]/20 focus:border-[#4A7043] transition-colors text-stone-700" />
         </div>
         <!-- Filter Button -->
         <button @click="openFilterModal" class="relative px-4 py-1.5 bg-stone-50 border border-stone-200 rounded-lg text-xs font-bold text-stone-600 hover:bg-stone-100 transition-colors flex items-center gap-1.5 justify-center shadow-sm shrink-0 cursor-pointer">
@@ -274,10 +318,13 @@ onMounted(async () => {
         </button>
       </div>
       <div class="flex flex-row gap-2 w-auto shrink-0">
-        <button @click="handlePrintPdf" :disabled="isExportingPdf || isLoadingPenarikan" class="px-4 py-1.5 bg-[#4A7043] hover:bg-[#3D5A35] text-white rounded-lg text-xs font-bold transition-colors flex items-center gap-1.5 shadow-sm shrink-0 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
-          <Icon v-if="isExportingPdf" icon="line-md:loading-twotone-loop" class="w-3.5 h-3.5" />
-          <Icon v-else icon="material-symbols:print-outline" class="w-3.5 h-3.5" />
-          {{ isExportingPdf ? 'Mengekspor...' : 'Cetak PDF' }}
+        <button @click="isLaporanModalOpen = true" :disabled="isLoadingPenarikan" class="px-4 py-1.5 bg-[#4A7043] hover:bg-[#3D5A35] text-white rounded-lg text-xs font-bold transition-colors flex items-center gap-1.5 shadow-sm shrink-0 cursor-pointer disabled:opacity-50">
+          <Icon icon="material-symbols:visibility-outline" class="w-3.5 h-3.5" />
+          Lihat Laporan
+        </button>
+        <button @click="handleExportCsv" :disabled="isLoadingPenarikan" class="px-4 py-1.5 bg-stone-50 border border-stone-200 text-stone-600 hover:bg-stone-100 rounded-lg text-xs font-bold transition-colors flex items-center gap-1.5 shadow-sm shrink-0 cursor-pointer disabled:opacity-50">
+          <Icon icon="material-symbols:download-outline" class="w-3.5 h-3.5" />
+          Export CSV
         </button>
       </div>
     </div>
@@ -328,11 +375,11 @@ onMounted(async () => {
             </tr>
           </thead>
           <tbody class="divide-y divide-stone-100">
-            <tr v-for="(row, index) in tableDataPenarikan" :key="index" class="hover:bg-stone-50 transition-colors group">
-              <td class="py-4 px-6 text-sm text-[#4A7043] font-medium whitespace-nowrap">{{ row.id }}</td>
+            <tr v-for="(row, index) in tableDataPenarikan" :key="index" class="hover:bg-stone-50 transition-colors group cursor-pointer" @click="openDetailModal(row)">
+              <td class="py-4 px-6 text-sm text-[#4A7043] font-bold whitespace-nowrap">{{ row.id }}</td>
               <td class="py-4 px-6 text-sm text-stone-600 font-medium whitespace-nowrap">{{ row.tanggal }}</td>
               <td class="py-4 px-6 text-sm text-stone-600 font-medium whitespace-nowrap">{{ row.nasabah }}</td>
-              <td class="py-4 px-6 text-sm text-stone-800 font-medium whitespace-nowrap">{{ row.nominal }}</td>
+              <td class="py-4 px-6 text-sm text-stone-800 font-bold whitespace-nowrap">{{ row.nominal }}</td>
               <td class="py-4 px-6 whitespace-nowrap text-center">
                 <div v-if="row.status === 'Selesai'" class="inline-flex items-center justify-center px-4 py-1.5 rounded-full bg-[#3D5A35] text-white text-[10px] font-bold tracking-wider shadow-sm min-w-[70px]">
                   Selesai
@@ -425,6 +472,175 @@ onMounted(async () => {
         </div>
       </div>
     </Teleport>
+
+    <!-- Laporan Modal -->
+    <Teleport to="body">
+      <div v-if="isLaporanModalOpen" class="fixed inset-0 z-[100] flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" @click="isLaporanModalOpen = false"></div>
+        <div class="relative bg-stone-50 rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
+          <div class="p-6 bg-white border-b border-stone-100 flex justify-between items-center shrink-0 z-10">
+            <div>
+              <h3 class="text-xl font-black text-stone-800">Preview Laporan Penarikan Saldo</h3>
+              <p class="text-xs text-stone-500 mt-1">Periode: {{ formatDateRangeText || 'Semua Waktu' }}</p>
+            </div>
+            <div class="flex items-center gap-3">
+              <button @click="handlePrintPdf" :disabled="isExportingPdf" class="px-4 py-2 bg-[#4A7043] hover:bg-[#3D5A35] text-white rounded-lg text-sm font-bold transition-colors flex items-center gap-2 shadow-sm cursor-pointer disabled:opacity-50">
+                <Icon v-if="isExportingPdf" icon="line-md:loading-twotone-loop" class="w-4 h-4" />
+                <Icon v-else icon="material-symbols:print-outline" class="w-4 h-4" />
+                {{ isExportingPdf ? 'Mencetak...' : 'Print' }}
+              </button>
+              <button @click="isLaporanModalOpen = false" class="text-stone-400 hover:text-stone-600 transition-colors cursor-pointer p-1">
+                <Icon icon="material-symbols:close" class="w-6 h-6" />
+              </button>
+            </div>
+          </div>
+          
+          <div class="p-6 overflow-y-auto custom-scrollbar flex-1 space-y-6 relative z-0">
+            <!-- Summary stats -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div class="bg-white p-5 rounded-xl border border-stone-100 shadow-sm flex flex-col justify-center">
+                <p class="text-xs font-bold text-stone-400 mb-1 uppercase tracking-wider">Total Transaksi Final</p>
+                <p class="text-2xl font-black text-[#3D5A35]">{{ penarikanSummary.totalTransaksiFinal || 0 }}</p>
+                <p class="text-[10px] font-medium text-stone-500 mt-1">transaksi tercatat</p>
+              </div>
+              <div class="bg-white p-5 rounded-xl border border-stone-100 shadow-sm flex flex-col justify-center">
+                <p class="text-xs font-bold text-stone-400 mb-1 uppercase tracking-wider">Total Nominal Selesai</p>
+                <p class="text-2xl font-black text-[#4A7043]">{{ penarikanSummary.totalNominalSelesaiFormatted || 'Rp 0' }}</p>
+                <p class="text-[10px] font-medium text-stone-500 mt-1">sudah dicairkan</p>
+              </div>
+              <div class="bg-white p-5 rounded-xl border border-stone-100 shadow-sm flex flex-col justify-center bg-[#FFFDF8] border-amber-100">
+                <p class="text-xs font-bold text-stone-400 mb-1 uppercase tracking-wider">Total Ditolak</p>
+                <p class="text-2xl font-black text-amber-600">{{ penarikanSummary.totalDitolak || 0 }}</p>
+                <p class="text-[10px] font-medium text-stone-500 mt-1">transaksi gagal</p>
+              </div>
+            </div>
+
+            <!-- Bank Distribution -->
+            <div class="bg-white rounded-xl border border-stone-100 shadow-sm overflow-hidden">
+              <div class="p-5 border-b border-stone-100">
+                <h4 class="text-sm font-bold text-stone-800 uppercase tracking-wider">Distribusi Bank Tujuan</h4>
+              </div>
+              <div class="overflow-x-auto">
+                <table class="w-full text-left text-sm">
+                  <thead>
+                    <tr class="text-stone-500 bg-stone-50/50 border-b border-stone-100">
+                      <th class="py-3.5 px-6 font-bold text-xs">Nama Bank / E-Wallet</th>
+                      <th class="py-3.5 px-6 font-bold text-xs text-center">Jml Transaksi</th>
+                      <th class="py-3.5 px-6 font-bold text-xs text-right">Total Nominal</th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-stone-100">
+                    <tr v-for="bank in penarikanSummary.bankDistribution" :key="bank.nama_bank" class="hover:bg-stone-50/50 transition-colors">
+                      <td class="py-3.5 px-6 font-medium text-stone-700 text-xs flex items-center gap-2">
+                        <span class="inline-flex items-center justify-center w-7 h-7 rounded bg-[#4A7043] text-white text-[10px] font-bold tracking-wider uppercase shrink-0">
+                          {{ bank.nama_bank ? bank.nama_bank.slice(0, 2) : '??' }}
+                        </span>
+                        <span class="font-bold text-stone-800">{{ bank.nama_bank }}</span>
+                      </td>
+                      <td class="py-3.5 px-6 text-stone-600 text-xs text-center font-semibold">{{ bank.jumlah_transaksi }}</td>
+                      <td class="py-3.5 px-6 text-stone-800 text-xs text-right font-bold">{{ bank.total_nominal_formatted }}</td>
+                    </tr>
+                    <tr v-if="!penarikanSummary.bankDistribution || !penarikanSummary.bankDistribution.length">
+                      <td colspan="3" class="py-8 text-center text-stone-400 text-xs">Tidak ada data distribusi bank</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- Ratio Progress Bar -->
+            <div class="bg-white rounded-xl border border-stone-100 shadow-sm overflow-hidden p-6 space-y-4">
+              <h4 class="text-sm font-bold text-stone-800 uppercase tracking-wider">Rasio Keberhasilan Transfer</h4>
+              <div class="h-3 w-full bg-stone-100 rounded-full overflow-hidden flex">
+                <div class="bg-[#4A7043] h-full transition-all duration-500" :style="`width: ${penarikanSummary.selesaiPercent || 0}%`"></div>
+                <div class="bg-amber-500 h-full transition-all duration-500" :style="`width: ${penarikanSummary.ditolakPercent || 0}%`"></div>
+              </div>
+              <div class="grid grid-cols-2 gap-6 pt-2">
+                <div class="space-y-1">
+                  <div class="flex items-center gap-2">
+                    <span class="w-2.5 h-2.5 rounded-full bg-[#4A7043]"></span>
+                    <span class="text-xs font-bold text-stone-400 uppercase tracking-wider">SELESAI</span>
+                  </div>
+                  <p class="text-2xl font-black text-stone-800">{{ penarikanSummary.selesaiPercent || 0 }}%</p>
+                  <p class="text-xs text-stone-500 font-semibold">{{ penarikanSummary.selesai || 0 }} transaksi - {{ penarikanSummary.totalNominalSelesaiFormatted || 'Rp 0' }}</p>
+                </div>
+                <div class="space-y-1">
+                  <div class="flex items-center gap-2">
+                    <span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
+                    <span class="text-xs font-bold text-stone-400 uppercase tracking-wider">DITOLAK</span>
+                  </div>
+                  <p class="text-2xl font-black text-stone-800">{{ penarikanSummary.ditolakPercent || 0 }}%</p>
+                  <p class="text-xs text-stone-500 font-semibold">{{ penarikanSummary.totalDitolak || 0 }} transaksi - {{ penarikanSummary.totalDitolakNominalFormatted || 'Rp 0' }}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </Teleport>
+
+    <!-- Detail Modal -->
+    <Teleport to="body">
+      <div v-if="isDetailModalOpen" class="fixed inset-0 z-[100] flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" @click="isDetailModalOpen = false"></div>
+        <div class="relative bg-stone-50 rounded-2xl shadow-2xl w-full max-w-lg flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
+          <div class="bg-[#4A7043] p-5 flex justify-between items-start shrink-0">
+            <div>
+              <h3 class="text-lg font-bold text-white">Detail Penarikan</h3>
+              <p class="text-xs text-green-100 mt-1">{{ selectedDetailRow?.tanggal }} - {{ selectedDetailRow?.id }}</p>
+            </div>
+            <button @click="isDetailModalOpen = false" class="text-white/80 hover:text-white transition-colors p-1">
+              <Icon icon="material-symbols:close" class="w-5 h-5" />
+            </button>
+          </div>
+          <div class="p-6 space-y-6">
+            <div class="bg-white rounded-xl p-5 flex justify-between items-start border border-stone-100 shadow-sm">
+              <div>
+                <p class="text-[10px] font-bold text-stone-400 uppercase tracking-wider mb-1">Nominal Penarikan</p>
+                <p class="text-3xl font-black text-[#4A7043] mb-1">{{ selectedDetailRow?.nominal }}</p>
+                <p class="text-xs font-semibold text-stone-500">Transfer ke {{ selectedDetailRow?.nama_bank }}</p>
+              </div>
+              <div class="flex flex-col gap-2 items-end mt-1">
+                <span class="inline-flex items-center justify-center px-4 py-1.5 rounded-full text-[10px] font-bold shadow-sm"
+                      :class="selectedDetailRow?.status === 'Selesai' ? 'bg-[#3D5A35] text-white' : selectedDetailRow?.status === 'Ditolak' ? 'bg-[#DC2626] text-white' : 'bg-[#F59E0B] text-white'">
+                  {{ selectedDetailRow?.status }}
+                </span>
+              </div>
+            </div>
+            <div class="grid grid-cols-2 gap-y-6 gap-x-4 bg-white p-5 rounded-xl border border-stone-100 shadow-sm text-xs">
+              <div>
+                <p class="text-[10px] font-bold text-stone-400 uppercase tracking-wider mb-1">Tanggal Request</p>
+                <p class="text-sm font-bold text-stone-800">{{ selectedDetailRow?.tanggal }}</p>
+              </div>
+              <div>
+                <p class="text-[10px] font-bold text-stone-400 uppercase tracking-wider mb-1">Nama Nasabah</p>
+                <p class="text-sm font-bold text-stone-800">{{ selectedDetailRow?.nasabah }}</p>
+              </div>
+              <div>
+                <p class="text-[10px] font-bold text-stone-400 uppercase tracking-wider mb-1">Metode Transfer</p>
+                <p class="text-sm font-bold text-stone-800">{{ selectedDetailRow?.nama_bank || '-' }}</p>
+              </div>
+              <div>
+                <p class="text-[10px] font-bold text-stone-400 uppercase tracking-wider mb-1">No Rekening / E-Wallet</p>
+                <p class="text-sm font-bold text-stone-800">{{ selectedDetailRow?.no_rekening || '-' }}</p>
+              </div>
+              <div>
+                <p class="text-[10px] font-bold text-stone-400 uppercase tracking-wider mb-1">Atas Nama Rekening</p>
+                <p class="text-sm font-bold text-stone-800">{{ selectedDetailRow?.nama_rek || '-' }}</p>
+              </div>
+              <div>
+                <p class="text-[10px] font-bold text-stone-400 uppercase tracking-wider mb-1">Petugas Verifikator</p>
+                <p class="text-sm font-bold text-stone-800">{{ selectedDetailRow?.petugas || '-' }}</p>
+              </div>
+              <div class="col-span-2">
+                <p class="text-[10px] font-bold text-stone-400 uppercase tracking-wider mb-1">Gudang / Lokasi</p>
+                <p class="text-sm font-bold text-stone-800">{{ selectedDetailRow?.gudang || '-' }}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </Teleport>
   </div>
 </template>
 
@@ -435,5 +651,19 @@ onMounted(async () => {
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(15px); }
   to { opacity: 1; transform: translateY(0); }
+}
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: #f1f1f1; 
+  border-radius: 10px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #c1c1c1; 
+  border-radius: 10px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #4A7043; 
 }
 </style>
