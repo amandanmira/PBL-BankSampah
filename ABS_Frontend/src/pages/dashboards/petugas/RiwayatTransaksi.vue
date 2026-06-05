@@ -643,7 +643,7 @@ const remainingTimeText = computed(() => {
 
                 <div class="bg-yellow-50 p-6 rounded-3xl border-l-4 border-yellow-400">
                     <p class="text-[10px] text-yellow-600 font-bold uppercase">Catatan Nasabah</p>
-                    <p class="text-sm font-medium text-gray-700 italic">{{ selectedItem.deskripsi || "Tidak ada catatan" }}</p>
+                    <p class="text-sm font-medium text-gray-700 italic">{{ selectedItem.deskripsi?.includes('|') ? (selectedItem.deskripsi.split('|')[2] || "Tidak ada catatan") : (selectedItem.deskripsi || "Tidak ada catatan") }}</p>
                 </div>
 
                 <div v-if="selectedItem.status === 'tolak' && selectedItem.ket_status" class="bg-red-50 p-6 rounded-3xl border border-red-100">

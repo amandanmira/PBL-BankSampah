@@ -1,10 +1,13 @@
 <script setup>
 import { ref, computed, onMounted, watch } from "vue";
 import { inject } from "vue";
+import { checkRole } from '@/utils';
 import DashboardLayout from "@/layouts/DashboardLayout.vue";
 import { Icon } from "@iconify/vue";
 import { cn } from "@/lib/utils";
 import Swal from "sweetalert2";
+
+checkRole('nasabah');
 
 const axios = inject('axios');
 const loading = ref(false);

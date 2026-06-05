@@ -25,7 +25,7 @@
       <tbody>
         <tr v-for="penjemputan in filteredPenjemputans" :key="penjemputan.penjemputan_id">
           <td>{{ penjemputan.penjemputan_id }}</td>
-          <td>{{ penjemputan.deskripsi }}</td>
+          <td>{{ penjemputan.deskripsi?.includes('|') ? (penjemputan.deskripsi.split('|')[2] || 'Tidak ada catatan') : (penjemputan.deskripsi || '-') }}</td>
           <td>{{ penjemputan.alamat }}</td>
           <td>
             <div v-if="Array.isArray(penjemputan.foto) && penjemputan.foto.length > 0" class="flex gap-2 flex-wrap">

@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Api\Nasabah;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Penjemputan;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\StatusPenjemputanMail;
 
 class RequestPenjemputanController extends Controller
 {
@@ -88,6 +90,10 @@ class RequestPenjemputanController extends Controller
             'status' => 'proses',
             'ket_status' => null
         ]);
+
+        if ($penjemputan->nasabah && $penjemputan->nasabah->email) {
+            Mail::to($penjemputan->nasabah->email)->send(new StatusPenjemputanMail($penjemputan, 'proses'));
+        }
 
         return response()->json([
             'message' => 'Jadwal penjemputan berhasil disetujui',

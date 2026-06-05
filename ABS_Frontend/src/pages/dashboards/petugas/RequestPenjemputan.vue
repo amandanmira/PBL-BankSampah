@@ -732,7 +732,7 @@ onMounted(() => {
               <p class="text-[10px] font-black text-stone-400 uppercase tracking-widest">Catatan Nasabah</p>
             </div>
             <p class="text-sm font-medium text-stone-600 leading-relaxed">
-              {{ detailRequest.deskripsi?.split('|')[2] || 'Tidak ada catatan tambahan.' }}
+              {{ detailRequest.deskripsi?.includes('|') ? (detailRequest.deskripsi.split('|')[2] || 'Tidak ada catatan tambahan.') : (detailRequest.deskripsi || 'Tidak ada catatan tambahan.') }}
             </p>
           </div>
 

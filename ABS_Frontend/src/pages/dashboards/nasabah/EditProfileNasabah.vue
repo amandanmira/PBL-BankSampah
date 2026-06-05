@@ -487,12 +487,14 @@ L.Icon.Default.mergeOptions({
   iconUrl: markerIcon,
   shadowUrl: markerShadow,
 });
+import { checkRole } from '@/utils';
 import DashboardLayout from "@/layouts/DashboardLayout.vue";
 import { Icon } from "@iconify/vue";
 import { cn } from "@/lib/utils";
 
 const axios = inject('axios');
 
+checkRole('nasabah');
 const listBank = [
   'BRI',
   'BCA',
