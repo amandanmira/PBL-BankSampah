@@ -168,43 +168,64 @@ onUnmounted(() => {
           </div>
 
           <div v-else class="space-y-4 mt-6">
-            <button
+            <div
               v-for="item in penjemputanPending"
               :key="item.penjemputan_id"
               @click="router.push({ path: '/dashboard-nasabah/sampah-saya', query: { highlight_id: item.penjemputan_id } })"
-              class="w-full bg-[#FCFCFC] hover:bg-stone-50 rounded-[20px] p-5 flex items-center justify-between border border-stone-100/80 hover:border-stone-200 transition-all text-left group"
+              class="w-full bg-[#FCFCFC] hover:bg-stone-50 rounded-[20px] p-5 flex flex-col border border-stone-100/80 hover:border-stone-200 transition-all text-left cursor-pointer group"
             >
-              <div class="flex items-center gap-5">
-                
-                <div 
-                  class="w-14 h-14 rounded-[16px] flex items-center justify-center shrink-0 transition-colors"
-                  :class="{
-                    'bg-[#F4F6F8] text-[#637381]': item.status === 'menunggu_persetujuan',
-                    'bg-[#FFF4E5] text-[#B76E00]': item.status === 'proses',
-                    'bg-[#E8F0E6] text-[#4A7043]': item.status !== 'menunggu_persetujuan' && item.status !== 'proses'
-                  }"
-                >
-                  <Icon v-if="item.status === 'menunggu_persetujuan'" icon="material-symbols:schedule-outline" class="w-6 h-6" />
-                  <Icon v-else-if="item.status === 'proses'" icon="material-symbols:sync" class="w-6 h-6" />
-                  <Icon v-else icon="material-symbols:local-shipping-outline" class="w-6 h-6" />
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-5">
+                  
+                  <div 
+                    class="w-12 h-12 rounded-[12px] flex items-center justify-center shrink-0 transition-colors"
+                    :class="{
+                      'bg-[#F4F6F8] text-[#637381]': item.status === 'menunggu_persetujuan',
+                      'bg-[#FFF4E5] text-[#B76E00]': item.status === 'proses',
+                      'bg-[#4A7043] text-white': ['dijemput', 'perlu_input'].includes(item.status)
+                    }"
+                  >
+                    <Icon v-if="item.status === 'menunggu_persetujuan'" icon="material-symbols:schedule-outline" class="w-6 h-6" />
+                    <Icon v-else-if="item.status === 'proses'" icon="material-symbols:sync" class="w-6 h-6" />
+                    <Icon v-else icon="material-symbols:local-shipping-outline" class="w-6 h-6" />
+                  </div>
+                  
+                  <div class="flex flex-col py-1">
+                    <h4 class="font-bold text-stone-800 text-[15px] leading-tight mb-0.5">
+                      {{ ['dijemput', 'perlu_input'].includes(item.status) ? 'Petugas sedang menuju alamatmu' : 'Request Penjemputan' }}
+                    </h4>
+                    <p class="text-[11px] text-stone-400 font-medium mt-0.5">
+                      <template v-if="['dijemput', 'perlu_input'].includes(item.status)">
+                        Bersiaplah untuk menyerahkan sampahmu
+                      </template>
+                      <template v-else>
+                        Status: <span class="capitalize font-bold text-stone-600">{{ item.status.replace(/_/g, ' ') }}</span> • {{ formatTanggal(item.created_at) }}
+                      </template>
+                    </p>
+                  </div>
                 </div>
-                
-                <div class="flex flex-col py-1">
-                  <h4 class="font-bold text-stone-800 text-[15px] leading-tight mb-1">Request Penjemputan</h4>
-                  <p class="text-[11px] text-stone-400 font-medium">
-                    Status: <span class="capitalize font-bold text-stone-600">{{ item.status.replace(/_/g, ' ') }}</span>
-                  </p>
-                  <p class="text-[11px] text-stone-400 mt-1">{{ formatTanggal(item.created_at) }}</p>
+
+                <div class="flex flex-col items-end justify-between self-stretch py-1">
+                  <span class="text-[10px] font-bold text-stone-400">#JMP-{{ String(item.penjemputan_id).padStart(3, '0') }}</span>
+                  <div class="text-stone-300 group-hover:text-[#4A7043] group-hover:translate-x-1 transition-transform mt-auto">
+                    <Icon icon="material-symbols:chevron-right" class="w-5 h-5" />
+                  </div>
                 </div>
               </div>
 
-              <div class="flex flex-col items-end justify-between self-stretch py-1">
-                <span class="text-[11px] font-bold text-stone-400">#JMP-{{ String(item.penjemputan_id).padStart(3, '0') }}</span>
-                <div class="text-stone-300 group-hover:text-[#4A7043] group-hover:translate-x-1 transition-transform mt-auto">
-                  <Icon icon="material-symbols:chevron-right" class="w-5 h-5" />
-                </div>
+              <div v-if="['dijemput', 'perlu_input'].includes(item.status) && item.tukang" class="mt-4 pt-4 border-t border-stone-100 flex items-center gap-3">
+                 <div class="w-10 h-10 rounded-full bg-stone-100 flex items-center justify-center overflow-hidden shrink-0 border border-stone-200">
+                     <img v-if="item.tukang.foto" :src="`${axios.defaults.baseURL}/storage/${item.tukang.foto}`" class="w-full h-full object-cover" />
+                     <Icon v-else icon="material-symbols:person-outline" class="w-5 h-5 text-stone-400" />
+                 </div>
+                 <div class="flex flex-col">
+                     <span class="text-[9px] font-bold text-stone-400 uppercase tracking-widest mb-0.5">Tukang</span>
+                     <span class="text-[13px] font-bold text-stone-800 leading-tight">{{ item.tukang.nama }}</span>
+                     <span class="text-[10px] text-stone-500 mt-0.5">{{ item.tukang.no_telp }}</span>
+                 </div>
               </div>
-            </button>
+
+            </div>
           </div>
         </div>
       </section>
