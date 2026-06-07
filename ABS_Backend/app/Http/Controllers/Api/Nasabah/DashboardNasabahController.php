@@ -8,6 +8,7 @@ use App\Models\Penjemputan;
 use App\Models\Penarikan;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Carbon\Carbon; // Pastikan Carbon dipanggil
 
 class DashboardNasabahController extends Controller
 {
@@ -34,53 +35,80 @@ class DashboardNasabahController extends Controller
                 $query->where('nasabah_id', $nasabah->nasabah_id);
             })->count();
 
+        // ---------------------------------------------------------
+        // LOGIKA AKTIVITAS TERBARU DENGAN BATAS 1 JAM UNTUK STATUS FINAL
+        // ---------------------------------------------------------
         $activities = [];
+        $now = now();
+        $completedStatuses = ['selesai', 'tolak', 'ditolak', 'batal'];
 
+        // 1. Penimbangan (Setor Sampah)
         $penimbangans = Penimbangan::where('nasabah_id', $nasabah->nasabah_id)
-            ->with(['sampah.itemSampah', 'penjemputan'])
+            ->with(['sampah.itemSampah', 'penjemputan', 'transaksi'])
             ->latest()
-            ->take(5)
+            ->take(20) // Ambil lebih banyak untuk difilter
             ->get();
             
         foreach ($penimbangans as $p) {
-            $typeText = $p->penjemputan_id ? 'Jemput sampah' : 'Setor manual';
-            $descriptionText = $typeText . ' - ' . floatval($p->berat_timbang) . 'kg';
-            $price = $p->berat_timbang * ($p->sampah->itemSampah->harga_beli ?? 0);
+            $status = strtolower($p->transaksi->status ?? 'menunggu');
+            $date = Carbon::parse($p->updated_at ?? $p->created_at ?? $now);
+            $isCompleted = in_array($status, $completedStatuses);
             
-            $activities[] = [
-                'id' => 'p-' . $p->penimbangan_id,
-                'type' => 'setor_sampah',
-                'title' => 'Setor Sampah',
-                'description' => $descriptionText,
-                'time' => $p->created_at->format('Y-m-d'),
-                'amount' => '+Rp ' . number_format($price, 0, ',', '.'),
-                'timestamp' => $p->created_at->timestamp,
-            ];
+            // Tampilkan jika belum selesai, ATAU jika selesai umurnya <= 60 menit (1 jam)
+            if (!$isCompleted || ($isCompleted && $date->diffInMinutes($now) <= 60)) {
+                $typeText = $p->penjemputan_id ? 'Jemput sampah' : 'Setor manual';
+                // Tambahkan status di deskripsi agar nasabah tahu
+                $descriptionText = $typeText . ' - ' . floatval($p->berat_timbang) . 'kg (' . ucfirst(str_replace('_', ' ', $status)) . ')';
+                $price = $p->berat_timbang * ($p->sampah->itemSampah->harga_beli ?? 0);
+                
+                $activities[] = [
+                    'id' => 'p-' . $p->penimbangan_id,
+                    'type' => 'setor_sampah',
+                    'title' => 'Setor Sampah',
+                    'description' => $descriptionText,
+                    'time' => $date->diffForHumans(), // Gunakan format waktu relatif seperti "10 minutes ago"
+                    'amount' => '+Rp ' . number_format($price, 0, ',', '.'),
+                    'timestamp' => $date->timestamp,
+                ];
+            }
         }
 
+        // 2. Penarikan Saldo
         $penarikans = Penarikan::where('nasabah_id', $nasabah->nasabah_id)
             ->latest()
-            ->take(5)
+            ->take(20)
             ->get();
 
         foreach ($penarikans as $pn) {
-            $bankName = $pn->nama_bank ?? 'BCA';
-            $activities[] = [
-                'id' => 'pn-' . $pn->penarikan_id,
-                'type' => 'penarikan',
-                'title' => 'Penarikan',
-                'description' => 'Transfer Bank ' . $bankName,
-                'time' => $pn->created_at->format('Y-m-d'),
-                'amount' => '-Rp ' . number_format($pn->jumlah, 0, ',', '.'),
-                'timestamp' => $pn->created_at->timestamp,
-            ];
+            $status = strtolower($pn->status ?? 'menunggu');
+            $date = Carbon::parse($pn->updated_at ?? $pn->created_at ?? $now);
+            $isCompleted = in_array($status, $completedStatuses);
+
+            if (!$isCompleted || ($isCompleted && $date->diffInMinutes($now) <= 60)) {
+                $bankName = $pn->nama_bank ?? 'BCA';
+                $activities[] = [
+                    'id' => 'pn-' . $pn->penarikan_id,
+                    'type' => 'penarikan',
+                    'title' => 'Penarikan',
+                    'description' => 'Transfer Bank ' . $bankName . ' (' . ucfirst(str_replace('_', ' ', $status)) . ')',
+                    'time' => $date->diffForHumans(),
+                    'amount' => '-Rp ' . number_format($pn->jumlah, 0, ',', '.'),
+                    'timestamp' => $date->timestamp,
+                ];
+            }
         }
 
+        // Urutkan aktivitas agar yang terbaru selalu di atas
         usort($activities, function($a, $b) {
             return $b['timestamp'] <=> $a['timestamp'];
         });
+        
+        // Hanya kirim 10 data teratas ke frontend
         $activities = array_slice($activities, 0, 10);
 
+        // ---------------------------------------------------------
+        // (Sisa Kode Sama Persis dengan Milik Anda)
+        // ---------------------------------------------------------
         $chartData = [];
         for ($i = 5; $i >= 0; $i--) {
             $month = now()->subMonths($i);
