@@ -15,33 +15,27 @@ class DashboardNasabahController extends Controller
     {
         $user = $request->user();
         
-        // Fetch fresh nasabah data from DB to ensure latest saldo
         $nasabah = \App\Models\Nasabah::find($user->nasabah_id);
         
         if (!$nasabah) {
             return response()->json(['message' => 'Nasabah not found'], 404);
         }
 
-        // 1. Saldo Tersedia (using model attribute)
         $saldoTersedia = (float) $nasabah->saldo_tersedia;
 
-        // 2. Total Sampah (Sum of berat_timbang from all completed transactions)
         $totalSampah = Penimbangan::where('nasabah_id', $nasabah->nasabah_id)
             ->whereHas('transaksi', function($q) {
                 $q->where('status', 'selesai');
             })
             ->sum('berat_timbang') ?? 0;
 
-        // 3. Total Transaksi (Count of unique transaction sessions with status selesai)
         $totalTransaksi = \App\Models\TransaksiNasabah::where('status', 'selesai')
             ->whereHas('penimbangan', function($query) use ($nasabah) {
                 $query->where('nasabah_id', $nasabah->nasabah_id);
             })->count();
 
-        // Activities
         $activities = [];
 
-        // Penimbangan (Deposits)
         $penimbangans = Penimbangan::where('nasabah_id', $nasabah->nasabah_id)
             ->with(['sampah.itemSampah', 'penjemputan'])
             ->latest()
@@ -64,7 +58,6 @@ class DashboardNasabahController extends Controller
             ];
         }
 
-        // Penarikan (Withdrawals)
         $penarikans = Penarikan::where('nasabah_id', $nasabah->nasabah_id)
             ->latest()
             ->take(5)
@@ -83,13 +76,11 @@ class DashboardNasabahController extends Controller
             ];
         }
 
-        // Sort and slice activities
         usort($activities, function($a, $b) {
             return $b['timestamp'] <=> $a['timestamp'];
         });
         $activities = array_slice($activities, 0, 10);
 
-        // Chart Data (Last 6 Months)
         $chartData = [];
         for ($i = 5; $i >= 0; $i--) {
             $month = now()->subMonths($i);
@@ -103,7 +94,6 @@ class DashboardNasabahController extends Controller
                 ->whereYear('created_at', $month->year)
                 ->sum('berat_timbang');
 
-            // Income is sum of (berat * harga_beli)
             $monthlyIncome = Penimbangan::where('nasabah_id', $nasabah->nasabah_id)
                 ->whereHas('transaksi', function($q) {
                     $q->where('status', 'selesai');
@@ -123,7 +113,6 @@ class DashboardNasabahController extends Controller
             ];
         }
 
-        // Top Nasabah (Current Month)
         $topNasabah = \App\Models\Nasabah::withCount(['penimbangan as total_transaksi' => function($q) {
                 $q->whereMonth('created_at', now()->month)
                   ->whereYear('created_at', now()->year)
@@ -150,6 +139,38 @@ class DashboardNasabahController extends Controller
                 ];
             });
 
+        // Penjemputan aktif: menunggu_persetujuan, proses, dijemput
+        $penjemputanPending = Penjemputan::where('nasabah_id', $nasabah->nasabah_id)
+            ->whereIn('status', ['menunggu_persetujuan', 'proses', 'dijemput', 'perlu_input'])
+            ->with(['tukang'])
+            ->latest()
+            ->get()
+            ->map(function($pj) {
+                $foto = $pj->foto;
+                if (is_string($foto)) {
+                    $decoded = json_decode($foto, true);
+                    $foto = is_array($decoded) ? $decoded : [$foto];
+                }
+                if (!is_array($foto)) {
+                    $foto = [];
+                }
+                return [
+                    'penjemputan_id' => $pj->penjemputan_id,
+                    'deskripsi'      => $pj->deskripsi,
+                    'alamat'         => $pj->alamat,
+                    'foto'           => $foto,
+                    'status'         => $pj->status,
+                    'ket_status'     => $pj->ket_status,
+                    'jadwal'         => $pj->jadwal,
+                    'created_at'     => $pj->created_at->toIso8601String(),
+                    'tukang'         => $pj->tukang ? [
+                        'nama'     => $pj->tukang->nama,
+                        'no_telp'  => $pj->tukang->no_telp,
+                        'foto'     => $pj->tukang->foto,
+                    ] : null,
+                ];
+            });
+
         return response()->json([
             'stats' => [
                 'saldo_tersedia' => $saldoTersedia,
@@ -165,7 +186,8 @@ class DashboardNasabahController extends Controller
             ],
             'chart_data' => $chartData,
             'top_nasabah' => $topNasabah,
-            'activities' => $activities
+            'activities' => $activities,
+            'penjemputan_pending' => $penjemputanPending,
         ]);
     }
 
@@ -174,7 +196,6 @@ class DashboardNasabahController extends Controller
         $startOfMonth = now()->startOfMonth();
         $endOfMonth = now()->endOfMonth();
 
-        // 1. Fetch Transaksi Nasabah this month
         $nasabahTrans = \App\Models\TransaksiNasabah::with(['penimbangan.nasabah'])
             ->whereBetween('created_at', [$startOfMonth, $endOfMonth])
             ->get()
@@ -193,7 +214,6 @@ class DashboardNasabahController extends Controller
                 ];
             });
 
-        // 2. Fetch Transaksi Pengepul this month
         $pengepulTrans = \App\Models\TransaksiPengepul::with(['pengepul', 'detailTransaksi'])
             ->whereBetween('created_at', [$startOfMonth, $endOfMonth])
             ->get()
@@ -215,10 +235,8 @@ class DashboardNasabahController extends Controller
                 ];
             });
 
-        // Merge and sort
         $merged = $nasabahTrans->concat($pengepulTrans)->sortByDesc('created_timestamp')->values();
 
-        // Paginate manually
         $page = (int) $request->input('page', 1);
         $perPage = (int) $request->input('per_page', 5);
         $offset = ($page - 1) * $perPage;
