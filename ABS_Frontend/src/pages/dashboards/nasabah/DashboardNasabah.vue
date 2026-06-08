@@ -187,15 +187,24 @@ onUnmounted(() => {
                   >
                     <Icon v-if="item.status === 'menunggu_persetujuan'" icon="material-symbols:schedule-outline" class="w-6 h-6" />
                     <Icon v-else-if="item.status === 'proses'" icon="material-symbols:sync" class="w-6 h-6" />
+                    <Icon v-else-if="item.status === 'perlu_input'" icon="material-symbols:inventory-2-outline" class="w-6 h-6" />
                     <Icon v-else icon="material-symbols:local-shipping-outline" class="w-6 h-6" />
                   </div>
                   
                   <div class="flex flex-col py-1">
                     <h4 class="font-bold text-stone-800 text-[15px] leading-tight mb-0.5">
-                      {{ ['dijemput', 'perlu_input'].includes(item.status) ? 'Petugas sedang menuju alamatmu' : 'Request Penjemputan' }}
+                      {{ 
+                        item.status === 'perlu_input' ? 'Petugas sedang menginput sampahmu' : 
+                        item.status === 'dijemput' ? 'Tukang sedang menuju alamatmu' : 
+                        'Request Penjemputan' 
+                      }}
                     </h4>
+                    
                     <p class="text-[11px] text-stone-400 font-medium mt-0.5">
-                      <template v-if="['dijemput', 'perlu_input'].includes(item.status)">
+                      <template v-if="item.status === 'perlu_input'">
+                        Sampahmu sedang ditimbang dan dicatat ke sistem
+                      </template>
+                      <template v-else-if="item.status === 'dijemput'">
                         Bersiaplah untuk menyerahkan sampahmu
                       </template>
                       <template v-else>
