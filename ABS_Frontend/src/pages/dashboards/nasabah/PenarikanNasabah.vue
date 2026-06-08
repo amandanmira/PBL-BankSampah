@@ -374,13 +374,9 @@ onMounted(() => {
                 <span>Jumlah Penarikan</span>
                 <span class="font-bold text-stone-800">Rp {{ selectedItem.jumlah.toLocaleString('id-ID') }}</span>
               </div>
-              <div class="flex justify-between items-center text-stone-500">
-                <span>Biaya Admin</span>
-                <span class="font-bold text-red-500">- Rp {{ (selectedItem.jumlah * 0.01).toLocaleString('id-ID') }}</span>
-              </div>
               <div class="flex justify-between items-center font-bold text-stone-800 pt-1 border-t border-stone-100/50">
                 <span>Total Diterima</span>
-                <span class="text-[#4A7043]">Rp {{ (selectedItem.jumlah - (selectedItem.jumlah * 0.01)).toLocaleString('id-ID') }}</span>
+                <span class="text-[#4A7043]">Rp {{ selectedItem.jumlah.toLocaleString('id-ID') }}</span>
               </div>
             </div>
           </div>
