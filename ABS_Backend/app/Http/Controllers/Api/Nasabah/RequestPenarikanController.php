@@ -107,6 +107,7 @@ class RequestPenarikanController extends Controller
             'no_rekening' => $validated['no_rekening'],
             'nama_bank' => $validated['nama_bank'],
             'nama_rek' => $validated['nama_rek'],
+            'saldo_sebelum' => $nasabah->saldo,
         ]);
 
         return response()->json([

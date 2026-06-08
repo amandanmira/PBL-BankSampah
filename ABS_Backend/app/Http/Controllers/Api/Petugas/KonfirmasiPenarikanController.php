@@ -77,16 +77,17 @@ class KonfirmasiPenarikanController extends Controller
                 $fotoPath = $request->file('bukti_tf')->store('bukti_transfer', 'public');
             }
 
-            // 3. Update Data Penarikan
-            $penarikan->bukti_tf = $fotoPath;
-            $penarikan->status   = 'selesai'; // Langsung diubah menjadi selesai
-            $penarikan->petugas_id = Auth::id(); // Mengisi ID petugas yang sedang login
-            $penarikan->save();
-
-            // 4. Kurangi Saldo Nasabah
+            // 3. Kurangi Saldo Nasabah
             $nasabah = $penarikan->nasabah;
             $nasabah->saldo -= $penarikan->jumlah;
             $nasabah->save();
+
+            // 4. Update Data Penarikan
+            $penarikan->bukti_tf = $fotoPath;
+            $penarikan->status   = 'selesai'; // Langsung diubah menjadi selesai
+            $penarikan->petugas_id = Auth::id(); // Mengisi ID petugas yang sedang login
+            $penarikan->saldo_sesudah = $nasabah->saldo;
+            $penarikan->save();
 
             DB::commit();
 

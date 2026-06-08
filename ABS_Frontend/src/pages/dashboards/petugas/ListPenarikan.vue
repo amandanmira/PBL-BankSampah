@@ -417,9 +417,13 @@ onMounted(() => {
                   <p class="text-[10px] font-black text-stone-400 uppercase tracking-widest">Jumlah Penarikan</p>
                   <p class="text-lg font-black text-stone-800">{{ formatRupiah(selectedPenarikan.jumlah) }}</p>
                 </div>
+                <div class="flex justify-between items-center" v-if="selectedPenarikan.saldo_sebelum != null">
+                  <p class="text-[10px] font-black text-stone-400 uppercase tracking-widest">Saldo Sebelum</p>
+                  <p class="font-black text-stone-600">{{ formatRupiah(selectedPenarikan.saldo_sebelum) }}</p>
+                </div>
                 <div class="flex justify-between items-center">
                   <p class="text-[10px] font-black text-stone-400 uppercase tracking-widest">Sisa Saldo Setelah Penarikan</p>
-                  <p class="font-black text-green-600">{{ formatRupiah(selectedPenarikan.nasabah?.saldo - selectedPenarikan.jumlah) }}</p>
+                  <p class="font-black text-green-600">{{ formatRupiah(selectedPenarikan.saldo_sesudah ?? (selectedPenarikan.saldo_sebelum != null ? (selectedPenarikan.saldo_sebelum - selectedPenarikan.jumlah) : (selectedPenarikan.nasabah?.saldo - selectedPenarikan.jumlah))) }}</p>
                 </div>
                 <div class="bg-orange-50 border border-orange-100 rounded-xl p-4">
                   <div class="flex items-center gap-3 mb-2">

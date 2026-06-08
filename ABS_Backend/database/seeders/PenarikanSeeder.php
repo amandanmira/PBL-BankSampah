@@ -36,7 +36,7 @@ class PenarikanSeeder extends Seeder
         $petugasId = $petugas ? $petugas->petugas_id : null;
 
         $banks = ['BRI', 'BCA', 'DANA', 'Bank Jago', 'Bank Mandiri', 'BNI', 'OVO', 'GoPay', 'LinkAja', 'ShopeePay', 'CIMB Niaga', 'Bank Permata', 'BSI'];
-        $statuses = ['selesai', 'pending', 'tolak'];
+        $statuses = ['selesai', 'tolak'];
 
         // Clean up existing penarikans to avoid clutter
         DB::table('penarikans')->truncate();
