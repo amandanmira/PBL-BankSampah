@@ -115,13 +115,30 @@ const handleProfileClick = () => {
   }
 };
 
-const user = computed(() => {
+const user = ref({});
+
+const initUser = () => {
   try {
-    return JSON.parse(sessionStorage.getItem("user") || "{}");
+    user.value = JSON.parse(sessionStorage.getItem("user") || "{}");
   } catch (e) {
-    return {};
+    user.value = {};
   }
-});
+};
+initUser();
+
+const fetchUserBalance = async () => {
+  if (role.value === 'nasabah' && user.value.nasabah_id) {
+    try {
+      const res = await axios.get(`/api/nasabah/profile/${user.value.nasabah_id}`);
+      if (res.data) {
+        user.value = { ...user.value, ...res.data };
+        sessionStorage.setItem("user", JSON.stringify(user.value));
+      }
+    } catch (err) {
+      console.error("Failed to fetch user balance:", err);
+    }
+  }
+};
 
 const webConfig = ref({
   logo: null,
@@ -223,6 +240,7 @@ watch(() => route.path, (newPath) => {
 
 onMounted(() => {
   fetchWebConfig();
+  fetchUserBalance();
   fetchMenuUpdates();
   setInterval(fetchMenuUpdates, 3 * 60 * 1000); // Poll every 3 minutes
 });
