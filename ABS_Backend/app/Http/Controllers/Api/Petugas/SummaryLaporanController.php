@@ -29,7 +29,7 @@ class SummaryLaporanController extends Controller
         $transaksiPengepulData = TransaksiPengepul::whereBetween('updated_at', [$startDate, $endDate])
             ->where('status', 'selesai')
             ->when($gudangId, function ($query) use ($gudangId) {
-                $query->whereHas('detailTransaksi.sampah.gudang', function ($q) use ($gudangId) {
+                $query->whereHas('detailTransaksi.sampah', function ($q) use ($gudangId) {
                     $q->where('gudang_id', $gudangId);
                 });
             })
@@ -43,7 +43,7 @@ class SummaryLaporanController extends Controller
         $transaksiNasabahData = TransaksiNasabah::whereBetween('updated_at', [$startDate, $endDate])
             ->where('status', 'selesai')
             ->when($gudangId, function ($query) use ($gudangId) {
-                $query->whereHas('penimbangan.sampah.gudang', function ($q) use ($gudangId) {
+                $query->whereHas('penimbangan.sampah', function ($q) use ($gudangId) {
                     $q->where('gudang_id', $gudangId);
                 });
             })
@@ -57,6 +57,11 @@ class SummaryLaporanController extends Controller
 
         $penarikanData = Penarikan::whereBetween('updated_at', [$startDate, $endDate])
             ->where('status', 'selesai')
+            ->when($gudangId, function ($query) use ($gudangId) {
+                $query->whereHas('petugas', function ($q) use ($gudangId) {
+                    $q->where('gudang_id', $gudangId);
+                });
+            })
             ->with('nasabah')
             ->get();
 
@@ -73,7 +78,7 @@ class SummaryLaporanController extends Controller
         $dataHarga = [
             'penjemputan_harga' => $transaksiNasabahData->where('tipe_transaksi', 'dijemput')->sum('total_harga'),
             'setor_harga' => $transaksiNasabahData->where('tipe_transaksi', 'antar_sendiri')->sum('total_harga'),
-            'penarikan_harga' => Penarikan::sum('jumlah'),
+            'penarikan_harga' => $penarikanData->sum('jumlah'),
             'pengepul_harga' => $details->sum('harga'),
         ];
 
@@ -88,7 +93,7 @@ class SummaryLaporanController extends Controller
 
             'penjemputan_count' => $transaksiNasabahData->where('tipe_transaksi', 'dijemput')->count(),
             'setor_count' => $transaksiNasabahData->where('tipe_transaksi', 'antar_sendiri')->count(),
-            'penarikan_count' => Penarikan::count(),
+            'penarikan_count' => $penarikanData->count(),
             'pengepul_count' => $transaksiPengepulData->count(),
 
             'penjemputan_harga' => $dataHarga['penjemputan_harga'],
@@ -101,9 +106,13 @@ class SummaryLaporanController extends Controller
             'pengepul_berat' => $details->sum('berat'),
         ];
 
+        $latestManager = \App\Models\Manager::latest()->first();
+
         return response()->json([
             'status' => 'success',
-            'data' => $dataStatistik,
+            'data' => array_merge($dataStatistik, [
+                'manager_nama' => $latestManager ? $latestManager->nama : 'Manager Bank Sampah'
+            ]),
             'details' => [
                 'penjemputan' => $transaksiNasabahData->where('tipe_transaksi', 'dijemput')->values(),
                 'setor_manual' => $transaksiNasabahData->where('tipe_transaksi', 'antar_sendiri')->values(),
