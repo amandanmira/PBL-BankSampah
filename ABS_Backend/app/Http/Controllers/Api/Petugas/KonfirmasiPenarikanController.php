@@ -17,7 +17,7 @@ class KonfirmasiPenarikanController extends Controller
         $petugas = Auth::user();
         $gudangId = $petugas->gudang_id;
 
-        $query = Penarikan::with('nasabah')->latest();
+        $query = Penarikan::with(['nasabah', 'petugas.gudang'])->latest();
 
         if ($status && $status !== 'semua') {
             if ($status === 'menunggu') {
