@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, onMounted, inject, watch, provide } from "vue";
+import { ref, computed, onMounted, inject, watch } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import { Icon } from "@iconify/vue";
 import { cn } from "@/lib/utils";
@@ -13,15 +13,12 @@ const router = useRouter();
 const route = useRoute();
 const axios = inject('axios');
 
-const isSidebarCollapsed = ref(sessionStorage.getItem('sidebarCollapsed') === 'true');
-provide('isSidebarCollapsed', isSidebarCollapsed);
-
+const isSidebarCollapsed = ref(false);
 const isProfileDropdownOpen = ref(false);
 const isMobileMenuOpen = ref(false);
 
 const toggleSidebar = () => {
   isSidebarCollapsed.value = !isSidebarCollapsed.value;
-  sessionStorage.setItem('sidebarCollapsed', isSidebarCollapsed.value);
   if (isSidebarCollapsed.value) {
     isProfileDropdownOpen.value = false;
   }

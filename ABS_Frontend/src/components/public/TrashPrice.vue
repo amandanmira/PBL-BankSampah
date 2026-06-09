@@ -107,21 +107,6 @@ const filteredTrash = computed(() => {
                <img v-if="item.image" :src="item.image" :alt="item.name"
                  class="w-full h-full object-cover hover:scale-105 transition-transform duration-300" />
             </div>
-          </template>
-          <template v-else>
-            <div v-for="item in filteredTrash" :key="item.id"
-              class="gsap-stagger-item min-w-[160px] md:min-w-0 md:w-[calc(25%-18px)] xl:w-[calc(25%-24px)] bg-white flex flex-col items-center text-center shadow-sm hover:shadow-md transition-shadow duration-300 border border-gray-100 rounded-sm overflow-hidden">
-              <!-- Image Section (Grey Background) -->
-              <div class="bg-[#DDDDDD] w-full aspect-[4/5] flex justify-center items-center overflow-hidden p-0 m-0">
-                 <img v-if="item.image" :src="item.image" :alt="item.name"
-                   class="w-full h-full object-cover hover:scale-105 transition-transform duration-300" />
-              </div>
-
-              <!-- Content Section (White Background) -->
-              <div class="px-4 md:px-6 pb-6 pt-4 md:pt-6 flex flex-col justify-between flex-1 w-full bg-white">
-                <div>
-                  <h3 class="text-[#555555] text-[15px] md:text-lg font-bold mb-3 leading-snug">{{ item.name }}</h3>
-                </div>
 
             <!-- Content Section (White Background) -->
             <div class="px-4 md:px-6 pb-6 pt-4 md:pt-6 flex flex-col justify-between flex-1 w-full bg-white">
@@ -136,7 +121,7 @@ const filteredTrash = computed(() => {
                 <p class="text-[#4A7043] font-extrabold text-[15px] md:text-[19px]">Rp {{ (roleView === 'nasabah' ? item.harga_beli : item.harga_jual).toLocaleString('id-ID') }}</p>
               </div>
             </div>
-          </template>
+          </div>
         </div>
       </div>
 
