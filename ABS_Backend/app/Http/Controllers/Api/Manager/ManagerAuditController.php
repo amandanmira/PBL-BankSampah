@@ -83,6 +83,9 @@ class ManagerAuditController extends Controller
         $search = $request->query('search');
         $gudang = $request->query('gudang');
 
+        $parsedStartDate = $startDate ? Carbon::parse($startDate)->startOfDay() : Carbon::now()->subMonth()->startOfDay();
+        $parsedEndDate = $endDate ? Carbon::parse($endDate)->endOfDay() : Carbon::now()->endOfDay();
+
         // 1. Get Completed Transactions
         $query = Penimbangan::with([
             'nasabah',
@@ -118,8 +121,8 @@ class ManagerAuditController extends Controller
                 });
             });
         }
-        if ($startDate) $query->whereDate('created_at', '>=', $startDate);
-        if ($endDate) $query->whereDate('created_at', '<=', $endDate);
+        $query->where('created_at', '>=', $parsedStartDate);
+        $query->where('created_at', '<=', $parsedEndDate);
         if ($jenisSampah) {
             $jenisArray = is_array($jenisSampah) ? $jenisSampah : explode(',', $jenisSampah);
             if (count($jenisArray) > 0) {
@@ -173,8 +176,16 @@ class ManagerAuditController extends Controller
                 $q->where('alamat', $gudang);
             });
         }
-        if ($startDate) $failedQuery->whereDate('created_at', '>=', $startDate);
-        if ($endDate) $failedQuery->whereDate('created_at', '<=', $endDate);
+        if ($startDate) {
+            $failedQuery->where('created_at', '>=', $parsedStartDate);
+        } else {
+            $failedQuery->where('created_at', '>=', $parsedStartDate);
+        }
+        if ($endDate) {
+            $failedQuery->where('created_at', '<=', $parsedEndDate);
+        } else {
+            $failedQuery->where('created_at', '<=', $parsedEndDate);
+        }
         if ($search) {
             $failedQuery->where(function($q) use ($search) {
                 $q->whereHas('nasabah', function($nq) use ($search) {
@@ -242,6 +253,14 @@ class ManagerAuditController extends Controller
         $setorManualWeight = $allData->where('sumber', 'Setor Manual')->sum('berat');
 
         $gudangFilter = $request->query('gudang');
+        $startDate = $request->query('start_date');
+        $endDate = $request->query('end_date');
+
+        $gudangModel = ($gudangFilter && $gudangFilter !== 'Semua Gudang') ? \App\Models\Gudang::where('alamat', $gudangFilter)->first() : null;
+        $gudangId = $gudangModel ? $gudangModel->gudang_id : null;
+
+        $parsedStartDate = $startDate ? Carbon::parse($startDate)->startOfDay() : Carbon::now()->subMonth()->startOfDay();
+        $parsedEndDate = $endDate ? Carbon::parse($endDate)->endOfDay() : Carbon::now()->endOfDay();
 
         $perGudangMap = [];
         $masterGudangs = \App\Models\Gudang::all();
@@ -252,12 +271,12 @@ class ManagerAuditController extends Controller
             }
             $perGudangMap[$nama] = ['gudang' => $nama, 'transaksi' => 0, 'berat' => 0, 'verified' => 0, 'pending' => 0];
         }
-        $jenisSampahMap = [
-            'Organik' => ['berat' => 0],
-            'Plastik PET' => ['berat' => 0],
-            'Kertas' => ['berat' => 0],
-            'Logam' => ['berat' => 0]
-        ];
+
+        $categories = \App\Models\ItemSampah::pluck('nama')->unique()->toArray();
+        $jenisSampahMap = [];
+        foreach ($categories as $cat) {
+            $jenisSampahMap[$cat] = ['berat' => 0];
+        }
 
         foreach ($allData as $row) {
             $gudang = $row['gudang'];
@@ -291,7 +310,7 @@ class ManagerAuditController extends Controller
         foreach ($jenisSampahMap as $name => $data) {
             $berat = $data['berat'];
             $percentage = $totalBerat > 0 ? ($berat / $totalBerat) * 100 : 0;
-            if ($berat > 0 || in_array($name, ['Organik', 'Plastik PET', 'Kertas', 'Logam'])) {
+            if ($berat > 0 || in_array($name, $categories)) {
                 $jenisSampahList[] = [
                     'name' => $name,
                     'berat' => $berat,
@@ -304,6 +323,84 @@ class ManagerAuditController extends Controller
             return $b['berat'] <=> $a['berat'];
         });
 
+        // Penjualan Ke Pengepul
+        $transaksiPengepulQuery = \App\Models\TransaksiPengepul::with(['pengepul', 'detailTransaksi.sampah.itemSampah', 'detailTransaksi.sampah.gudang'])
+            ->where('status', 'selesai')
+            ->whereBetween('created_at', [$parsedStartDate, $parsedEndDate]);
+
+        if ($gudangId) {
+            $transaksiPengepulQuery->whereHas('detailTransaksi.sampah.gudang', function ($q) use ($gudangId) {
+                $q->where('gudang_id', $gudangId);
+            });
+        }
+        $transaksiPengepuls = $transaksiPengepulQuery->get();
+
+        $penjualanPengepulList = $transaksiPengepuls->map(function ($t) use ($gudangId) {
+            $details = $t->detailTransaksi;
+            if ($gudangId) {
+                $details = $details->filter(function($d) use ($gudangId) {
+                    return optional($d->sampah)->gudang_id == $gudangId;
+                });
+            }
+
+            $totalBerat = $details->sum('berat');
+            $diterima = $details->sum('harga');
+            $keuntungan = $details->sum(function($d) {
+                $hargaBeli = optional(optional($d->sampah)->itemSampah)->harga_beli ?? 0.0;
+                return $d->harga - ($d->berat * $hargaBeli);
+            });
+
+            return [
+                'pengepul' => $t->pengepul->nama ?? 'Unknown',
+                'total_berat' => $totalBerat,
+                'diterima' => $diterima,
+                'keuntungan' => $keuntungan
+            ];
+        });
+
+        $totalPengepulBerat = $penjualanPengepulList->sum('total_berat');
+        $totalPengepulDiterima = $penjualanPengepulList->sum('diterima');
+        $totalPengepulKeuntungan = $penjualanPengepulList->sum('keuntungan');
+        $jumlahPengepul = $penjualanPengepulList->pluck('pengepul')->unique()->count();
+
+        // Total Dibayar Ke Nasabah
+        $completedQuery = \App\Models\Penimbangan::where(function ($q) {
+            $q->whereHas('penjemputan', function($q2) {
+                $q2->whereIn('status', ['selesai']);
+            })->orWhereHas('transaksi', function($q3) {
+                $q3->where('tipe_transaksi', 'antar_sendiri')
+                   ->whereIn('status', ['selesai']);
+            });
+        });
+
+        if ($gudangFilter && $gudangFilter !== 'Semua Gudang') {
+            $completedQuery->where(function ($q) use ($gudangFilter) {
+                $q->where(function ($qJemput) use ($gudangFilter) {
+                    $qJemput->whereHas('penjemputan.gudang', function($q2) use ($gudangFilter) {
+                        $q2->where('alamat', $gudangFilter);
+                    });
+                })
+                ->orWhere(function ($qSetor) use ($gudangFilter) {
+                    $qSetor->whereHas('transaksi', function($q3) use ($gudangFilter) {
+                        $q3->where('tipe_transaksi', 'antar_sendiri')
+                           ->whereHas('petugas.gudang', function($q4) use ($gudangFilter) {
+                               $q4->where('alamat', $gudangFilter);
+                           });
+                    });
+                });
+            });
+        }
+        
+        $completedQuery->whereBetween('created_at', [$parsedStartDate, $parsedEndDate]);
+        $completedData = $completedQuery->get();
+
+        $transaksiNasabahIds = $completedData->pluck('transaksi_id')->filter()->unique()->toArray();
+        $totalDibayarNasabah = \App\Models\TransaksiNasabah::whereIn('transaksi_id', $transaksiNasabahIds)
+            ->where('status', 'selesai')
+            ->sum('total_harga');
+
+        $marginNasabah = $totalPengepulDiterima > 0 ? ($totalPengepulKeuntungan / $totalPengepulDiterima) * 100 : 0.0;
+
         return response()->json([
             'totalTransaksi' => $totalTransaksi,
             'totalBerat' => $totalBerat,
@@ -315,7 +412,15 @@ class ManagerAuditController extends Controller
             'setorManualCount' => $setorManualCount,
             'setorManualWeight' => $setorManualWeight,
             'perGudangList' => array_values($perGudangMap),
-            'jenisSampahList' => $jenisSampahList
+            'jenisSampahList' => $jenisSampahList,
+            
+            // Penjualan Pengepul & Nasabah totals
+            'totalPengepulBerat' => $totalPengepulBerat,
+            'totalPengepulDiterima' => $totalPengepulDiterima,
+            'totalPengepulKeuntungan' => $totalPengepulKeuntungan,
+            'totalDibayarNasabah' => $totalDibayarNasabah,
+            'marginNasabah' => $marginNasabah,
+            'jumlahPengepul' => $jumlahPengepul
         ], 200);
     }
 
@@ -336,23 +441,34 @@ class ManagerAuditController extends Controller
             });
         }
 
-        // Filter by Durasi
+        $parsedStartDate = null;
+        $parsedEndDate = Carbon::now()->endOfDay();
+
         if ($durasi && $durasi !== 'Semua Waktu') {
             if ($durasi === '1 Minggu Terakhir') {
-                $query->where('created_at', '>=', now()->subWeek());
+                $parsedStartDate = Carbon::now()->subWeek()->startOfDay();
             } elseif ($durasi === '1 Bulan Terakhir') {
-                $query->where('created_at', '>=', now()->subMonth());
+                $parsedStartDate = Carbon::now()->subMonth()->startOfDay();
             } elseif ($durasi === '3 Bulan Terakhir') {
-                $query->where('created_at', '>=', now()->subMonths(3));
+                $parsedStartDate = Carbon::now()->subMonths(3)->startOfDay();
             }
+        } elseif ($startDate || $endDate) {
+            if ($startDate) {
+                $parsedStartDate = Carbon::parse($startDate)->startOfDay();
+            }
+            if ($endDate) {
+                $parsedEndDate = Carbon::parse($endDate)->endOfDay();
+            }
+        } else {
+            // Default: 1 Bulan Terakhir
+            $parsedStartDate = Carbon::now()->subMonth()->startOfDay();
         }
 
-        // Filter by Date Range
-        if ($startDate) {
-            $query->whereDate('created_at', '>=', $startDate);
+        if ($parsedStartDate) {
+            $query->where('created_at', '>=', $parsedStartDate);
         }
-        if ($endDate) {
-            $query->whereDate('created_at', '<=', $endDate);
+        if ($parsedEndDate) {
+            $query->where('created_at', '<=', $parsedEndDate);
         }
 
         // Filter by Search (Nasabah Name or Penarikan ID)

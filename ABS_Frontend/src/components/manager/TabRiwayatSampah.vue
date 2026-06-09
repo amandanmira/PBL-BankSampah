@@ -698,6 +698,38 @@ const handlePrintPdf = async () => {
             <div v-if="!laporanStats?.jenisSampahList?.length" class="text-center text-stone-400 text-xs py-4">Tidak ada data jenis sampah</div>
           </div>
         </div>
+        <div class="bg-white rounded-xl border border-stone-100 shadow-sm overflow-hidden p-6">
+          <h4 class="text-sm font-bold text-stone-800 mb-6">Ringkasan Penjualan Ke Pengepul</h4>
+          <div v-if="isLoadingSummary" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="h-20 bg-stone-100 rounded animate-pulse"></div>
+            <div class="h-20 bg-stone-100 rounded animate-pulse"></div>
+            <div class="h-20 bg-stone-100 rounded animate-pulse"></div>
+          </div>
+          <div v-else class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="bg-[#F9FAF8] p-4 rounded-lg">
+              <p class="text-xs font-medium text-stone-600 mb-2">Total Terjual</p>
+              <div class="flex items-baseline gap-1 mb-1">
+                <span class="text-xl font-bold text-[#3D5A35]">{{ laporanStats?.totalPengepulBerat?.toFixed(1) || '0.0' }}</span>
+                <span class="text-xs text-stone-500 font-medium">kg</span>
+              </div>
+              <p class="text-xs text-stone-400 font-medium">{{ laporanStats?.jumlahPengepul || 0 }} pengepul</p>
+            </div>
+            <div class="bg-[#F9FAF8] p-4 rounded-lg">
+              <p class="text-xs font-medium text-stone-600 mb-2">Diterima Dari Pengepul</p>
+              <div class="flex items-baseline gap-1 mb-1">
+                <span class="text-xl font-bold text-[#3D5A35]">Rp {{ new Intl.NumberFormat("id-ID").format(laporanStats?.totalPengepulDiterima || 0) }}</span>
+              </div>
+              <p class="text-xs text-stone-400 font-medium">Dibayar ke Nasabah: Rp {{ new Intl.NumberFormat("id-ID").format(laporanStats?.totalDibayarNasabah || 0) }}</p>
+            </div>
+            <div class="bg-[#F9FAF8] p-4 rounded-lg bg-[#FDFBF7] border border-amber-100">
+              <p class="text-xs font-medium text-stone-600 mb-2">Keuntungan Bersih</p>
+              <div class="flex items-baseline gap-1 mb-1">
+                <span class="text-xl font-bold text-[#B45309]">Rp {{ new Intl.NumberFormat("id-ID").format(laporanStats?.totalPengepulKeuntungan || 0) }}</span>
+              </div>
+              <p class="text-xs text-amber-700/80 font-medium">Margin: {{ laporanStats?.marginNasabah?.toFixed(1) || '0.0' }}%</p>
+            </div>
+          </div>
+        </div>
         <div v-if="!isLoadingSummary && laporanStats?.pendingCount > 0" class="bg-[#F9FAF8] border border-[#E9E3D5] rounded-xl p-5 flex gap-3 items-start shadow-sm mt-2">
           <Icon icon="material-symbols:info" class="w-5 h-5 text-[#8B5E3C] shrink-0 mt-0.5" />
           <div>
