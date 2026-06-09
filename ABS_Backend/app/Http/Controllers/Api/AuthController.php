@@ -222,6 +222,28 @@ class AuthController extends Controller
         return response()->json(['used' => $exists]);
     }
 
+    public function checkUsername(Request $request)
+    {
+        $request->validate([
+            'username' => 'required|string|max:20',
+            'current_username' => 'nullable|string',
+        ]);
+
+        $username = $request->username;
+
+        if ($request->current_username && $username === $request->current_username) {
+            return response()->json(['used' => false]);
+        }
+
+        $exists = Nasabah::where('username', $username)->exists() ||
+            Pengepul::where('username', $username)->exists() ||
+            Admin::where('username', $username)->exists() ||
+            Petugas::where('username', $username)->exists() ||
+            Manager::where('username', $username)->exists();
+
+        return response()->json(['used' => $exists]);
+    }
+
     public function logout(Request $request)
     {
         $request->user()->currentAccessToken()->delete();

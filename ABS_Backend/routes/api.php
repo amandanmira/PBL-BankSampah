@@ -37,6 +37,7 @@ Route::post('login', [AuthController::class, 'login']);
 Route::post('register-pengepul', [AuthController::class, 'registerPengepul']);
 Route::post('register-nasabah', [AuthController::class, 'registerNasabah']);
 Route::post('check-email', [AuthController::class, 'checkEmail']);
+Route::post('check-username', [AuthController::class, 'checkUsername']);
 Route::get('verify-nasabah/{token}', [AuthController::class, 'verifyEmail']);
 Route::post('verify-otp', [AuthController::class, 'verifyOtp']);
 Route::post('resend-otp', [AuthController::class, 'resendOtp']);

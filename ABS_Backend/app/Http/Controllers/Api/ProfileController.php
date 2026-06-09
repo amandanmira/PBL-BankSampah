@@ -128,10 +128,18 @@ class ProfileController extends Controller
     public function updatePassword(Request $request, string $id)
     {
         $request->validate([
+            'password_current' => 'required|string',
             'password' => 'required|string|min:8|confirmed',
         ]);
 
         $user = Nasabah::findOrFail($id);
+
+        if (!\Illuminate\Support\Facades\Hash::check($request->password_current, $user->password)) {
+            return response()->json([
+                'message' => 'Password saat ini tidak cocok'
+            ], 400);
+        }
+
         $user->password = bcrypt($request->password);
         $user->save();
 
