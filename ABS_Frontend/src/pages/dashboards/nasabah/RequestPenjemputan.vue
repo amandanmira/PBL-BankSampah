@@ -789,7 +789,7 @@ onMounted(() => {
                 </div>
                 <div class="bg-[#F5F5F0] p-3.5 rounded-2xl text-center flex flex-col justify-center">
                   <p class="text-base font-black text-[#EA580C] leading-none">
-                    {{ getGudangStats(gudang).isFull ? '0/300' : Math.round(getGudangStats(gudang).totalStok) }}
+                    {{ Math.round(getGudangStats(gudang).totalStok) }}/{{ gudang.kapasitas }}
                   </p>
                   <p class="text-[9px] font-bold text-stone-400 uppercase tracking-wider mt-1.5">kg</p>
                 </div>

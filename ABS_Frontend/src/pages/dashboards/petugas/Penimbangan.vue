@@ -63,8 +63,13 @@
 
           <!-- Detail Sampah Form -->
           <div class="bg-white rounded-[2rem] p-6 shadow-sm border border-stone-100">
-            <div class="flex justify-between items-center mb-6">
-              <h3 class="text-lg font-black text-stone-800">Detail Sampah</h3>
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+              <div>
+                <h3 class="text-lg font-black text-stone-800">Detail Sampah</h3>
+                <p v-if="user?.gudang" class="text-xs font-bold text-stone-500 mt-1 bg-[#F5F7F5] px-3 py-1 rounded-full w-fit border border-stone-100">
+                  Stok Gudang: <span :class="Math.round(totalStokGudang + totalBerat) >= user.gudang.kapasitas ? 'text-red-500' : 'text-[#4A7043]'">{{ Math.round(totalStokGudang + totalBerat) }}</span> / {{ user.gudang.kapasitas }} kg
+                </p>
+              </div>
               <button @click="addRow" class="bg-[#4A7043] text-white px-4 py-2 rounded-xl text-xs font-bold hover:bg-[#3D5C37] transition-all flex items-center gap-1.5 shadow-sm active:scale-95">
                 <Icon icon="material-symbols:add" class="w-4 h-4" /> Tambah Jenis
               </button>
@@ -392,6 +397,18 @@ const isSuccess = ref(false);
 const receiptData = ref(null);
 
 const formRows = ref([{ kategori_id: "", sampah_id: "", berat_timbang: "", foto: null, fotoPreview: null }]);
+
+const user = computed(() => {
+  try {
+    return JSON.parse(sessionStorage.getItem("user") || "{}");
+  } catch {
+    return {};
+  }
+});
+
+const totalStokGudang = computed(() => {
+  return listSampah.value.reduce((sum, item) => sum + (parseFloat(item.stok) || 0), 0);
+});
 
 const saldoSaatIni = computed(() => {
   return penjemputan.value?.nasabah?.saldo ? Number(penjemputan.value.nasabah.saldo) : 0;
