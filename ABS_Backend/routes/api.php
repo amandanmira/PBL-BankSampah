@@ -44,6 +44,7 @@ Route::post('resend-otp', [AuthController::class, 'resendOtp']);
 Route::get('/web-config', [WebController::class, 'show']);
 Route::get('/berita', [App\Http\Controllers\Api\Public\BeritaController::class, 'index']);
 Route::get('/berita/{id}', [App\Http\Controllers\Api\Public\BeritaController::class, 'show']);
+Route::get('/kategori-sampah', [App\Http\Controllers\Api\Public\SampahController::class, 'index']);
 
 // Password Reset
 Route::post('password/email', [App\Http\Controllers\Api\PasswordResetController::class, 'sendResetLinkEmail']);
