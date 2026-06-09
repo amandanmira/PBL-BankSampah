@@ -7,10 +7,8 @@ const activeCategory = ref('Lihat Semua');
 const roleView = ref('nasabah'); // 'nasabah' or 'pengepul'
 
 const trashItems = ref([]);
-const isLoading = ref(true);
 
 const fetchTrashData = async () => {
-  isLoading.value = true;
   try {
     const response = await axios.get('/api/kategori-sampah');
     const data = response.data;
@@ -36,8 +34,6 @@ const fetchTrashData = async () => {
     trashItems.value = allItems;
   } catch (error) {
     console.error('Error fetching trash data:', error);
-  } finally {
-    isLoading.value = false;
   }
 };
 
@@ -92,33 +88,24 @@ const filteredTrash = computed(() => {
         
         <!-- Categories Filter -->
         <div class="w-[35%] md:w-full flex-shrink-0 flex flex-col md:flex-row overflow-y-auto md:overflow-x-auto whitespace-nowrap md:flex-wrap justify-start md:justify-center gap-y-3 md:gap-y-4 md:gap-x-8 mb-0 md:mb-10 px-0 md:px-2 pb-2 scrollbar-hide max-h-[350px] md:max-h-none">
-          <template v-if="isLoading">
-            <div v-for="i in 6" :key="i" class="h-5 md:h-6 w-20 md:w-24 bg-gray-200 animate-pulse rounded flex-shrink-0 mb-1 md:mb-0"></div>
-          </template>
-          <template v-else>
-            <button v-for="category in categories" :key="category" @click="activeCategory = category" :class="[
-              'text-left md:text-center text-[13px] md:text-[15px] transition-colors pb-1 flex-shrink-0',
-              activeCategory === category
-                ? 'text-[#4A7043] font-bold border-l-[3px] md:border-l-0 md:border-b-2 border-[#4A7043] pl-2 md:pl-0'
-                : 'text-[#777777] font-semibold hover:text-[#555555] pl-3 md:pl-0'
-            ]">
-              {{ category }}
-            </button>
-          </template>
+          <button v-for="category in categories" :key="category" @click="activeCategory = category" :class="[
+            'text-left md:text-center text-[13px] md:text-[15px] transition-colors pb-1 flex-shrink-0',
+            activeCategory === category
+              ? 'text-[#4A7043] font-bold border-l-[3px] md:border-l-0 md:border-b-2 border-[#4A7043] pl-2 md:pl-0'
+              : 'text-[#777777] font-semibold hover:text-[#555555] pl-3 md:pl-0'
+          ]">
+            {{ category }}
+          </button>
         </div>
 
         <!-- Trash Grid -->
         <div class="w-[65%] md:w-full flex-shrink-0 flex flex-row md:flex-wrap overflow-x-auto md:overflow-visible justify-start md:justify-center items-stretch gap-4 md:gap-6 xl:gap-8 mb-8 pb-4 md:pb-0 scrollbar-hide md:gsap-stagger-parent">
-          <template v-if="isLoading">
-            <div v-for="i in 4" :key="`skeleton-${i}`" class="min-w-[160px] md:min-w-0 md:w-[calc(25%-18px)] xl:w-[calc(25%-24px)] bg-white flex flex-col items-center text-center shadow-sm border border-gray-100 rounded-sm overflow-hidden animate-pulse">
-              <div class="bg-gray-200 w-full aspect-[4/5]"></div>
-              <div class="px-4 md:px-6 pb-6 pt-4 md:pt-6 flex flex-col justify-between flex-1 w-full bg-white">
-                <div class="h-5 w-3/4 bg-gray-300 rounded mb-4 mx-auto"></div>
-                <div class="w-full mt-auto">
-                  <div class="border-t-[1.5px] border-gray-300 w-8 md:w-12 mx-auto mb-3"></div>
-                  <div class="h-5 w-1/2 bg-gray-300 rounded mx-auto"></div>
-                </div>
-              </div>
+          <div v-for="item in filteredTrash" :key="item.id"
+            class="gsap-stagger-item min-w-[160px] md:min-w-0 md:w-[calc(25%-18px)] xl:w-[calc(25%-24px)] bg-white flex flex-col items-center text-center shadow-sm hover:shadow-md transition-shadow duration-300 border border-gray-100 rounded-sm overflow-hidden">
+            <!-- Image Section (Grey Background) -->
+            <div class="bg-[#DDDDDD] w-full aspect-[4/5] flex justify-center items-center overflow-hidden p-0 m-0">
+               <img v-if="item.image" :src="item.image" :alt="item.name"
+                 class="w-full h-full object-cover hover:scale-105 transition-transform duration-300" />
             </div>
           </template>
           <template v-else>
@@ -136,12 +123,17 @@ const filteredTrash = computed(() => {
                   <h3 class="text-[#555555] text-[15px] md:text-lg font-bold mb-3 leading-snug">{{ item.name }}</h3>
                 </div>
 
-                <div class="w-full mt-auto">
-                  <!-- Divider Line -->
-                  <div class="border-t-[1.5px] border-[#4A7043] w-8 md:w-12 mx-auto mb-3"></div>
-                  <!-- Price -->
-                  <p class="text-[#4A7043] font-extrabold text-[15px] md:text-[19px]">Rp {{ (roleView === 'nasabah' ? item.harga_beli : item.harga_jual).toLocaleString('id-ID') }}</p>
-                </div>
+            <!-- Content Section (White Background) -->
+            <div class="px-4 md:px-6 pb-6 pt-4 md:pt-6 flex flex-col justify-between flex-1 w-full bg-white">
+              <div>
+                <h3 class="text-[#555555] text-[15px] md:text-lg font-bold mb-3 leading-snug">{{ item.name }}</h3>
+              </div>
+
+              <div class="w-full mt-auto">
+                <!-- Divider Line -->
+                <div class="border-t-[1.5px] border-[#4A7043] w-8 md:w-12 mx-auto mb-3"></div>
+                <!-- Price -->
+                <p class="text-[#4A7043] font-extrabold text-[15px] md:text-[19px]">Rp {{ (roleView === 'nasabah' ? item.harga_beli : item.harga_jual).toLocaleString('id-ID') }}</p>
               </div>
             </div>
           </template>
