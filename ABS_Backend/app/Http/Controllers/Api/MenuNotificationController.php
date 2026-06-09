@@ -68,7 +68,10 @@ class MenuNotificationController extends Controller
             $updates['/dashboard-nasabah/request-penjemputan'] = DB::table('penjemputans')->where('nasabah_id', $nasabahId)->max('updated_at');
             $updates['/dashboard-nasabah/request-penarikan'] = DB::table('penarikans')->where('nasabah_id', $nasabahId)->max('updated_at');
             $updates['/dashboard-nasabah/penarikan-saya'] = DB::table('penarikans')->where('nasabah_id', $nasabahId)->max('updated_at');
-            $updates['/dashboard-nasabah/sampah-saya'] = DB::table('transaksi_nasabahs')->where('nasabah_id', $nasabahId)->max('updated_at');
+            $updates['/dashboard-nasabah/sampah-saya'] = DB::table('transaksi_nasabahs')
+                ->join('penimbangans', 'transaksi_nasabahs.transaksi_id', '=', 'penimbangans.transaksi_id')
+                ->where('penimbangans.nasabah_id', $nasabahId)
+                ->max('transaksi_nasabahs.updated_at');
         } elseif ($role === 'manager') {
             $updates['/dashboard-manager/audit-data'] = max(
                 DB::table('transaksi_nasabahs')->max('updated_at') ?? '2000-01-01',

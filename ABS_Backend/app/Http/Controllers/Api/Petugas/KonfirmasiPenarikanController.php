@@ -14,6 +14,8 @@ class KonfirmasiPenarikanController extends Controller
     {
         $status = $request->query('status');
         $search = $request->query('search');
+        $petugas = Auth::user();
+        $gudangId = $petugas->gudang_id;
 
         $query = Penarikan::with('nasabah')->latest();
 
@@ -22,9 +24,25 @@ class KonfirmasiPenarikanController extends Controller
                 $query->whereIn('status', ['pending', 'proses']);
             } elseif ($status === 'ditolak') {
                 $query->where('status', 'tolak');
+            } elseif ($status === 'selesai') {
+                $query->where('status', 'selesai')
+                      ->whereHas('petugas', function ($pq) use ($gudangId) {
+                          $pq->where('gudang_id', $gudangId);
+                      });
             } else {
                 $query->where('status', $status);
             }
+        } else {
+            // Tampilkan yang belum diproses (atau status lainnya) dan yang selesai dari gudang yang sama
+            $query->where(function ($q) use ($gudangId) {
+                $q->whereIn('status', ['pending', 'proses', 'tolak', 'batal'])
+                  ->orWhere(function ($sub) use ($gudangId) {
+                      $sub->where('status', 'selesai')
+                          ->whereHas('petugas', function ($pq) use ($gudangId) {
+                              $pq->where('gudang_id', $gudangId);
+                          });
+                  });
+            });
         }
 
         if ($search) {
@@ -77,16 +95,17 @@ class KonfirmasiPenarikanController extends Controller
                 $fotoPath = $request->file('bukti_tf')->store('bukti_transfer', 'public');
             }
 
-            // 3. Update Data Penarikan
-            $penarikan->bukti_tf = $fotoPath;
-            $penarikan->status   = 'selesai'; // Langsung diubah menjadi selesai
-            $penarikan->petugas_id = Auth::id(); // Mengisi ID petugas yang sedang login
-            $penarikan->save();
-
-            // 4. Kurangi Saldo Nasabah
+            // 3. Kurangi Saldo Nasabah
             $nasabah = $penarikan->nasabah;
             $nasabah->saldo -= $penarikan->jumlah;
             $nasabah->save();
+
+            // 4. Update Data Penarikan
+            $penarikan->bukti_tf = $fotoPath;
+            $penarikan->status   = 'selesai'; // Langsung diubah menjadi selesai
+            $penarikan->petugas_id = Auth::id(); // Mengisi ID petugas yang sedang login
+            $penarikan->saldo_sesudah = $nasabah->saldo;
+            $penarikan->save();
 
             DB::commit();
 
@@ -121,8 +140,20 @@ class KonfirmasiPenarikanController extends Controller
 
     public function riwayatPenarikan()
     {
-        // Menyaring data hanya untuk status 'selesai' dan 'tolak'
-        $riwayat = Penarikan::with('nasabah')
+        $petugas = Auth::user();
+        $gudangId = $petugas->gudang_id;
+
+        // Menyaring data riwayat penarikan
+        $riwayat = Penarikan::with(['nasabah', 'petugas.gudang'])
+            ->where(function ($query) use ($gudangId) {
+                $query->where('status', '!=', 'selesai')
+                      ->orWhere(function ($sub) use ($gudangId) {
+                          $sub->where('status', 'selesai')
+                              ->whereHas('petugas', function ($pq) use ($gudangId) {
+                                  $pq->where('gudang_id', $gudangId);
+                              });
+                      });
+            })
             ->latest()
             ->paginate(10);
 
@@ -131,7 +162,7 @@ class KonfirmasiPenarikanController extends Controller
 
     public function show($id)
     {
-        $penarikan = Penarikan::with('nasabah', 'petugas')->findOrFail($id);
+        $penarikan = Penarikan::with(['nasabah', 'petugas.gudang'])->findOrFail($id);
 
         return response()->json([
             'message' => 'Detail penarikan berhasil diambil',

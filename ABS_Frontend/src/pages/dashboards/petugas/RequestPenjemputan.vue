@@ -11,6 +11,9 @@ checkRole("petugas");
 const router = useRouter();
 const axios = inject('axios');
 
+// Ambil data petugas yang sedang login (untuk mendapatkan gudang_id)
+const user = ref(JSON.parse(sessionStorage.getItem("user") || "{}"));
+
 // State
 const requests = ref([]);
 const workers = ref([]);
@@ -55,11 +58,17 @@ const fetchWorkers = async () => {
   }
 };
 
-// Computed
+// Computed property untuk memfilter request berdasarkan Gudang Petugas & Status
 const filteredRequests = computed(() => {
   let filtered = requests.value;
 
-  // Filter by status tab
+  // 1. FILTER BERDASARKAN GUDANG_ID (PENTING!)
+  // Pastikan hanya menampilkan request yang ditujukan ke gudang tempat petugas ini bekerja
+  if (user.value && user.value.gudang_id) {
+    filtered = filtered.filter(r => r.gudang_id === user.value.gudang_id);
+  }
+
+  // 2. Filter by status tab
   if (activeFilter.value === "Menunggu") {
     filtered = filtered.filter(r => ['pending', 'menunggu_persetujuan', 'jadwal_ditolak'].includes(r.status));
   } else if (activeFilter.value === "Diproses") {
@@ -70,7 +79,7 @@ const filteredRequests = computed(() => {
     filtered = filtered.filter(r => r.status === 'perlu_input');
   }
 
-  // Search filter
+  // 3. Search filter
   if (searchQuery.value) {
     const q = searchQuery.value.toLowerCase();
     filtered = filtered.filter(r => 
@@ -82,11 +91,23 @@ const filteredRequests = computed(() => {
   return filtered;
 });
 
+const filteredWorkers = computed(() => {
+  if (!selectedRequest.value) return [];
+  return workers.value.filter(w => w.gudang_id === selectedRequest.value.gudang_id);
+});
+
+// Update hitungan tab agar hanya menghitung request di gudang yang sama
 const getCount = (filter) => {
-  if (filter === "Menunggu") return requests.value.filter(r => ['pending', 'menunggu_persetujuan', 'jadwal_ditolak'].includes(r.status)).length;
-  if (filter === "Diproses") return requests.value.filter(r => r.status === 'proses').length;
-  if (filter === "Dijemput") return requests.value.filter(r => r.status === 'dijemput').length;
-  if (filter === "Perlu Input Data") return requests.value.filter(r => r.status === 'perlu_input').length;
+  let validRequests = requests.value;
+  
+  if (user.value && user.value.gudang_id) {
+    validRequests = validRequests.filter(r => r.gudang_id === user.value.gudang_id);
+  }
+
+  if (filter === "Menunggu") return validRequests.filter(r => ['pending', 'menunggu_persetujuan', 'jadwal_ditolak'].includes(r.status)).length;
+  if (filter === "Diproses") return validRequests.filter(r => r.status === 'proses').length;
+  if (filter === "Dijemput") return validRequests.filter(r => r.status === 'dijemput').length;
+  if (filter === "Perlu Input Data") return validRequests.filter(r => r.status === 'perlu_input').length;
   return 0;
 };
 
@@ -217,14 +238,12 @@ onMounted(() => {
 <template>
   <DashboardLayout title="Request Penjemputan">
     <div class="space-y-6 animate-in fade-in duration-700 pb-10">
-      <!-- Header Section -->
       <div>
         <h2 class="text-2xl font-black text-stone-800">Request Penjemputan</h2>
         <p class="text-stone-500 font-medium">Kelola request penjemputan dari nasabah yang masih aktif</p>
         <p class="text-stone-400 text-[10px] font-bold mt-1 italic">* Request yang sudah selesai/ditolak ada di menu Riwayat Transaksi</p>
       </div>
 
-      <!-- Search Bar -->
       <div class="bg-white rounded-[2rem] p-6 shadow-sm border border-stone-100">
         <label class="block text-[10px] font-black text-stone-400 uppercase tracking-widest mb-2">Cari Request</label>
         <div class="flex gap-3">
@@ -242,7 +261,6 @@ onMounted(() => {
         </div>
       </div>
 
-      <!-- Filter Tabs -->
       <div class="bg-white rounded-[2rem] p-2 shadow-sm border border-stone-100 flex">
         <button 
           v-for="filter in ['Menunggu', 'Diproses', 'Dijemput', 'Perlu Input Data']" 
@@ -266,7 +284,6 @@ onMounted(() => {
         </button>
       </div>
 
-      <!-- Request List -->
       <div class="space-y-4">
         <div v-if="loading" class="flex justify-center py-20">
           <Icon icon="line-md:loading-twotone-loop" class="w-12 h-12 text-[#4A7043]" />
@@ -278,7 +295,6 @@ onMounted(() => {
             :key="request.penjemputan_id"
             class="bg-white rounded-[2rem] p-6 shadow-sm border border-stone-100 space-y-6"
           >
-            <!-- Card Header -->
             <div class="flex justify-between items-start">
               <div class="flex items-center gap-3">
                 <h3 class="text-xl font-black text-stone-800">REQ-{{ String(request.penjemputan_id).padStart(3, '0') }}</h3>
@@ -311,7 +327,6 @@ onMounted(() => {
               </button>
             </div>
 
-            <!-- Nasabah Info -->
             <div class="space-y-3">
               <p class="font-black text-stone-800">{{ request.nasabah?.nama || 'Unknown' }} <span class="text-stone-400 font-bold">(NSB-{{ String(request.nasabah_id).padStart(3, '0') }})</span></p>
               <div class="flex flex-wrap gap-y-2 gap-x-6">
@@ -330,7 +345,6 @@ onMounted(() => {
               </div>
             </div>
 
-            <!-- Weight & Waste Info -->
             <div class="bg-stone-50 rounded-2xl p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <p class="text-[10px] font-black text-stone-400 uppercase tracking-widest mb-1">Estimasi Berat</p>
@@ -340,26 +354,20 @@ onMounted(() => {
                 <p class="text-[10px] font-black text-stone-400 uppercase tracking-widest mb-1">Jenis Sampah</p>
                 <p class="font-black text-stone-800 text-lg">{{ request.detail_penjemputan?.map(d => d.sampah?.item_sampah?.nama).join(', ') || 'Tidak ada' }}</p>
               </div>
-              
-              <!-- Additional Info for Proses/Dijemput/Perlu Input Data -->
-              <template v-if="['proses', 'dijemput', 'perlu_input'].includes(request.status)">
-                <div class="pt-2 border-t border-stone-100">
-                  <p class="text-[10px] font-black text-stone-400 uppercase tracking-widest mb-1">Jadwal Penjemputan</p>
-                  <p class="font-black text-stone-800 text-lg">{{ request.jadwal ? formatDate(request.jadwal) : '-' }}</p>
-                </div>
-                <div class="pt-2 border-t border-stone-100">
-                  <p class="text-[10px] font-black text-stone-400 uppercase tracking-widest mb-1">Tukang Penjemputan</p>
-                  <p class="font-black text-stone-800 text-lg">{{ request.tukang?.nama || request.selectedTukang?.nama || '-' }}</p>
-                </div>
-              </template>
-
+              <div class="md:col-span-2 pt-2 border-t border-stone-100">
+                  <p class="text-[10px] font-black text-stone-400 uppercase tracking-widest mb-1">Preferensi Waktu Jemput</p>
+                  <p class="font-bold text-stone-800 text-sm">{{ request.rentang_hari || 'Belum diatur' }} &bull; {{ request.rentan_waktu || 'Belum diatur' }}</p>
+              </div>
+              <div class="md:col-span-2">
+                <p class="text-[10px] font-black text-stone-400 uppercase tracking-widest mb-1">Tukang Ditugaskan</p>
+                <p class="font-black text-stone-800 text-lg">{{ request.tukang?.nama || request.selectedTukang?.nama || '-' }}</p>
+              </div>
               <div v-if="request.deskripsi?.split('|')[2]" class="md:col-span-2 pt-2 border-t border-stone-100">
                 <p class="text-[10px] font-black text-stone-400 uppercase tracking-widest mb-1">Keterangan Tambahan</p>
                 <p class="text-xs font-bold text-stone-600">{{ request.deskripsi?.split('|')[2] }}</p>
               </div>
             </div>
 
-            <!-- Pending Flow (Select Worker -> Schedule -> Confirm) -->
             <template v-if="['pending', 'jadwal_ditolak'].includes(request.status)">
             
             <div v-if="request.status === 'jadwal_ditolak' && !request.showScheduleForm" class="bg-red-50 border border-red-200 rounded-2xl p-4 flex flex-col gap-2 mb-4">
@@ -371,7 +379,6 @@ onMounted(() => {
               <p class="text-[10px] text-red-500 font-medium">Silakan atur jadwal penjemputan ulang.</p>
             </div>
 
-            <!-- Worker Selection -->
             <button 
               @click="openWorkerModal(request)"
               :class="[
@@ -388,7 +395,6 @@ onMounted(() => {
               </template>
             </button>
 
-            <!-- Success Banner (Conditional) -->
             <div v-if="request.showScheduleForm" class="bg-green-50 border border-green-100 rounded-2xl p-4 flex items-center gap-3">
               <div class="w-8 h-8 bg-white rounded-full flex items-center justify-center text-green-600 shadow-sm">
                 <Icon icon="material-symbols:person-check-outline" class="w-5 h-5" />
@@ -399,7 +405,6 @@ onMounted(() => {
               </div>
             </div>
 
-            <!-- Schedule Form (Conditional) -->
             <div v-if="request.showScheduleForm" class="bg-[#EAF0EB] border border-[#C2D6C5] rounded-[1.5rem] p-6 space-y-5 relative shadow-sm mt-4">
               <button @click="request.showScheduleForm = false" class="absolute top-6 right-6 text-stone-500 hover:text-stone-800 transition-colors">
                 <Icon icon="material-symbols:close" class="w-5 h-5" />
@@ -443,7 +448,6 @@ onMounted(() => {
               </button>
             </div>
 
-            <!-- Action Buttons -->
             <div v-if="!request.showScheduleForm" class="flex flex-col md:flex-row gap-4">
               <button 
                 @click="handleTerima(request)"
@@ -466,7 +470,6 @@ onMounted(() => {
             </div>
             </template>
             
-            <!-- Menunggu Persetujuan Flow -->
             <template v-if="request.status === 'menunggu_persetujuan'">
               <div class="bg-indigo-50 border border-indigo-200 rounded-2xl p-4 flex flex-col gap-2 mt-4 shadow-sm">
                 <div class="flex items-center gap-2 text-indigo-700">
@@ -477,7 +480,6 @@ onMounted(() => {
               </div>
             </template>
 
-            <!-- Proses Flow -->
             <template v-if="request.status === 'proses'">
               <button 
                 @click="assignTukang(request)"
@@ -487,7 +489,6 @@ onMounted(() => {
               </button>
             </template>
 
-            <!-- Dijemput Flow -->
             <template v-if="request.status === 'dijemput'">
               <div class="bg-[#F9F6FC] border border-[#EBDDF6] rounded-[1.5rem] p-5 mt-2">
                 <div class="flex items-center gap-4 mb-4">
@@ -509,7 +510,6 @@ onMounted(() => {
               </div>
             </template>
 
-            <!-- Perlu Input Data Flow -->
             <template v-if="request.status === 'perlu_input'">
               <button 
                 @click="inputDataTransaksi(request)"
@@ -530,7 +530,6 @@ onMounted(() => {
       </div>
     </div>
 
-    <!-- Worker Selection Modal -->
     <div v-if="isWorkerModalOpen" class="fixed inset-0 z-[100] flex items-center justify-center p-6">
       <div class="absolute inset-0 bg-stone-900/60 backdrop-blur-sm" @click="isWorkerModalOpen = false"></div>
       <div class="relative bg-[#F5F5F0] w-full max-w-2xl rounded-[2.5rem] shadow-2xl flex flex-col max-h-[80vh] overflow-hidden">
@@ -543,7 +542,7 @@ onMounted(() => {
         
         <div class="flex-1 overflow-y-auto p-8 pt-4 space-y-4">
           <div 
-            v-for="worker in workers" 
+            v-for="worker in filteredWorkers" 
             :key="worker.tukang_id"
             @click="selectWorker(worker)"
             class="bg-[#4A7043] rounded-2xl p-5 text-white flex items-center gap-6 cursor-pointer hover:scale-[1.02] active:scale-[0.98] transition-all group"
@@ -575,18 +574,16 @@ onMounted(() => {
             </div>
           </div>
 
-          <div v-if="workers.length === 0" class="text-center py-10">
-            <p class="text-stone-400 font-bold">Tidak ada tukang yang tersedia.</p>
+          <div v-if="filteredWorkers.length === 0" class="text-center py-10">
+            <p class="text-stone-400 font-bold">Tidak ada tukang yang tersedia di gudang ini.</p>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Detail Modal -->
     <div v-if="isDetailModalOpen && detailRequest" class="fixed inset-0 z-[100] flex items-center justify-center p-6">
       <div class="absolute inset-0 bg-stone-900/60 backdrop-blur-sm" @click="isDetailModalOpen = false"></div>
       <div class="relative bg-[#F5F5F0] w-full max-w-3xl rounded-[2.5rem] shadow-2xl flex flex-col max-h-[90vh] overflow-hidden animate-in fade-in zoom-in-95 duration-300">
-        <!-- Header -->
         <div class="p-8 pb-6 flex justify-between items-start bg-white border-b border-stone-100">
           <div>
             <h3 class="text-2xl font-black text-stone-800">Detail Request Penjemputan</h3>
@@ -597,10 +594,8 @@ onMounted(() => {
           </button>
         </div>
         
-        <!-- Content -->
         <div class="flex-1 overflow-y-auto p-8 space-y-6">
           
-          <!-- Request ID & Status Badge -->
           <div class="flex items-center gap-3 mb-2">
             <h4 class="text-xl font-black text-stone-800">REQ-{{ String(detailRequest.penjemputan_id).padStart(3, '0') }}</h4>
             <span class="px-3 py-1 rounded-full text-[10px] font-black uppercase bg-orange-100 text-orange-600">
@@ -608,7 +603,6 @@ onMounted(() => {
             </span>
           </div>
 
-          <!-- Informasi Nasabah -->
           <div class="bg-white rounded-2xl p-6 shadow-sm border border-stone-100 space-y-4">
             <h5 class="text-sm font-black text-stone-800 mb-2">Informasi Nasabah</h5>
             
@@ -647,7 +641,6 @@ onMounted(() => {
             </div>
           </div>
 
-          <!-- Informasi Sampah -->
           <div class="bg-white rounded-2xl p-6 shadow-sm border border-stone-100 space-y-4">
             <h5 class="text-sm font-black text-stone-800 mb-2">Informasi Sampah</h5>
             
@@ -678,7 +671,26 @@ onMounted(() => {
             </div>
           </div>
 
-          <!-- Foto Sampah -->
+          <div class="bg-white rounded-2xl p-6 shadow-sm border border-stone-100 space-y-4">
+            <h5 class="text-sm font-black text-stone-800 mb-2">Preferensi Waktu Penjemputan</h5>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div class="flex items-start gap-3">
+                <Icon icon="material-symbols:date-range-outline" class="w-5 h-5 text-stone-400 mt-0.5" />
+                <div>
+                  <p class="text-[10px] font-black text-stone-400 uppercase tracking-widest">Preferensi Hari</p>
+                  <p class="font-bold text-stone-800">{{ detailRequest.rentang_hari || 'Belum diatur oleh nasabah' }}</p>
+                </div>
+              </div>
+              <div class="flex items-start gap-3">
+                <Icon icon="material-symbols:schedule-outline" class="w-5 h-5 text-stone-400 mt-0.5" />
+                <div>
+                  <p class="text-[10px] font-black text-stone-400 uppercase tracking-widest">Preferensi Waktu</p>
+                  <p class="font-bold text-stone-800">{{ detailRequest.rentan_waktu || 'Tidak diatur oleh nasabah' }}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <div class="bg-white rounded-2xl p-6 shadow-sm border border-stone-100 space-y-4">
             <h5 class="text-sm font-black text-stone-800 mb-2">Foto Sampah</h5>
             
@@ -705,14 +717,13 @@ onMounted(() => {
             </div>
           </div>
 
-          <!-- Catatan Nasabah -->
           <div class="bg-stone-50 rounded-2xl p-6 border border-stone-100 space-y-3">
             <div class="flex items-center gap-2 mb-1">
               <Icon icon="material-symbols:description-outline" class="w-4 h-4 text-stone-400" />
               <p class="text-[10px] font-black text-stone-400 uppercase tracking-widest">Catatan Nasabah</p>
             </div>
             <p class="text-sm font-medium text-stone-600 leading-relaxed">
-              {{ detailRequest.deskripsi?.split('|')[2] || 'Tidak ada catatan tambahan.' }}
+              {{ detailRequest.deskripsi?.includes('|') ? (detailRequest.deskripsi.split('|')[2] || 'Tidak ada catatan tambahan.') : (detailRequest.deskripsi || 'Tidak ada catatan tambahan.') }}
             </p>
           </div>
 
@@ -720,11 +731,9 @@ onMounted(() => {
       </div>
     </div>
 
-    <!-- Reject Modal -->
     <div v-if="isRejectModalOpen && rejectRequest" class="fixed inset-0 z-[100] flex items-center justify-center p-6">
       <div class="absolute inset-0 bg-stone-900/60 backdrop-blur-sm" @click="isRejectModalOpen = false"></div>
       <div class="relative bg-white w-full max-w-2xl rounded-[2.5rem] shadow-2xl flex flex-col max-h-[90vh] overflow-hidden animate-in fade-in zoom-in-95 duration-300">
-        <!-- Header -->
         <div class="p-8 pb-6 flex justify-between items-start border-b border-stone-100">
           <div class="flex items-center gap-4">
             <div class="w-12 h-12 rounded-full bg-red-50 flex items-center justify-center border border-red-100 shrink-0">
@@ -740,10 +749,8 @@ onMounted(() => {
           </button>
         </div>
         
-        <!-- Content -->
         <div class="flex-1 overflow-y-auto p-8 space-y-6 bg-[#FAFAFA]">
           
-          <!-- Warning Banner -->
           <div class="bg-orange-50 border border-orange-200 rounded-2xl p-4 flex gap-3">
             <Icon icon="material-symbols:info-outline" class="w-5 h-5 text-orange-500 shrink-0 mt-0.5" />
             <p class="text-sm font-medium text-orange-800 leading-snug">
@@ -751,7 +758,6 @@ onMounted(() => {
             </p>
           </div>
 
-          <!-- Form -->
           <div class="space-y-3">
             <label class="text-xs font-black text-stone-800">Alasan Penolakan <span class="text-red-500">*</span></label>
             <textarea 
@@ -767,7 +773,6 @@ onMounted(() => {
 
         </div>
 
-        <!-- Footer -->
         <div class="p-6 border-t border-stone-100 bg-white flex gap-4">
           <button @click="isRejectModalOpen = false" class="flex-1 py-3.5 rounded-xl bg-[#F5F5F0] text-stone-600 font-black text-sm hover:bg-stone-200 transition-colors">
             Batal

@@ -155,11 +155,12 @@
 import Navbar from '@/components/public/Navbar2.vue'
 import Footer from '@/components/public/Footer.vue'
 import { ref, inject } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { redirectLogin } from "@/utils";
 
 redirectLogin()
 
+const route = useRoute()
 const router = useRouter()
 
 // Mengambil axios yang sudah kita atur di main.js sebelumnya
@@ -207,23 +208,29 @@ const handleLogin = async () => {
     sessionStorage.setItem('role', role)
     sessionStorage.setItem('token', response.data.token)
 
-    // Redirect berdasarkan role
-    switch (role) {
-      case 'admin':
-        router.push('/dashboard-admin')
-        break
-      case 'manager':
-        router.push('/dashboard-manager')
-        break
-      case 'petugas':
-        router.push('/dashboard-petugas')
-        break
-      case 'pengepul':
-        router.push('/dashboard-pengepul')
-        break
-      case 'nasabah':
-        router.push('/dashboard-nasabah')
-        break
+    const redirectUrl = route.query.redirect
+
+    if (redirectUrl) {
+      router.push(redirectUrl)
+    } else {
+      // Redirect berdasarkan role
+      switch (role) {
+        case 'admin':
+          router.push('/dashboard-admin')
+          break
+        case 'manager':
+          router.push('/dashboard-manager')
+          break
+        case 'petugas':
+          router.push('/dashboard-petugas')
+          break
+        case 'pengepul':
+          router.push('/dashboard-pengepul')
+          break
+        case 'nasabah':
+          router.push('/dashboard-nasabah')
+          break
+      }
     }
   } catch (error) {
     errorMessage.value = error.response?.data?.message || error

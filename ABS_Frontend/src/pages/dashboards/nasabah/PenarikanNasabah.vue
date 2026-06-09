@@ -1,10 +1,13 @@
 <script setup>
 import { ref, computed, onMounted, watch } from "vue";
 import { inject } from "vue";
+import { checkRole } from '@/utils';
 import DashboardLayout from "@/layouts/DashboardLayout.vue";
 import { Icon } from "@iconify/vue";
 import { cn } from "@/lib/utils";
 import Swal from "sweetalert2";
+
+checkRole('nasabah');
 
 const axios = inject('axios');
 const loading = ref(false);
@@ -364,20 +367,15 @@ onMounted(() => {
               <p class="text-[9px] text-stone-400 font-bold uppercase tracking-wider mb-0.5">Jumlah Penarikan</p>
               <p class="text-2xl font-bold text-[#A86444]">Rp {{ selectedItem.jumlah.toLocaleString('id-ID') }}</p>
             </div>
-            
-            <!-- Pending/Wait/Cancel details breakdown -->
-            <div class="pt-3 border-t border-stone-100 space-y-2 text-xs">
+
+            <div class="pt-3 border-t border-stone-100 space-y-2 text-xs" v-if="selectedItem.saldo_sebelum !== null && selectedItem.saldo_sebelum !== undefined">
               <div class="flex justify-between items-center text-stone-500">
-                <span>Jumlah Penarikan</span>
-                <span class="font-bold text-stone-800">Rp {{ selectedItem.jumlah.toLocaleString('id-ID') }}</span>
+                <span>Saldo Sebelum</span>
+                <span class="font-bold text-stone-800">Rp {{ Number(selectedItem.saldo_sebelum).toLocaleString('id-ID') }}</span>
               </div>
-              <div class="flex justify-between items-center text-stone-500">
-                <span>Biaya Admin</span>
-                <span class="font-bold text-red-500">- Rp {{ (selectedItem.jumlah * 0.01).toLocaleString('id-ID') }}</span>
-              </div>
-              <div class="flex justify-between items-center font-bold text-stone-800 pt-1 border-t border-stone-100/50">
-                <span>Total Diterima</span>
-                <span class="text-[#4A7043]">Rp {{ (selectedItem.jumlah - (selectedItem.jumlah * 0.01)).toLocaleString('id-ID') }}</span>
+              <div class="flex justify-between items-center text-stone-500" v-if="selectedItem.saldo_sesudah !== null && selectedItem.saldo_sesudah !== undefined">
+                <span>Saldo Sesudah</span>
+                <span class="font-bold text-stone-800">Rp {{ Number(selectedItem.saldo_sesudah).toLocaleString('id-ID') }}</span>
               </div>
             </div>
           </div>
@@ -443,6 +441,24 @@ onMounted(() => {
                   </p>
                   <p class="text-[10px] text-stone-400">{{ formatDate(selectedItem.updated_at, true) }}</p>
                 </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 3.5: Pemroses Penarikan (if status is selesai or tolak) -->
+          <div v-if="selectedItem.petugas" class="bg-white rounded-2xl p-4 shadow-sm border border-stone-100 space-y-3">
+            <div class="flex items-center gap-2 border-b border-stone-100 pb-2">
+              <Icon icon="material-symbols:person-outline" class="w-5 h-5 text-[#925F3A]" />
+              <h3 class="text-xs font-bold text-stone-800">Pemroses Penarikan</h3>
+            </div>
+            <div class="space-y-3 text-xs pl-7">
+              <div>
+                <p class="text-[9px] text-stone-400 uppercase tracking-wider font-bold">Nama Petugas</p>
+                <p class="font-bold text-stone-800">{{ selectedItem.petugas?.nama || '-' }}</p>
+              </div>
+              <div v-if="selectedItem.petugas?.gudang">
+                <p class="text-[9px] text-stone-400 uppercase tracking-wider font-bold">Asal Gudang</p>
+                <p class="font-bold text-stone-800">{{ selectedItem.petugas?.gudang?.alamat || '-' }}</p>
               </div>
             </div>
           </div>

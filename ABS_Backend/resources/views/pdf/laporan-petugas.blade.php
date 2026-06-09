@@ -3,13 +3,14 @@
 <head>
     <meta charset="utf-8">
     <title>Detail Transaksi</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap">
     <style>
         @page {
             margin: 130px 40px 60px 40px;
         }
 
         body {
-            font-family: sans-serif;
+            font-family: 'Plus Jakarta Sans', sans-serif;
         }
 
         #kop-surat {

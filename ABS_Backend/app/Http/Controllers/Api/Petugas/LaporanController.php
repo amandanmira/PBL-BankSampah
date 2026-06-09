@@ -49,6 +49,11 @@ class LaporanController extends Controller
 
     public function exportPdf(Request $request)
     {
+        $user = $request->user();
+        if ($user instanceof \App\Models\Manager) {
+            return $this->exportManagerPdf($request);
+        }
+
         $startDate = $request->start_date
             ? Carbon::parse($request->start_date)->startOfDay()
             : Carbon::now()->subMonth()->startOfDay();
@@ -565,6 +570,287 @@ class LaporanController extends Controller
             'startDate',
             'endDate',
             'bankDistribution'
+        ]));
+
+        $pdfBase64 = base64_encode($pdf->output());
+
+        return response()->json([
+            'status' => 'success',
+            'data' => [
+                'pdf_base64' => $pdfBase64
+            ]
+        ]);
+    }
+
+    private function exportManagerPdf(Request $request)
+    {
+        $startDate = $request->start_date
+            ? Carbon::parse($request->start_date)->startOfDay()
+            : Carbon::now()->subMonth()->startOfDay();
+        $endDate = $request->end_date
+            ? Carbon::parse($request->end_date)->endOfDay()
+            : Carbon::now()->endOfDay();
+        $gudangId = $request->gudang_id;
+
+        $gudangModel = $gudangId ? Gudang::find($gudangId) : null;
+        $gudangAlamat = $gudangModel ? $gudangModel->alamat : null;
+
+        // 1. Get Completed Transactions (Penimbangan)
+        $completedQuery = \App\Models\Penimbangan::with([
+            'nasabah',
+            'sampah.itemSampah',
+            'tukang',
+            'transaksi.petugas.gudang',
+            'penjemputan.gudang'
+        ])->where(function ($q) {
+            $q->whereHas('penjemputan', function($q2) {
+                $q2->whereIn('status', ['selesai']);
+            })->orWhereHas('transaksi', function($q3) {
+                $q3->where('tipe_transaksi', 'antar_sendiri')
+                   ->whereIn('status', ['selesai']);
+            });
+        });
+
+        if ($gudangAlamat) {
+            $completedQuery->where(function ($q) use ($gudangAlamat) {
+                $q->where(function ($qJemput) use ($gudangAlamat) {
+                    $qJemput->whereHas('penjemputan.gudang', function($q2) use ($gudangAlamat) {
+                        $q2->where('alamat', $gudangAlamat);
+                    });
+                })
+                ->orWhere(function ($qSetor) use ($gudangAlamat) {
+                    $qSetor->whereHas('transaksi', function($q3) use ($gudangAlamat) {
+                        $q3->where('tipe_transaksi', 'antar_sendiri')
+                           ->whereHas('petugas.gudang', function($q4) use ($gudangAlamat) {
+                               $q4->where('alamat', $gudangAlamat);
+                           });
+                    });
+                });
+            });
+        }
+
+        if ($startDate) $completedQuery->whereDate('created_at', '>=', $startDate);
+        if ($endDate) $completedQuery->whereDate('created_at', '<=', $endDate);
+
+        $completedData = $completedQuery->get();
+
+        // 2. Get Failed Transactions (Penjemputan status in tolak, batal)
+        $failedQuery = \App\Models\Penjemputan::with([
+            'nasabah',
+            'gudang',
+            'petugas',
+            'tukang'
+        ])->whereIn('status', ['tolak', 'batal']);
+
+        if ($gudangAlamat) {
+            $failedQuery->whereHas('gudang', function($q) use ($gudangAlamat) {
+                $q->where('alamat', $gudangAlamat);
+            });
+        }
+        if ($startDate) $failedQuery->whereDate('created_at', '>=', $startDate);
+        if ($endDate) $failedQuery->whereDate('created_at', '<=', $endDate);
+
+        $failedData = $failedQuery->get();
+
+        // Map and Merge Data
+        $mappedCompleted = $completedData->map(function ($p) {
+            $isJemput = !($p->transaksi && $p->transaksi->tipe_transaksi === 'antar_sendiri');
+            $gudangName = $isJemput 
+                ? (optional(optional($p->penjemputan)->gudang)->alamat ?? 'Unknown Gudang')
+                : (optional(optional(optional($p->transaksi)->petugas)->gudang)->alamat ?? 'Unknown Gudang');
+            $petugasName = optional(optional($p->transaksi)->petugas)->nama ?? '-';
+            $tukangName = $p->tukang->nama ?? '-';
+
+            return [
+                'type' => 'completed',
+                'sumber' => $isJemput ? 'Jemput' : 'Setor Manual',
+                'berat' => (float)$p->berat_timbang,
+                'status' => 'Selesai',
+                'gudang' => $gudangName,
+                'nasabah_id' => $p->nasabah_id,
+                'nasabah_name' => $p->nasabah->nama ?? 'Unknown',
+                'petugas_name' => $petugasName,
+                'tukang_name' => $tukangName,
+                'jenis' => $p->sampah->itemSampah->nama ?? 'Unknown',
+            ];
+        });
+
+        $mappedFailed = $failedData->map(function ($p) {
+            $gudangName = $p->gudang->alamat ?? 'Unknown Gudang';
+            $petugasName = $p->petugas->nama ?? '-';
+            $tukangName = $p->tukang->nama ?? '-';
+
+            return [
+                'type' => 'failed',
+                'sumber' => 'Jemput',
+                'berat' => 0.0,
+                'status' => 'Tidak Terlaksana',
+                'gudang' => $gudangName,
+                'nasabah_id' => $p->nasabah_id,
+                'nasabah_name' => $p->nasabah->nama ?? 'Unknown',
+                'petugas_name' => $petugasName,
+                'tukang_name' => $tukangName,
+                'jenis' => 'Belum Ditimbang',
+            ];
+        });
+
+        $allTransactions = $mappedCompleted->merge($mappedFailed);
+
+        // Calculate stats
+        $totalTransaksi = $allTransactions->count();
+        $totalBerat = $mappedCompleted->sum('berat');
+        $selesaiCount = $mappedCompleted->count();
+        $tidakTerlaksanaCount = $mappedFailed->count();
+
+        // Distribusi Sumber Transaksi
+        $jemputCount = $allTransactions->where('sumber', 'Jemput')->count();
+        $jemputWeight = $mappedCompleted->where('sumber', 'Jemput')->sum('berat');
+        $setorManualCount = $allTransactions->where('sumber', 'Setor Manual')->count();
+        $setorManualWeight = $mappedCompleted->where('sumber', 'Setor Manual')->sum('berat');
+
+        // Distribusi Jenis Sampah
+        $jenisSampahList = [];
+        $categories = ['Organik', 'Plastik PET', 'Kertas', 'Logam'];
+        $groupedByJenis = $mappedCompleted->groupBy('jenis');
+        foreach ($categories as $cat) {
+            $catWeight = isset($groupedByJenis[$cat]) ? $groupedByJenis[$cat]->sum('berat') : 0.0;
+            $catPercentage = $totalBerat > 0 ? ($catWeight / $totalBerat) * 100 : 0.0;
+            $jenisSampahList[] = [
+                'nama' => $cat,
+                'berat' => $catWeight,
+                'persentase' => $catPercentage
+            ];
+        }
+        usort($jenisSampahList, function($a, $b) {
+            return $b['berat'] <=> $a['berat'];
+        });
+
+        // Top Nasabah
+        $topNasabah = [];
+        if ($gudangAlamat) {
+            $groupedByNasabah = $mappedCompleted->groupBy('nasabah_id');
+            foreach ($groupedByNasabah as $nasabahId => $items) {
+                $topNasabah[] = [
+                    'nama' => $items->first()['nasabah_name'],
+                    'transaksi' => $items->count(),
+                    'berat' => $items->sum('berat')
+                ];
+            }
+            usort($topNasabah, function($a, $b) {
+                return $b['transaksi'] <=> $a['transaksi'] ?: $b['berat'] <=> $a['berat'];
+            });
+            $topNasabah = array_slice($topNasabah, 0, 3);
+        }
+
+        // Ringkasan Per Petugas
+        $ringkasanPetugas = [];
+        if ($gudangAlamat) {
+            $groupedByPetugas = $allTransactions->groupBy('petugas_name');
+            foreach ($groupedByPetugas as $petugasName => $items) {
+                if ($petugasName === '-') continue;
+                $ringkasanPetugas[] = [
+                    'nama' => $petugasName,
+                    'total' => $items->count(),
+                    'selesai' => $items->where('status', 'Selesai')->count(),
+                    'tidak_terlaksana' => $items->where('status', 'Tidak Terlaksana')->count()
+                ];
+            }
+            usort($ringkasanPetugas, function($a, $b) {
+                return $b['total'] <=> $a['total'];
+            });
+        }
+
+        // Data Per Gudang
+        $dataPerGudang = [];
+        if (!$gudangAlamat) {
+            $masterGudangs = Gudang::all();
+            foreach ($masterGudangs as $g) {
+                $alamat = $g->alamat;
+                $gTransactions = $allTransactions->where('gudang', $alamat);
+                $dataPerGudang[] = [
+                    'nama' => $alamat,
+                    'transaksi' => $gTransactions->count(),
+                    'berat' => $gTransactions->where('status', 'Selesai')->sum('berat'),
+                    'selesai' => $gTransactions->where('status', 'Selesai')->count(),
+                    'tidak_terlaksana' => $gTransactions->where('status', 'Tidak Terlaksana')->count()
+                ];
+            }
+            usort($dataPerGudang, function($a, $b) {
+                return $b['berat'] <=> $a['berat'];
+            });
+        }
+
+        // Penjualan Ke Pengepul
+        $transaksiPengepulQuery = \App\Models\TransaksiPengepul::with(['pengepul', 'detailTransaksi.sampah.itemSampah', 'detailTransaksi.sampah.gudang'])
+            ->where('status', 'selesai')
+            ->whereBetween('created_at', [$startDate, $endDate]);
+
+        if ($gudangId) {
+            $transaksiPengepulQuery->whereHas('detailTransaksi.sampah.gudang', function ($q) use ($gudangId) {
+                $q->where('gudang_id', $gudangId);
+            });
+        }
+        $transaksiPengepuls = $transaksiPengepulQuery->get();
+
+        $penjualanPengepulList = $transaksiPengepuls->map(function ($t) {
+            $itemNames = $t->detailTransaksi->map(function($d) {
+                return optional(optional($d->sampah)->itemSampah)->nama;
+            })->filter()->unique()->implode(', ');
+
+            $totalBerat = $t->detailTransaksi->sum('berat');
+            $diterima = $t->detailTransaksi->sum('harga');
+            $keuntungan = $t->detailTransaksi->sum(function($d) {
+                $hargaBeli = optional(optional($d->sampah)->itemSampah)->harga_beli ?? 0.0;
+                return $d->harga - ($d->berat * $hargaBeli);
+            });
+
+            return [
+                'pengepul' => $t->pengepul->nama ?? 'Unknown',
+                'tanggal' => Carbon::parse($t->created_at)->translatedFormat('d M Y'),
+                'jenis_sampah' => $itemNames ?: '-',
+                'total_berat' => $totalBerat,
+                'diterima' => $diterima,
+                'keuntungan' => $keuntungan
+            ];
+        });
+
+        $totalPengepulBerat = $penjualanPengepulList->sum('total_berat');
+        $totalPengepulDiterima = $penjualanPengepulList->sum('diterima');
+        $totalPengepulKeuntungan = $penjualanPengepulList->sum('keuntungan');
+
+        // Total Dibayar Ke Nasabah
+        $transaksiNasabahIds = $completedData->pluck('transaksi_id')->filter()->unique()->toArray();
+        $totalDibayarNasabah = \App\Models\TransaksiNasabah::whereIn('transaksi_id', $transaksiNasabahIds)
+            ->where('status', 'selesai')
+            ->sum('total_harga');
+
+        $marginNasabah = $totalPengepulDiterima > 0 ? ($totalPengepulKeuntungan / $totalPengepulDiterima) * 100 : 0.0;
+
+        $config = KonfigurasiWeb::firstOrCreate([]);
+        $periodeText = $startDate->translatedFormat('d M Y') . ' – ' . $endDate->translatedFormat('d M Y');
+
+        $pdf = Pdf::loadView('pdf.laporan-manager', compact([
+            'gudangAlamat',
+            'periodeText',
+            'totalTransaksi',
+            'totalBerat',
+            'selesaiCount',
+            'tidakTerlaksanaCount',
+            'jemputCount',
+            'jemputWeight',
+            'setorManualCount',
+            'setorManualWeight',
+            'jenisSampahList',
+            'topNasabah',
+            'ringkasanPetugas',
+            'dataPerGudang',
+            'penjualanPengepulList',
+            'totalPengepulBerat',
+            'totalPengepulDiterima',
+            'totalPengepulKeuntungan',
+            'totalDibayarNasabah',
+            'marginNasabah',
+            'config'
         ]));
 
         $pdfBase64 = base64_encode($pdf->output());

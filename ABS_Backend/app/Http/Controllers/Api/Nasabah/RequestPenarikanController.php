@@ -14,7 +14,7 @@ class RequestPenarikanController extends Controller
         $status = $request->query('status');
         $search = $request->query('search');
 
-        $query = Penarikan::where('nasabah_id', $nasabah->nasabah_id)->latest();
+        $query = Penarikan::where('nasabah_id', $nasabah->nasabah_id)->with(['petugas.gudang'])->latest();
 
         if ($status && $status !== 'semua') {
             if ($status === 'menunggu') {
@@ -107,6 +107,7 @@ class RequestPenarikanController extends Controller
             'no_rekening' => $validated['no_rekening'],
             'nama_bank' => $validated['nama_bank'],
             'nama_rek' => $validated['nama_rek'],
+            'saldo_sebelum' => $nasabah->saldo,
         ]);
 
         return response()->json([

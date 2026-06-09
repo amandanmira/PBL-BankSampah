@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, computed } from "vue";
+import { ref, onMounted, computed, inject } from "vue";
 import { Icon } from "@iconify/vue";
 import DashboardLayout from "@/layouts/DashboardLayout.vue";
 import axios from 'axios'
@@ -7,7 +7,6 @@ import Swal from 'sweetalert2';
 import { useRouter } from 'vue-router';
 
 const router = useRouter();
-
 const token = sessionStorage.getItem('token')
 
 if (!token) {
@@ -15,7 +14,6 @@ if (!token) {
 }
 
 const user = ref(JSON.parse(sessionStorage.getItem("user")));
-
 const headers = { 'Authorization': `Bearer ${token}` }
 
 const listSampah = ref([]);
@@ -121,86 +119,6 @@ const navigateToPreview = () => {
   });
 };
 
-const tanggalCetak = computed(() => {
-  const now = new Date()
-  return now.toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' })
-    + ' pukul '
-    + now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })
-})
-
-const addSampah = () => {
-  data.value.sampah.push({ sampah_id: "" });
-};
-
-const removeSampah = (index) => {
-  data.value.sampah.splice(index, 1);
-};
-
-const downloadExcel = async () => {
-  try {
-    const res = await axios.get(
-      `/api/cetak-laporan/excel`,
-      {
-        headers,
-        params: {
-          start_date: data.value.start_date,
-          end_date: data.value.end_date,
-          gudang_id: data.value.gudang_id,
-          sampah: data.value.sampah,
-        },
-        responseType: 'blob',
-      }
-    )
-    const url = window.URL.createObjectURL(new Blob([res.data]))
-    const link = document.createElement('a')
-    link.href = url
-    link.setAttribute('download', 'transaksi.xlsx')
-    document.body.appendChild(link)
-    link.click()
-    link.remove()
-  } catch (err) {
-    console.error(err)
-  }
-}
-
-const previewPdf = async () => {
-  try {
-    const response = await axios.get(
-      `/api/cetak-laporan/pdf`,
-      {
-        headers,
-        params: {
-          start_date: data.value.start_date,
-          end_date: data.value.end_date,
-          gudang_id: data.value.gudang_id,
-          sampah: data.value.sampah,
-        }
-      }
-    )
-
-    const base64Data = response.data.data.pdf_base64;
-    const byteCharacters = atob(base64Data);
-    const byteNumbers = new Array(byteCharacters.length);
-    for (let i = 0; i < byteCharacters.length; i++) {
-        byteNumbers[i] = byteCharacters.charCodeAt(i);
-    }
-    const byteArray = new Uint8Array(byteNumbers);
-    const blobData = new Blob([byteArray], { type: 'application/pdf' });
-    
-    const url = window.URL.createObjectURL(blobData);
-    const link = document.createElement('a');
-    link.href = url;
-    link.setAttribute('download', 'Laporan_Audit_Bank_Sampah.pdf');
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    
-    window.URL.revokeObjectURL(url);
-  } catch (err) {
-    console.error(err)
-  }
-}
-
 const fetchData = async () => {
   try {
     const response = await axios.get("http://localhost:8000/api/laporan/list-sampah", { headers });
@@ -217,13 +135,22 @@ const fetchData = async () => {
         gudang_id: data.value.gudang_id
       }
     });
+    
     summaryLaporan.value = responseSummary.data.data;
-    detailsLaporan.value = responseSummary.data.details || {
+    const rawDetails = responseSummary.data.details || {
       penjemputan: [],
       setor_manual: [],
       penarikan: [],
       pesanan_pengepul: []
     };
+
+    // FILTER LOGIC: Pastikan kita MENGHAPUS data yang bukan 'selesai' dari array
+    // Ini akan otomatis memperbaiki angka di Stats Grid maupun Tabel
+    detailsLaporan.value = {
+      ...rawDetails,
+      penarikan: rawDetails.penarikan.filter(item => item.status === 'selesai')
+    };
+
   } catch (err) {
     console.error("Gagal mengambil data:", err);
   }
@@ -237,7 +164,6 @@ onMounted(async () => {
 <template>
   <DashboardLayout title="Laporan Harian">
 
-    <!-- Filter Bar -->
     <div class="flex items-center justify-between mb-5">
       <div class="flex items-center gap-3">
         <div class="flex items-center gap-2 text-sm text-stone-500 font-medium">
@@ -262,7 +188,6 @@ onMounted(async () => {
       </button>
     </div>
 
-    <!-- Stats Grid -->
     <div class="grid grid-cols-4 gap-4 mb-5">
       <div class="relative rounded-2xl p-5 bg-[#2d6a4f] text-white">
         <div class="flex items-start justify-between mb-6">
@@ -301,11 +226,15 @@ onMounted(async () => {
           </div>
           <Icon icon="material-symbols:trending-up" class="w-5 h-5 opacity-70" />
         </div>
-        <p class="text-3xl font-bold leading-none mb-1">{{ summaryLaporan.penarikan_count || 0 }}</p>
+        
+        <p class="text-3xl font-bold leading-none mb-1">{{ detailsLaporan.penarikan.length || 0 }}</p>
         <p class="text-xs text-white/70 mb-4">Penarikan Disetujui</p>
+        
         <div class="border-t border-white/20 pt-3">
           <p class="text-xs text-white/60 mb-1">Total Nominal</p>
-          <p class="text-base font-semibold">{{ formatRupiah(summaryLaporan.penarikan_harga || 0) }}</p>
+          <p class="text-base font-semibold">
+            {{ formatRupiah(detailsLaporan.penarikan.reduce((sum, item) => sum + (item.jumlah || 0), 0)) }}
+          </p>
         </div>
       </div>
 
@@ -325,11 +254,9 @@ onMounted(async () => {
       </div>
     </div>
 
-    <!-- Detail Transaksi Tabs -->
     <div class="bg-white rounded-3xl p-6 shadow-sm border border-stone-200/80 mb-5">
       <h3 class="text-lg font-bold text-stone-800 mb-4">Detail Transaksi</h3>
       
-      <!-- Tab Navigation -->
       <div class="flex flex-wrap bg-[#F5F8F5] p-1 rounded-2xl mb-6">
         <button 
           @click="activeTab = 'penjemputan'"
@@ -361,7 +288,6 @@ onMounted(async () => {
         </button>
       </div>
 
-      <!-- Tab Content: Penjemputan -->
       <div v-if="activeTab === 'penjemputan'" class="overflow-x-auto">
         <table class="w-full text-left text-sm whitespace-nowrap">
           <thead class="text-xs text-stone-400 font-bold border-b border-stone-100">
@@ -409,7 +335,6 @@ onMounted(async () => {
         </table>
       </div>
 
-      <!-- Tab Content: Setor Manual -->
       <div v-if="activeTab === 'setor_manual'" class="overflow-x-auto">
         <table class="w-full text-left text-sm whitespace-nowrap">
           <thead class="text-xs text-stone-400 font-bold border-b border-stone-100">
@@ -457,7 +382,6 @@ onMounted(async () => {
         </table>
       </div>
 
-      <!-- Tab Content: Penarikan -->
       <div v-if="activeTab === 'penarikan'" class="overflow-x-auto">
         <table class="w-full text-left text-sm whitespace-nowrap">
           <thead class="text-xs text-stone-400 font-bold border-b border-stone-100">
@@ -508,7 +432,6 @@ onMounted(async () => {
         </table>
       </div>
 
-      <!-- Tab Content: Pesanan Pengepul -->
       <div v-if="activeTab === 'pesanan_pengepul'" class="overflow-x-auto">
         <table class="w-full text-left text-sm whitespace-nowrap">
           <thead class="text-xs text-stone-400 font-bold border-b border-stone-100">
@@ -564,9 +487,7 @@ onMounted(async () => {
       </div>
     </div>
 
-    <!-- Modals -->
     <Teleport to="body">
-      <!-- Date Range Modal -->
       <Transition name="fade">
         <div v-if="showDateModal" class="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div class="absolute inset-0 bg-stone-900/60 backdrop-blur-sm" @click="showDateModal = false"></div>
@@ -580,7 +501,6 @@ onMounted(async () => {
             </div>
             
             <div class="space-y-4">
-              <!-- Preset Buttons -->
               <div class="grid grid-cols-3 gap-2">
                 <button @click="setPresetDate('hari_ini')" class="py-2 px-3 rounded-xl border border-stone-200 text-xs font-bold text-stone-600 hover:bg-stone-50 transition-colors focus:ring-2 focus:ring-[#4A7043]/20">Hari Ini</button>
                 <button @click="setPresetDate('minggu_ini')" class="py-2 px-3 rounded-xl border border-stone-200 text-xs font-bold text-stone-600 hover:bg-stone-50 transition-colors focus:ring-2 focus:ring-[#4A7043]/20">Minggu Ini</button>
@@ -617,7 +537,6 @@ onMounted(async () => {
         </div>
       </Transition>
 
-      <!-- Image Preview Modal -->
       <Transition name="fade">
         <div v-if="showImageModal" class="fixed inset-0 z-[60] flex items-center justify-center p-4">
           <div class="absolute inset-0 bg-stone-900/80 backdrop-blur-sm" @click="showImageModal = false"></div>
@@ -640,10 +559,7 @@ onMounted(async () => {
           </div>
         </div>
       </Transition>
-
-
     </Teleport>
-
   </DashboardLayout>
 </template>
 

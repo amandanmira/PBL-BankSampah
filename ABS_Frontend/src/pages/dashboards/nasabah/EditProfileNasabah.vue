@@ -487,12 +487,14 @@ L.Icon.Default.mergeOptions({
   iconUrl: markerIcon,
   shadowUrl: markerShadow,
 });
+import { checkRole } from '@/utils';
 import DashboardLayout from "@/layouts/DashboardLayout.vue";
 import { Icon } from "@iconify/vue";
 import { cn } from "@/lib/utils";
 
 const axios = inject('axios');
 
+checkRole('nasabah');
 const listBank = [
   'BRI',
   'BCA',
@@ -748,7 +750,7 @@ const saveLocation = () => {
 };
 
 // Logic Kelengkapan Profil
-const totalFieldsCount = 9;
+const totalFieldsCount = 8;
 const completedFieldsCount = computed(() => {
   let count = 0;
   if (form.value.username) count++;
@@ -759,7 +761,6 @@ const completedFieldsCount = computed(() => {
   if (form.value.nama_bank) count++;
   if (form.value.no_rekening) count++;
   if (form.value.nama_rek) count++;
-  // Foto Profil is always empty/missing (counts as 0)
   return count;
 });
 
@@ -772,7 +773,6 @@ const missingFields = computed(() => {
   if (!form.value.gmap) missing.push("Titik Jemput");
   if (!form.value.nama_bank) missing.push("Nama Bank");
   if (!form.value.nama_rek) missing.push("Nama Pemilik Rekening");
-  missing.push("Foto Profil");
   if (!form.value.no_rekening) missing.push("Nomor Rekening");
   return missing;
 });
@@ -786,8 +786,7 @@ const getFieldIcon = (field) => {
     "Titik Jemput": "material-symbols:near-me-outline",
     "Nama Bank": "material-symbols:account-balance-outline",
     "Nomor Rekening": "material-symbols:payments-outline",
-    "Nama Pemilik Rekening": "material-symbols:person-outline",
-    "Foto Profil": "material-symbols:photo-camera-outline"
+    "Nama Pemilik Rekening": "material-symbols:person-outline"
   };
   return icons[field] || "material-symbols:info-outline";
 };

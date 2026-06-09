@@ -8,6 +8,8 @@ use Illuminate\Support\Facades\Auth;
 use App\Models\Penimbangan;
 use Illuminate\Http\Request;
 use App\Models\Sampah;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\StatusPenjemputanMail;
 
 class PenimbanganController extends Controller
 {
@@ -87,6 +89,10 @@ public function penimbangan(Request $request)
             $transaksi->saldo_sesudah = $nasabah->saldo;
             $transaksi->save();
 
+            if ($penjemputan->nasabah && $penjemputan->nasabah->email) {
+                Mail::to($penjemputan->nasabah->email)->send(new StatusPenjemputanMail($penjemputan, 'selesai'));
+            }
+
             DB::commit();
 
             return response()->json([
@@ -117,9 +123,40 @@ public function penimbangan(Request $request)
 
 public function listSampah()
     {
-        // Mengambil semua data dari tabel sampah, beserta data dari tabel item_sampah
-        // Pastikan relasi 'itemSampah' sudah ada di model Sampah seperti yang kita buat sebelumnya
-        $sampah = \App\Models\Sampah::with('itemSampah')->get();
+        $petugas = Auth::user();
+        $gudangId = $petugas->gudang_id;
+
+        // Automatically ensure all active item_sampahs exist in the sampahs table for all gudangs (self-healing)
+        $existing = Sampah::select('gudang_id', 'item_id')->get()->groupBy('gudang_id');
+        $activeItems = \App\Models\ItemSampah::where('active', 1)->get();
+        $gudangs = \App\Models\Gudang::all();
+        
+        $toInsert = [];
+        foreach ($gudangs as $gudang) {
+            $existingItems = isset($existing[$gudang->gudang_id]) 
+                ? $existing[$gudang->gudang_id]->pluck('item_id')->toArray() 
+                : [];
+            foreach ($activeItems as $item) {
+                if (!in_array($item->item_id, $existingItems)) {
+                    $toInsert[] = [
+                        'gudang_id' => $gudang->gudang_id,
+                        'item_id' => $item->item_id,
+                        'stok' => 0,
+                        'active' => 1,
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ];
+                }
+            }
+        }
+        if (!empty($toInsert)) {
+            Sampah::insert($toInsert);
+        }
+
+        // Filter: only get waste types belonging to the officer's warehouse
+        $sampah = Sampah::with('itemSampah')
+                    ->where('gudang_id', $gudangId)
+                    ->get();
 
         return response()->json([
             'message' => 'Berhasil mengambil data sampah',

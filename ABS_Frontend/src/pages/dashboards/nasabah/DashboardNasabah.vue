@@ -1,5 +1,6 @@
 <script setup>
-import { ref, onMounted, inject } from "vue";
+import { ref, onMounted, onUnmounted, inject } from "vue";
+import { useRouter } from "vue-router";
 import DashboardLayout from "@/layouts/DashboardLayout.vue";
 import GreetingCard from "@/components/dashboard/GreetingCard.vue";
 import StatCard from "@/components/dashboard/StatCard.vue";
@@ -12,9 +13,11 @@ import { checkRole } from "@/utils";
 // Middleware
 checkRole("nasabah");
 
+const router = useRouter();
 const axios = inject("axios");
 const user = ref(JSON.parse(sessionStorage.getItem("user") || "{}"));
 const loading = ref(true);
+let refreshInterval = null; 
 
 // Data Statistik Ringkasan
 const stats = ref([
@@ -38,18 +41,14 @@ const stats = ref([
   },
 ]);
 
-// Top Nasabah
 const topNasabah = ref([]);
-
-// Chart Data
 const chartSeries = ref([
   { name: "Volume (kg)", data: [0, 0, 0, 0, 0, 0] },
   { name: "Pendapatan (Rp)", data: [0, 0, 0, 0, 0, 0] },
 ]);
 const chartCategories = ref(["-", "-", "-", "-", "-", "-"]);
-
-// Aktivitas Terbaru
 const recentActivities = ref([]);
+const penjemputanPending = ref([]);
 
 const formatRupiah = (number) => {
   return new Intl.NumberFormat("id-ID", {
@@ -59,21 +58,33 @@ const formatRupiah = (number) => {
   }).format(number);
 };
 
-const fetchData = async () => {
-  loading.value = true;
+const formatTanggal = (dateStr) => {
+  if (!dateStr) return "-";
+  return new Date(dateStr).toLocaleDateString("id-ID", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+};
+
+const fetchData = async (isBackgroundRefresh = false) => {
+  if (!isBackgroundRefresh) {
+    loading.value = true;
+  }
+  
   try {
     const response = await axios.get("/api/nasabah/dashboard-stats");
     const data = response.data;
 
     if (data.user) {
       user.value = { ...user.value, ...data.user };
+      sessionStorage.setItem("user", JSON.stringify(user.value));
     }
 
     stats.value[0].value = formatRupiah(data.stats.saldo_tersedia);
     stats.value[1].value = `${data.stats.total_sampah} kg`;
     stats.value[2].value = data.stats.total_transaksi.toString();
 
-    // Chart Data
     if (data.chart_data) {
       chartCategories.value = data.chart_data.map(d => d.month);
       chartSeries.value = [
@@ -82,10 +93,9 @@ const fetchData = async () => {
       ];
     }
 
-    // Top Nasabah
     topNasabah.value = data.top_nasabah || [];
-
-    recentActivities.value = data.activities;
+    recentActivities.value = data.activities || [];
+    penjemputanPending.value = data.penjemputan_pending || [];
   } catch (err) {
     console.error("Failed to fetch dashboard stats:", err);
   } finally {
@@ -95,16 +105,21 @@ const fetchData = async () => {
 
 onMounted(() => {
   fetchData();
+  refreshInterval = setInterval(() => {
+    fetchData(true);
+  }, 30000); 
+});
+
+onUnmounted(() => {
+  if (refreshInterval) clearInterval(refreshInterval);
 });
 </script>
 
 <template>
   <DashboardLayout title="Dashboard">
     <div class="space-y-10">
-      <!-- Greeting Section -->
       <GreetingCard :name="user.nama || user.name || 'Nasabah'" />
 
-      <!-- Summary Section -->
       <section>
         <h2 class="text-xl font-bold text-stone-800 mb-6">Ringkasan</h2>
         <div v-if="loading" class="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -119,19 +134,121 @@ onMounted(() => {
         </div>
       </section>
 
-      <!-- Chart Section -->
+      <section>
+        <div v-if="loading" class="h-48 bg-stone-200 animate-pulse rounded-3xl"></div>
+        <div v-else class="bg-white rounded-[2rem] p-6 shadow-sm border border-stone-100/80">
+          <div class="flex items-center justify-between mb-5">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-[14px] bg-[#E8F0E6] flex items-center justify-center">
+                <Icon icon="material-symbols:local-shipping-outline" class="text-[#4A7043] w-5 h-5" />
+              </div>
+              <div>
+                <h2 class="text-lg font-bold text-stone-800">Penjemputan Aktif</h2>
+                <p class="text-xs text-stone-400 mt-0.5">Sedang menunggu & dalam proses</p>
+              </div>
+            </div>
+            <button
+              @click="router.push('/dashboard-nasabah/sampah-saya')"
+              class="inline-flex items-center gap-1.5 text-[11px] font-bold text-white bg-[#4A7043] hover:bg-[#3d5e38] px-4 py-2 rounded-full transition-colors duration-200"
+            >
+              <Icon icon="material-symbols:open-in-new" class="text-sm" />
+              Lihat Semua
+            </button>
+          </div>
+
+          <div
+            v-if="penjemputanPending.length === 0"
+            class="flex flex-col items-center justify-center py-10 text-center"
+          >
+            <div class="p-4 rounded-full bg-stone-50 mb-3">
+              <Icon icon="material-symbols:check-circle-outline" class="text-stone-300 text-4xl" />
+            </div>
+            <p class="text-stone-500 font-bold text-sm">Tidak ada penjemputan aktif</p>
+            <p class="text-stone-400 text-xs mt-1">Semua penjemputan sudah selesai</p>
+          </div>
+
+          <div v-else class="space-y-4 mt-6">
+            <div
+              v-for="item in penjemputanPending"
+              :key="item.penjemputan_id"
+              @click="router.push({ path: '/dashboard-nasabah/sampah-saya', query: { highlight_id: item.penjemputan_id } })"
+              class="w-full bg-[#FCFCFC] hover:bg-stone-50 rounded-[20px] p-5 flex flex-col border border-stone-100/80 hover:border-stone-200 transition-all text-left cursor-pointer group"
+            >
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-5">
+                  
+                  <div 
+                    class="w-12 h-12 rounded-[12px] flex items-center justify-center shrink-0 transition-colors"
+                    :class="{
+                      'bg-[#F4F6F8] text-[#637381]': item.status === 'menunggu_persetujuan',
+                      'bg-[#FFF4E5] text-[#B76E00]': item.status === 'proses',
+                      'bg-[#4A7043] text-white': ['dijemput', 'perlu_input'].includes(item.status)
+                    }"
+                  >
+                    <Icon v-if="item.status === 'menunggu_persetujuan'" icon="material-symbols:schedule-outline" class="w-6 h-6" />
+                    <Icon v-else-if="item.status === 'proses'" icon="material-symbols:sync" class="w-6 h-6" />
+                    <Icon v-else-if="item.status === 'perlu_input'" icon="material-symbols:inventory-2-outline" class="w-6 h-6" />
+                    <Icon v-else icon="material-symbols:local-shipping-outline" class="w-6 h-6" />
+                  </div>
+                  
+                  <div class="flex flex-col py-1">
+                    <h4 class="font-bold text-stone-800 text-[15px] leading-tight mb-0.5">
+                      {{ 
+                        item.status === 'perlu_input' ? 'Petugas sedang menginput sampahmu' : 
+                        item.status === 'dijemput' ? 'Tukang sedang menuju alamatmu' : 
+                        'Request Penjemputan' 
+                      }}
+                    </h4>
+                    
+                    <p class="text-[11px] text-stone-400 font-medium mt-0.5">
+                      <template v-if="item.status === 'perlu_input'">
+                        Sampahmu sedang ditimbang dan dicatat ke sistem
+                      </template>
+                      <template v-else-if="item.status === 'dijemput'">
+                        Bersiaplah untuk menyerahkan sampahmu
+                      </template>
+                      <template v-else>
+                        Status: <span class="capitalize font-bold text-stone-600">{{ item.status.replace(/_/g, ' ') }}</span> • {{ formatTanggal(item.created_at) }}
+                      </template>
+                    </p>
+                  </div>
+                </div>
+
+                <div class="flex flex-col items-end justify-between self-stretch py-1">
+                  <span class="text-[10px] font-bold text-stone-400">#JMP-{{ String(item.penjemputan_id).padStart(3, '0') }}</span>
+                  <div class="text-stone-300 group-hover:text-[#4A7043] group-hover:translate-x-1 transition-transform mt-auto">
+                    <Icon icon="material-symbols:chevron-right" class="w-5 h-5" />
+                  </div>
+                </div>
+              </div>
+
+              <div v-if="['dijemput', 'perlu_input'].includes(item.status) && item.tukang" class="mt-4 pt-4 border-t border-stone-100 flex items-center gap-3">
+                 <div class="w-10 h-10 rounded-full bg-stone-100 flex items-center justify-center overflow-hidden shrink-0 border border-stone-200">
+                     <img v-if="item.tukang.foto" :src="`${axios.defaults.baseURL}/storage/${item.tukang.foto}`" class="w-full h-full object-cover" />
+                     <Icon v-else icon="material-symbols:person-outline" class="w-5 h-5 text-stone-400" />
+                 </div>
+                 <div class="flex flex-col">
+                     <span class="text-[9px] font-bold text-stone-400 uppercase tracking-widest mb-0.5">Tukang</span>
+                     <span class="text-[13px] font-bold text-stone-800 leading-tight">{{ item.tukang.nama }}</span>
+                     <span class="text-[10px] text-stone-500 mt-0.5">{{ item.tukang.no_telp }}</span>
+                 </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+      </section>
+
       <section>
         <div v-if="loading" class="h-80 bg-stone-200 animate-pulse rounded-3xl"></div>
         <TransactionChart v-else :series="chartSeries" :categories="chartCategories" />
       </section>
 
-      <!-- Leaderboard Section -->
       <section>
         <div v-if="loading" class="h-80 bg-stone-200 animate-pulse rounded-3xl"></div>
         <LeaderboardTable v-else :data="topNasabah" />
       </section>
 
-      <!-- Activities Section -->
       <section>
         <div v-if="loading" class="h-64 bg-stone-200 animate-pulse rounded-3xl"></div>
         <ActivityList v-else :activities="recentActivities" />

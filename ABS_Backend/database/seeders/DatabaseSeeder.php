@@ -265,5 +265,7 @@ class DatabaseSeeder extends Seeder
             'active' => 1,
             'gudang_id' => 1,
         ]);
+
+        $this->call(PenarikanSeeder::class);
     }
 }

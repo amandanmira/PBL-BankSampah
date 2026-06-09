@@ -20,6 +20,7 @@ class KonfigurasiWeb extends Model
         'no_telp',
         'email',
         'lama_deadline',
+        'batas_waktu_edit',
         'alamat',
         'tentang',
     ];

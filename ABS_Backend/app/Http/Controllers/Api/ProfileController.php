@@ -92,6 +92,7 @@ class ProfileController extends Controller
                 Rule::unique('petugas')->ignore($petugas->petugas_id, 'petugas_id')
             ],
             'no_telp' => 'required|string|max:16',
+            'gudang_id' => 'required|exists:gudangs,gudang_id',
         ]);
 
         $petugas->update($validated);

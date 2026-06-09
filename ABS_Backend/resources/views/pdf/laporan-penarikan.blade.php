@@ -3,13 +3,14 @@
 <head>
     <meta charset="utf-8">
     <title>Laporan Penarikan Saldo Nasabah</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap">
     <style>
         @page {
             margin: 130px 45px 60px 45px;
         }
 
         body {
-            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            font-family: 'Plus Jakarta Sans', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
             color: #333333;
             font-size: 11px;
             line-height: 1.4;

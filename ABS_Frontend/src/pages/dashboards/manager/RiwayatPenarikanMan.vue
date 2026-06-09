@@ -13,6 +13,7 @@
           <th>Nama Nasabah</th>
           <th>Jumlah Penarikan</th>
           <th>Status</th>
+          <th>Aksi</th>
         </tr>
       </thead>
       <tbody>
@@ -22,6 +23,11 @@
           <td>{{ formatRupiah(p.jumlah) }}</td>
           <td>
             <span :class="`status-${p.status}`">{{ p.status }}</span>
+          </td>
+          <td>
+            <button @click="openDetail(p.penarikan_id)" class="btn-show">
+              Lihat Detail
+            </button>
           </td>
         </tr>
       </tbody>
@@ -47,6 +53,8 @@
             </p>
             <p><strong>Jumlah:</strong> {{ formatRupiah(detail.jumlah) }}</p>
             <p><strong>Bank:</strong> {{ detail.nasabah?.nama_bank }} - {{ detail.nasabah?.no_rekening }}</p>
+            <p v-if="detail.petugas"><strong>Petugas Pemroses:</strong> {{ detail.petugas?.nama }}</p>
+            <p v-if="detail.petugas?.gudang"><strong>Asal Gudang:</strong> {{ detail.petugas?.gudang?.alamat }}</p>
             <p v-if="detail.status === 'tolak'"><strong>Alasan Ditolak:</strong> {{ detail.ket_status || "-" }}</p>
           </div>
 

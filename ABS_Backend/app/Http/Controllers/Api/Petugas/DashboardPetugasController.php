@@ -73,7 +73,7 @@ class DashboardPetugasController extends Controller
                 'address' => $p->alamat,
                 'time' => $p->created_at->diffForHumans(),
                 'status' => $statusLabel,
-                'action' => 'Ambil Request',
+                'action' => 'Lihat Detail',
                 'color' => 'bg-[#4A7043]'
             ];
         }

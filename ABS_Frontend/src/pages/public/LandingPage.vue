@@ -11,7 +11,7 @@ import { useRouter } from "vue-router";
 const router = useRouter()
 
 const role = sessionStorage.getItem('role')
-const user = JSON.parse(sessionStorage.getItem('user'))
+const user = JSON.parse(sessionStorage.getItem('user') || 'null')
 
 const logout = async () => {
   try {

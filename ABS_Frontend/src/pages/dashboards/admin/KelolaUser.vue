@@ -31,6 +31,7 @@ const form = ref({
   username: "",
   email: "",
   password: "",
+  password_confirmation: "",
   no_telp: "",
   gudang_id: "",
 });
@@ -70,7 +71,9 @@ const fetchData = async () => {
         id: item[r.idField],
         role: r.name,
         // Normalize status and date
-        status: r.name === 'Petugas' ? (item.active ? 'aktif' : 'non-aktif') : (item.status === 'aktif' ? 'aktif' : 'non-aktif'),
+        status: r.name === 'Petugas' 
+          ? (item.active ? 'aktif' : 'non-aktif') 
+          : (r.name === 'Admin' ? 'aktif' : (item.status === 'aktif' ? 'aktif' : 'non-aktif')),
         joined_at: item.created_at || new Date().toISOString(),
       }));
     });
@@ -157,6 +160,10 @@ const toggleStatus = async (account) => {
 };
 
 const handleAddPetugas = async () => {
+  if (form.value.password !== form.value.password_confirmation) {
+    alert("Konfirmasi password tidak cocok!");
+    return;
+  }
   try {
     isSubmitting.value = true;
     const token = sessionStorage.getItem("token");
@@ -167,7 +174,7 @@ const handleAddPetugas = async () => {
     alert("Akun petugas berhasil dibuat!");
     isModalOpen.value = false;
     // Reset form
-    form.value = { nama: "", username: "", email: "", password: "", no_telp: "", gudang_id: "" };
+    form.value = { nama: "", username: "", email: "", password: "", password_confirmation: "", no_telp: "", gudang_id: "" };
     fetchData(); // Refresh list
   } catch (err) {
     alert("Gagal membuat petugas: " + (err.response?.data?.message || err.message));
@@ -177,6 +184,10 @@ const handleAddPetugas = async () => {
 };
 
 const handleAddManager = async () => {
+  if (form.value.password !== form.value.password_confirmation) {
+    alert("Konfirmasi password tidak cocok!");
+    return;
+  }
   try {
     isSubmitting.value = true;
     const token = sessionStorage.getItem("token");
@@ -192,7 +203,7 @@ const handleAddManager = async () => {
     alert("Akun manager berhasil dibuat!");
     isManagerModalOpen.value = false;
     // Reset form
-    form.value = { nama: "", username: "", email: "", password: "", no_telp: "", gudang_id: "" };
+    form.value = { nama: "", username: "", email: "", password: "", password_confirmation: "", no_telp: "", gudang_id: "" };
     fetchData(); // Refresh list
   } catch (err) {
     alert("Gagal membuat manager: " + (err.response?.data?.message || err.message));
@@ -447,6 +458,16 @@ const formatDate = (dateStr) => {
                 class="w-full bg-gray-50 border-none rounded-2xl p-4 focus:ring-2 focus:ring-[#4A7043] outline-none transition-all placeholder:text-gray-300 text-sm"
               />
             </div>
+
+            <div class="space-y-1.5">
+              <label class="text-xs font-bold text-gray-500 uppercase tracking-wider ml-1">Konfirmasi Password</label>
+              <input 
+                v-model="form.password_confirmation"
+                type="password" 
+                placeholder="Konfirmasi password"
+                class="w-full bg-gray-50 border-none rounded-2xl p-4 focus:ring-2 focus:ring-[#4A7043] outline-none transition-all placeholder:text-gray-300 text-sm"
+              />
+            </div>
             
             <div class="space-y-1.5">
               <label class="text-xs font-bold text-gray-500 uppercase tracking-wider ml-1">Email</label>
@@ -540,6 +561,16 @@ const formatDate = (dateStr) => {
                 v-model="form.password"
                 type="password" 
                 placeholder="Masukkan password"
+                class="w-full bg-gray-50 border-none rounded-2xl p-4 focus:ring-2 focus:ring-[#4A7043] outline-none transition-all placeholder:text-gray-300 text-sm"
+              />
+            </div>
+
+            <div class="space-y-1.5">
+              <label class="text-xs font-bold text-gray-500 uppercase tracking-wider ml-1">Konfirmasi Password</label>
+              <input 
+                v-model="form.password_confirmation"
+                type="password" 
+                placeholder="Konfirmasi password"
                 class="w-full bg-gray-50 border-none rounded-2xl p-4 focus:ring-2 focus:ring-[#4A7043] outline-none transition-all placeholder:text-gray-300 text-sm"
               />
             </div>

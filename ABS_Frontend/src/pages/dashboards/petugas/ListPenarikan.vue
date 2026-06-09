@@ -4,11 +4,13 @@ import { Icon } from "@iconify/vue";
 import DashboardLayout from "@/layouts/DashboardLayout.vue";
 import { checkRole } from "@/utils";
 import Swal from "sweetalert2";
+import { useRoute } from "vue-router"; // Tambahkan useRoute
 
 // Security check
 checkRole("petugas");
 
 const axios = inject('axios');
+const route = useRoute(); // Inisialisasi route
 
 // State
 const penarikans = ref([]);
@@ -69,7 +71,7 @@ const fetchData = async (page = 1) => {
       params: {
         page,
         status: activeFilter.value,
-        search: searchQuery.value,
+        search: searchQuery.value, // searchQuery yang dilempar dari url akan terbaca otomatis
       },
     });
     const data = res.data.penarikan;
@@ -178,6 +180,10 @@ const confirmReject = async () => {
 };
 
 onMounted(() => {
+  // Tangkap query parameter dari Dashboard Petugas
+  if (route.query.filter) activeFilter.value = route.query.filter;
+  if (route.query.search) searchQuery.value = route.query.search;
+  
   fetchData();
 });
 </script>
@@ -185,7 +191,6 @@ onMounted(() => {
 <template>
   <DashboardLayout title="Request Penarikan">
     <div class="space-y-6 animate-in fade-in duration-700 pb-10">
-      <!-- Header Section -->
       <div class="flex justify-between items-start">
         <div>
           <h2 class="text-2xl font-black text-stone-800">Request Penarikan</h2>
@@ -193,7 +198,6 @@ onMounted(() => {
         </div>
       </div>
 
-      <!-- Filter Category Tabs -->
       <div class="bg-white rounded-2xl p-2 shadow-sm border border-stone-100 flex overflow-x-auto no-scrollbar">
         <button 
           v-for="tab in [
@@ -213,7 +217,6 @@ onMounted(() => {
         </button>
       </div>
 
-      <!-- Search Bar -->
       <div class="bg-white rounded-2xl p-4 shadow-sm border border-stone-100 relative">
         <div class="relative group">
           <Icon icon="material-symbols:search" class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-stone-300 group-focus-within:text-[#4A7043] transition-colors" />
@@ -227,7 +230,6 @@ onMounted(() => {
         </div>
       </div>
 
-      <!-- Table Section -->
       <div class="bg-white rounded-2xl shadow-sm border border-stone-100 overflow-hidden">
         <div class="overflow-x-auto">
           <table class="w-full text-left border-collapse">
@@ -314,7 +316,6 @@ onMounted(() => {
           </table>
         </div>
 
-        <!-- Footer Pagination -->
         <div class="p-4 bg-stone-50/50 border-t border-stone-100 flex flex-col md:flex-row justify-between items-center gap-4">
           <div class="flex items-center gap-2 text-xs font-bold text-stone-500">
             Tampilkan
@@ -345,12 +346,10 @@ onMounted(() => {
       </div>
     </div>
 
-    <!-- Modals -->
     <Transition name="fade">
       <div v-if="selectedPenarikan" class="fixed inset-0 z-[100] flex items-center justify-center p-4">
         <div class="absolute inset-0 bg-stone-900/60 backdrop-blur-sm" @click="closeAllModals"></div>
         
-        <!-- Detail Modal -->
         <div v-if="isDetailModalOpen" class="relative bg-white w-full max-w-lg rounded-[2rem] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300">
           <div class="p-6 pb-4 flex justify-between items-center border-b border-stone-50">
             <h3 class="text-xl font-black text-stone-800">Detail Request Penarikan</h3>
@@ -360,7 +359,6 @@ onMounted(() => {
           </div>
           
           <div class="p-6 space-y-6 max-h-[75vh] overflow-y-auto no-scrollbar">
-            <!-- Header Card -->
             <div class="bg-stone-50 rounded-2xl p-5 relative overflow-hidden">
               <div class="flex justify-between items-start relative z-10">
                 <div class="space-y-1">
@@ -385,7 +383,6 @@ onMounted(() => {
               </div>
             </div>
 
-            <!-- Data Nasabah -->
             <div class="space-y-4">
               <h4 class="text-sm font-black text-stone-800 flex items-center gap-2">
                 <div class="w-1.5 h-4 bg-[#4A7043] rounded-full"></div>
@@ -406,16 +403,9 @@ onMounted(() => {
                   <p class="text-[10px] font-black text-stone-400 uppercase tracking-widest">Saldo Tersedia</p>
                   <p class="font-black text-green-600">{{ formatRupiah(selectedPenarikan.nasabah?.saldo) }}</p>
                 </div>
-                <div>
-                  
-                </div>
-                <div class="text-right">
-                 
-                </div>
               </div>
             </div>
 
-            <!-- Detail Penarikan -->
             <div class="space-y-4">
               <h4 class="text-sm font-black text-stone-800 flex items-center gap-2">
                 <div class="w-1.5 h-4 bg-[#4A7043] rounded-full"></div>
@@ -423,14 +413,17 @@ onMounted(() => {
               </h4>
               
               <div class="space-y-3">
-                
                 <div class="flex justify-between items-center">
                   <p class="text-[10px] font-black text-stone-400 uppercase tracking-widest">Jumlah Penarikan</p>
                   <p class="text-lg font-black text-stone-800">{{ formatRupiah(selectedPenarikan.jumlah) }}</p>
                 </div>
+                <div class="flex justify-between items-center" v-if="selectedPenarikan.saldo_sebelum != null">
+                  <p class="text-[10px] font-black text-stone-400 uppercase tracking-widest">Saldo Sebelum</p>
+                  <p class="font-black text-stone-600">{{ formatRupiah(selectedPenarikan.saldo_sebelum) }}</p>
+                </div>
                 <div class="flex justify-between items-center">
                   <p class="text-[10px] font-black text-stone-400 uppercase tracking-widest">Sisa Saldo Setelah Penarikan</p>
-                  <p class="font-black text-green-600">{{ formatRupiah(selectedPenarikan.nasabah?.saldo - selectedPenarikan.jumlah) }}</p>
+                  <p class="font-black text-green-600">{{ formatRupiah(selectedPenarikan.saldo_sesudah ?? (selectedPenarikan.saldo_sebelum != null ? (selectedPenarikan.saldo_sebelum - selectedPenarikan.jumlah) : (selectedPenarikan.nasabah?.saldo - selectedPenarikan.jumlah))) }}</p>
                 </div>
                 <div class="bg-orange-50 border border-orange-100 rounded-xl p-4">
                   <div class="flex items-center gap-3 mb-2">
@@ -447,7 +440,6 @@ onMounted(() => {
               </div>
             </div>
 
-            <!-- Bukti Transfer (If Selesai) -->
             <div v-if="selectedPenarikan.status === 'selesai' && selectedPenarikan.bukti_tf" class="space-y-3">
               <div class="bg-green-50 border border-green-100 rounded-xl p-4">
                  <p class="text-[10px] font-black text-green-800 uppercase tracking-widest mb-1">Bukti Transfer</p>
@@ -458,7 +450,6 @@ onMounted(() => {
               </div>
             </div>
 
-            <!-- Keterangan Penolakan (If Ditolak) -->
             <div v-if="selectedPenarikan.status === 'tolak'" class="bg-red-50 border border-red-100 rounded-xl p-4">
                 <p class="text-[10px] font-black text-red-800 uppercase tracking-widest mb-1">Alasan Penolakan</p>
                 <p class="text-xs font-bold text-red-700 leading-relaxed">{{ selectedPenarikan.ket_status || 'Tidak ada alasan diberikan.' }}</p>
@@ -480,7 +471,6 @@ onMounted(() => {
           </div>
         </div>
 
-        <!-- Approve Modal -->
         <div v-if="isApproveModalOpen" class="relative bg-white w-full max-w-lg rounded-[2rem] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300">
            <div class="p-6 pb-4 flex justify-between items-center border-b border-stone-50">
             <h3 class="text-xl font-black text-stone-800">Terima Request Penarikan</h3>
@@ -541,7 +531,6 @@ onMounted(() => {
           </div>
         </div>
 
-        <!-- Reject Modal -->
         <div v-if="isRejectModalOpen" class="relative bg-white w-full max-w-lg rounded-[2rem] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300">
            <div class="p-6 pb-4 flex justify-between items-center border-b border-stone-50">
             <h3 class="text-xl font-black text-stone-800">Tolak Request Penarikan</h3>

@@ -60,6 +60,7 @@ const menuItems = computed(() => {
   }
   if (role.value === "pengepul") {
     return [
+      { name: "Profil", path: "/dashboard-pengepul/edit-profile", icon: "material-symbols:person-outline" },
       { name: "Dashboard", path: "/dashboard-pengepul", icon: "material-symbols:grid-view-outline" },
       { name: "Beli Sampah", path: "/dashboard-pengepul/beli-sampah", icon: "material-symbols:shopping-bag-outline" },
       { name: "Keranjang", path: "/dashboard-pengepul/keranjang", icon: "material-symbols:shopping-cart-outline" },
@@ -68,6 +69,7 @@ const menuItems = computed(() => {
   }
   // Default to nasabah
   return [
+    { name: "Profil", path: "/dashboard-nasabah/edit-profile", icon: "material-symbols:person-outline" },
     { name: "Dashboard", path: "/dashboard-nasabah", icon: "material-symbols:home-outline" },
     { name: "Katalog Sampah", path: "/dashboard-nasabah/katalog", icon: "material-symbols:menu-book-outline" },
     { name: "Request Jemput/Setor", path: "/dashboard-nasabah/request-penjemputan", icon: "material-symbols:local-shipping-outline" },
@@ -76,6 +78,12 @@ const menuItems = computed(() => {
     { name: "Riwayat Penarikan", path: "/dashboard-nasabah/penarikan-saya", icon: "material-symbols:account-balance-wallet-outline" },
   ];
 });
+
+const showLogoutModal = ref(false);
+
+const handleLogoutClick = () => {
+  showLogoutModal.value = true;
+};
 
 const handleLogout = () => {
   sessionStorage.clear();
@@ -88,6 +96,10 @@ const goToProfile = () => {
   } else if (role.value === 'pengepul') {
     router.push('/dashboard-pengepul/edit-profile');
   }
+};
+
+const formatRupiah = (val) => {
+  return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(val);
 };
 
 const handleProfileClick = () => {
@@ -103,13 +115,30 @@ const handleProfileClick = () => {
   }
 };
 
-const user = computed(() => {
+const user = ref({});
+
+const initUser = () => {
   try {
-    return JSON.parse(sessionStorage.getItem("user") || "{}");
+    user.value = JSON.parse(sessionStorage.getItem("user") || "{}");
   } catch (e) {
-    return {};
+    user.value = {};
   }
-});
+};
+initUser();
+
+const fetchUserBalance = async () => {
+  if (role.value === 'nasabah' && user.value.nasabah_id) {
+    try {
+      const res = await axios.get(`/api/nasabah/profile/${user.value.nasabah_id}`);
+      if (res.data) {
+        user.value = { ...user.value, ...res.data };
+        sessionStorage.setItem("user", JSON.stringify(user.value));
+      }
+    } catch (err) {
+      console.error("Failed to fetch user balance:", err);
+    }
+  }
+};
 
 const webConfig = ref({
   logo: null,
@@ -211,6 +240,7 @@ watch(() => route.path, (newPath) => {
 
 onMounted(() => {
   fetchWebConfig();
+  fetchUserBalance();
   fetchMenuUpdates();
   setInterval(fetchMenuUpdates, 3 * 60 * 1000); // Poll every 3 minutes
 });
@@ -372,7 +402,7 @@ onMounted(() => {
       <!-- Logout -->
       <div :class="cn('p-4 border-t border-white/10 transition-all duration-300', isSidebarCollapsed ? 'flex justify-center px-0' : '')">
         <button
-          @click="handleLogout"
+          @click="handleLogoutClick"
           :class="
             cn(
               'flex items-center transition-all duration-300 group overflow-hidden',
@@ -474,7 +504,7 @@ onMounted(() => {
       <!-- Logout (Mobile) -->
       <div class="p-4 border-t border-white/10">
         <button
-          @click="handleLogout"
+          @click="handleLogoutClick"
           class="flex items-center px-4 py-3 gap-4 w-full rounded-2xl text-white/80 hover:bg-red-500/25 hover:text-white transition-all duration-200 font-bold"
         >
           <Icon icon="material-symbols:logout" class="w-5.5 h-5.5 rotate-180 shrink-0" />
@@ -499,15 +529,18 @@ onMounted(() => {
             <h1 class="text-lg lg:text-2xl font-bold tracking-wide uppercase lg:normal-case text-white">{{ title }}</h1>
           </div>
 
-          <!-- Profile Button (Top Right Header) -->
+          <!-- Profile Button or Balance (Top Right Header) -->
           <div class="flex items-center">
-            <button
-              @click="handleProfileClick"
-              class="p-2 hover:bg-white/10 rounded-full transition-all shrink-0 cursor-pointer text-white flex items-center justify-center"
-              title="Profil Saya"
-            >
-              <Icon icon="material-symbols:account-circle-outline" class="w-6 h-6 lg:w-7 h-7 text-white" />
-            </button>
+            <template v-if="role === 'nasabah'">
+              <div class="bg-white/15 backdrop-blur-md px-4 py-2 rounded-2xl flex items-center gap-2 border border-white/10 shadow-inner">
+                <Icon icon="material-symbols:account-balance-wallet-outline" class="w-5 h-5 text-white" />
+                <span class="text-xs font-semibold text-white/80 select-none">Saldo:</span>
+                <span class="text-xs lg:text-sm font-black text-white select-all">{{ formatRupiah(user.saldo_tersedia ?? user.saldo ?? 0) }}</span>
+              </div>
+            </template>
+            <template v-else>
+              <!-- Profile button removed -->
+            </template>
           </div>
         </div>
       </header>
@@ -523,6 +556,34 @@ onMounted(() => {
 
         <DashboardFooter />
       </main>
+    </div>
+
+    <!-- Logout Confirmation Modal -->
+    <div v-if="showLogoutModal" class="fixed inset-0 z-[999] flex items-center justify-center p-4">
+      <div class="absolute inset-0 bg-stone-900/60 backdrop-blur-sm" @click="showLogoutModal = false"></div>
+      <div class="relative bg-white w-full max-w-md rounded-[2.5rem] p-8 shadow-2xl text-center animate-in fade-in zoom-in-95 duration-200">
+        <div class="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-4 border border-red-100">
+          <Icon icon="material-symbols:logout" class="w-8 h-8 text-red-500 rotate-180" />
+        </div>
+        <h3 class="text-xl font-black text-stone-800 mb-2">Konfirmasi Logout</h3>
+        <p class="text-stone-500 text-sm font-medium mb-6">
+          Apakah Anda yakin ingin keluar dari akun Anda? Anda harus masuk kembali untuk mengakses data Anda.
+        </p>
+        <div class="flex gap-4">
+          <button 
+            @click="showLogoutModal = false" 
+            class="flex-1 py-3.5 rounded-xl bg-[#F5F5F0] text-stone-600 font-black text-sm hover:bg-stone-200 transition-colors"
+          >
+            Batal
+          </button>
+          <button 
+            @click="handleLogout" 
+            class="flex-1 py-3.5 rounded-xl bg-red-500 text-white font-black text-sm hover:bg-red-600 transition-all shadow-md shadow-red-900/10 active:scale-[0.98]"
+          >
+            Ya, Keluar
+          </button>
+        </div>
+      </div>
     </div>
   </div>
 </template>

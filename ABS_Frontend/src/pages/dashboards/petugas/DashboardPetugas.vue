@@ -40,6 +40,42 @@ const today = computed(() => {
   return new Date().toLocaleDateString('id-ID', options);
 });
 
+// FUNGSI BARU: Menghitung URL tujuan dengan sangat aman
+const getRouteTarget = (item) => {
+  try {
+    // 1. Ambil ID murni secara aman (Cegah error jika data kosong)
+    const idStr = String(item.id || '');
+    const searchParam = idStr.includes('-') ? idStr.split('-').pop().replace(/^0+/, '') : idStr;
+    
+    // 2. Tentukan tab yang aktif berdasarkan status
+    const stat = String(item.status || '').toLowerCase();
+
+    if (item.type === 'pickup') {
+      let tab = 'Menunggu';
+      if (stat.includes('proses') || stat.includes('diproses')) tab = 'Diproses';
+      if (stat.includes('jemput') || stat.includes('otw')) tab = 'Dijemput';
+      if (stat.includes('input')) tab = 'Perlu Input Data';
+      
+      return { 
+        path: '/dashboard-petugas/listpenjemputan', 
+        query: { filter: tab, search: searchParam || '' } 
+      };
+    } else {
+      let tab = 'menunggu';
+      if (stat.includes('selesai')) tab = 'selesai';
+      if (stat.includes('tolak') || stat.includes('batal')) tab = 'ditolak';
+      
+      return { 
+        path: '/dashboard-petugas/listpenarikan', 
+        query: { filter: tab, search: searchParam || '' } 
+      };
+    }
+  } catch (error) {
+    console.error("Routing error:", error);
+    return { path: '/dashboard-petugas' }; // Fallback aman
+  }
+};
+
 const fetchData = async () => {
   loading.value = true;
   try {
@@ -60,27 +96,22 @@ const fetchData = async () => {
 onMounted(() => {
   fetchData();
 });
-
 </script>
 
 <template>
   <DashboardLayout title="Dashboard Petugas">
     <div class="space-y-8 animate-in fade-in duration-1000 pb-20 px-4 lg:px-10">
       
-      <!-- Welcome Card -->
       <div class="bg-[#4A7043] rounded-[1.5rem] p-8 text-white relative overflow-hidden shadow-2xl shadow-green-900/20">
         <div class="relative z-10">
           <h2 class="text-3xl font-black mb-2 tracking-tight">Selamat Datang, {{ user.name?.split(' ')[0] || 'Petugas' }}!</h2>
           <p class="text-white/70 text-base font-medium">Kelola semua operasional bank sampah hari ini</p>
         </div>
-        <!-- Decorative background elements -->
         <div class="absolute top-0 right-0 w-80 h-80 bg-white/5 rounded-full -mr-32 -mt-32 blur-3xl"></div>
         <div class="absolute bottom-0 left-0 w-64 h-64 bg-black/10 rounded-full -ml-20 -mb-20 blur-2xl"></div>
       </div>
 
-      <!-- Stats Grid -->
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <!-- Pickup Request -->
         <router-link to="/dashboard-petugas/listpenjemputan" class="bg-[#3D5A35] rounded-[1.5rem] p-8 text-white shadow-xl flex flex-col justify-between h-56 transition-all hover:-translate-y-2 hover:shadow-2xl group">
           <div class="flex justify-between items-start">
             <div class="p-3 bg-white/10 rounded-2xl backdrop-blur-md group-hover:scale-110 transition-transform">
@@ -95,7 +126,6 @@ onMounted(() => {
           </div>
         </router-link>
 
-        <!-- Withdrawal Request -->
         <router-link to="/dashboard-petugas/listpenarikan" class="bg-[#5FA09B] rounded-[1.5rem] p-8 text-white shadow-xl flex flex-col justify-between h-56 transition-all hover:-translate-y-2 hover:shadow-2xl group">
           <div class="flex justify-between items-start">
             <div class="p-3 bg-white/10 rounded-2xl backdrop-blur-md group-hover:scale-110 transition-transform">
@@ -110,7 +140,6 @@ onMounted(() => {
           </div>
         </router-link>
 
-        <!-- Pengepul Request -->
         <router-link to="/dashboard-petugas/penimbangan" class="bg-[#8C5230] rounded-[1.5rem] p-8 text-white shadow-xl flex flex-col justify-between h-56 transition-all hover:-translate-y-2 hover:shadow-2xl group">
           <div class="flex justify-between items-start">
             <div class="p-3 bg-white/10 rounded-2xl backdrop-blur-md group-hover:scale-110 transition-transform">
@@ -125,7 +154,6 @@ onMounted(() => {
           </div>
         </router-link>
 
-        <!-- Total Finished -->
         <div class="bg-[#6B6B6B] rounded-[1.5rem] p-8 text-white shadow-xl flex flex-col justify-between h-56 group border border-white/5">
           <div class="flex justify-between items-start">
             <div class="p-3 bg-white/10 rounded-2xl backdrop-blur-md group-hover:rotate-12 transition-transform">
@@ -141,10 +169,8 @@ onMounted(() => {
         </div>
       </div>
 
-      <!-- Main Section: Attention & Activities -->
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
         
-        <!-- Left Column: Yang Perlu Perhatian -->
         <div class="space-y-8">
           <div class="flex justify-between items-end px-4">
             <h3 class="text-2xl font-black text-stone-800">Yang Perlu Perhatian</h3>
@@ -156,7 +182,6 @@ onMounted(() => {
             
             <template v-else>
               <div v-for="item in attentionItems" :key="item.id" class="bg-white rounded-[1.5rem] p-6 shadow-sm border border-stone-100 flex flex-col gap-6 transition-all hover:shadow-xl hover:-translate-y-1">
-                <!-- Header: Icon, ID, Time & Badge -->
                 <div class="flex justify-between items-start">
                   <div class="flex items-center gap-4">
                     <div class="w-14 h-14 bg-stone-50 rounded-xl flex items-center justify-center text-stone-300 shadow-inner">
@@ -174,7 +199,6 @@ onMounted(() => {
                   </span>
                 </div>
 
-                <!-- Content: Name & Info -->
                 <div class="px-1">
                   <p class="font-black text-stone-800 text-xl leading-tight">{{ item.name }}</p>
                   <div class="flex items-center gap-2 mt-2 text-stone-400">
@@ -184,18 +208,17 @@ onMounted(() => {
                   </div>
                 </div>
 
-                <!-- Actions -->
                 <div class="flex gap-3 pt-1">
                   <router-link 
-                    :to="item.type === 'pickup' ? '/dashboard-petugas/listpenjemputan' : '/dashboard-petugas/listpenarikan'"
-                    :class="['flex-1 py-4 rounded-xl text-white text-sm text-center font-black transition-all active:scale-95 shadow-xl shadow-stone-200', item.color]"
+                    :to="getRouteTarget(item)"
+                    :class="['flex-1 py-4 rounded-xl text-white text-sm text-center font-black transition-all active:scale-95 shadow-xl shadow-stone-200 block', item.color]"
                   >
                     {{ item.action }} <span class="ml-1 text-white/50">›</span>
                   </router-link>
                   <router-link 
                     v-if="item.type === 'withdrawal'" 
-                    to="/dashboard-petugas/listpenarikan"
-                    class="px-8 py-4 rounded-xl bg-white text-stone-400 text-sm font-black border border-stone-200 text-center hover:bg-stone-50 transition-colors"
+                    :to="getRouteTarget(item)"
+                    class="px-8 py-4 rounded-xl bg-white text-stone-400 text-sm font-black border border-stone-200 text-center hover:bg-stone-50 transition-colors block"
                   >
                     Detail
                   </router-link>
@@ -212,7 +235,6 @@ onMounted(() => {
           </div>
         </div>
 
-        <!-- Right Column: Aktivitas Terkini -->
         <div class="bg-white rounded-[2rem] p-8 shadow-xl shadow-stone-200/50 border border-stone-50 flex flex-col">
           <div class="flex items-center gap-3 mb-8 px-1">
             <div class="w-1.5 h-6 bg-[#5FA09B] rounded-full"></div>
@@ -220,7 +242,6 @@ onMounted(() => {
           </div>
 
           <div class="flex-1 space-y-8 relative px-1">
-            <!-- Timeline Line -->
             <div v-if="activities.length > 0 && !loading" class="absolute left-7 top-4 bottom-4 w-[1.5px] bg-stone-50"></div>
 
             <div v-if="loading" v-for="i in 6" :key="i" class="flex gap-6">
@@ -233,12 +254,10 @@ onMounted(() => {
 
             <template v-else>
               <div v-for="activity in activities" :key="activity.id" class="relative flex gap-8 group">
-                <!-- Icon Circle -->
                 <div :class="['w-12 h-12 rounded-full flex items-center justify-center shrink-0 z-10 transition-all group-hover:scale-110 shadow-md border-[4px] border-white', 
                   activity.iconBg.replace('rounded-2xl', 'rounded-full')]">
                   <Icon :icon="activity.icon" class="w-6 h-6" />
                 </div>
-                <!-- Content -->
                 <div class="flex-1 min-w-0">
                   <div class="flex justify-between items-start gap-4">
                     <div class="pt-0.5">
@@ -265,7 +284,6 @@ onMounted(() => {
         </div>
       </div>
 
-      <!-- Bottom Section: Ringkasan Laporan -->
       <div class="bg-[#4A7043] rounded-[2.5rem] p-10 text-white shadow-2xl shadow-green-900/20">
         <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-12">
           <div class="flex items-center gap-5">
@@ -287,7 +305,6 @@ onMounted(() => {
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <!-- Pickup Summary -->
           <div class="bg-white/5 rounded-[2rem] p-8 border border-white/10 backdrop-blur-md transition-all hover:bg-white/10">
             <div class="flex items-center gap-3 mb-8">
               <div class="p-2 bg-white/10 rounded-xl">
@@ -307,7 +324,6 @@ onMounted(() => {
             </div>
           </div>
 
-          <!-- Manual Deposit Summary -->
           <div class="bg-white/5 rounded-[2rem] p-8 border border-white/10 backdrop-blur-md transition-all hover:bg-white/10">
             <div class="flex items-center gap-3 mb-8">
               <div class="p-2 bg-white/10 rounded-xl">
@@ -327,7 +343,6 @@ onMounted(() => {
             </div>
           </div>
 
-          <!-- Withdrawal Summary -->
           <div class="bg-white/5 rounded-[2rem] p-8 border border-white/10 backdrop-blur-md transition-all hover:bg-white/10">
             <div class="flex items-center gap-3 mb-8">
               <div class="p-2 bg-white/10 rounded-xl">

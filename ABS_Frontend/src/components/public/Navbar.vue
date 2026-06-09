@@ -4,9 +4,7 @@ import axios from 'axios'
 import { useRouter } from "vue-router";
 
 const router = useRouter()
-
 const token = sessionStorage.getItem("token")
-
 const isMenuOpen = ref(false);
 const webConfig = ref({ logo: null });
 
@@ -24,6 +22,9 @@ const fetchWebConfig = async () => {
 };
 
 const logout = async () => {
+  if (!confirm("Apakah Anda yakin ingin logout?")) {
+    return;
+  }
   try {
     const headers = { 'Authorization': `Bearer ${token}` }
 
@@ -32,6 +33,8 @@ const logout = async () => {
     router.push("/login")
   } catch (error) {
     console.log(error.response)
+    sessionStorage.clear()
+    router.push("/login")
   }
 }
 

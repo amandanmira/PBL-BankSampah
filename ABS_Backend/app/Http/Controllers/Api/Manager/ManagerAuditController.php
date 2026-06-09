@@ -390,6 +390,11 @@ class ManagerAuditController extends Controller
                 'nasabah' => $p->nasabah->nama ?? 'Unknown',
                 'nominal' => 'Rp ' . number_format($p->jumlah, 0, ',', '.'),
                 'status' => $statusStr,
+                'no_rekening' => $p->no_rekening,
+                'nama_bank' => $p->nama_bank,
+                'nama_rek' => $p->nama_rek,
+                'petugas' => optional($p->petugas)->nama ?? '-',
+                'gudang' => optional(optional($p->petugas)->gudang)->alamat ?? 'Gudang Pusat',
                 'rawDate' => $p->created_at,
             ];
         });
@@ -403,28 +408,67 @@ class ManagerAuditController extends Controller
         
         $allData = $query->get();
 
-        $selesai = 0;
-        $diproses = 0;
-        $ditolak = 0;
+        $selesaiCount = 0;
+        $diprosesCount = 0;
+        $ditolakCount = 0;
+        
+        $totalNominalSelesai = 0;
+        $totalNominalDitolak = 0;
 
         foreach ($allData as $row) {
             if ($row->status === 'selesai') {
-                $selesai++;
+                $selesaiCount++;
+                $totalNominalSelesai += $row->jumlah;
             } elseif ($row->status === 'tolak') {
-                $ditolak++;
+                $ditolakCount++;
+                $totalNominalDitolak += $row->jumlah;
             } else {
-                $diproses++;
+                $diprosesCount++;
             }
         }
 
-        // Sum all requested nominals
         $totalNominalAll = $allData->sum('jumlah');
+
+        // Bank distribution (group finished transactions by bank)
+        $bankGroups = $allData->where('status', 'selesai')->groupBy('nama_bank');
+        $bankDistribution = [];
+        foreach ($bankGroups as $bankName => $items) {
+            $bankNameStr = $bankName ?: 'Lainnya';
+            $bankDistribution[] = [
+                'nama_bank' => $bankNameStr,
+                'alias' => strtolower(str_replace(' ', '', $bankNameStr)),
+                'jumlah_transaksi' => $items->count(),
+                'total_nominal' => $items->sum('jumlah'),
+                'total_nominal_formatted' => 'Rp ' . number_format($items->sum('jumlah'), 0, ',', '.')
+            ];
+        }
+
+        // Sort bank distribution by total_nominal desc
+        usort($bankDistribution, function($a, $b) {
+            return $b['total_nominal'] <=> $a['total_nominal'];
+        });
+
+        // Rasio percentages
+        $totalFinal = $selesaiCount + $ditolakCount;
+        $selesaiPercent = $totalFinal > 0 ? round(($selesaiCount / $totalFinal) * 100) : 0;
+        $ditolakPercent = $totalFinal > 0 ? 100 - $selesaiPercent : 0;
 
         return response()->json([
             'totalNominal' => 'Rp ' . number_format($totalNominalAll, 0, ',', '.'),
-            'selesai' => $selesai,
-            'diproses' => $diproses,
-            'ditolak' => $ditolak
+            'selesai' => $selesaiCount,
+            'diproses' => $diprosesCount,
+            'ditolak' => $ditolakCount,
+            
+            // Detailed stats
+            'totalTransaksiFinal' => $totalFinal,
+            'totalNominalSelesai' => $totalNominalSelesai,
+            'totalNominalSelesaiFormatted' => 'Rp ' . number_format($totalNominalSelesai, 0, ',', '.'),
+            'totalDitolak' => $ditolakCount,
+            'totalDitolakNominal' => $totalNominalDitolak,
+            'totalDitolakNominalFormatted' => 'Rp ' . number_format($totalNominalDitolak, 0, ',', '.'),
+            'bankDistribution' => $bankDistribution,
+            'selesaiPercent' => $selesaiPercent,
+            'ditolakPercent' => $ditolakPercent
         ], 200);
     }
 }

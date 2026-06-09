@@ -18,6 +18,8 @@ class Penarikan extends Model
         'nama_bank',
         'nama_rek',
         'petugas_id',
+        'saldo_sebelum',
+        'saldo_sesudah',
     ];
 
     public function nasabah()

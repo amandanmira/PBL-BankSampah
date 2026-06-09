@@ -38,7 +38,9 @@ const form = ref({
   deskripsi: "",
   alamat: "",
   gudang_id: "",
-  estimasi_berat: "1-5 kg"
+  estimasi_berat: "1-5 kg",
+  rentang_hari: [],
+  rentan_waktu: ""
 });
 
 const user = JSON.parse(sessionStorage.getItem('user') || "{}");
@@ -51,14 +53,25 @@ const selectedGudang = computed(() => {
 // Paginated Sampah
 const paginatedSampah = computed(() => {
   if (!selectedGudang.value || !selectedGudang.value.sampah) return [];
+  const uniqueSampah = [];
+  const seenIds = new Set();
+  for (const s of selectedGudang.value.sampah) {
+    if (s.item_sampah && !seenIds.has(s.item_sampah.item_id)) {
+      seenIds.add(s.item_sampah.item_id);
+      uniqueSampah.push(s);
+    }
+  }
   const start = (currentPage.value - 1) * itemsPerPage;
   const end = start + itemsPerPage;
-  return selectedGudang.value.sampah.slice(start, end);
+  return uniqueSampah.slice(start, end);
 });
 
 const totalPages = computed(() => {
   if (!selectedGudang.value || !selectedGudang.value.sampah) return 0;
-  return Math.ceil(selectedGudang.value.sampah.length / itemsPerPage);
+  const uniqueSampahCount = new Set(
+    selectedGudang.value.sampah.map(s => s.item_sampah?.item_id).filter(Boolean)
+  ).size;
+  return Math.ceil(uniqueSampahCount / itemsPerPage);
 });
 
 // Setor Manual Computed
@@ -113,7 +126,70 @@ const fetchGudang = async () => {
   }
 };
 
-const handleFile = (e) => {
+const compressImage = (file) => {
+  return new Promise((resolve) => {
+    if (file.size <= 1024 * 1024 || !file.type.startsWith('image/')) {
+      resolve(file);
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        let width = img.width;
+        let height = img.height;
+
+        const MAX_WIDTH = 1600;
+        const MAX_HEIGHT = 1600;
+        if (width > height) {
+          if (width > MAX_WIDTH) {
+            height = Math.round((height * MAX_WIDTH) / width);
+            width = MAX_WIDTH;
+          }
+        } else {
+          if (height > MAX_HEIGHT) {
+            width = Math.round((width * MAX_HEIGHT) / height);
+            height = MAX_HEIGHT;
+          }
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+
+        let quality = 0.8;
+        const checkAndCompress = (q) => {
+          canvas.toBlob((blob) => {
+            if (!blob) {
+              resolve(file);
+              return;
+            }
+            
+            if (blob.size > 1024 * 1024 && q > 0.3) {
+              checkAndCompress(q - 0.15);
+            } else {
+              const compressedFile = new File([blob], file.name, {
+                type: 'image/jpeg',
+                lastModified: Date.now()
+              });
+              resolve(compressedFile);
+            }
+          }, 'image/jpeg', q);
+        };
+
+        checkAndCompress(quality);
+      };
+      img.src = event.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+};
+
+const handleFile = async (e) => {
   const files = Array.from(e.target.files);
   if (uploadedPhotos.value.length + files.length > 3) {
     alert("Maksimal hanya bisa mengupload 3 foto.");
@@ -121,14 +197,15 @@ const handleFile = (e) => {
     return;
   }
   
-  files.forEach(file => {
+  for (const file of files) {
     if (uploadedPhotos.value.length < 3) {
+      const compressedFile = await compressImage(file);
       uploadedPhotos.value.push({
-        file: file,
-        previewUrl: URL.createObjectURL(file)
+        file: compressedFile,
+        previewUrl: URL.createObjectURL(compressedFile)
       });
     }
-  });
+  }
   
   if (fileInput.value) fileInput.value.value = '';
 };
@@ -166,9 +243,16 @@ const submitRequest = async () => {
     alert("Silakan pilih gudang tujuan.");
     return;
   }
-  if (!form.value.alamat && addressType.value === 'alamat_baru') {
-    alert("Silakan isi alamat lengkap.");
-    return;
+  if (addressType.value === 'alamat_profil') {
+    if (!user.alamat || user.alamat.trim() === '' || user.alamat === '-') {
+      alert("Alamat di profil Anda belum diisi. Silakan isi alamat di profil terlebih dahulu.");
+      return;
+    }
+  } else {
+    if (!form.value.alamat || form.value.alamat.trim() === '') {
+      alert("Silakan isi alamat lengkap.");
+      return;
+    }
   }
   if (uploadedPhotos.value.length === 0) {
     alert("Silakan upload minimal satu foto sampah.");
@@ -187,12 +271,14 @@ const submitRequest = async () => {
     const typesStr = selectedItems.value.join(", ");
     const combinedDesc = `${form.value.estimasi_berat}|${typesStr}|${form.value.deskripsi}`;
     
-    formData.append("deskripsi", form.value.deskripsi);
+    formData.append("deskripsi", combinedDesc);
     formData.append("alamat", addressType.value === 'alamat_profil' ? (user.alamat || '-') : form.value.alamat);
     uploadedPhotos.value.forEach((photo) => {
       formData.append("foto[]", photo.file);
     });
     formData.append("estimasi_berat", form.value.estimasi_berat);
+    formData.append("rentang_hari", form.value.rentang_hari.join(','));
+    formData.append("rentan_waktu", form.value.rentan_waktu);
     formData.append("nasabah_id", user.nasabah_id);
     formData.append("gudang_id", form.value.gudang_id);
 
@@ -218,11 +304,20 @@ const submitRequest = async () => {
     selectedItems.value = [];
     selectedItemsId.value = [];
     form.value.deskripsi = "";
+    form.value.rentang_hari = [];
+    form.value.rentan_waktu = "";
     if (fileInput.value) fileInput.value.value = '';
 
   } catch (err) {
     console.error("Failed to submit request:", err);
-    alert("Gagal mengirim request. Pastikan semua data terisi.");
+    if (err.response && err.response.data && err.response.data.errors) {
+      const messages = Object.values(err.response.data.errors).flat().join("\n");
+      alert("Gagal mengirim request:\n" + messages);
+    } else if (err.response && err.response.data && err.response.data.message) {
+      alert("Gagal mengirim request: " + err.response.data.message);
+    } else {
+      alert("Gagal mengirim request. Pastikan semua data terisi.");
+    }
   } finally {
     loading.value = false;
   }
@@ -248,7 +343,7 @@ onMounted(() => {
       <div class="flex gap-4 p-2 bg-white rounded-[2rem] shadow-sm border border-stone-100/50">
         <button 
           type="button"
-          @click="activeTab = 'Jemput Sampah'; addressType = 'alamat_baru'; form.alamat = ''"
+          @click="activeTab = 'Jemput Sampah'; addressType = 'alamat_profil'; form.alamat = user.alamat || ''"
           :class="[
             'flex-1 flex items-center justify-center gap-2.5 py-4 rounded-[1.5rem] text-sm font-bold transition-all cursor-pointer border border-transparent',
             activeTab === 'Jemput Sampah' ? 'bg-[#4A7043] text-white shadow-md' : 'bg-[#F5F5F0] text-stone-500 hover:bg-stone-100'
@@ -358,10 +453,62 @@ onMounted(() => {
           </div>
         </div>
 
-        <!-- Photo Upload -->
-        <div class="space-y-2.5">
-          <label class="flex items-center gap-2 text-xs font-bold text-stone-500 uppercase tracking-wider">
-            <Icon icon="material-symbols:photo-camera-outline" class="w-4 h-4 text-stone-400" />
+        <!-- Waktu Penjemputan Section -->
+        <div class="space-y-6">
+          <label class="flex items-center gap-2 text-xs font-black text-stone-400 uppercase tracking-widest">
+            <Icon icon="material-symbols:event-available-outline" class="w-4 h-4" />
+            Preferensi Waktu Penjemputan
+          </label>
+          
+          <!-- Rentang Hari -->
+          <div class="space-y-3">
+            <label class="block text-[10px] font-black text-stone-400 uppercase tracking-widest ml-1">Pilih Hari (Bisa lebih dari satu)</label>
+            <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-7 gap-3">
+              <button 
+                v-for="hari in ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu']"
+                :key="hari"
+                @click="() => {
+                  const index = form.rentang_hari.indexOf(hari);
+                  if (index > -1) form.rentang_hari.splice(index, 1);
+                  else form.rentang_hari.push(hari);
+                }"
+                :class="[
+                  'py-3 px-2 rounded-xl text-xs font-black transition-all border-2',
+                  form.rentang_hari.includes(hari) 
+                    ? 'bg-[#4A7043] text-white border-[#4A7043]' 
+                    : 'bg-white border-stone-100 hover:border-stone-200 text-stone-500'
+                ]"
+              >
+                {{ hari }}
+              </button>
+            </div>
+          </div>
+
+          <!-- Rentang Waktu -->
+          <div class="space-y-3">
+            <label class="block text-[10px] font-black text-stone-400 uppercase tracking-widest ml-1">Pilih Rentang Waktu</label>
+            <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+              <button 
+                v-for="waktu in ['Pagi (08:00-12:00)', 'Siang (12:00-15:00)', 'Sore (15:00-17:00)']"
+                :key="waktu"
+                @click="form.rentan_waktu = waktu"
+                :class="[
+                  'py-3 px-4 rounded-xl text-xs font-black transition-all border-2 text-left',
+                  form.rentan_waktu === waktu 
+                    ? 'bg-[#4A7043] text-white border-[#4A7043]' 
+                    : 'bg-white border-stone-100 hover:border-stone-200 text-stone-600'
+                ]"
+              >
+                {{ waktu }}
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Photo Upload (Updated with Icon) -->
+        <div class="space-y-3">
+          <label class="flex items-center gap-2 text-xs font-black text-stone-400 uppercase tracking-widest">
+            <Icon icon="material-symbols:photo-camera-outline" class="w-4 h-4" />
             Foto Sampah yang Sudah Ditata <span class="text-red-500">*</span>
           </label>
           <div 
