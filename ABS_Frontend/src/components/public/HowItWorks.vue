@@ -6,48 +6,48 @@ const activeMode = ref('nasabah'); // 'nasabah' or 'pengepul'
 // Mock Data for "Untuk Nasabah"
 const nasabahSteps = [
   {
-    title: 'Buat Akun dan Cari Lokasi',
-    desc: 'Langkah pertama sangat mudah, bergabunglah dengan ratusan pengguna kami. Daftarkan diri sebagai nasabah lalu jelajahi lokasi penjemputan atau agen bank sampah terdekat.',
-    image: '/sample.jpg'
+    title: 'Cek Katalog & Harga',
+    desc: 'Daftar akunmu dan pantau katalog sampah yang tersedia. Harga per kilogram selalu transparan dan terupdate langsung di aplikasi.',
+    image: '/untuk-nasabah/untuk_nasabah1.webp'
   },
   {
-    title: 'Pilah Sampah Berhargamu',
-    desc: 'Kami menyarankan agar sampah kering (seperti plastik, kertas, kardus bekas) dikelompokkan berdasarkan kategorinya masing-masing untuk nilai tukar yang maksimal.',
-    image: '/sample.jpg'
+    title: 'Pilih Metode Setor',
+    desc: 'Sesuaikan dengan waktumu. Buat jadwal request jemput dari rumah, atau pilih opsi setor manual ke gudang terdekat dari lokasimu.',
+    image: '/untuk-nasabah/untuk_nasabah2.webp'
   },
   {
-    title: 'Jadwalkan Waktu Penjemputan',
-    desc: 'Bebaskan rumahmu dari tumpukan sampah cukup lewat sentuhan jari. Pesan agen penjemput kapanpun dan penuhi form lokasi. Petugas andalan kami akan meluncur ke depan pintumu.',
-    image: '/sample.jpg'
+    title: 'Proses Penimbangan',
+    desc: 'Serahkan sampahmu ke petugas atau kurir kami. Sampah akan ditimbang secara presisi dan nilainya langsung dikonversi.',
+    image: '/untuk-nasabah/untuk_nasabah3.webp'
   },
   {
-    title: 'Nikmati Saldo Tabunganmu',
-    desc: 'Timbangan akurat, saldo melompat! Sampahmu akan dikonversi menjadi saldo poin ke dalam akun digital. Tarik saldo kapanpun kamu mau tanpa potongan rumit.',
-    image: '/sample.jpg'
+    title: 'Terima & Tarik Saldo',
+    desc: 'Saldo Rupiah akan otomatis masuk ke akunmu setelah proses selesai. Pantau riwayat dan ajukan penarikan ke rekening bank kapan saja.',
+    image: '/untuk-nasabah/untuk_nasabah4.webp'
   }
 ];
 
 // Mock Data for "Untuk Pengepul"
 const pengepulSteps = [
   {
-    title: 'Daftar Sebagai Penggerak',
-    desc: 'Mulai langkah peduli cuan dan lingkungan! Daftarkan dirimu sebagai agen pengepul resmi aplikasi agar ratusan nasabah di daerahmu dapat mudah menemukan jasamu.',
-    image: '/sample.jpg'
+    title: 'Registrasi & Validasi',
+    desc: 'Buat akun khusus mitra pengepul. Tim admin kami akan memvalidasi pendaftaranmu untuk memastikan keamanan dan kelancaran transaksi.',
+    image: '/untuk-pengepul/untuk_pengepul1.webp'
   },
   {
-    title: 'Terima Permintaan Jemputan',
-    desc: 'Sistem pintar kami akan menyalurkan lokasi nasabah ke sistemmu. Pantau pesanan terdekat yang berpotensi memiliki puluhan kilo rongsokan kering setiap harinya.',
-    image: '/sample.jpg'
+    title: 'Cari & Pesan Sampah',
+    desc: 'Gunakan filter pintar untuk mencari ketersediaan jenis sampah di berbagai gudang. Masukkan ke keranjang dan atur pesananmu.',
+    image: '/untuk-pengepul/untuk_pengepul2.webp'
   },
   {
-    title: 'Timbang di Tempat & Validasi',
-    desc: 'Bawa timbanganmu ke lokasi, pastikan beratnya akurat, dan serahkan struk validasi lewat aplikasi. Saldo Pengepul akan langsung terakumulasi terjamin.',
-    image: '/sample.jpg'
+    title: 'Bayar & Unggah Bukti',
+    desc: 'Lakukan checkout dan bayar tagihan di luar sistem sebelum batas waktu habis. Unggah bukti transfer agar pesanan segera diproses petugas.',
+    image: '/untuk-pengepul/untuk_pengepul3.webp'
   },
   {
-    title: 'Setorkan & Cairkan Komisi',
-    desc: 'Kumpulkan semua setoran sampah kepada pusat penampungan besar. Cairkan margin margin dan komisimu langsung ke rekening bank lokal.',
-    image: '/sample.jpg'
+    title: 'Ambil Pesanan',
+    desc: 'Setelah pembayaran divalidasi, pantau status pesananmu. Datang ke gudang yang dipilih untuk mengambil stok sampah yang sudah disiapkan.',
+    image: '/untuk-pengepul/untuk_pengepul4.webp'
   }
 ];
 
@@ -116,7 +116,7 @@ const currentSteps = computed(() => {
           <div class="flex-1 w-full order-2 flex justify-center"
             :class="index % 2 !== 0 ? 'md:order-1 md:justify-end' : 'md:order-2 md:justify-start'">
             <img :src="step.image" :alt="'Langkah ' + (index + 1) + ' - ' + step.title"
-              class="w-full max-w-sm md:max-w-none h-auto aspect-[4/3] md:aspect-video lg:aspect-[4/3] object-cover rounded-2xl shadow-xl transition-transform duration-500 hover:scale-[1.02] border-4 border-white" />
+                 class="w-full max-w-sm md:max-w-md h-auto object-contain rounded-2xl shadow-xl transition-transform duration-500 hover:scale-[1.02] border-4 border-white bg-white" />
           </div>
         </div>
 

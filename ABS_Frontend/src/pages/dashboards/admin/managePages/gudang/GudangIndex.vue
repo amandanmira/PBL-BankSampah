@@ -379,7 +379,7 @@ const submitTukang = async () => {
               <div class="flex-1 min-w-0">
                 <h3 class="text-lg lg:text-xl font-black truncate">{{ gudang.alamat }}</h3>
                 <div class="flex flex-wrap items-center gap-x-4 gap-y-1 mt-1 text-xs lg:text-sm font-medium opacity-80">
-                  <span class="flex items-center gap-1">Kapasitas: {{ gudang.kapasitas }} kg</span>
+                  <span class="flex items-center gap-1">Stok: {{ Math.round(gudang.sampah?.reduce((sum, s) => sum + (parseFloat(s.stok) || 0), 0) || 0) }} / {{ gudang.kapasitas }} kg</span>
                   <span class="hidden sm:inline">•</span>
                   <span class="flex items-center gap-1">{{ gudang.tukang?.length || 0 }} Tukang</span>
                   <span class="hidden sm:inline">•</span>
@@ -535,7 +535,12 @@ const submitTukang = async () => {
               <Icon icon="material-symbols:close" class="w-8 h-8" />
             </button>
           </div>
-          <p class="text-sm opacity-80 mt-1">Gudang: {{ selectedGudang?.alamat }}</p>
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between mt-2 gap-2">
+            <p class="text-sm opacity-90 font-medium">Gudang: {{ selectedGudang?.alamat }}</p>
+            <p class="text-sm font-black bg-white/10 px-3 py-1 rounded-full w-fit">
+              Stok: {{ Math.round(totalAllocated) }} / {{ selectedGudang?.kapasitas }} kg
+            </p>
+          </div>
         </div>
 
         <!-- Body -->

@@ -76,18 +76,29 @@
           <!-- TAB 1: INFORMASI PRIBADI -->
           <div v-if="activeTab === 'pribadi'" class="space-y-4 animate-in fade-in duration-300">
             
-            <!-- Username (Disabled) -->
-            <div class="space-y-1.5 opacity-70">
+            <!-- Username -->
+            <div class="space-y-1.5">
               <label class="flex items-center gap-2 text-xs font-bold text-stone-700">
                 <Icon icon="material-symbols:person-outline" class="w-4 h-4 text-[#4A7043]" />
                 Username
               </label>
-              <input 
-                :value="form.username" 
-                type="text" 
-                disabled 
-                class="w-full bg-stone-50 border border-stone-200 rounded-2xl py-3 px-4 text-xs font-bold text-stone-500 cursor-not-allowed" 
-              />
+              <div class="relative">
+                <input 
+                  v-model="form.username" 
+                  type="text" 
+                  @input="checkUsernameDebounced"
+                  placeholder="Masukkan username"
+                  :class="cn(
+                    'w-full bg-white border rounded-2xl py-3 px-4 text-xs font-bold text-stone-700 focus:outline-none transition-all',
+                    usernameError ? 'border-red-500 focus:border-red-500' : 'border-stone-200 focus:border-[#4A7043]'
+                  )" 
+                />
+                <div v-if="isUsernameChecking" class="absolute right-4 top-1/2 -translate-y-1/2">
+                  <Icon icon="line-md:loading-twotone-loop" class="w-4 h-4 text-[#4A7043]" />
+                </div>
+              </div>
+              <p v-if="usernameError" class="text-red-500 text-[10px] font-bold">{{ usernameError }}</p>
+              <p v-else-if="usernameAvailable" class="text-[#4A7043] text-[10px] font-bold">Username tersedia</p>
             </div>
 
             <!-- Nama Lengkap -->
@@ -132,22 +143,14 @@
               />
             </div>
 
-            <!-- Alamat Lengkap -->
-            <div class="space-y-1.5">
-              <label class="flex items-center gap-2 text-xs font-bold text-stone-700">
-                <Icon icon="material-symbols:location-on-outline" class="w-4 h-4 text-[#4A7043]" />
-                Alamat Lengkap
-              </label>
-              <textarea 
-                v-model="form.alamat" 
-                rows="3" 
-                placeholder="Masukkan alamat lengkap Anda"
-                class="w-full bg-white border border-stone-200 rounded-2xl py-3 px-4 text-xs font-bold text-stone-700 focus:outline-none focus:border-[#4A7043] transition-all resize-none"
-              ></textarea>
-            </div>
+            
 
             <!-- Map Trigger Button -->
             <div class="space-y-2 pt-1">
+              <label class="flex items-center gap-2 text-xs font-bold text-stone-700">
+                <Icon icon="material-symbols:location-on-outline" class="w-4 h-4 text-[#4A7043]" />
+                Alamat Nasabah
+              </label>
               <button 
                 @click="isMapActive = true"
                 class="w-full bg-[#5BA09B] text-white py-3 rounded-2xl font-bold text-xs flex items-center justify-center gap-1.5 shadow-sm hover:bg-[#4D8884] transition-all active:scale-[0.98]"
@@ -160,14 +163,25 @@
               </p>
             </div>
 
+            <!-- Alamat Lengkap -->
+            <div class="space-y-1.5">
+              
+              <textarea 
+                v-model="form.alamat" 
+                rows="3" 
+                placeholder="Masukkan alamat lengkap Anda"
+                class="w-full bg-white border border-stone-200 rounded-2xl py-3 px-4 text-xs font-bold text-stone-700 focus:outline-none focus:border-[#4A7043] transition-all resize-none"
+              ></textarea>
+            </div>
+
             <!-- Save Changes Button -->
             <div class="pt-2">
               <button 
                 @click="updateProfile"
-                :disabled="isUpdating || !isProfileDirty"
+                :disabled="isUpdating || !isProfileDirty || !!usernameError || isUsernameChecking"
                 :class="cn(
                   'w-full py-3.5 rounded-2xl font-bold text-xs flex items-center justify-center gap-1.5 transition-all shadow-sm',
-                  isProfileDirty 
+                  (isProfileDirty && !usernameError && !isUsernameChecking)
                     ? 'bg-[#4A7043] text-white hover:bg-[#3D5C37]' 
                     : 'bg-[#D1D5DB] text-stone-500 cursor-not-allowed'
                 )"
@@ -264,12 +278,12 @@
             <div class="bg-[#FFF8E6] p-3 rounded-2xl border border-[#FFE8B3] flex gap-2.5 items-start">
               <Icon icon="material-symbols:lock-outline" class="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
               <p class="text-[10px] font-bold text-amber-700 leading-normal">
-                Pastikan password baru Anda kuat dan mudah diingat. Minimal 6 karakter.
+                Pastikan password baru Anda kuat dan mudah diingat. Minimal 8 karakter.
               </p>
             </div>
 
-            <!-- Password Saat Ini (Visual only or sent to backend if needed) -->
-            <div class="space-y-1.5 lg:hidden">
+            <!-- Password Saat Ini -->
+            <div class="space-y-1.5">
               <label class="flex items-center gap-2 text-xs font-bold text-stone-700">
                 <Icon icon="material-symbols:lock-open-outline" class="w-4 h-4 text-[#4A7043]" />
                 Password Saat Ini
@@ -536,6 +550,45 @@ const successMessage = ref("");
 const isMapActive = ref(false);
 const showPassword = ref(false);
 
+const isUsernameChecking = ref(false);
+const usernameError = ref("");
+const usernameAvailable = ref(false);
+let usernameTimeout = null;
+
+const checkUsernameDebounced = () => {
+  if (usernameTimeout) clearTimeout(usernameTimeout);
+  usernameError.value = "";
+  usernameAvailable.value = false;
+  
+  if (!form.value.username) {
+    usernameError.value = "Username tidak boleh kosong";
+    return;
+  }
+  
+  if (form.value.username === originalForm.value.username) {
+    return;
+  }
+
+  isUsernameChecking.value = true;
+  usernameTimeout = setTimeout(async () => {
+    try {
+      const res = await axios.post('/api/check-username', { 
+        username: form.value.username,
+        current_username: originalForm.value.username 
+      });
+      if (res.data.used) {
+        usernameError.value = "Username sudah digunakan";
+      } else {
+        usernameAvailable.value = true;
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      isUsernameChecking.value = false;
+    }
+  }, 500);
+};
+
 const passwordForm = ref({
   password_current: "",
   password: "",
@@ -704,7 +757,8 @@ const isProfileDirty = computed(() => {
 });
 
 const isPasswordFormValid = computed(() => {
-  return passwordForm.value.password.length >= 6 && 
+  return passwordForm.value.password_current.length > 0 &&
+         passwordForm.value.password.length >= 8 && 
          passwordForm.value.password === passwordForm.value.password_confirmation;
 });
 
@@ -750,14 +804,15 @@ const saveLocation = () => {
 };
 
 // Logic Kelengkapan Profil
-const totalFieldsCount = 8;
+const totalFieldsCount = 9;
 const completedFieldsCount = computed(() => {
   let count = 0;
   if (form.value.username) count++;
   if (form.value.nama) count++;
   if (form.value.email) count++;
   if (form.value.no_telp) count++;
-  if (form.value.alamat || form.value.gmap) count++;
+  if (form.value.gmap) count++;
+  if (form.value.alamat) count++;
   if (form.value.nama_bank) count++;
   if (form.value.no_rekening) count++;
   if (form.value.nama_rek) count++;

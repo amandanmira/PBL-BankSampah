@@ -350,7 +350,7 @@ onMounted(() => {
       <div class="relative bg-[#F7F7F5] w-full max-w-md max-h-[90vh] overflow-y-auto rounded-[2rem] shadow-2xl animate-in zoom-in-95 duration-300 no-scrollbar">
         
         <!-- Header -->
-        <div class="bg-[#925F3A] px-6 py-4 flex items-center justify-between border-b border-white/10 text-white shrink-0 sticky top-0 z-10 shadow-sm">
+        <div class="bg-[#925F3A] px-6 py-4 flex items-center justify-between border-b border-white/10 text-white shrink-0 sticky top-0 z-30 shadow-sm">
           <div>
             <h2 class="text-base font-bold">Detail Penarikan</h2>
             <span class="text-[10px] text-white/70">#WD-{{ String(selectedItem.penarikan_id).padStart(3, '0') }}</span>
@@ -413,7 +413,7 @@ onMounted(() => {
               <!-- Created -->
               <div class="flex gap-3 relative">
                 <div class="absolute left-3.5 top-8 bottom-0 w-[1.5px] bg-stone-200" v-if="selectedItem.status !== 'pending'"></div>
-                <div class="w-7 h-7 rounded-full bg-[#925F3A] text-white flex items-center justify-center shrink-0 z-10">
+                <div class="w-7 h-7 rounded-full bg-[#925F3A] text-white flex items-center justify-center shrink-0">
                   <Icon icon="material-symbols:calendar-today" class="w-4 h-4" />
                 </div>
                 <div class="text-xs pt-0.5">
@@ -426,7 +426,7 @@ onMounted(() => {
               <div v-if="selectedItem.status !== 'pending'" class="flex gap-3 relative">
                 <div 
                   :class="cn(
-                    'w-7 h-7 rounded-full text-white flex items-center justify-center shrink-0 z-10',
+                    'w-7 h-7 rounded-full text-white flex items-center justify-center shrink-0',
                     selectedItem.status === 'selesai' ? 'bg-[#4A7043]' : 'bg-red-500'
                   )"
                 >

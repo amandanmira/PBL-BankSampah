@@ -37,12 +37,14 @@ Route::post('login', [AuthController::class, 'login']);
 Route::post('register-pengepul', [AuthController::class, 'registerPengepul']);
 Route::post('register-nasabah', [AuthController::class, 'registerNasabah']);
 Route::post('check-email', [AuthController::class, 'checkEmail']);
+Route::post('check-username', [AuthController::class, 'checkUsername']);
 Route::get('verify-nasabah/{token}', [AuthController::class, 'verifyEmail']);
 Route::post('verify-otp', [AuthController::class, 'verifyOtp']);
 Route::post('resend-otp', [AuthController::class, 'resendOtp']);
 Route::get('/web-config', [WebController::class, 'show']);
 Route::get('/berita', [App\Http\Controllers\Api\Public\BeritaController::class, 'index']);
 Route::get('/berita/{id}', [App\Http\Controllers\Api\Public\BeritaController::class, 'show']);
+Route::get('/kategori-sampah', [App\Http\Controllers\Api\Public\SampahController::class, 'index']);
 
 // Password Reset
 Route::post('password/email', [App\Http\Controllers\Api\PasswordResetController::class, 'sendResetLinkEmail']);
