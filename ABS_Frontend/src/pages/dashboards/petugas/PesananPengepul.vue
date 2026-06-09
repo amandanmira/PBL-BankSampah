@@ -144,11 +144,33 @@ const getPendingOtherWarehouses = (order) => {
   return pendingWarehouses;
 };
 
-// Check if current warehouse has already approved its items
+// Fungsi pengecekan ACC Stok Gudang saat ini
 const isCurrentWarehouseApproved = (order) => {
   const tugasAnda = getTugasAndaItems(order.detail_transaksi);
   if (tugasAnda.length === 0) return false;
-  return tugasAnda.every(d => d.status === 'setuju');
+  return tugasAnda.every(item => item.status !== 'pending');
+};
+
+// Fungsi pengecekan ACC Pembayaran Gudang saat ini
+const isPaymentVerifiedByCurrentWarehouse = (order) => {
+  const tugasAnda = getTugasAndaItems(order.detail_transaksi);
+  if (tugasAnda.length === 0) return false;
+  return tugasAnda.every(item => item.status_pembayaran === 'terverifikasi');
+};
+
+// Fungsi pengecekan penyerahan barang gudang saat ini
+const isCollectionCompletedByCurrentWarehouse = (order) => {
+  const tugasAnda = getTugasAndaItems(order.detail_transaksi);
+  if (tugasAnda.length === 0) return false;
+  
+  return tugasAnda.every(item => {
+    const s = String(item.status || '').toLowerCase();
+    const sp = String(item.status_pengambilan || '').toLowerCase();
+    
+    return ['selesai', 'diambil', 'diserahkan', 'success'].includes(s) || 
+           ['selesai', 'diambil', 'diserahkan', 'terverifikasi'].includes(sp) ||
+           s === 'approved' && order.status === 'selesai';
+  });
 };
 
 // Actions
@@ -307,7 +329,6 @@ onMounted(() => {
 <template>
   <DashboardLayout title="Pesanan Pengepul">
     <div class="space-y-6 animate-in fade-in duration-700 pb-10">
-      <!-- Header Section -->
       <div class="flex justify-between items-start">
         <div>
           <h2 class="text-2xl font-black text-stone-800">Pesanan Pengepul</h2>
@@ -315,7 +336,6 @@ onMounted(() => {
         </div>
       </div>
 
-      <!-- Filter Category Tabs -->
       <div class="bg-white rounded-2xl p-2 shadow-sm border border-stone-100 flex overflow-x-auto no-scrollbar">
         <button 
           v-for="tab in [
@@ -341,7 +361,6 @@ onMounted(() => {
         </button>
       </div>
 
-      <!-- Search Bar -->
       <div class="bg-white rounded-2xl p-4 shadow-sm border border-stone-100 relative">
         <div class="relative group">
           <Icon icon="material-symbols:search" class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-stone-300 group-focus-within:text-[#4A7043] transition-colors" />
@@ -355,14 +374,11 @@ onMounted(() => {
         </div>
       </div>
 
-      <!-- Orders List -->
       <div class="space-y-4">
-        <!-- Loading State -->
         <div v-if="loading && orders.length === 0" class="space-y-4">
           <div v-for="i in 3" :key="i" class="bg-white rounded-3xl p-6 border border-stone-100 animate-pulse h-60"></div>
         </div>
 
-        <!-- Empty State -->
         <div v-else-if="orders.length === 0" class="bg-white rounded-3xl p-20 shadow-sm border border-stone-100 text-center">
           <div class="flex flex-col items-center opacity-40">
             <Icon icon="material-symbols:inbox-outline" class="w-16 h-16 mb-4" />
@@ -371,14 +387,12 @@ onMounted(() => {
           </div>
         </div>
 
-        <!-- Orders Loop -->
         <div 
           v-else 
           v-for="order in orders" 
           :key="order.transaksi_id" 
           class="bg-white rounded-3xl p-6 shadow-sm border border-stone-200/80 space-y-6 hover:shadow-md transition-all"
         >
-          <!-- Order Card Header -->
           <div class="flex justify-between items-center pb-2">
             <div class="flex items-center gap-2">
               <span class="text-base font-bold text-stone-800">PSN-{{ String(order.transaksi_id).padStart(3, '0') }}</span>
@@ -392,9 +406,7 @@ onMounted(() => {
             </span>
           </div>
 
-          <!-- Order Items Breakdown -->
           <div class="space-y-4">
-            <!-- Tempat Anda Container -->
             <div class="bg-[#F5F8F5] border border-[#4A7043]/20 rounded-2xl p-6 space-y-4">
               <h4 class="text-sm font-bold text-[#4A7043]">
                 Tempat Anda ({{ currentGudangNama }})
@@ -411,7 +423,7 @@ onMounted(() => {
                 >
                   <div class="flex-1 text-sm font-bold text-stone-800 flex items-baseline">
                     <span>{{ item.sampah?.item_sampah?.nama }}</span>
-                    <span class="text-xs text-stone-400 font-medium">× {{ item.berat * 2 }}</span>
+                    <span class="text-xs text-stone-400 font-medium ml-1">× {{ item.berat * 2 }}</span>
                   </div>
                   <div class="w-24 text-right text-sm font-medium text-stone-500">
                     {{ item.berat }} kg
@@ -423,7 +435,6 @@ onMounted(() => {
               </div>
             </div>
 
-            <!-- Item Gudang Lain Container -->
             <div v-if="getGudangLainItems(order.detail_transaksi).length > 0" class="bg-white border border-stone-200 rounded-2xl p-6 space-y-4">
               <h4 class="text-sm font-bold text-stone-400">
                 Item Gudang Lain
@@ -436,8 +447,8 @@ onMounted(() => {
                 >
                   <div class="flex-1 text-sm font-medium text-stone-400 flex items-baseline">
                     <span>{{ item.sampah?.item_sampah?.nama }}</span>
-                    <span class="text-xs text-stone-300 font-normal">× {{ item.berat * 2 }}</span>
-                    <span class="text-xs text-stone-300 font-normal">({{ item.sampah?.gudang?.nama || `Gudang ${item.sampah?.gudang_id}` }})</span>
+                    <span class="text-xs text-stone-300 font-normal ml-1">× {{ item.berat * 2 }}</span>
+                    <span class="text-xs text-stone-300 font-normal ml-1">({{ item.sampah?.gudang?.nama || `Gudang ${item.sampah?.gudang_id}` }})</span>
                   </div>
                   <div class="w-24 text-right text-sm font-medium text-stone-300">
                     {{ item.berat }} kg
@@ -450,15 +461,12 @@ onMounted(() => {
             </div>
           </div>
 
-          <!-- Total & Actions Section -->
           <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 pt-4 border-t border-stone-100">
             <div class="text-sm text-stone-500 font-medium">
               Total Keseluruhan: <span class="text-base font-bold text-stone-800">{{ formatRupiah(order.total_harga || order.detail_transaksi.reduce((a, d) => a + (d.berat * d.harga), 0)) }}</span>
             </div>
 
-            <!-- Dynamic Actions based on Tab & Order Status -->
             <div class="w-full md:w-auto flex flex-wrap items-center justify-end gap-3 self-stretch md:self-auto">
-              
               <button 
                 @click="openDetailModal(order)"
                 class="flex-1 md:flex-none px-4 py-2 border border-stone-200 text-stone-600 rounded-xl text-xs font-semibold hover:bg-stone-50 transition-all flex items-center justify-center gap-1"
@@ -466,16 +474,13 @@ onMounted(() => {
                 Lihat Detail
               </button>
 
-              <!-- Tab: Perlu Validasi -->
               <template v-if="activeFilter === 'perlu_validasi'">
-                <!-- Substate 1: Pending stock verification -->
                 <template v-if="order.status === 'pending'">
-                  <!-- If current warehouse already approved -->
                   <div v-if="isCurrentWarehouseApproved(order)" class="flex items-center gap-2 text-stone-500 text-xs font-semibold py-2">
-                    <Icon icon="material-symbols:hourglass-empty" class="w-4 h-4 text-orange-500 animate-spin" />
+                    <Icon icon="line-md:loading-twotone-loop" class="w-4 h-4 text-orange-500" />
                     <span>Menunggu konfirmasi {{ getPendingOtherWarehouses(order).join(', ') }}...</span>
                   </div>
-                  <!-- Otherwise show approval / rejection buttons -->
+                  
                   <template v-else>
                     <button 
                       @click="openRejectOrder(order)"
@@ -492,33 +497,44 @@ onMounted(() => {
                   </template>
                 </template>
 
-                <!-- Substate 2: Payment Verification Needed -->
                 <template v-else-if="order.status === 'proses' && order.bukti_transfer">
-                  <button 
-                    @click="openProofModal(order)"
-                    class="flex-1 md:flex-none px-4 py-2 bg-sky-50 border border-sky-100 text-sky-700 rounded-xl text-xs font-semibold hover:bg-sky-100 transition-all flex items-center justify-center gap-1"
-                  >
-                    <Icon icon="material-symbols:visibility-outline" class="w-4 h-4" />
-                    Lihat Bukti Transfer
-                  </button>
-                  <button 
-                    @click="openRejectPaymentModal(order)"
-                    class="flex-1 md:flex-none px-4 py-2 border border-red-200 text-red-600 rounded-xl text-xs font-semibold hover:bg-red-50 transition-all flex items-center justify-center gap-1"
-                  >
-                    Tolak Pembayaran
-                  </button>
-                  <button 
-                    @click="openApprovePaymentModal(order)"
-                    class="flex-1 md:flex-none px-4 py-2 bg-[#4A7043] text-white rounded-xl text-xs font-semibold hover:bg-[#3D5C37] transition-all flex items-center justify-center gap-1 shadow-sm"
-                  >
-                    Setujui Pembayaran
-                  </button>
+                  <div v-if="isPaymentVerifiedByCurrentWarehouse(order)" class="flex items-center gap-2 text-stone-500 text-xs font-semibold py-2">
+                    <Icon icon="line-md:loading-twotone-loop" class="w-4 h-4 text-orange-500" />
+                    <span>Pembayaran terverifikasi ({{ currentGudangNama }}). Menunggu gudang lain...</span>
+                  </div>
+                  
+                  <template v-else>
+                    <button 
+                      @click="openProofModal(order)"
+                      class="flex-1 md:flex-none px-4 py-2 bg-sky-50 border border-sky-100 text-sky-700 rounded-xl text-xs font-semibold hover:bg-sky-100 transition-all flex items-center justify-center gap-1"
+                    >
+                      <Icon icon="material-symbols:visibility-outline" class="w-4 h-4" />
+                      Lihat Bukti Transfer
+                    </button>
+                    <button 
+                      @click="openRejectPaymentModal(order)"
+                      class="flex-1 md:flex-none px-4 py-2 border border-red-200 text-red-600 rounded-xl text-xs font-semibold hover:bg-red-50 transition-all flex items-center justify-center gap-1"
+                    >
+                      Tolak Pembayaran
+                    </button>
+                    <button 
+                      @click="openApprovePaymentModal(order)"
+                      class="flex-1 md:flex-none px-4 py-2 bg-[#4A7043] text-white rounded-xl text-xs font-semibold hover:bg-[#3D5C37] transition-all flex items-center justify-center gap-1 shadow-sm"
+                    >
+                      Setujui Pembayaran
+                    </button>
+                  </template>
                 </template>
               </template>
 
-              <!-- Tab: Siap Diambil -->
               <template v-else-if="activeFilter === 'siap_diambil'">
+                <div v-if="isCollectionCompletedByCurrentWarehouse(order)" class="flex items-center gap-2 text-stone-500 text-xs font-semibold py-2">
+                  <Icon icon="line-md:loading-twotone-loop" class="w-4 h-4 text-orange-500" />
+                  <span>Barang telah diserahkan ({{ currentGudangNama }}). Menunggu gudang lain...</span>
+                </div>
+                
                 <button 
+                  v-else
                   @click="openCompleteCollectionModal(order)"
                   class="w-full md:w-auto px-4 py-2 bg-[#7A4A28] hover:bg-[#683E20] text-white rounded-xl text-xs font-semibold transition-all flex items-center justify-center shadow-sm"
                 >
@@ -526,14 +542,11 @@ onMounted(() => {
                 </button>
               </template>
 
-              <!-- Tab: Selesai and Ditolak now only show Lihat Detail button which is outside template -->
-
             </div>
           </div>
         </div>
       </div>
 
-      <!-- Pagination Footer -->
       <div v-if="orders.length > 0" class="bg-white rounded-2xl shadow-sm border border-stone-100 p-4 flex flex-col md:flex-row justify-between items-center gap-4">
         <div class="text-xs font-bold text-stone-500">
           Menampilkan {{ orders.length }} dari {{ pagination.total }} pesanan
@@ -560,12 +573,10 @@ onMounted(() => {
       </div>
     </div>
 
-    <!-- Modals Overlay -->
     <Transition name="fade">
       <div v-if="selectedOrder" class="fixed inset-0 z-[100] flex items-center justify-center p-4">
         <div class="absolute inset-0 bg-stone-900/60 backdrop-blur-sm" @click="closeAllModals"></div>
         
-        <!-- Modal: Stock Confirmation -->
         <div v-if="isConfirmApproveOpen" class="relative bg-white w-full max-w-md rounded-[2rem] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300 p-6 space-y-6">
           <div class="flex justify-between items-start">
             <h3 class="text-lg font-black text-stone-800">Konfirmasi Persetujuan</h3>
@@ -584,12 +595,7 @@ onMounted(() => {
           </div>
           
           <div class="flex gap-3">
-            <button 
-              @click="closeAllModals" 
-              class="flex-1 py-3.5 rounded-xl bg-stone-50 text-stone-600 font-black text-sm hover:bg-stone-100 transition-colors"
-            >
-              Batal
-            </button>
+            <button @click="closeAllModals" class="flex-1 py-3.5 rounded-xl bg-stone-50 text-stone-600 font-black text-sm hover:bg-stone-100 transition-colors">Batal</button>
             <button 
               @click="confirmApproveStock" 
               :disabled="isSubmitting"
@@ -601,7 +607,6 @@ onMounted(() => {
           </div>
         </div>
 
-        <!-- Modal: Reject Order (Stok or Payment) -->
         <div v-if="isConfirmRejectOpen" class="relative bg-white w-full max-w-md rounded-[2rem] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300 p-6 space-y-6">
           <div class="flex justify-between items-start">
             <h3 class="text-lg font-black text-stone-800">Tolak Pesanan PSN-{{ String(selectedOrder.transaksi_id).padStart(3, '0') }}</h3>
@@ -612,24 +617,13 @@ onMounted(() => {
           
           <div class="space-y-4">
             <div class="space-y-2">
-              <label class="text-xs font-black text-stone-800 flex items-center gap-1">
-                Alasan Penolakan <span class="text-red-500">*</span>
-              </label>
-              <textarea 
-                v-model="rejectReason"
-                placeholder="Masukkan alasan penolakan..." 
-                class="w-full bg-stone-50 border border-stone-100 rounded-2xl py-4 px-5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500 transition-all min-h-[120px] text-stone-700"
-              ></textarea>
+              <label class="text-xs font-black text-stone-800 flex items-center gap-1">Alasan Penolakan <span class="text-red-500">*</span></label>
+              <textarea v-model="rejectReason" placeholder="Masukkan alasan penolakan..." class="w-full bg-stone-50 border border-stone-100 rounded-2xl py-4 px-5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500 transition-all min-h-[120px] text-stone-700"></textarea>
             </div>
           </div>
           
           <div class="flex gap-3">
-            <button 
-              @click="closeAllModals" 
-              class="flex-1 py-3.5 rounded-xl bg-stone-50 text-stone-600 font-black text-sm hover:bg-stone-100 transition-colors"
-            >
-              Batal
-            </button>
+            <button @click="closeAllModals" class="flex-1 py-3.5 rounded-xl bg-stone-50 text-stone-600 font-black text-sm hover:bg-stone-100 transition-colors">Batal</button>
             <button 
               @click="confirmRejectOrder" 
               :disabled="isSubmitting || !rejectReason.trim()"
@@ -641,7 +635,6 @@ onMounted(() => {
           </div>
         </div>
 
-        <!-- Modal: Payment Proof Preview -->
         <div v-if="isProofModalOpen" class="relative bg-white w-full max-w-lg rounded-[2rem] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300 p-6 space-y-6">
           <div class="flex justify-between items-start border-b border-stone-50 pb-4">
             <div>
@@ -654,32 +647,21 @@ onMounted(() => {
           </div>
           
           <div class="flex justify-center bg-stone-50 rounded-2xl p-4 overflow-hidden border border-stone-100">
-            <img 
-              :src="`${axios.defaults.baseURL}/storage/${selectedOrder.bukti_transfer}`" 
-              class="max-h-[50vh] max-w-full object-contain rounded-xl shadow-sm"
-              alt="Bukti Transfer Pengepul"
-            />
+            <img :src="`${axios.defaults.baseURL}/storage/${selectedOrder.bukti_transfer}`" class="max-h-[50vh] max-w-full object-contain rounded-xl shadow-sm" alt="Bukti Transfer Pengepul" />
           </div>
           
           <div class="flex gap-4">
-            <button 
-              @click="isProofModalOpen = false; openRejectPaymentModal(selectedOrder)" 
-              class="flex-1 py-3.5 rounded-2xl border border-red-200 text-red-600 font-semibold text-sm hover:bg-red-50 transition-all flex items-center justify-center gap-2"
-            >
+            <button @click="isProofModalOpen = false; openRejectPaymentModal(selectedOrder)" class="flex-1 py-3.5 rounded-2xl border border-red-200 text-red-600 font-semibold text-sm hover:bg-red-50 transition-all flex items-center justify-center gap-2">
               <Icon icon="material-symbols:close-rounded" class="w-4 h-4 shrink-0" />
               <span>Tolak Pembayaran</span>
             </button>
-            <button 
-              @click="isProofModalOpen = false; openApprovePaymentModal(selectedOrder)" 
-              class="flex-1 py-3.5 rounded-2xl bg-[#4A7043] text-white font-semibold text-sm hover:bg-[#3D5C37] transition-all flex items-center justify-center gap-2 shadow-sm"
-            >
+            <button @click="isProofModalOpen = false; openApprovePaymentModal(selectedOrder)" class="flex-1 py-3.5 rounded-2xl bg-[#4A7043] text-white font-semibold text-sm hover:bg-[#3D5C37] transition-all flex items-center justify-center gap-2 shadow-sm">
               <Icon icon="material-symbols:check-rounded" class="w-4 h-4 shrink-0" />
               <span>Setujui Pembayaran</span>
             </button>
           </div>
         </div>
 
-        <!-- Modal: Confirm Approve Payment (Gambar 1) -->
         <div v-if="isApprovePaymentModalOpen" class="relative bg-white w-full max-w-md rounded-3xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300 p-6 space-y-6">
           <div class="space-y-3">
             <h3 class="text-lg font-bold text-slate-900">Konfirmasi Persetujuan</h3>
@@ -689,12 +671,7 @@ onMounted(() => {
           </div>
           
           <div class="flex justify-end gap-3 pt-2">
-            <button 
-              @click="closeAllModals" 
-              class="px-5 py-2 rounded-xl border border-stone-200 text-stone-600 font-medium text-sm hover:bg-stone-50 transition-colors"
-            >
-              Batal
-            </button>
+            <button @click="closeAllModals" class="px-5 py-2 rounded-xl border border-stone-200 text-stone-600 font-medium text-sm hover:bg-stone-50 transition-colors">Batal</button>
             <button 
               @click="confirmApprovePayment" 
               :disabled="isSubmitting"
@@ -706,31 +683,18 @@ onMounted(() => {
           </div>
         </div>
 
-        <!-- Modal: Reject Payment Proof (Gambar 2) -->
         <div v-if="isRejectPaymentModalOpen" class="relative bg-white w-full max-w-md rounded-3xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300 p-6 space-y-6">
           <div class="space-y-4">
             <h3 class="text-lg font-bold text-slate-900">Tolak Bukti Transfer</h3>
-            
             <div class="space-y-2">
-              <label class="text-sm font-semibold text-slate-700">
-                Alasan Bukti Tidak Valid <span class="text-red-500">*</span>
-              </label>
+              <label class="text-sm font-semibold text-slate-700">Alasan Bukti Tidak Valid <span class="text-red-500">*</span></label>
               <p class="text-xs text-stone-400">Contoh: Saldo belum masuk, foto buram</p>
-              <textarea 
-                v-model="rejectReason"
-                placeholder="Masukkan alasan penolakan bukti..." 
-                class="w-full bg-white border border-stone-200 rounded-xl py-3 px-4 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500 transition-all min-h-[100px] text-stone-700"
-              ></textarea>
+              <textarea v-model="rejectReason" placeholder="Masukkan alasan penolakan bukti..." class="w-full bg-white border border-stone-200 rounded-xl py-3 px-4 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500 transition-all min-h-[100px] text-stone-700"></textarea>
             </div>
           </div>
           
           <div class="flex justify-end gap-3 pt-2">
-            <button 
-              @click="closeAllModals" 
-              class="px-5 py-2 rounded-xl border border-stone-200 text-stone-600 font-medium text-sm hover:bg-stone-50 transition-colors"
-            >
-              Batal
-            </button>
+            <button @click="closeAllModals" class="px-5 py-2 rounded-xl border border-stone-200 text-stone-600 font-medium text-sm hover:bg-stone-50 transition-colors">Batal</button>
             <button 
               @click="confirmRejectPayment" 
               :disabled="isSubmitting || !rejectReason.trim()"
@@ -742,7 +706,6 @@ onMounted(() => {
           </div>
         </div>
 
-        <!-- Modal: Detail Pesanan -->
         <div v-if="isDetailModalOpen && selectedOrder" class="relative bg-white w-full max-w-2xl rounded-3xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300 p-0 flex flex-col max-h-[90vh]">
           <div class="flex justify-between items-center p-6 border-b border-stone-100">
             <h3 class="text-lg font-black text-stone-800">Detail Pesanan PSN-{{ String(selectedOrder.transaksi_id).padStart(3, '0') }}</h3>
@@ -752,7 +715,6 @@ onMounted(() => {
           </div>
           
           <div class="p-6 overflow-y-auto no-scrollbar space-y-6">
-            <!-- Pengepul Info -->
             <div class="bg-stone-50 rounded-2xl p-4 border border-stone-100 space-y-3">
               <h4 class="text-xs font-bold text-stone-400 uppercase tracking-wider">Informasi Pengepul</h4>
               <div class="grid grid-cols-2 gap-4">
@@ -767,13 +729,11 @@ onMounted(() => {
               </div>
             </div>
 
-            <!-- Cancel/Reject Reason (Only if status is tolak or batal) -->
             <div v-if="['tolak', 'batal'].includes(selectedOrder.status)" class="bg-red-50 rounded-2xl p-4 border border-red-100 space-y-2">
               <h4 class="text-xs font-bold text-red-500 uppercase tracking-wider">Alasan Pembatalan / Penolakan</h4>
               <p class="text-sm font-semibold text-red-700 leading-relaxed">{{ selectedOrder.ket_status || 'Tidak ada keterangan yang dicantumkan.' }}</p>
             </div>
 
-            <!-- Item Pesanan -->
             <div class="space-y-3">
               <h4 class="text-xs font-bold text-stone-400 uppercase tracking-wider">Detail Barang</h4>
               <div class="bg-white border border-stone-100 rounded-2xl overflow-hidden shadow-sm">
@@ -794,19 +754,13 @@ onMounted(() => {
               </div>
             </div>
 
-            <!-- Bukti Transfer -->
             <div v-if="selectedOrder.bukti_transfer" class="space-y-3">
               <h4 class="text-xs font-bold text-stone-400 uppercase tracking-wider">Bukti Transfer</h4>
               <div class="flex justify-center bg-stone-50 rounded-2xl p-4 overflow-hidden border border-stone-100">
-                <img 
-                  :src="`${axios.defaults.baseURL}/storage/${selectedOrder.bukti_transfer}`" 
-                  class="max-h-60 max-w-full object-contain rounded-xl shadow-sm"
-                  alt="Bukti Transfer Pengepul"
-                />
+                <img :src="`${axios.defaults.baseURL}/storage/${selectedOrder.bukti_transfer}`" class="max-h-60 max-w-full object-contain rounded-xl shadow-sm" alt="Bukti Transfer Pengepul" />
               </div>
             </div>
 
-            <!-- Timestamps -->
             <div class="grid grid-cols-2 gap-4">
               <div class="bg-stone-50 rounded-2xl p-4 border border-stone-100">
                 <p class="text-xs text-stone-500 mb-1">Pesanan Dibuat</p>
@@ -820,22 +774,14 @@ onMounted(() => {
           </div>
         </div>
 
-        <!-- Modal: Confirm Complete Collection / Barang Diserahkan (Gambar 4) -->
         <div v-if="isCompleteCollectionModalOpen" class="relative bg-white w-full max-w-md rounded-3xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300 p-6 space-y-6">
           <div class="space-y-3">
             <h3 class="text-lg font-bold text-slate-900">Konfirmasi Persetujuan</h3>
-            <p class="text-sm font-medium text-slate-600 leading-relaxed">
-              Apakah barang sudah diserahkan ke Pengepul?
-            </p>
+            <p class="text-sm font-medium text-slate-600 leading-relaxed">Apakah barang sudah diserahkan ke Pengepul?</p>
           </div>
           
           <div class="flex justify-end gap-3 pt-2">
-            <button 
-              @click="closeAllModals" 
-              class="px-5 py-2 rounded-xl border border-stone-200 text-stone-600 font-medium text-sm hover:bg-stone-50 transition-colors"
-            >
-              Batal
-            </button>
+            <button @click="closeAllModals" class="px-5 py-2 rounded-xl border border-stone-200 text-stone-600 font-medium text-sm hover:bg-stone-50 transition-colors">Batal</button>
             <button 
               @click="confirmCompleteCollection" 
               :disabled="isSubmitting"
@@ -853,39 +799,12 @@ onMounted(() => {
 </template>
 
 <style scoped>
-.no-scrollbar::-webkit-scrollbar {
-  display: none;
-}
-.no-scrollbar {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
-}
-
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 0.3s ease;
-}
-
-.fade-enter-from,
-.fade-leave-to {
-  opacity: 0;
-}
-
-.animate-in {
-  animation: fadeIn 0.5s ease-out both;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-.zoom-in-95 {
-  animation: zoomIn 0.3s ease-out both;
-}
-
-@keyframes zoomIn {
-  from { opacity: 0; transform: scale(0.95); }
-  to { opacity: 1; transform: scale(1); }
-}
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+.fade-enter-active, .fade-leave-active { transition: opacity 0.3s ease; }
+.fade-enter-from, .fade-leave-to { opacity: 0; }
+.animate-in { animation: fadeIn 0.5s ease-out both; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+.zoom-in-95 { animation: zoomIn 0.3s ease-out both; }
+@keyframes zoomIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
 </style>

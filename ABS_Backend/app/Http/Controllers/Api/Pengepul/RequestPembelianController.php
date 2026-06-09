@@ -178,7 +178,9 @@ class RequestPembelianController extends Controller
                 'sampah_id' => $d['sampah_id'],
                 'berat' => $d['berat'] ?? 0,
                 'harga' => $d['harga'] ?? 0,
-                'status' => 'setuju',
+                'status' => 'pending',
+                'status_pembayaran' => 'pending',
+                'status_pengambilan' => 'pending',
             ]);
         }
 
