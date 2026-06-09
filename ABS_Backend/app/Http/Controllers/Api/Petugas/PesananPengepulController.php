@@ -236,15 +236,38 @@ class PesananPengepulController extends Controller
             ], 400);
         }
 
-        $transaksi->update([
-            'status' => 'siap_diambil',
-            'ket_status' => 'Pembayaran tervalidasi. Silakan ambil barang di gudang.'
-        ]);
+        $gudangId = Auth::user()->gudang_id;
+
+        // Verifikasi hanya item milik gudang petugas yang login
+        DetailTransaksi::where('transaksi_id', $id)
+            ->whereHas('sampah', function ($q) use ($gudangId) {
+                $q->where('gudang_id', $gudangId);
+            })
+            ->update([
+                'status_pembayaran' => 'terverifikasi'
+            ]);
+
+        // Cek apakah masih ada gudang yang belum verifikasi
+        $masihPending = DetailTransaksi::where('transaksi_id', $id)
+            ->where('status_pembayaran', 'pending')
+            ->exists();
+
+        if (!$masihPending) {
+            $transaksi->update([
+                'status' => 'siap_diambil',
+                'ket_status' => 'Pembayaran tervalidasi oleh seluruh gudang. Silakan ambil barang.'
+            ]);
+
+            return response()->json([
+                'message' => 'Semua gudang telah memverifikasi pembayaran. Pesanan siap diambil.',
+                'data' => $transaksi->fresh()
+            ]);
+        }
 
         return response()->json([
-            'message' => 'Pembayaran berhasil diverifikasi. Pesanan siap diambil.',
-            'data' => $transaksi
-        ]);
+            'message' => 'Pembayaran untuk gudang Anda berhasil diverifikasi. Menunggu verifikasi gudang lain.',
+            'data' => $transaksi->fresh()
+]);
     }
 
     /**
@@ -256,18 +279,41 @@ class PesananPengepulController extends Controller
 
         if ($transaksi->status !== 'siap_diambil') {
             return response()->json([
-                'message' => 'Pesanan belum lunas atau belum siap diambil.'
+                'message' => 'Pesanan belum siap diambil.'
             ], 400);
         }
 
-        $transaksi->update([
-            'status' => 'selesai',
-            'ket_status' => 'Pesanan telah diambil oleh pengepul. Transaksi selesai.'
-        ]);
+        $gudangId = Auth::user()->gudang_id;
+
+        // Selesaikan hanya item milik gudang yang login
+        DetailTransaksi::where('transaksi_id', $id)
+            ->whereHas('sampah', function ($q) use ($gudangId) {
+                $q->where('gudang_id', $gudangId);
+            })
+            ->update([
+                'status_pengambilan' => 'selesai'
+            ]);
+
+        // Cek apakah masih ada gudang yang belum menyerahkan barang
+        $masihPending = DetailTransaksi::where('transaksi_id', $id)
+            ->where('status_pengambilan', 'pending')
+            ->exists();
+
+        if (!$masihPending) {
+            $transaksi->update([
+                'status' => 'selesai',
+                'ket_status' => 'Semua barang telah diserahkan kepada pengepul.'
+            ]);
+
+            return response()->json([
+                'message' => 'Seluruh barang telah diserahkan. Transaksi selesai.',
+                'data' => $transaksi->fresh()
+            ]);
+        }
 
         return response()->json([
-            'message' => 'Pesanan berhasil diselesaikan.',
-            'data' => $transaksi
+            'message' => 'Barang dari gudang Anda telah diserahkan. Menunggu gudang lain.',
+            'data' => $transaksi->fresh()
         ]);
     }
 }
