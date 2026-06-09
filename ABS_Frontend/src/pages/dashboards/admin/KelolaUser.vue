@@ -5,6 +5,7 @@ import { Icon } from "@iconify/vue";
 import DashboardLayout from "@/layouts/DashboardLayout.vue";
 import { checkRole } from "@/utils";
 import { cn } from "@/lib/utils";
+import Swal from "sweetalert2"; // Tambahkan import SweetAlert2
 
 // Security check
 checkRole("admin");
@@ -51,7 +52,6 @@ const fetchData = async () => {
     const token = sessionStorage.getItem("token");
     const headers = { Authorization: `Bearer ${token}` };
 
-    // Fetch all roles except "Semua Akun"
     const roleEndpoints = [
       { name: "Petugas", endpoint: "petugas", idField: "petugas_id" },
       { name: "Manager", endpoint: "manager", idField: "manager_id" },
@@ -70,7 +70,6 @@ const fetchData = async () => {
         ...item,
         id: item[r.idField],
         role: r.name,
-        // Normalize status and date
         status: r.name === 'Petugas' 
           ? (item.active ? 'aktif' : 'non-aktif') 
           : (r.name === 'Admin' ? 'aktif' : (item.status === 'aktif' ? 'aktif' : 'non-aktif')),
@@ -78,7 +77,6 @@ const fetchData = async () => {
       }));
     });
 
-    // Fetch Gudang for modal
     const gudangRes = await axios.get('/api/admin/gudang', { headers });
     gudangList.value = gudangRes.data.data;
 
@@ -96,12 +94,10 @@ onMounted(fetchData);
 const filteredAccounts = computed(() => {
   let result = allAccounts.value;
 
-  // Filter by Role
   if (selectedRole.value !== "Semua Akun") {
     result = result.filter((a) => a.role === selectedRole.value);
   }
 
-  // Filter by Search
   if (searchQuery.value) {
     const q = searchQuery.value.toLowerCase();
     result = result.filter(
@@ -123,8 +119,32 @@ const paginatedAccounts = computed(() => {
   return filteredAccounts.value.slice(start, end);
 });
 
-// Actions
+// Actions dengan Konfirmasi Pop-up SweetAlert2
 const toggleStatus = async (account) => {
+  if (account.role === "Admin") return;
+
+  const isCurrentAktif = account.status === "aktif";
+  const actionText = isCurrentAktif ? "menonaktifkan" : "mengaktifkan";
+  const confirmButtonText = isCurrentAktif ? "Ya, Nonaktifkan" : "Ya, Aktifkan";
+  const confirmButtonColor = isCurrentAktif ? "#C23B22" : "#4A7043";
+
+  // Tampilkan modal pop-up konfirmasi
+  const result = await Swal.fire({
+    title: "Konfirmasi Tindakan",
+    text: `Apakah Anda yakin ingin ${actionText} akun atas nama ${account.nama}?`,
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonColor: confirmButtonColor,
+    cancelButtonColor: "#6e7881",
+    confirmButtonText: confirmButtonText,
+    cancelButtonText: "Batal",
+    customClass: {
+      popup: 'rounded-[2rem]'
+    }
+  });
+
+  if (!result.isConfirmed) return;
+
   try {
     const token = sessionStorage.getItem("token");
     const headers = { Authorization: `Bearer ${token}` };
@@ -142,6 +162,15 @@ const toggleStatus = async (account) => {
 
     await axios.put(endpoint, {}, { headers });
     
+    // Berhasil ubah status, tampilkan toast sukses
+    Swal.fire({
+      title: "Berhasil!",
+      text: `Akun berhasil di-${isCurrentAktif ? 'nonaktifkan' : 'aktifkan'}.`,
+      icon: "success",
+      confirmButtonColor: "#4A7043",
+      customClass: { popup: 'rounded-[2rem]' }
+    });
+
     // Update local state
     const index = allAccounts.value.findIndex(a => a.id === account.id && a.role === account.role);
     if (index !== -1) {
@@ -149,13 +178,12 @@ const toggleStatus = async (account) => {
         allAccounts.value[index].active = !allAccounts.value[index].active;
         allAccounts.value[index].status = allAccounts.value[index].active ? 'aktif' : 'non-aktif';
       } else {
-        // Toggle between 'aktif' and 'non-aktif' (normalizing from DB 'nonaktif' if needed)
         const current = allAccounts.value[index].status === 'aktif';
         allAccounts.value[index].status = current ? 'non-aktif' : 'aktif';
       }
     }
   } catch (err) {
-    alert("Gagal mengubah status: " + (err.response?.data?.message || err.message));
+    Swal.fire("Gagal", err.response?.data?.message || err.message, "error");
   }
 };
 
@@ -173,9 +201,8 @@ const handleAddPetugas = async () => {
     
     alert("Akun petugas berhasil dibuat!");
     isModalOpen.value = false;
-    // Reset form
     form.value = { nama: "", username: "", email: "", password: "", password_confirmation: "", no_telp: "", gudang_id: "" };
-    fetchData(); // Refresh list
+    fetchData(); 
   } catch (err) {
     alert("Gagal membuat petugas: " + (err.response?.data?.message || err.message));
   } finally {
@@ -202,9 +229,8 @@ const handleAddManager = async () => {
     
     alert("Akun manager berhasil dibuat!");
     isManagerModalOpen.value = false;
-    // Reset form
     form.value = { nama: "", username: "", email: "", password: "", password_confirmation: "", no_telp: "", gudang_id: "" };
-    fetchData(); // Refresh list
+    fetchData(); 
   } catch (err) {
     alert("Gagal membuat manager: " + (err.response?.data?.message || err.message));
   } finally {
@@ -212,7 +238,6 @@ const handleAddManager = async () => {
   }
 };
 
-// Helpers
 const formatDate = (dateStr) => {
   if (!dateStr) return "-";
   const date = new Date(dateStr);
@@ -227,7 +252,6 @@ const formatDate = (dateStr) => {
 <template>
   <DashboardLayout title="Kelola Akun & Data">
     <div class="space-y-6 animate-in fade-in duration-500">
-      <!-- Role Filters & Add Button -->
       <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div class="flex flex-wrap gap-4">
           <button
@@ -266,7 +290,6 @@ const formatDate = (dateStr) => {
         </button>
       </div>
 
-      <!-- Search Bar -->
       <div class="relative group">
         <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
           <Icon icon="material-symbols:search" class="w-5 h-5 text-gray-400 group-focus-within:text-[#4A7043] transition-colors" />
@@ -279,7 +302,6 @@ const formatDate = (dateStr) => {
         />
       </div>
 
-      <!-- Table Container -->
       <div class="bg-white rounded-3xl shadow-sm overflow-hidden border border-gray-100">
         <div class="overflow-x-auto">
           <table class="w-full text-left border-collapse">
@@ -295,21 +317,16 @@ const formatDate = (dateStr) => {
             </thead>
             <tbody class="divide-y divide-gray-50">
               <tr v-if="isLoading">
-                <td colspan="6" class="px-6 py-10 text-center text-gray-500 italic">
-                  Memuat data akun...
-                </td>
+                <td colspan="6" class="px-6 py-10 text-center text-gray-500 italic">Memuat data akun...</td>
               </tr>
               <tr v-else-if="paginatedAccounts.length === 0">
-                <td colspan="6" class="px-6 py-10 text-center text-gray-500 italic">
-                  Tidak ada data akun yang ditemukan.
-                </td>
+                <td colspan="6" class="px-6 py-10 text-center text-gray-500 italic">Tidak ada data akun yang ditemukan.</td>
               </tr>
               <tr 
                 v-for="account in paginatedAccounts" 
                 :key="account.id + account.role"
                 class="hover:bg-gray-50/50 transition-colors group"
               >
-                <!-- Identitas -->
                 <td class="px-6 py-4">
                   <div class="flex flex-col">
                     <span class="font-bold text-gray-800">{{ account.nama }}</span>
@@ -317,12 +334,10 @@ const formatDate = (dateStr) => {
                   </div>
                 </td>
                 
-                <!-- Role -->
                 <td class="px-6 py-4">
                   <span class="text-sm text-gray-600">{{ account.role }}</span>
                 </td>
                 
-                <!-- Kontak -->
                 <td class="px-6 py-4">
                   <div class="flex flex-col text-sm">
                     <span class="text-gray-700">{{ account.email }}</span>
@@ -330,9 +345,9 @@ const formatDate = (dateStr) => {
                   </div>
                 </td>
                 
-                <!-- Status -->
                 <td class="px-6 py-4">
                   <span 
+                    v-if="account.role !== 'Admin'"
                     :class="cn(
                       'px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider shadow-sm',
                       account.status === 'aktif' ? 'bg-[#4A7043] text-white' : 'bg-[#C23B22] text-white'
@@ -340,14 +355,13 @@ const formatDate = (dateStr) => {
                   >
                     {{ account.status }}
                   </span>
+                  <span v-else class="text-gray-400 font-bold text-sm ml-2">-</span>
                 </td>
                 
-                <!-- Bergabung -->
                 <td class="px-6 py-4">
                   <span class="text-sm text-gray-600">{{ formatDate(account.joined_at) }}</span>
                 </td>
                 
-                <!-- Aksi -->
                 <td class="px-6 py-4">
                   <div class="flex items-center justify-center gap-3">
                     <button 
@@ -358,7 +372,9 @@ const formatDate = (dateStr) => {
                     >
                       <Icon icon="material-symbols:edit-outline" class="w-5 h-5" />
                     </button>
+                    
                     <button 
+                      v-if="account.role !== 'Admin'"
                       @click="toggleStatus(account)"
                       :class="cn(
                         'p-2 rounded-lg transition-all',
@@ -368,6 +384,7 @@ const formatDate = (dateStr) => {
                     >
                       <Icon icon="material-symbols:power-settings-new" class="w-5 h-5" />
                     </button>
+                    <span v-else class="text-gray-400 font-bold text-sm">-</span>
                   </div>
                 </td>
               </tr>
@@ -376,7 +393,6 @@ const formatDate = (dateStr) => {
         </div>
       </div>
 
-      <!-- Pagination & View Settings -->
       <div class="bg-white rounded-2xl p-4 flex flex-col md:flex-row items-center justify-between gap-4 shadow-sm border border-gray-100">
         <div class="flex items-center gap-3">
           <span class="text-sm text-gray-500 font-medium">Tampilkan</span>
@@ -419,7 +435,6 @@ const formatDate = (dateStr) => {
       </div>
     </div>
 
-    <!-- Add Petugas Modal -->
     <div 
       v-if="isModalOpen"
       class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300"
@@ -427,97 +442,45 @@ const formatDate = (dateStr) => {
       <div class="bg-white w-full max-w-lg rounded-[32px] overflow-hidden shadow-2xl animate-in zoom-in-95 duration-300">
         <div class="p-8 space-y-6">
           <h2 class="text-2xl font-bold text-gray-800">Tambah Petugas Baru</h2>
-          
           <div class="space-y-4">
             <div class="space-y-1.5">
               <label class="text-xs font-bold text-gray-500 uppercase tracking-wider ml-1">Nama Lengkap</label>
-              <input 
-                v-model="form.nama"
-                type="text" 
-                placeholder="Masukkan nama lengkap"
-                class="w-full bg-gray-50 border-none rounded-2xl p-4 focus:ring-2 focus:ring-[#4A7043] outline-none transition-all placeholder:text-gray-300 text-sm"
-              />
+              <input v-model="form.nama" type="text" placeholder="Masukkan nama lengkap" class="w-full bg-gray-50 border-none rounded-2xl p-4 focus:ring-2 focus:ring-[#4A7043] outline-none transition-all text-sm"/>
             </div>
-            
             <div class="space-y-1.5">
               <label class="text-xs font-bold text-gray-500 uppercase tracking-wider ml-1">Username</label>
-              <input 
-                v-model="form.username"
-                type="text" 
-                placeholder="Username untuk login"
-                class="w-full bg-gray-50 border-none rounded-2xl p-4 focus:ring-2 focus:ring-[#4A7043] outline-none transition-all placeholder:text-gray-300 text-sm"
-              />
+              <input v-model="form.username" type="text" placeholder="Username untuk login" class="w-full bg-gray-50 border-none rounded-2xl p-4 focus:ring-2 focus:ring-[#4A7043] outline-none transition-all text-sm"/>
             </div>
-            
             <div class="space-y-1.5">
               <label class="text-xs font-bold text-gray-500 uppercase tracking-wider ml-1">Password</label>
-              <input 
-                v-model="form.password"
-                type="password" 
-                placeholder="Masukkan password"
-                class="w-full bg-gray-50 border-none rounded-2xl p-4 focus:ring-2 focus:ring-[#4A7043] outline-none transition-all placeholder:text-gray-300 text-sm"
-              />
+              <input v-model="form.password" type="password" placeholder="Masukkan password" class="w-full bg-gray-50 border-none rounded-2xl p-4 focus:ring-2 focus:ring-[#4A7043] outline-none transition-all text-sm"/>
             </div>
-
             <div class="space-y-1.5">
               <label class="text-xs font-bold text-gray-500 uppercase tracking-wider ml-1">Konfirmasi Password</label>
-              <input 
-                v-model="form.password_confirmation"
-                type="password" 
-                placeholder="Konfirmasi password"
-                class="w-full bg-gray-50 border-none rounded-2xl p-4 focus:ring-2 focus:ring-[#4A7043] outline-none transition-all placeholder:text-gray-300 text-sm"
-              />
+              <input v-model="form.password_confirmation" type="password" placeholder="Konfirmasi password" class="w-full bg-gray-50 border-none rounded-2xl p-4 focus:ring-2 focus:ring-[#4A7043] outline-none transition-all text-sm"/>
             </div>
-            
             <div class="space-y-1.5">
               <label class="text-xs font-bold text-gray-500 uppercase tracking-wider ml-1">Email</label>
-              <input 
-                v-model="form.email"
-                type="email" 
-                placeholder="email@example.com"
-                class="w-full bg-gray-50 border-none rounded-2xl p-4 focus:ring-2 focus:ring-[#4A7043] outline-none transition-all placeholder:text-gray-300 text-sm"
-              />
+              <input v-model="form.email" type="email" placeholder="email@example.com" class="w-full bg-gray-50 border-none rounded-2xl p-4 focus:ring-2 focus:ring-[#4A7043] outline-none transition-all text-sm"/>
             </div>
-            
             <div class="space-y-1.5">
               <label class="text-xs font-bold text-gray-500 uppercase tracking-wider ml-1">Telepon</label>
-              <input 
-                v-model="form.no_telp"
-                type="text" 
-                placeholder="08123456789"
-                class="w-full bg-gray-50 border-none rounded-2xl p-4 focus:ring-2 focus:ring-[#4A7043] outline-none transition-all placeholder:text-gray-300 text-sm"
-              />
+              <input v-model="form.no_telp" type="text" placeholder="08123456789" class="w-full bg-gray-50 border-none rounded-2xl p-4 focus:ring-2 focus:ring-[#4A7043] outline-none transition-all text-sm"/>
             </div>
-            
             <div class="space-y-1.5">
               <label class="text-xs font-bold text-gray-500 uppercase tracking-wider ml-1">Gudang Penugasan</label>
               <div class="relative">
-                <select 
-                  v-model="form.gudang_id"
-                  class="w-full appearance-none bg-gray-50 border-none rounded-2xl p-4 focus:ring-2 focus:ring-[#4A7043] outline-none transition-all text-sm"
-                >
+                <select v-model="form.gudang_id" class="w-full appearance-none bg-gray-50 border-none rounded-2xl p-4 focus:ring-2 focus:ring-[#4A7043] outline-none transition-all text-sm">
                   <option value="" disabled selected>Pilih gudang penugasan</option>
-                  <option v-for="gudang in gudangList" :key="gudang.gudang_id" :value="gudang.gudang_id">
-                    {{ gudang.alamat }}
-                  </option>
+                  <option v-for="gudang in gudangList" :key="gudang.gudang_id" :value="gudang.gudang_id">{{ gudang.alamat }}</option>
                 </select>
                 <Icon icon="material-symbols:keyboard-arrow-down" class="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
               </div>
             </div>
           </div>
-
           <div class="flex gap-4 pt-4">
-            <button 
-              @click="isModalOpen = false"
-              class="flex-1 bg-gray-500 text-white py-4 rounded-2xl font-bold hover:bg-gray-600 transition-colors shadow-sm"
-            >
-              Batal
-            </button>
-            <button 
-              @click="handleAddPetugas"
-              :disabled="isSubmitting"
-              class="flex-1 bg-[#4A7043] text-white py-4 rounded-2xl font-bold hover:bg-[#3d5d37] transition-all shadow-md disabled:opacity-50"
-            >
+            <button @click="isModalOpen = false" class="flex-1 bg-gray-500 text-white py-4 rounded-2xl font-bold hover:bg-gray-600 transition-colors shadow-sm">Batal</button>
+            <button @click="handleAddPetugas" :disabled="isSubmitting" class="flex-1 bg-[#4A7043] text-white py-4 rounded-2xl font-bold hover:bg-[#3d5d37] transition-all shadow-md disabled:opacity-50">
               {{ isSubmitting ? 'Menyimpan...' : 'Simpan' }}
             </button>
           </div>
@@ -525,7 +488,6 @@ const formatDate = (dateStr) => {
       </div>
     </div>
 
-    <!-- Add Manager Modal -->
     <div 
       v-if="isManagerModalOpen"
       class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300"
@@ -533,71 +495,31 @@ const formatDate = (dateStr) => {
       <div class="bg-white w-full max-w-lg rounded-[32px] overflow-hidden shadow-2xl animate-in zoom-in-95 duration-300">
         <div class="p-8 space-y-6">
           <h2 class="text-2xl font-bold text-gray-800">Tambah Manager Baru</h2>
-          
           <div class="space-y-4">
             <div class="space-y-1.5">
               <label class="text-xs font-bold text-gray-500 uppercase tracking-wider ml-1">Nama Lengkap</label>
-              <input 
-                v-model="form.nama"
-                type="text" 
-                placeholder="Masukkan nama lengkap"
-                class="w-full bg-gray-50 border-none rounded-2xl p-4 focus:ring-2 focus:ring-[#4A7043] outline-none transition-all placeholder:text-gray-300 text-sm"
-              />
+              <input v-model="form.nama" type="text" placeholder="Masukkan nama lengkap" class="w-full bg-gray-50 border-none rounded-2xl p-4 focus:ring-2 focus:ring-[#4A7043] outline-none transition-all text-sm"/>
             </div>
-            
             <div class="space-y-1.5">
               <label class="text-xs font-bold text-gray-500 uppercase tracking-wider ml-1">Username</label>
-              <input 
-                v-model="form.username"
-                type="text" 
-                placeholder="Username untuk login"
-                class="w-full bg-gray-50 border-none rounded-2xl p-4 focus:ring-2 focus:ring-[#4A7043] outline-none transition-all placeholder:text-gray-300 text-sm"
-              />
+              <input v-model="form.username" type="text" placeholder="Username untuk login" class="w-full bg-gray-50 border-none rounded-2xl p-4 focus:ring-2 focus:ring-[#4A7043] outline-none transition-all text-sm"/>
             </div>
-            
             <div class="space-y-1.5">
               <label class="text-xs font-bold text-gray-500 uppercase tracking-wider ml-1">Password</label>
-              <input 
-                v-model="form.password"
-                type="password" 
-                placeholder="Masukkan password"
-                class="w-full bg-gray-50 border-none rounded-2xl p-4 focus:ring-2 focus:ring-[#4A7043] outline-none transition-all placeholder:text-gray-300 text-sm"
-              />
+              <input v-model="form.password" type="password" placeholder="Masukkan password" class="w-full bg-gray-50 border-none rounded-2xl p-4 focus:ring-2 focus:ring-[#4A7043] outline-none transition-all text-sm"/>
             </div>
-
             <div class="space-y-1.5">
               <label class="text-xs font-bold text-gray-500 uppercase tracking-wider ml-1">Konfirmasi Password</label>
-              <input 
-                v-model="form.password_confirmation"
-                type="password" 
-                placeholder="Konfirmasi password"
-                class="w-full bg-gray-50 border-none rounded-2xl p-4 focus:ring-2 focus:ring-[#4A7043] outline-none transition-all placeholder:text-gray-300 text-sm"
-              />
+              <input v-model="form.password_confirmation" type="password" placeholder="Konfirmasi password" class="w-full bg-gray-50 border-none rounded-2xl p-4 focus:ring-2 focus:ring-[#4A7043] outline-none transition-all text-sm"/>
             </div>
-            
             <div class="space-y-1.5">
               <label class="text-xs font-bold text-gray-500 uppercase tracking-wider ml-1">Email</label>
-              <input 
-                v-model="form.email"
-                type="email" 
-                placeholder="email@example.com"
-                class="w-full bg-gray-50 border-none rounded-2xl p-4 focus:ring-2 focus:ring-[#4A7043] outline-none transition-all placeholder:text-gray-300 text-sm"
-              />
+              <input v-model="form.email" type="email" placeholder="email@example.com" class="w-full bg-gray-50 border-none rounded-2xl p-4 focus:ring-2 focus:ring-[#4A7043] outline-none transition-all text-sm"/>
             </div>
           </div>
-
           <div class="flex gap-4 pt-4">
-            <button 
-              @click="isManagerModalOpen = false"
-              class="flex-1 bg-gray-500 text-white py-4 rounded-2xl font-bold hover:bg-gray-600 transition-colors shadow-sm"
-            >
-              Batal
-            </button>
-            <button 
-              @click="handleAddManager"
-              :disabled="isSubmitting"
-              class="flex-1 bg-[#4A7043] text-white py-4 rounded-2xl font-bold hover:bg-[#3d5d37] transition-all shadow-md disabled:opacity-50"
-            >
+            <button @click="isManagerModalOpen = false" class="flex-1 bg-gray-500 text-white py-4 rounded-2xl font-bold hover:bg-gray-600 transition-colors shadow-sm">Batal</button>
+            <button @click="handleAddManager" :disabled="isSubmitting" class="flex-1 bg-[#4A7043] text-white py-4 rounded-2xl font-bold hover:bg-[#3d5d37] transition-all shadow-md disabled:opacity-50">
               {{ isSubmitting ? 'Menyimpan...' : 'Simpan' }}
             </button>
           </div>
@@ -629,7 +551,6 @@ const formatDate = (dateStr) => {
   to { opacity: 1; transform: scale(1); }
 }
 
-/* Custom Select Styling */
 select {
   background-image: none;
 }
