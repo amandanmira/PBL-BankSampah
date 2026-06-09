@@ -1,28 +1,74 @@
 <template>
-  <div class="container">
-    <h2>Edit Manager</h2>
+  <DashboardLayout title="Edit Manager">
+    <div class="max-w-md mx-auto mt-6">
+      
+      <!-- Card Container -->
+      <div class="bg-white rounded-[2rem] p-6 border border-stone-100 shadow-sm space-y-6">
+        
+        <div class="flex items-center gap-3 pb-4 border-b border-stone-50">
+          <div class="w-10 h-10 rounded-xl bg-[#4A7043]/10 text-[#4A7043] flex items-center justify-center">
+            <Icon icon="material-symbols:edit-square-outline" class="w-5.5 h-5.5" />
+          </div>
+          <div>
+            <h3 class="text-sm font-extrabold text-stone-800">Edit Akun Manager</h3>
+            <p class="text-[10px] text-stone-400 font-medium">Ubah informasi akun manager</p>
+          </div>
+        </div>
 
-    <div v-if="loading">Loading...</div>
-    <div v-if="error" class="error">{{ error }}</div>
+        <div v-if="loading" class="flex flex-col items-center justify-center py-10 gap-2">
+          <Icon icon="line-md:loading-twotone-loop" class="w-8 h-8 text-[#4A7043]" />
+          <p class="text-xs text-stone-400 font-bold">Memuat data manager...</p>
+        </div>
+        
+        <div v-else-if="error" class="bg-red-50 text-red-500 rounded-2xl p-4 text-xs font-bold text-center border border-red-100">
+          {{ error }}
+        </div>
 
-    <form v-else @submit.prevent="submitForm">
-      <div>
-        <label for="nama">Nama</label><br />
-        <input id="nama" v-model="form.nama" />
-        <div v-if="errors.nama" class="error">{{ errors.nama[0] }}</div>
+        <form v-else @submit.prevent="submitForm" class="space-y-4">
+          <!-- Nama -->
+          <div class="space-y-1.5">
+            <label for="nama" class="text-xs font-bold text-stone-500 uppercase tracking-wider ml-1">Nama Lengkap</label>
+            <input 
+              id="nama" 
+              v-model="form.nama" 
+              placeholder="Masukkan nama lengkap" 
+              class="w-full bg-[#F5F5F0] border-none rounded-2xl p-4 focus:ring-2 focus:ring-[#4A7043] outline-none transition-all text-sm font-semibold text-stone-700"
+            />
+            <div v-if="errors.nama" class="text-red-500 text-[10px] font-bold ml-1">{{ errors.nama[0] }}</div>
+          </div>
+
+          <!-- Username -->
+          <div class="space-y-1.5">
+            <label for="username" class="text-xs font-bold text-stone-500 uppercase tracking-wider ml-1">Username</label>
+            <input 
+              id="username" 
+              v-model="form.username" 
+              placeholder="Masukkan username" 
+              class="w-full bg-[#F5F5F0] border-none rounded-2xl p-4 focus:ring-2 focus:ring-[#4A7043] outline-none transition-all text-sm font-semibold text-stone-700"
+            />
+            <div v-if="errors.username" class="text-red-500 text-[10px] font-bold ml-1">{{ errors.username[0] }}</div>
+          </div>
+
+          <!-- Actions -->
+          <div class="flex gap-3 pt-4 border-t border-stone-50">
+            <button 
+              type="button" 
+              @click="goBack" 
+              class="flex-1 py-4 rounded-xl bg-stone-100 text-stone-500 font-bold text-xs hover:bg-stone-200 active:scale-[0.98] transition-all flex items-center justify-center gap-2 cursor-pointer"
+            >
+              Batal
+            </button>
+            <button 
+              type="submit" 
+              class="flex-1 py-4 rounded-xl bg-[#4A7043] text-white font-black text-xs hover:bg-[#3d5c37] active:scale-[0.98] transition-all flex items-center justify-center gap-2 cursor-pointer"
+            >
+              Update
+            </button>
+          </div>
+        </form>
       </div>
-      <div>
-        <label for="username">Username</label><br />
-        <input id="username" v-model="form.username" />
-        <div v-if="errors.username" class="error">{{ errors.username[0] }}</div>
-      </div>
-
-      <br />
-
-      <button type="submit">Update</button>
-      <button type="button" @click="goBack">Batal</button>
-    </form>
-  </div>
+    </div>
+  </DashboardLayout>
 </template>
 
 <script setup>
@@ -30,6 +76,8 @@ import { ref, onMounted } from "vue";
 import axios from "axios";
 import { useRouter, useRoute } from "vue-router";
 import { checkRole } from "@/utils";
+import { Icon } from "@iconify/vue";
+import DashboardLayout from "@/layouts/DashboardLayout.vue";
 
 checkRole("admin");
 
@@ -54,7 +102,7 @@ if (!token) {
 
 const headers = { Authorization: `Bearer ${token}` };
 
-// ambil data awal
+// Ambil data awal manager
 const fetchManager = async () => {
   try {
     const res = await axios.get(`/api/admin/manager/${managerId}`, { headers });
@@ -73,14 +121,14 @@ onMounted(() => {
   fetchManager();
 });
 
-// submit update
+// Submit update
 const submitForm = async () => {
   errors.value = {};
   error.value = null;
 
   try {
     await axios.put(`/api/admin/edit-manager/${managerId}`, form.value, { headers });
-    alert("Data petugas berhasil diperbarui!");
+    alert("Data manager berhasil diperbarui!");
     router.push("/dashboard-admin/kelola-users");
   } catch (err) {
     if (err.response && err.response.status === 422) {
@@ -93,30 +141,6 @@ const submitForm = async () => {
 };
 
 const goBack = () => {
-  router.push("/dashboard-admin/manager");
+  router.push("/dashboard-admin/kelola-users");
 };
 </script>
-
-<style scoped>
-.container {
-  padding: 20px;
-}
-
-input {
-  width: 300px;
-  padding: 8px;
-  margin-top: 4px;
-}
-
-button {
-  margin: 10px 5px 0 0;
-  cursor: pointer;
-  padding: 8px 12px;
-}
-
-.error {
-  color: red;
-  font-size: 12px;
-  margin-top: 4px;
-}
-</style>

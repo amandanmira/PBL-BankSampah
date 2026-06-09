@@ -53,14 +53,25 @@ const selectedGudang = computed(() => {
 // Paginated Sampah
 const paginatedSampah = computed(() => {
   if (!selectedGudang.value || !selectedGudang.value.sampah) return [];
+  const uniqueSampah = [];
+  const seenIds = new Set();
+  for (const s of selectedGudang.value.sampah) {
+    if (s.item_sampah && !seenIds.has(s.item_sampah.item_id)) {
+      seenIds.add(s.item_sampah.item_id);
+      uniqueSampah.push(s);
+    }
+  }
   const start = (currentPage.value - 1) * itemsPerPage;
   const end = start + itemsPerPage;
-  return selectedGudang.value.sampah.slice(start, end);
+  return uniqueSampah.slice(start, end);
 });
 
 const totalPages = computed(() => {
   if (!selectedGudang.value || !selectedGudang.value.sampah) return 0;
-  return Math.ceil(selectedGudang.value.sampah.length / itemsPerPage);
+  const uniqueSampahCount = new Set(
+    selectedGudang.value.sampah.map(s => s.item_sampah?.item_id).filter(Boolean)
+  ).size;
+  return Math.ceil(uniqueSampahCount / itemsPerPage);
 });
 
 // Setor Manual Computed

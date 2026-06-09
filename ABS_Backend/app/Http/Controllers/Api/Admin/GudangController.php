@@ -15,6 +15,33 @@ class GudangController extends Controller
      */
     public function index()
     {
+        // Automatically ensure all active item_sampahs exist in the sampahs table for all gudangs (self-healing)
+        $existing = Sampah::select('gudang_id', 'item_id')->get()->groupBy('gudang_id');
+        $activeItems = \App\Models\ItemSampah::where('active', 1)->get();
+        $gudangs = Gudang::all();
+        
+        $toInsert = [];
+        foreach ($gudangs as $gudang) {
+            $existingItems = isset($existing[$gudang->gudang_id]) 
+                ? $existing[$gudang->gudang_id]->pluck('item_id')->toArray() 
+                : [];
+            foreach ($activeItems as $item) {
+                if (!in_array($item->item_id, $existingItems)) {
+                    $toInsert[] = [
+                        'gudang_id' => $gudang->gudang_id,
+                        'item_id' => $item->item_id,
+                        'stok' => 0,
+                        'active' => 1,
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ];
+                }
+            }
+        }
+        if (!empty($toInsert)) {
+            Sampah::insert($toInsert);
+        }
+
         $gudang = Gudang::with(['sampah.itemSampah', 'tukang', 'petugas'])->get();
         return response()->json(['data' => $gudang], 200);
     }

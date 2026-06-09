@@ -445,6 +445,24 @@ onMounted(() => {
             </div>
           </div>
 
+          <!-- Card 3.5: Pemroses Penarikan (if status is selesai or tolak) -->
+          <div v-if="selectedItem.petugas" class="bg-white rounded-2xl p-4 shadow-sm border border-stone-100 space-y-3">
+            <div class="flex items-center gap-2 border-b border-stone-100 pb-2">
+              <Icon icon="material-symbols:person-outline" class="w-5 h-5 text-[#925F3A]" />
+              <h3 class="text-xs font-bold text-stone-800">Pemroses Penarikan</h3>
+            </div>
+            <div class="space-y-3 text-xs pl-7">
+              <div>
+                <p class="text-[9px] text-stone-400 uppercase tracking-wider font-bold">Nama Petugas</p>
+                <p class="font-bold text-stone-800">{{ selectedItem.petugas?.nama || '-' }}</p>
+              </div>
+              <div v-if="selectedItem.petugas?.gudang">
+                <p class="text-[9px] text-stone-400 uppercase tracking-wider font-bold">Asal Gudang</p>
+                <p class="font-bold text-stone-800">{{ selectedItem.petugas?.gudang?.alamat || '-' }}</p>
+              </div>
+            </div>
+          </div>
+
           <!-- Card 4: Bukti Transfer (Selesai status only) -->
           <div v-if="selectedItem.status === 'selesai'" class="bg-white rounded-2xl p-4 shadow-sm border border-stone-100 space-y-3">
             <div class="flex items-center gap-2 border-b border-stone-100 pb-2">

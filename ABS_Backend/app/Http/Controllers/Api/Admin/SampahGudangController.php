@@ -22,12 +22,20 @@ class SampahGudangController extends Controller
                 }
             }
             else {
-                Sampah::create([
-                    'item_id' => $s['item_id'],
-                    'stok' => $s['stok'],
-                    'active' => $s['active'],
-                    'gudang_id' => $id,
-                ]);
+                $existing = Sampah::where('gudang_id', $id)->where('item_id', $s['item_id'])->first();
+                if ($existing) {
+                    $existing->update([
+                        'stok' => $s['stok'],
+                        'active' => $s['active'],
+                    ]);
+                } else {
+                    Sampah::create([
+                        'item_id' => $s['item_id'],
+                        'stok' => $s['stok'],
+                        'active' => $s['active'],
+                        'gudang_id' => $id,
+                    ]);
+                }
             }
         }
 

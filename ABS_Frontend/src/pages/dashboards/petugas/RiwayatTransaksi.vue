@@ -553,6 +553,14 @@ const remainingTimeText = computed(() => {
                                 {{ getStatusLabel(selectedItem.status) }}
                             </span>
                         </div>
+                        <div v-if="selectedItem.petugas">
+                            <p class="text-gray-400 text-[10px] font-bold uppercase">Petugas Pemroses</p>
+                            <p class="font-bold text-gray-700">{{ selectedItem.petugas?.nama }}</p>
+                        </div>
+                        <div v-if="selectedItem.petugas?.gudang">
+                            <p class="text-gray-400 text-[10px] font-bold uppercase">Asal Gudang</p>
+                            <p class="font-bold text-gray-700">{{ selectedItem.petugas?.gudang?.alamat }}</p>
+                        </div>
                     </div>
                 </div>
 
@@ -600,7 +608,7 @@ const remainingTimeText = computed(() => {
                             <div>
                                 <p class="text-gray-400 text-[10px] font-bold uppercase">Nomor Telepon</p>
                                 <p class="font-bold text-gray-700">
-                                    {{ (selectedItem.nasabah?.no_hp || selectedItem.penimbangan?.[0]?.nasabah?.no_hp) || "Nasabah belum mengatur nomor telepon" }}
+                                    {{ (selectedItem.nasabah?.no_telp || selectedItem.penimbangan?.[0]?.nasabah?.no_telp) || "Nasabah belum mengatur nomor telepon" }}
                                 </p>
                             </div>
                         </div>
@@ -673,7 +681,7 @@ const remainingTimeText = computed(() => {
                             <div class="text-xs">
                                 <p class="text-gray-400">Tukang</p>
                                 <p class="font-bold text-gray-700">{{ selectedItem.tukang.nama }}</p>
-                                <p class="text-gray-400 mt-1">No. HP: <span class="font-bold text-gray-600">{{ selectedItem.tukang.no_hp || "-" }}</span></p>
+                                <p class="text-gray-400 mt-1">No. HP: <span class="font-bold text-gray-600">{{ selectedItem.tukang.no_telp || "-" }}</span></p>
                             </div>
                         </div>
                         <div class="text-sm text-right flex flex-col justify-center">
@@ -814,7 +822,7 @@ const remainingTimeText = computed(() => {
 
     <div v-if="showEditModal" class="fixed inset-0 z-[101] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
         <div class="bg-white w-full max-w-2xl rounded-[2.5rem] overflow-hidden shadow-2xl animate-in zoom-in duration-300 flex flex-col max-h-[90vh]">
-            <div class="bg-blue-600 p-6 text-white flex justify-between items-center">
+            <div class="bg-[#4A7043] p-6 text-white flex justify-between items-center">
                 <div>
                     <h2 class="text-xl font-bold">Edit Penimbangan</h2>
                     <p class="text-white/60 text-xs font-medium">TXN-{{ selectedItem?.transaksi_id }}</p>
@@ -826,7 +834,7 @@ const remainingTimeText = computed(() => {
 
             <div class="flex-1 overflow-y-auto p-6 space-y-6 custom-scrollbar">
                 <div v-if="loadingEdit" class="flex justify-center py-10">
-                    <div class="animate-spin rounded-full h-8 w-8 border-3 border-blue-600 border-t-transparent"></div>
+                    <div class="animate-spin rounded-full h-8 w-8 border-3 border-[#4A7043] border-t-transparent"></div>
                 </div>
                 <div v-else>
                     <div class="space-y-4">
@@ -850,7 +858,7 @@ const remainingTimeText = computed(() => {
                             </button>
                         </div>
                     </div>
-                    <button @click="addItem" class="mt-4 w-full py-3 bg-blue-100 text-blue-600 rounded-2xl font-bold flex items-center justify-center gap-2 hover:bg-blue-200 transition-all">
+                    <button @click="addItem" class="mt-4 w-full py-3 bg-green-100 text-[#4A7043] rounded-2xl font-bold flex items-center justify-center gap-2 hover:bg-green-200 transition-all">
                         <Icon icon="material-symbols:add" class="w-5 h-5" />
                         Tambah Item
                     </button>
@@ -861,7 +869,7 @@ const remainingTimeText = computed(() => {
                 <button @click="closeEditModal" class="w-full py-4 bg-gray-200 text-gray-700 rounded-2xl font-bold hover:bg-gray-300 transition-all">
                     Batal
                 </button>
-                <button @click="submitEdit" class="w-full py-4 bg-blue-600 text-white rounded-2xl font-bold hover:bg-blue-700 transition-all" :disabled="isSubmitting">
+                <button @click="submitEdit" class="w-full py-4 bg-[#4A7043] text-white rounded-2xl font-bold hover:bg-[#3D5C37] transition-all" :disabled="isSubmitting">
                     <span v-if="isSubmitting" class="flex items-center justify-center">
                         <div class="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent mr-2"></div>
                         Menyimpan...

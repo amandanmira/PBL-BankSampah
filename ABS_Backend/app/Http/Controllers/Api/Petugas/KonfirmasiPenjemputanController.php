@@ -13,12 +13,14 @@ class KonfirmasiPenjemputanController extends Controller
 {
     public function penjemputan()
 {
+    $gudangId = Auth::user()->gudang_id;
     $penjemputan = Penjemputan::with([
         'petugas', 
         'nasabah', 
         'tukang',
         'detailPenjemputan.sampah.itemSampah'
     ])
+    ->where('gudang_id', $gudangId)
     // Tambahkan status baru ke dalam array ini
     ->whereIn('status', [
         'pending', 
@@ -65,9 +67,19 @@ class KonfirmasiPenjemputanController extends Controller
 
     public function terima(Request $request, Penjemputan $penjemputan)
     {
-        // Validasi agar tukang_id wajib diisi
+        $gudangId = Auth::user()->gudang_id;
+        if ($penjemputan->gudang_id !== $gudangId) {
+            return response()->json(['message' => 'Akses ditolak. Penjemputan ini ditujukan ke gudang lain.'], 403);
+        }
+
+        // Validasi agar tukang_id wajib diisi dan milik gudang yang sama
         $request->validate([
-            'tukang_id' => 'required|exists:tukangs,tukang_id',
+            'tukang_id' => [
+                'required',
+                \Illuminate\Validation\Rule::exists('tukangs', 'tukang_id')->where(function ($query) use ($gudangId) {
+                    $query->where('gudang_id', $gudangId)->where('active', 1);
+                }),
+            ],
             'jadwal' => 'nullable|date_format:Y-m-d H:i:s'
         ]);
 
@@ -95,6 +107,11 @@ class KonfirmasiPenjemputanController extends Controller
 
     public function tolak(Request $request, Penjemputan $penjemputan)
     {
+        $gudangId = Auth::user()->gudang_id;
+        if ($penjemputan->gudang_id !== $gudangId) {
+            return response()->json(['message' => 'Akses ditolak. Penjemputan ini ditujukan ke gudang lain.'], 403);
+        }
+
         // 1. Validasi request untuk memastikan alasan diisi
         $request->validate([
             'ket_status' => 'required|string|max:255',
@@ -115,6 +132,11 @@ class KonfirmasiPenjemputanController extends Controller
 
     public function dijemput(Penjemputan $penjemputan)
     {
+        $gudangId = Auth::user()->gudang_id;
+        if ($penjemputan->gudang_id !== $gudangId) {
+            return response()->json(['message' => 'Akses ditolak. Penjemputan ini ditujukan ke gudang lain.'], 403);
+        }
+
         $penjemputan->status = 'dijemput';
         $penjemputan->save();
 
@@ -127,6 +149,11 @@ class KonfirmasiPenjemputanController extends Controller
 
     public function sampaiLokasi(Penjemputan $penjemputan)
     {
+        $gudangId = Auth::user()->gudang_id;
+        if ($penjemputan->gudang_id !== $gudangId) {
+            return response()->json(['message' => 'Akses ditolak. Penjemputan ini ditujukan ke gudang lain.'], 403);
+        }
+
         $penjemputan->status = 'perlu_input';
         $penjemputan->save();
 
@@ -139,6 +166,11 @@ class KonfirmasiPenjemputanController extends Controller
 
     public function show(Penjemputan $penjemputan)
     {
+        $gudangId = Auth::user()->gudang_id;
+        if ($penjemputan->gudang_id !== $gudangId) {
+            return response()->json(['message' => 'Akses ditolak. Penjemputan ini ditujukan ke gudang lain.'], 403);
+        }
+
         // Load relasi yang mungkin Anda perlukan di frontend
         $penjemputan->load('nasabah', 'petugas', 'tukang', 'gudang');
 
@@ -149,8 +181,11 @@ class KonfirmasiPenjemputanController extends Controller
 
     public function getTukang()
     {
-        // Mengambil daftar tukang yang statusnya aktif (berdasarkan gambar tabel Anda)
-        $tukang = \App\Models\Tukang::where('active', 1)->get();
+        $gudangId = Auth::user()->gudang_id;
+        // Mengambil daftar tukang yang statusnya aktif dan berada di gudang yang sama dengan petugas
+        $tukang = \App\Models\Tukang::where('active', 1)
+                    ->where('gudang_id', $gudangId)
+                    ->get();
         return response()->json(['data' => $tukang], 200);
     }
 
