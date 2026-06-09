@@ -65,7 +65,7 @@
     </div>
 
     <div v-else>
-      <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6 mb-12">
+      <div :class="['grid gap-6 xl:gap-8 mb-12 transition-all duration-300', isSidebarCollapsed ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4' : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3']">
         <div
           v-for="item in paginatedSampah"
           :key="item.sampah_id"
@@ -105,7 +105,7 @@
               </div>
             </div>
 
-            <div class="bg-gray-50 rounded-2xl p-3 mb-4 flex justify-between items-center">
+            <div class="bg-gray-50 rounded-2xl p-3 mb-4 flex justify-between items-center flex-wrap gap-2">
               <div>
                 <div class="flex items-baseline gap-0.5">
                   <span class="text-lg font-black text-[#A86444]">{{ formatCurrency(item.item_sampah.harga_jual * (1 - parseFloat(item.item_sampah.diskon || 0))) }}</span>
@@ -356,6 +356,7 @@ checkRole('pengepul')
 const router = useRouter()
 const axios = inject('axios')
 const cartStore = useCartStore()
+const isSidebarCollapsed = inject('isSidebarCollapsed', ref(false))
 
 const loading = ref(true)
 const sampahList = ref([])
