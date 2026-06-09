@@ -82,8 +82,8 @@ const filteredRequests = computed(() => {
   // 3. Search filter
   if (searchQuery.value) {
     const q = searchQuery.value.toLowerCase();
-    filtered = filtered.filter(r => 
-      r.penjemputan_id.toString().includes(q) || 
+    filtered = filtered.filter(r =>
+      r.penjemputan_id.toString().includes(q) ||
       (r.nasabah?.nama && r.nasabah.nama.toLowerCase().includes(q))
     );
   }
@@ -99,7 +99,7 @@ const filteredWorkers = computed(() => {
 // Update hitungan tab agar hanya menghitung request di gudang yang sama
 const getCount = (filter) => {
   let validRequests = requests.value;
-  
+
   if (user.value && user.value.gudang_id) {
     validRequests = validRequests.filter(r => r.gudang_id === user.value.gudang_id);
   }
@@ -134,11 +134,11 @@ const confirmSchedule = async (request) => {
     alert("Mohon lengkapi tanggal dan waktu penjemputan.");
     return;
   }
-  
+
   try {
     loading.value = true;
     const datetime = `${request.scheduleDate} ${request.scheduleHour}:${request.scheduleMinute}:00`;
-    
+
     await axios.put(`/api/petugas/penjemputan/${request.penjemputan_id}/terima`, {
       tukang_id: request.selectedTukang.tukang_id,
       jadwal: datetime
@@ -198,16 +198,16 @@ const confirmReject = async () => {
     alert("Silakan isi alasan penolakan.");
     return;
   }
-  
+
   try {
     loading.value = true;
     await axios.put(`/api/petugas/penjemputan/${rejectRequest.value.penjemputan_id}/tolak`, {
       ket_status: rejectReason.value
     });
-    
+
     // Update local state and remove from list
     requests.value = requests.value.filter(r => r.penjemputan_id !== rejectRequest.value.penjemputan_id);
-    
+
     isRejectModalOpen.value = false;
   } catch (err) {
     console.error("Gagal menolak request:", err);
@@ -225,7 +225,7 @@ const showDetail = (request) => {
 const formatDate = (dateStr) => {
   if (!dateStr) return "-";
   const date = new Date(dateStr);
-  return date.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }) + ", " + 
+  return date.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }) + ", " +
          date.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
 };
 
@@ -248,10 +248,10 @@ onMounted(() => {
         <label class="block text-[10px] font-black text-stone-400 uppercase tracking-widest mb-2">Cari Request</label>
         <div class="flex gap-3">
           <div class="flex-1 relative">
-            <input 
+            <input
               v-model="searchQuery"
-              type="text" 
-              placeholder="ID Request atau Nama Nasabah" 
+              type="text"
+              placeholder="ID Request atau Nama Nasabah"
               class="w-full bg-stone-50 border border-stone-100 rounded-2xl py-3.5 px-5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#4A7043]/20 transition-all"
             />
           </div>
@@ -262,8 +262,8 @@ onMounted(() => {
       </div>
 
       <div class="bg-white rounded-[2rem] p-2 shadow-sm border border-stone-100 flex">
-        <button 
-          v-for="filter in ['Menunggu', 'Diproses', 'Dijemput', 'Perlu Input Data']" 
+        <button
+          v-for="filter in ['Menunggu', 'Diproses', 'Dijemput', 'Perlu Input Data']"
           :key="filter"
           @click="activeFilter = filter"
           :class="[
@@ -272,7 +272,7 @@ onMounted(() => {
           ]"
         >
           {{ filter }}
-          <span 
+          <span
             v-if="getCount(filter) > 0"
             :class="[
               'px-2 py-0.5 rounded-full text-[10px]',
@@ -290,8 +290,8 @@ onMounted(() => {
         </div>
 
         <template v-else-if="filteredRequests.length > 0">
-          <div 
-            v-for="request in filteredRequests" 
+          <div
+            v-for="request in filteredRequests"
             :key="request.penjemputan_id"
             class="bg-white rounded-[2rem] p-6 shadow-sm border border-stone-100 space-y-6"
           >
@@ -300,25 +300,25 @@ onMounted(() => {
                 <h3 class="text-xl font-black text-stone-800">REQ-{{ String(request.penjemputan_id).padStart(3, '0') }}</h3>
                 <span :class="[
                   'px-3 py-1 rounded-full text-[10px] font-black uppercase',
-                  request.status === 'pending' ? 'bg-orange-100 text-orange-600' : 
-                  request.status === 'menunggu_persetujuan' ? 'bg-indigo-100 text-indigo-600' : 
-                  request.status === 'jadwal_ditolak' ? 'bg-red-100 text-red-600' : 
+                  request.status === 'pending' ? 'bg-orange-100 text-orange-600' :
+                  request.status === 'menunggu_persetujuan' ? 'bg-indigo-100 text-indigo-600' :
+                  request.status === 'jadwal_ditolak' ? 'bg-red-100 text-red-600' :
                   request.status === 'proses' ? 'bg-blue-100 text-blue-600' :
-                  request.status === 'dijemput' ? 'bg-purple-100 text-purple-600' : 
+                  request.status === 'dijemput' ? 'bg-purple-100 text-purple-600' :
                   request.status === 'perlu_input' ? 'bg-orange-100 text-orange-500' : 'bg-stone-100 text-stone-500'
                 ]">
-                  {{ 
-                    request.status === 'pending' ? 'Menunggu' : 
-                    request.status === 'menunggu_persetujuan' ? 'Menunggu Nasabah' : 
-                    request.status === 'jadwal_ditolak' ? 'Jadwal Ditolak' : 
-                    request.status === 'perlu_input' ? 'Perlu Input Data' : request.status 
+                  {{
+                    request.status === 'pending' ? 'Menunggu' :
+                    request.status === 'menunggu_persetujuan' ? 'Menunggu Nasabah' :
+                    request.status === 'jadwal_ditolak' ? 'Jadwal Ditolak' :
+                    request.status === 'perlu_input' ? 'Perlu Input Data' : request.status
                   }}
                 </span>
                 <span class="px-3 py-1 rounded-full text-[10px] font-black uppercase bg-stone-100 text-stone-500">
                   Penjemputan
                 </span>
               </div>
-              <button 
+              <button
                 @click="showDetail(request)"
                 class="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-stone-50 text-stone-400 text-[10px] font-black hover:bg-stone-100 transition-colors uppercase tracking-widest"
               >
@@ -369,7 +369,7 @@ onMounted(() => {
             </div>
 
             <template v-if="['pending', 'jadwal_ditolak'].includes(request.status)">
-            
+
             <div v-if="request.status === 'jadwal_ditolak' && !request.showScheduleForm" class="bg-red-50 border border-red-200 rounded-2xl p-4 flex flex-col gap-2 mb-4">
               <div class="flex items-center gap-2 text-red-700">
                 <Icon icon="material-symbols:warning-outline" class="w-5 h-5" />
@@ -379,12 +379,12 @@ onMounted(() => {
               <p class="text-[10px] text-red-500 font-medium">Silakan atur jadwal penjemputan ulang.</p>
             </div>
 
-            <button 
+            <button
               @click="openWorkerModal(request)"
               :class="[
                 'w-full py-4 rounded-2xl text-sm font-black transition-all border-2 flex items-center justify-center gap-2',
-                request.selectedTukang 
-                  ? 'bg-stone-50 border-stone-200 text-stone-800' 
+                request.selectedTukang
+                  ? 'bg-stone-50 border-stone-200 text-stone-800'
                   : 'bg-red-50 border-red-200 text-red-600 border-dashed'
               ]"
             >
@@ -410,7 +410,7 @@ onMounted(() => {
                 <Icon icon="material-symbols:close" class="w-5 h-5" />
               </button>
               <h4 class="font-bold text-stone-700 text-sm">Form Jadwal Penjemputan</h4>
-              
+
               <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div class="space-y-1.5">
                   <label class="text-xs font-semibold text-stone-600">Tanggal</label>
@@ -434,8 +434,8 @@ onMounted(() => {
               </div>
 
 
-              <button 
-                @click="confirmSchedule(request)" 
+              <button
+                @click="confirmSchedule(request)"
                 :disabled="!request.scheduleDate || !request.scheduleHour || !request.scheduleMinute"
                 :class="[
                   'w-full py-3 mt-2 rounded-xl text-white text-sm font-bold transition-all shadow-sm',
@@ -449,19 +449,19 @@ onMounted(() => {
             </div>
 
             <div v-if="!request.showScheduleForm" class="flex flex-col md:flex-row gap-4">
-              <button 
+              <button
                 @click="handleTerima(request)"
                 :disabled="!request.selectedTukang"
                 :class="[
                   'flex-[2] py-4 rounded-2xl text-sm font-black uppercase tracking-widest transition-all shadow-lg',
-                  request.selectedTukang 
-                    ? 'bg-[#4A7043] text-white hover:bg-[#3D5C37]' 
+                  request.selectedTukang
+                    ? 'bg-[#4A7043] text-white hover:bg-[#3D5C37]'
                     : 'bg-stone-200 text-stone-400 cursor-not-allowed shadow-none'
                 ]"
               >
                 {{ request.status === 'jadwal_ditolak' ? 'Jadwalkan Ulang Penjemputan' : 'Terima & Atur Jadwal Penjemputan' }}
               </button>
-              <button 
+              <button
                 @click="handleTolak(request)"
                 class="flex-1 py-4 rounded-2xl bg-[#C62828] text-white text-sm font-black uppercase tracking-widest hover:bg-[#B71C1C] transition-all shadow-lg"
               >
@@ -469,7 +469,7 @@ onMounted(() => {
               </button>
             </div>
             </template>
-            
+
             <template v-if="request.status === 'menunggu_persetujuan'">
               <div class="bg-indigo-50 border border-indigo-200 rounded-2xl p-4 flex flex-col gap-2 mt-4 shadow-sm">
                 <div class="flex items-center gap-2 text-indigo-700">
@@ -481,7 +481,7 @@ onMounted(() => {
             </template>
 
             <template v-if="request.status === 'proses'">
-              <button 
+              <button
                 @click="assignTukang(request)"
                 class="w-full py-4 rounded-2xl bg-[#4A7043] text-white text-sm font-black uppercase tracking-widest hover:bg-[#3D5C37] transition-all shadow-lg mt-2"
               >
@@ -500,7 +500,7 @@ onMounted(() => {
                     <p class="text-stone-500 font-medium text-[10px] mt-0.5">Tracking sudah terkirim ke nasabah</p>
                   </div>
                 </div>
-                <button 
+                <button
                   @click="sampaiLokasi(request)"
                   class="w-full py-3.5 rounded-xl bg-[#4A7043] text-white text-[13px] font-bold hover:bg-[#3D5C37] transition-all flex items-center justify-center gap-1.5 active:scale-[0.99]"
                 >
@@ -511,7 +511,7 @@ onMounted(() => {
             </template>
 
             <template v-if="request.status === 'perlu_input'">
-              <button 
+              <button
                 @click="inputDataTransaksi(request)"
                 class="w-full py-4 rounded-2xl bg-[#4A7043] text-white text-sm font-bold hover:bg-[#3D5C37] transition-all shadow-lg mt-2"
               >
@@ -539,10 +539,10 @@ onMounted(() => {
             <Icon icon="material-symbols:close" class="w-6 h-6 text-stone-400" />
           </button>
         </div>
-        
+
         <div class="flex-1 overflow-y-auto p-8 pt-4 space-y-4">
-          <div 
-            v-for="worker in filteredWorkers" 
+          <div
+            v-for="worker in filteredWorkers"
             :key="worker.tukang_id"
             @click="selectWorker(worker)"
             class="bg-[#4A7043] rounded-2xl p-5 text-white flex items-center gap-6 cursor-pointer hover:scale-[1.02] active:scale-[0.98] transition-all group"
@@ -565,10 +565,6 @@ onMounted(() => {
                 <div>
                   <p class="text-[10px] font-black text-white/40 uppercase tracking-widest">No. Telp:</p>
                   <p class="text-sm font-bold">{{ worker.no_telp }}</p>
-                </div>
-                <div>
-                  <p class="text-[10px] font-black text-white/40 uppercase tracking-widest">Email:</p>
-                  <p class="text-sm font-bold opacity-80">{{ worker.email || '-' }}</p>
                 </div>
               </div>
             </div>
@@ -593,9 +589,9 @@ onMounted(() => {
             <Icon icon="material-symbols:close" class="w-5 h-5 text-stone-500 font-bold" />
           </button>
         </div>
-        
+
         <div class="flex-1 overflow-y-auto p-8 space-y-6">
-          
+
           <div class="flex items-center gap-3 mb-2">
             <h4 class="text-xl font-black text-stone-800">REQ-{{ String(detailRequest.penjemputan_id).padStart(3, '0') }}</h4>
             <span class="px-3 py-1 rounded-full text-[10px] font-black uppercase bg-orange-100 text-orange-600">
@@ -605,7 +601,7 @@ onMounted(() => {
 
           <div class="bg-white rounded-2xl p-6 shadow-sm border border-stone-100 space-y-4">
             <h5 class="text-sm font-black text-stone-800 mb-2">Informasi Nasabah</h5>
-            
+
             <div class="space-y-4">
               <div class="flex items-start gap-3">
                 <Icon icon="material-symbols:person-outline" class="w-5 h-5 text-stone-400 mt-0.5" />
@@ -614,7 +610,7 @@ onMounted(() => {
                   <p class="font-black text-stone-800">{{ detailRequest.nasabah?.nama || 'Unknown' }} <span class="text-stone-400 font-bold">(NSB-{{ String(detailRequest.nasabah_id).padStart(3, '0') }})</span></p>
                 </div>
               </div>
-              
+
               <div class="flex items-start gap-3">
                 <Icon icon="material-symbols:location-on-outline" class="w-5 h-5 text-stone-400 mt-0.5" />
                 <div>
@@ -622,7 +618,7 @@ onMounted(() => {
                   <p class="font-bold text-stone-800 text-sm leading-snug">{{ detailRequest.alamat }}</p>
                 </div>
               </div>
-              
+
               <div class="flex items-start gap-3">
                 <Icon icon="material-symbols:call-outline" class="w-5 h-5 text-stone-400 mt-0.5" />
                 <div>
@@ -630,7 +626,7 @@ onMounted(() => {
                   <p class="font-bold text-stone-800 text-sm">{{ detailRequest.nasabah?.no_telp || '-' }}</p>
                 </div>
               </div>
-              
+
               <div class="flex items-start gap-3">
                 <Icon icon="material-symbols:calendar-today-outline" class="w-5 h-5 text-stone-400 mt-0.5" />
                 <div>
@@ -643,7 +639,7 @@ onMounted(() => {
 
           <div class="bg-white rounded-2xl p-6 shadow-sm border border-stone-100 space-y-4">
             <h5 class="text-sm font-black text-stone-800 mb-2">Informasi Sampah</h5>
-            
+
             <div class="space-y-4">
               <div class="flex items-start gap-3">
                 <Icon icon="material-symbols:monitor-weight-outline" class="w-5 h-5 text-stone-400 mt-0.5" />
@@ -652,14 +648,14 @@ onMounted(() => {
                   <p class="font-black text-stone-800">{{ detailRequest.deskripsi?.split('|')[0] || detailRequest.estimasi_berat || '-' }}</p>
                 </div>
               </div>
-              
+
               <div class="flex items-start gap-3">
                 <Icon icon="material-symbols:inventory-2-outline" class="w-5 h-5 text-stone-400 mt-0.5" />
                 <div>
                   <p class="text-[10px] font-black text-stone-400 uppercase tracking-widest mb-1">Jenis Sampah</p>
                   <div class="flex flex-wrap gap-2">
-                    <span 
-                      v-for="(jenis, idx) in (detailRequest.deskripsi?.split('|')[1] ? detailRequest.deskripsi.split('|')[1].split(', ') : [])" 
+                    <span
+                      v-for="(jenis, idx) in (detailRequest.deskripsi?.split('|')[1] ? detailRequest.deskripsi.split('|')[1].split(', ') : [])"
                       :key="idx"
                       class="px-3 py-1 bg-stone-50 border border-stone-200 text-stone-600 rounded-full text-xs font-bold"
                     >
@@ -693,21 +689,21 @@ onMounted(() => {
 
           <div class="bg-white rounded-2xl p-6 shadow-sm border border-stone-100 space-y-4">
             <h5 class="text-sm font-black text-stone-800 mb-2">Foto Sampah</h5>
-            
+
             <div v-if="detailRequest.foto && (Array.isArray(detailRequest.foto) ? detailRequest.foto.length > 0 : true)" class="flex gap-4 overflow-x-auto pb-2">
               <template v-if="Array.isArray(detailRequest.foto)">
-                <img 
-                  v-for="(f, i) in detailRequest.foto" 
-                  :key="i" 
-                  :src="`http://localhost:8000/storage/${f}`" 
-                  alt="Foto Sampah" 
+                <img
+                  v-for="(f, i) in detailRequest.foto"
+                  :key="i"
+                  :src="`http://localhost:8000/storage/${f}`"
+                  alt="Foto Sampah"
                   class="w-32 h-32 rounded-xl object-cover shadow-sm border border-stone-100 flex-shrink-0"
                 />
               </template>
               <template v-else>
-                <img 
-                  :src="`http://localhost:8000/storage/${detailRequest.foto}`" 
-                  alt="Foto Sampah" 
+                <img
+                  :src="`http://localhost:8000/storage/${detailRequest.foto}`"
+                  alt="Foto Sampah"
                   class="w-32 h-32 rounded-xl object-cover shadow-sm border border-stone-100 flex-shrink-0"
                 />
               </template>
@@ -748,9 +744,9 @@ onMounted(() => {
             <Icon icon="material-symbols:close" class="w-5 h-5 text-stone-500 font-bold" />
           </button>
         </div>
-        
+
         <div class="flex-1 overflow-y-auto p-8 space-y-6 bg-[#FAFAFA]">
-          
+
           <div class="bg-orange-50 border border-orange-200 rounded-2xl p-4 flex gap-3">
             <Icon icon="material-symbols:info-outline" class="w-5 h-5 text-orange-500 shrink-0 mt-0.5" />
             <p class="text-sm font-medium text-orange-800 leading-snug">
@@ -760,9 +756,9 @@ onMounted(() => {
 
           <div class="space-y-3">
             <label class="text-xs font-black text-stone-800">Alasan Penolakan <span class="text-red-500">*</span></label>
-            <textarea 
+            <textarea
               v-model="rejectReason"
-              placeholder="Jelaskan alasan penolakan request ini secara detail..." 
+              placeholder="Jelaskan alasan penolakan request ini secara detail..."
               class="w-full bg-white border border-stone-200 rounded-2xl py-4 px-5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500 transition-all min-h-[120px] text-stone-700"
             ></textarea>
             <div class="flex items-center gap-2 mt-2">
