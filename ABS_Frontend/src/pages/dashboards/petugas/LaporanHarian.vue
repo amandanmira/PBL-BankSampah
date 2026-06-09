@@ -233,7 +233,7 @@ onMounted(async () => {
         <div class="border-t border-white/20 pt-3">
           <p class="text-xs text-white/60 mb-1">Total Nominal</p>
           <p class="text-base font-semibold">
-            {{ formatRupiah(detailsLaporan.penarikan.reduce((sum, item) => sum + (item.jumlah || 0), 0)) }}
+            {{ formatRupiah(detailsLaporan.penarikan.reduce((sum, item) => sum + Number(item.jumlah || 0), 0)) }}
           </p>
         </div>
       </div>
@@ -313,7 +313,7 @@ onMounted(async () => {
                 <div class="text-xs text-stone-400">NSB-{{ String(item.penimbangan?.[0]?.nasabah_id).padStart(3, '0') }}</div>
               </td>
               <td class="py-4 px-4 text-stone-500">{{ item.penimbangan?.map(p => p.sampah?.item_sampah?.nama).join(', ') || '-' }}</td>
-              <td class="py-4 px-4 text-center font-bold text-stone-700">{{ item.penimbangan?.reduce((acc, p) => acc + (p.berat_timbang || 0), 0) }}</td>
+              <td class="py-4 px-4 text-center font-bold text-stone-700">{{ item.penimbangan?.reduce((acc, p) => acc + Number(p.berat_timbang || 0), 0) }}</td>
               <td class="py-4 px-4 text-right font-bold text-[#4A7043]">{{ formatRupiah(item.total_harga) }}</td>
               <td class="py-4 px-4 text-center">
                 <button v-if="item.penimbangan?.[0]?.foto" @click="viewImage(item.penimbangan[0].foto)" class="inline-flex items-center gap-1 px-3 py-1.5 bg-[#4A7043] text-white text-xs font-semibold rounded-lg hover:bg-[#3D5C37] transition-colors">
@@ -327,8 +327,8 @@ onMounted(async () => {
           <tfoot v-if="detailsLaporan.penjemputan?.length" class="bg-[#F5F8F5]">
             <tr>
               <td colspan="4" class="py-4 px-4 text-right font-bold text-stone-600">TOTAL PENJEMPUTAN:</td>
-              <td class="py-4 px-4 text-center font-black text-stone-800">{{ detailsLaporan.penjemputan.reduce((sum, item) => sum + item.penimbangan.reduce((acc, p) => acc + (p.berat_timbang || 0), 0), 0) }} kg</td>
-              <td class="py-4 px-4 text-right font-black text-[#4A7043]">{{ formatRupiah(detailsLaporan.penjemputan.reduce((sum, item) => sum + (item.total_harga || 0), 0)) }}</td>
+              <td class="py-4 px-4 text-center font-black text-stone-800">{{ detailsLaporan.penjemputan.reduce((sum, item) => sum + item.penimbangan.reduce((acc, p) => acc + Number(p.berat_timbang || 0), 0), 0) }} kg</td>
+              <td class="py-4 px-4 text-right font-black text-[#4A7043]">{{ formatRupiah(detailsLaporan.penjemputan.reduce((sum, item) => sum + Number(item.total_harga || 0), 0)) }}</td>
               <td></td>
             </tr>
           </tfoot>
@@ -360,7 +360,7 @@ onMounted(async () => {
                 <div class="text-xs text-stone-400">NSB-{{ String(item.penimbangan?.[0]?.nasabah_id).padStart(3, '0') }}</div>
               </td>
               <td class="py-4 px-4 text-stone-500">{{ item.penimbangan?.map(p => p.sampah?.item_sampah?.nama).join(', ') || '-' }}</td>
-              <td class="py-4 px-4 text-center font-bold text-stone-700">{{ item.penimbangan?.reduce((acc, p) => acc + (p.berat_timbang || 0), 0) }}</td>
+              <td class="py-4 px-4 text-center font-bold text-stone-700">{{ item.penimbangan?.reduce((acc, p) => acc + Number(p.berat_timbang || 0), 0) }}</td>
               <td class="py-4 px-4 text-right font-bold text-[#4A7043]">{{ formatRupiah(item.total_harga) }}</td>
               <td class="py-4 px-4 text-center">
                 <button v-if="item.penimbangan?.[0]?.foto" @click="viewImage(item.penimbangan[0].foto)" class="inline-flex items-center gap-1 px-3 py-1.5 bg-[#4A7043] text-white text-xs font-semibold rounded-lg hover:bg-[#3D5C37] transition-colors">
@@ -374,8 +374,8 @@ onMounted(async () => {
           <tfoot v-if="detailsLaporan.setor_manual?.length" class="bg-[#F5F8F5]">
             <tr>
               <td colspan="4" class="py-4 px-4 text-right font-bold text-stone-600">TOTAL SETOR MANUAL:</td>
-              <td class="py-4 px-4 text-center font-black text-stone-800">{{ detailsLaporan.setor_manual.reduce((sum, item) => sum + item.penimbangan.reduce((acc, p) => acc + (p.berat_timbang || 0), 0), 0) }} kg</td>
-              <td class="py-4 px-4 text-right font-black text-[#4A7043]">{{ formatRupiah(detailsLaporan.setor_manual.reduce((sum, item) => sum + (item.total_harga || 0), 0)) }}</td>
+              <td class="py-4 px-4 text-center font-black text-stone-800">{{ detailsLaporan.setor_manual.reduce((sum, item) => sum + item.penimbangan.reduce((acc, p) => acc + Number(p.berat_timbang || 0), 0), 0) }} kg</td>
+              <td class="py-4 px-4 text-right font-black text-[#4A7043]">{{ formatRupiah(detailsLaporan.setor_manual.reduce((sum, item) => sum + Number(item.total_harga || 0), 0)) }}</td>
               <td></td>
             </tr>
           </tfoot>
@@ -425,7 +425,7 @@ onMounted(async () => {
           <tfoot v-if="detailsLaporan.penarikan?.length" class="bg-[#F5F8F5]">
             <tr>
               <td colspan="5" class="py-4 px-4 text-right font-bold text-stone-600">TOTAL PENARIKAN DISETUJUI:</td>
-              <td class="py-4 px-4 text-right font-black text-[#4A7043]">{{ formatRupiah(detailsLaporan.penarikan.reduce((sum, item) => sum + (item.jumlah || 0), 0)) }}</td>
+              <td class="py-4 px-4 text-right font-black text-[#4A7043]">{{ formatRupiah(detailsLaporan.penarikan.reduce((sum, item) => sum + Number(item.jumlah || 0), 0)) }}</td>
               <td></td>
             </tr>
           </tfoot>
@@ -459,8 +459,8 @@ onMounted(async () => {
                 <div class="font-bold text-stone-800">{{ item.pengepul?.nama || item.pengepul?.nama_lembaga || '-' }}</div>
                 <div class="text-xs text-stone-400">{{ item.pengepul?.no_telp || '-' }}</div>
               </td>
-              <td class="py-4 px-4 text-center font-bold text-stone-700">{{ item.detail_transaksi?.reduce((acc, d) => acc + (d.berat || 0), 0) }} kg</td>
-              <td class="py-4 px-4 text-right font-bold text-[#4A7043]">{{ formatRupiah(item.detail_transaksi?.reduce((acc, d) => acc + (d.berat * d.harga || 0), 0) || item.total_harga) }}</td>
+              <td class="py-4 px-4 text-center font-bold text-stone-700">{{ item.detail_transaksi?.reduce((acc, d) => acc + Number(d.berat || 0), 0) }} kg</td>
+              <td class="py-4 px-4 text-right font-bold text-[#4A7043]">{{ formatRupiah(item.detail_transaksi?.reduce((acc, d) => acc + (Number(d.berat) * Number(d.harga) || 0), 0) || Number(item.total_harga)) }}</td>
               <td class="py-4 px-4 text-center">
                 <span class="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold bg-green-100 text-green-700 uppercase tracking-wider">
                   Selesai
@@ -478,8 +478,8 @@ onMounted(async () => {
           <tfoot v-if="detailsLaporan.pesanan_pengepul?.length" class="bg-[#F5F8F5]">
             <tr>
               <td colspan="3" class="py-4 px-4 text-right font-bold text-stone-600">TOTAL PESANAN PENGEPUL:</td>
-              <td class="py-4 px-4 text-center font-black text-stone-800">{{ detailsLaporan.pesanan_pengepul.reduce((sum, item) => sum + item.detail_transaksi.reduce((acc, d) => acc + (d.berat || 0), 0), 0) }} kg</td>
-              <td class="py-4 px-4 text-right font-black text-[#4A7043]">{{ formatRupiah(detailsLaporan.pesanan_pengepul.reduce((sum, item) => sum + (item.detail_transaksi?.reduce((acc, d) => acc + (d.berat * d.harga || 0), 0) || item.total_harga || 0), 0)) }}</td>
+              <td class="py-4 px-4 text-center font-black text-stone-800">{{ detailsLaporan.pesanan_pengepul.reduce((sum, item) => sum + item.detail_transaksi.reduce((acc, d) => acc + Number(d.berat || 0), 0), 0) }} kg</td>
+              <td class="py-4 px-4 text-right font-black text-[#4A7043]">{{ formatRupiah(detailsLaporan.pesanan_pengepul.reduce((sum, item) => sum + (item.detail_transaksi?.reduce((acc, d) => acc + (Number(d.berat) * Number(d.harga) || 0), 0) || Number(item.total_harga) || 0), 0)) }}</td>
               <td colspan="2"></td>
             </tr>
           </tfoot>
