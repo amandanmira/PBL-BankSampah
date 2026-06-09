@@ -272,12 +272,6 @@ class ManagerAuditController extends Controller
             $perGudangMap[$nama] = ['gudang' => $nama, 'transaksi' => 0, 'berat' => 0, 'verified' => 0, 'pending' => 0];
         }
 
-        $categories = \App\Models\ItemSampah::pluck('nama')->unique()->toArray();
-        $jenisSampahMap = [];
-        foreach ($categories as $cat) {
-            $jenisSampahMap[$cat] = ['berat' => 0];
-        }
-
         foreach ($allData as $row) {
             $gudang = $row['gudang'];
             if (!isset($perGudangMap[$gudang])) {
@@ -290,15 +284,6 @@ class ManagerAuditController extends Controller
             } else {
                 $perGudangMap[$gudang]['pending']++;
             }
-
-            $jenis = $row['jenis'];
-            if ($jenis !== 'Belum Ditimbang') {
-                if (isset($jenisSampahMap[$jenis])) {
-                    $jenisSampahMap[$jenis]['berat'] += $row['berat'];
-                } else {
-                    $jenisSampahMap[$jenis] = ['berat' => $row['berat']];
-                }
-            }
         }
 
         // Sort arrays
@@ -306,17 +291,28 @@ class ManagerAuditController extends Controller
             return $b['berat'] <=> $a['berat'];
         });
 
+        // Distribusi Jenis Sampah (based on current stock)
+        $stockQuery = \App\Models\Sampah::with('itemSampah')->where('stok', '>', 0);
+        if ($gudangId) {
+            $stockQuery->where('gudang_id', $gudangId);
+        }
+        $stocks = $stockQuery->get();
+
+        $groupedStocks = $stocks->groupBy(function ($s) {
+            return optional($s->itemSampah)->nama ?? 'Lainnya';
+        });
+
+        $totalStok = $stocks->sum('stok');
+
         $jenisSampahList = [];
-        foreach ($jenisSampahMap as $name => $data) {
-            $berat = $data['berat'];
-            $percentage = $totalBerat > 0 ? ($berat / $totalBerat) * 100 : 0;
-            if ($berat > 0 || in_array($name, $categories)) {
-                $jenisSampahList[] = [
-                    'name' => $name,
-                    'berat' => $berat,
-                    'percentage' => $percentage
-                ];
-            }
+        foreach ($groupedStocks as $name => $items) {
+            $berat = $items->sum('stok');
+            $percentage = $totalStok > 0 ? ($berat / $totalStok) * 100 : 0.0;
+            $jenisSampahList[] = [
+                'name' => $name,
+                'berat' => (float)$berat,
+                'percentage' => (float)$percentage
+            ];
         }
 
         usort($jenisSampahList, function($a, $b) {
@@ -344,10 +340,12 @@ class ManagerAuditController extends Controller
             }
 
             $totalBerat = $details->sum('berat');
-            $diterima = $details->sum('harga');
+            $diterima = $details->sum(function($d) {
+                return $d->harga * $d->berat;
+            });
             $keuntungan = $details->sum(function($d) {
                 $hargaBeli = optional(optional($d->sampah)->itemSampah)->harga_beli ?? 0.0;
-                return $d->harga - ($d->berat * $hargaBeli);
+                return ($d->harga - $hargaBeli) * $d->berat;
             });
 
             return [

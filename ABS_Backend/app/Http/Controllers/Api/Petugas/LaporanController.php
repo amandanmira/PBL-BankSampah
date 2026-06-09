@@ -714,19 +714,30 @@ class LaporanController extends Controller
         $setorManualCount = $allTransactions->where('sumber', 'Setor Manual')->count();
         $setorManualWeight = $mappedCompleted->where('sumber', 'Setor Manual')->sum('berat');
 
-        // Distribusi Jenis Sampah
+        // Distribusi Jenis Sampah (based on current stock)
+        $stockQuery = \App\Models\Sampah::with('itemSampah')->where('stok', '>', 0);
+        if ($gudangId) {
+            $stockQuery->where('gudang_id', $gudangId);
+        }
+        $stocks = $stockQuery->get();
+
+        $groupedStocks = $stocks->groupBy(function ($s) {
+            return optional($s->itemSampah)->nama ?? 'Lainnya';
+        });
+
+        $totalStok = $stocks->sum('stok');
+
         $jenisSampahList = [];
-        $categories = \App\Models\ItemSampah::pluck('nama')->unique()->toArray();
-        $groupedByJenis = $mappedCompleted->groupBy('jenis');
-        foreach ($categories as $cat) {
-            $catWeight = isset($groupedByJenis[$cat]) ? $groupedByJenis[$cat]->sum('berat') : 0.0;
-            $catPercentage = $totalBerat > 0 ? ($catWeight / $totalBerat) * 100 : 0.0;
+        foreach ($groupedStocks as $name => $items) {
+            $berat = $items->sum('stok');
+            $percentage = $totalStok > 0 ? ($berat / $totalStok) * 100 : 0.0;
             $jenisSampahList[] = [
-                'nama' => $cat,
-                'berat' => $catWeight,
-                'persentase' => $catPercentage
+                'nama' => $name,
+                'berat' => (float)$berat,
+                'persentase' => (float)$percentage
             ];
         }
+
         usort($jenisSampahList, function($a, $b) {
             return $b['berat'] <=> $a['berat'];
         });
@@ -811,10 +822,12 @@ class LaporanController extends Controller
             })->filter()->unique()->implode(', ');
 
             $totalBerat = $details->sum('berat');
-            $diterima = $details->sum('harga');
+            $diterima = $details->sum(function($d) {
+                return $d->harga * $d->berat;
+            });
             $keuntungan = $details->sum(function($d) {
                 $hargaBeli = optional(optional($d->sampah)->itemSampah)->harga_beli ?? 0.0;
-                return $d->harga - ($d->berat * $hargaBeli);
+                return ($d->harga - $hargaBeli) * $d->berat;
             });
 
             return [
