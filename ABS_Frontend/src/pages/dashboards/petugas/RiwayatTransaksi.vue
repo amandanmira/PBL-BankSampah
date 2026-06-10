@@ -8,6 +8,7 @@ import { checkRole } from "@/utils";
 checkRole("petugas");
 
 const axios = inject("axios");
+const user = ref(JSON.parse(sessionStorage.getItem("user") || "{}"));
 
 // State
 const activeFilter = ref("penjemputan"); // penjemputan, setor_manual, penarikan
@@ -59,7 +60,26 @@ const fetchHistory = async (page = 1) => {
             total: response.data.penarikan.total,
         };
     } else {
-        historyData.value = response.data.data;
+        // --- FILTER DINAMIS ANTAR SENDIRI VS PENJEMPUTAN ---
+        const rawData = response.data.data;
+        
+        historyData.value = rawData.filter(item => {
+            // Deteksi jenis transaksi
+            const isAntarSendiri = activeFilter.value === 'setor_manual' || 
+                                   item.tipe_transaksi === 'antar_sendiri' || 
+                                   (item.penimbangan && item.penimbangan[0]?.transaksi?.tipe_transaksi === 'antar_sendiri');
+
+            if (isAntarSendiri) {
+                // Untuk antar sendiri, filter dengan ID Petugas
+                const pId = item.petugas_id || (item.penimbangan && item.penimbangan[0]?.transaksi?.petugas_id);
+                return pId === user.value.petugas_id;
+            } else {
+                // Untuk penjemputan biasa, filter dengan ID Gudang
+                return item.gudang_id === user.value.gudang_id;
+            }
+        });
+        // --------------------------------------------------
+
         pagination.value = {
             current_page: response.data.current_page,
             last_page: response.data.last_page,
@@ -98,7 +118,6 @@ const openDetail = async (item) => {
   
   try {
     let endpoint = "";
-    let id = "";
     
     if (activeFilter.value === 'penjemputan') {
         endpoint = `/api/petugas/riwayat-penjemputan/${item.penjemputan_id}`;
@@ -141,9 +160,7 @@ const openEditModal = async () => {
 
   // Salin data item untuk diedit
   let itemsToEdit = [];
-  if (activeFilter.value === 'penjemputan') {
-      itemsToEdit = selectedItem.value?.penimbangan || [];
-  } else if (activeFilter.value === 'setor_manual') {
+  if (activeFilter.value === 'penjemputan' || activeFilter.value === 'setor_manual') {
       itemsToEdit = selectedItem.value?.penimbangan || [];
   }
   
@@ -281,9 +298,8 @@ const getWasteTypes = (item) => {
 // --- LOGIKA TIMER DINAMIS ---
 const currentTime = ref(new Date());
 let timerInterval = null;
-const batasWaktuEdit = ref(12); // Default 12 jam, akan ditimpa jika ada data dari DB
+const batasWaktuEdit = ref(12);
 
-// Fungsi untuk mengambil durasi batas waktu dari API Web Config
 const fetchConfigWeb = async () => {
   try {
     const res = await axios.get('/api/web-config');
@@ -297,9 +313,8 @@ const fetchConfigWeb = async () => {
 
 onMounted(() => {
   fetchHistory();
-  fetchConfigWeb(); // Panggil konfigurasi saat halaman dimuat
+  fetchConfigWeb();
   
-  // Update currentTime setiap 1 detik agar timer berjalan live
   timerInterval = setInterval(() => {
     currentTime.value = new Date();
   }, 1000); 
@@ -309,7 +324,6 @@ onUnmounted(() => {
   if (timerInterval) clearInterval(timerInterval);
 });
 
-// Cek apakah transaksi belum melewati batas waktu dinamis
 const isEditable = (item) => {
     if (!item) return false;
     const dateString = item.updated_at || item.created_at;
@@ -318,11 +332,9 @@ const isEditable = (item) => {
     const transactionDate = new Date(dateString);
     const diffInHours = (currentTime.value - transactionDate) / (1000 * 60 * 60);
     
-    // Bandingkan dengan batas waktu dinamis dari database
     return diffInHours <= batasWaktuEdit.value; 
 };
 
-// Hitung Sisa Waktu Format Teks
 const remainingTimeText = computed(() => {
     if (!selectedItem.value) return "";
     
@@ -330,7 +342,6 @@ const remainingTimeText = computed(() => {
     if (!dateString) return "";
 
     const transactionDate = new Date(dateString);
-    // Tambahkan durasi jam dinamis ke waktu transaksi
     const deadline = new Date(transactionDate.getTime() + (batasWaktuEdit.value * 60 * 60 * 1000)); 
     const diffMs = deadline - currentTime.value;
 
