@@ -722,8 +722,11 @@ const handlePrintPdf = async () => {
                 <div class="absolute top-0 left-0 h-full rounded-full transition-all duration-500"
                      :class="sampah.name === 'Organik' ? 'bg-[#3D5A35]' : sampah.name === 'Plastik PET' ? 'bg-[#4A7043]' : sampah.name === 'Kertas' ? 'bg-[#3D5A35] opacity-80' : 'bg-[#4A7043] opacity-80'"
                      :style="`width: ${sampah.percentage}%`"></div>
-                <div class="absolute inset-0 flex items-center px-4 text-[10px] font-bold text-white justify-end" :style="`width: ${sampah.percentage}%`">
-                  <span v-if="sampah.percentage > 5">{{ sampah.berat.toFixed(1) }} kg</span>
+                <div v-if="sampah.percentage >= 25" class="absolute inset-0 flex items-center px-4 text-[10px] font-bold text-white justify-end" :style="`width: ${sampah.percentage}%`">
+                  <span>{{ sampah.berat.toFixed(1) }} kg</span>
+                </div>
+                <div v-else class="absolute inset-y-0 flex items-center px-3 text-[10px] font-bold text-stone-700 transition-all duration-500" :style="`left: ${sampah.percentage}%`">
+                  <span>{{ sampah.berat.toFixed(1) }} kg</span>
                 </div>
               </div>
               <div class="w-12 shrink-0 text-right text-xs font-medium text-stone-500">{{ sampah.percentage.toFixed(1) }}%</div>
