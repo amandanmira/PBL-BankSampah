@@ -295,6 +295,11 @@ class ManagerAuditController extends Controller
     {
         $allData = $this->getAllAuditData($request);
         
+        // Exclude "Tidak Terlaksana" rows from the detailed audit table list
+        $allData = $allData->filter(function($row) {
+            return $row['status'] !== 'Tidak Terlaksana';
+        })->values();
+        
         $perPage = (int)$request->query('per_page', 10);
         $page = \Illuminate\Pagination\Paginator::resolveCurrentPage() ?: 1;
         
@@ -311,18 +316,28 @@ class ManagerAuditController extends Controller
 
     public function summary(Request $request)
     {
+        // Force summary to only filter by date range and gudang to match PDF print report
+        $request->merge([
+            'role' => null,
+            'search' => null,
+            'jenisSampah' => null
+        ]);
+
         $allData = $this->getAllAuditData($request);
 
-        $totalTransaksi = $allData->count();
-        $totalBerat = $allData->sum('berat');
-        $verifiedCount = $allData->where('status', 'Selesai')->count();
-        $verifiedWeight = $allData->where('status', 'Selesai')->sum('berat');
-        $pendingCount = $allData->where('status', 'Tidak Terlaksana')->count();
+        // Only count Nasabah transactions in top cards and per-gudang statistics
+        $nasabahData = $allData->where('role', 'Nasabah');
+
+        $totalTransaksi = $nasabahData->count();
+        $totalBerat = $nasabahData->sum('berat');
+        $verifiedCount = $nasabahData->where('status', 'Selesai')->count();
+        $verifiedWeight = $nasabahData->where('status', 'Selesai')->sum('berat');
+        $pendingCount = $nasabahData->where('status', 'Tidak Terlaksana')->count();
         
-        $jemputCount = $allData->where('sumber', 'Jemput')->count();
-        $jemputWeight = $allData->where('sumber', 'Jemput')->sum('berat');
-        $setorManualCount = $allData->where('sumber', 'Setor Manual')->count();
-        $setorManualWeight = $allData->where('sumber', 'Setor Manual')->sum('berat');
+        $jemputCount = $nasabahData->where('sumber', 'Jemput')->count();
+        $jemputWeight = $nasabahData->where('sumber', 'Jemput')->sum('berat');
+        $setorManualCount = $nasabahData->where('sumber', 'Setor Manual')->count();
+        $setorManualWeight = $nasabahData->where('sumber', 'Setor Manual')->sum('berat');
 
         $gudangFilter = $request->query('gudang');
         $startDate = $request->query('start_date');
@@ -344,7 +359,7 @@ class ManagerAuditController extends Controller
             $perGudangMap[$nama] = ['gudang' => $nama, 'transaksi' => 0, 'berat' => 0, 'verified' => 0, 'pending' => 0];
         }
 
-        foreach ($allData as $row) {
+        foreach ($nasabahData as $row) {
             $gudang = $row['gudang'];
             if (!isset($perGudangMap[$gudang])) {
                 $perGudangMap[$gudang] = ['gudang' => $gudang, 'transaksi' => 0, 'berat' => 0, 'verified' => 0, 'pending' => 0];
@@ -565,7 +580,7 @@ class ManagerAuditController extends Controller
         $data->getCollection()->transform(function ($p) {
             $created_at = Carbon::parse($p->created_at);
             
-            $statusStr = 'Diproses';
+            $statusStr = 'Menunggu';
             if ($p->status === 'selesai') $statusStr = 'Selesai';
             elseif ($p->status === 'tolak') $statusStr = 'Ditolak';
 
@@ -579,8 +594,8 @@ class ManagerAuditController extends Controller
                 'no_rekening' => $p->no_rekening,
                 'nama_bank' => $p->nama_bank,
                 'nama_rek' => $p->nama_rek,
-                'petugas' => optional($p->petugas)->nama ?? '-',
-                'gudang' => optional(optional($p->petugas)->gudang)->alamat ?? 'Gudang Pusat',
+                'petugas' => $statusStr === 'Selesai' ? (optional($p->petugas)->nama ?? '-') : '-',
+                'gudang' => $statusStr === 'Selesai' ? (optional(optional($p->petugas)->gudang)->alamat ?? '-') : '-',
                 'rawDate' => $p->created_at,
             ];
         });
