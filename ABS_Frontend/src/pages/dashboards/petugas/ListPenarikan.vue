@@ -393,7 +393,12 @@ onMounted(() => {
                   <p class="text-[10px] font-black text-stone-400 uppercase tracking-widest">Nama</p>
                   <p class="font-bold text-stone-800">{{ selectedPenarikan.nasabah?.nama || '-' }}</p>
                 </div>
-                <div class="text-right">
+                <div class="text-right" v-if="selectedPenarikan.petugas">
+                  <p class="text-[10px] font-black text-stone-400 uppercase tracking-widest">DIPROSES OLEH</p>
+                  <p class="font-bold text-stone-800">{{ selectedPenarikan.petugas?.nama || '-' }}</p>
+                  <p class="text-[10px] font-bold text-stone-400 truncate w-full max-w-[120px] ml-auto">{{ selectedPenarikan.petugas?.gudang?.nama || selectedPenarikan.petugas?.gudang?.alamat || '-' }}</p>
+                </div>
+                <div class="text-right" v-else>
                 </div>
                 <div>
                   <p class="text-[10px] font-black text-stone-400 uppercase tracking-widest">ID Nasabah</p>

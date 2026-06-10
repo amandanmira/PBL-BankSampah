@@ -144,7 +144,7 @@ const rincianSampahMasuk = computed(() => {
     tanggal: item.created_at,
     tipe: 'Penjemputan',
     nasabah: item.penimbangan?.[0]?.nasabah?.nama || '-',
-    berat: item.penimbangan?.reduce((acc, x) => acc + (x.berat_timbang || 0), 0) || 0,
+    berat: item.penimbangan?.reduce((acc, x) => acc + Number(x.berat_timbang || 0), 0) || 0,
     total_harga: item.total_harga || 0
   }));
   
@@ -152,7 +152,7 @@ const rincianSampahMasuk = computed(() => {
     tanggal: item.created_at,
     tipe: 'Setor Manual',
     nasabah: item.penimbangan?.[0]?.nasabah?.nama || '-',
-    berat: item.penimbangan?.reduce((acc, x) => acc + (x.berat_timbang || 0), 0) || 0,
+    berat: item.penimbangan?.reduce((acc, x) => acc + Number(x.berat_timbang || 0), 0) || 0,
     total_harga: item.total_harga || 0
   }));
 
@@ -166,7 +166,7 @@ const rincianPenjualan = computed(() => {
     tanggal: item.created_at,
     pengepul: item.pengepul?.nama || item.pengepul?.nama_lembaga || '-',
     jenis_sampah: item.detail_transaksi?.map(d => d.sampah?.item_sampah?.nama).join(', ') || '-',
-    berat: item.detail_transaksi?.reduce((acc, d) => acc + (d.berat || 0), 0) || 0,
+    berat: item.detail_transaksi?.reduce((acc, d) => acc + Number(d.berat || 0), 0) || 0,
     total_pendapatan: item.detail_transaksi?.reduce((acc, d) => acc + (d.berat * d.harga || 0), 0) || item.total_harga || 0
   })).sort((a, b) => new Date(b.tanggal) - new Date(a.tanggal));
 });
@@ -406,14 +406,14 @@ const goBack = () => {
         <div class="grid grid-cols-2 text-center text-xs text-stone-700 mt-16 pt-8">
           <div>
             <p class="mb-20">Mengetahui,</p>
-            <div class="inline-block border-t border-stone-400 pt-2 font-bold w-48">
-              ( Manager Bank Sampah )
+            <div class="inline-block border-t border-stone-400 pt-2 font-bold min-w-[12rem] px-4">
+              {{ summaryLaporan.manager_nama || '( Manager Bank Sampah )' }}
             </div>
           </div>
           <div>
             <p class="mb-20">Dibuat Oleh,</p>
-            <div class="inline-block border-t border-stone-400 pt-2 font-bold w-48">
-              ( Petugas )
+            <div class="inline-block border-t border-stone-400 pt-2 font-bold min-w-[12rem] px-4 uppercase">
+              {{ user?.nama || '( Petugas )' }}
             </div>
           </div>
         </div>

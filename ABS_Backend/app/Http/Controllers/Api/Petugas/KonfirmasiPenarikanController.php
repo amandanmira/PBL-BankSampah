@@ -17,13 +17,13 @@ class KonfirmasiPenarikanController extends Controller
         $petugas = Auth::user();
         $gudangId = $petugas->gudang_id;
 
-        $query = Penarikan::with('nasabah')->latest();
+        $query = Penarikan::with(['nasabah', 'petugas.gudang'])->latest();
 
         if ($status && $status !== 'semua') {
             if ($status === 'menunggu') {
                 $query->whereIn('status', ['pending', 'proses']);
             } elseif ($status === 'ditolak') {
-                $query->where('status', 'tolak');
+                $query->whereIn('status', ['tolak', 'batal']);
             } elseif ($status === 'selesai') {
                 $query->where('status', 'selesai')
                       ->whereHas('petugas', function ($pq) use ($gudangId) {
@@ -143,16 +143,11 @@ class KonfirmasiPenarikanController extends Controller
         $petugas = Auth::user();
         $gudangId = $petugas->gudang_id;
 
-        // Menyaring data riwayat penarikan
+        // Menyaring data riwayat penarikan: hanya menampilkan yang selesai atau ditolak oleh petugas gudang ini
         $riwayat = Penarikan::with(['nasabah', 'petugas.gudang'])
-            ->where(function ($query) use ($gudangId) {
-                $query->where('status', '!=', 'selesai')
-                      ->orWhere(function ($sub) use ($gudangId) {
-                          $sub->where('status', 'selesai')
-                              ->whereHas('petugas', function ($pq) use ($gudangId) {
-                                  $pq->where('gudang_id', $gudangId);
-                              });
-                      });
+            ->whereIn('status', ['selesai', 'tolak'])
+            ->whereHas('petugas', function ($pq) use ($gudangId) {
+                $pq->where('gudang_id', $gudangId);
             })
             ->latest()
             ->paginate(10);

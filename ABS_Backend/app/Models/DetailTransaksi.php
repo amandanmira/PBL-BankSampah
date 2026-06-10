@@ -13,7 +13,9 @@ class DetailTransaksi extends Model
         'berat',
         'sampah_id',
         'transaksi_id',
-        'status'
+        'status',
+        'status_pembayaran',
+        'status_pengambilan'
     ];
 
     public function sampah()
