@@ -130,11 +130,6 @@
               <span class="w-4">:</span> 
               <span class="text-stone-800 font-black">{{ selectedTukangData?.no_telp || '-' }}</span>
             </div>
-            <div class="flex items-center text-xs font-bold text-stone-600">
-              <span class="w-20 text-[#4A7043] font-black">Email</span> 
-              <span class="w-4">:</span> 
-              <span class="text-stone-800 font-black">{{ selectedTukangData?.email || '-' }}</span>
-            </div>
           </div>
         </div>
       </div>
@@ -283,7 +278,6 @@
             <div class="flex-1 space-y-2">
               <div class="flex items-center text-xs font-bold text-stone-500"><span class="w-20 text-[#4A7043] font-black uppercase tracking-widest">Nama</span> <span class="w-4">:</span> <span class="text-stone-800 font-black">{{ selectedTukangData?.nama || '-' }}</span></div>
               <div class="flex items-center text-xs font-bold text-stone-500"><span class="w-20 text-[#4A7043] font-black uppercase tracking-widest">No. HP</span> <span class="w-4">:</span> <span class="text-stone-800 font-black">{{ selectedTukangData?.no_telp || '-' }}</span></div>
-              <div class="flex items-center text-xs font-bold text-stone-500"><span class="w-20 text-[#4A7043] font-black uppercase tracking-widest">Email</span> <span class="w-4">:</span> <span class="text-stone-800 font-black">{{ selectedTukangData?.email || '-' }}</span></div>
             </div>
           </div>
         </div>
@@ -492,10 +486,6 @@
                 <div>
                   <p class="text-[10px] font-black text-stone-400 uppercase tracking-widest mb-0.5">No. HP:</p>
                   <p class="text-sm font-black text-stone-600">{{ worker.no_telp }}</p>
-                </div>
-                <div>
-                  <p class="text-[10px] font-black text-stone-400 uppercase tracking-widest mb-0.5">Email:</p>
-                  <p class="text-sm font-bold text-stone-400 truncate max-w-[150px]">{{ worker.email || '-' }}</p>
                 </div>
               </div>
             </div>
