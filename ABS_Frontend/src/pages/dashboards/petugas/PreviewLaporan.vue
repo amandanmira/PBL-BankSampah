@@ -222,9 +222,8 @@ const goBack = () => {
         <!-- Header -->
         <div class="flex justify-between items-start border-b-2 border-stone-100 pb-6 mb-8">
           <div class="flex items-center gap-4">
-            <div class="w-14 h-14 bg-white rounded-lg flex items-center justify-center text-stone-800 shrink-0 overflow-hidden">
-              <img v-if="webConfig.logo" :src="`${axios.defaults.baseURL}/storage/${webConfig.logo}`" class="w-full h-full object-contain" alt="Logo" />
-              <Icon v-else icon="material-symbols:eco" class="w-8 h-8 text-[#4A7043]" />
+            <div class="w-16 h-16 shrink-0 flex items-center justify-center bg-stone-50 rounded-xl p-2 border border-stone-200">
+              <img v-if="webConfig.logo" :src="webConfig.logo.startsWith('http') ? webConfig.logo : `${axios.defaults.baseURL}/storage/${webConfig.logo}`" class="w-full h-full object-contain" alt="Logo" />
             </div>
             <div>
               <h1 class="text-xl font-bold text-stone-800 leading-tight">Aplikasi<br>Bank<br>Sampah</h1>

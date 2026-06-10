@@ -65,10 +65,12 @@ onMounted(() => {
         </button>
 
         <!-- Logo -->
-        <RouterLink to="/" class="flex items-center gap-2">
-          <img v-if="webConfig.logo" :src="`${axios.defaults.baseURL}/storage/${webConfig.logo}`" class="h-10 w-auto object-contain" alt="Logo" />
-          <span v-else class="text-3xl md:text-4xl font-bold tracking-wide">Bank Sampah</span>
+        <RouterLink to="/" class="flex items-center group/logo transition-transform duration-300 active:scale-95">
+          <div class="h-10 w-24 flex items-center justify-start">
+            <img v-if="webConfig.logo" :src="webConfig.logo.startsWith('http') ? webConfig.logo : `${axios.defaults.baseURL}/storage/${webConfig.logo}`" class="h-full w-auto object-contain" alt="Logo" />
+          </div>
         </RouterLink>
+
       </div>
 
       <!-- Desktop Navigation Links -->
