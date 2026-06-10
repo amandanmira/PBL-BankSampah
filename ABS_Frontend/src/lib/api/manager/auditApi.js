@@ -13,6 +13,9 @@ export const getAuditData = async (page = 1, filters = {}, perPage = 10) => {
     page,
     per_page: perPage,
     gudang: filters.gudang,
+    role: filters.role,
+    start_date: filters.start_date,
+    end_date: filters.end_date,
     durasi: filters.durasi,
     jenisSampah: filters.jenisSampah?.join(','),
     search: filters.search
@@ -23,6 +26,9 @@ export const getAuditData = async (page = 1, filters = {}, perPage = 10) => {
 export const getAuditSummary = async (filters = {}) => {
   const params = {
     gudang: filters.gudang,
+    role: filters.role,
+    start_date: filters.start_date,
+    end_date: filters.end_date,
     durasi: filters.durasi,
     jenisSampah: filters.jenisSampah?.join(','),
     search: filters.search

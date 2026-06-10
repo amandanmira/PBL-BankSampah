@@ -33,12 +33,14 @@ const data = ref({
 
 const filterForm = ref({
   gudang: 'Semua Gudang',
+  role: 'Semua Role',
   jenisSampah: [],
   start_date: formatDate(thirtyDaysAgo),
   end_date: formatDate(today)
 });
 const appliedFilter = ref({
   gudang: 'Semua Gudang',
+  role: 'Semua Role',
   jenisSampah: []
 });
 
@@ -64,6 +66,7 @@ const toggleJenisSampah = (jenis) => {
 
 const resetFilterForm = () => {
   filterForm.value.gudang = 'Semua Gudang';
+  filterForm.value.role = 'Semua Role';
   filterForm.value.jenisSampah = [];
   filterForm.value.start_date = formatDate(thirtyDaysAgo);
   filterForm.value.end_date = formatDate(today);
@@ -71,6 +74,7 @@ const resetFilterForm = () => {
 
 const openFilterModal = () => {
   filterForm.value.gudang = appliedFilter.value.gudang;
+  filterForm.value.role = appliedFilter.value.role;
   filterForm.value.jenisSampah = [...appliedFilter.value.jenisSampah];
   filterForm.value.start_date = data.value.start_date;
   filterForm.value.end_date = data.value.end_date;
@@ -79,6 +83,7 @@ const openFilterModal = () => {
 
 const terapkanFilter = () => {
   appliedFilter.value.gudang = filterForm.value.gudang;
+  appliedFilter.value.role = filterForm.value.role;
   appliedFilter.value.jenisSampah = [...filterForm.value.jenisSampah];
   data.value.start_date = filterForm.value.start_date;
   data.value.end_date = filterForm.value.end_date;
@@ -89,6 +94,7 @@ const terapkanFilter = () => {
 
 const removeFilter = (type, value = null) => {
   if (type === 'gudang') appliedFilter.value.gudang = 'Semua Gudang';
+  if (type === 'role') appliedFilter.value.role = 'Semua Role';
   if (type === 'durasi') {
     data.value.start_date = '';
     data.value.end_date = '';
@@ -100,6 +106,7 @@ const removeFilter = (type, value = null) => {
 
 const clearAllFilters = () => {
   appliedFilter.value.gudang = 'Semua Gudang';
+  appliedFilter.value.role = 'Semua Role';
   appliedFilter.value.jenisSampah = [];
   data.value.start_date = '';
   data.value.end_date = '';
@@ -109,6 +116,7 @@ const clearAllFilters = () => {
 
 const hasActiveFilters = computed(() => {
   return appliedFilter.value.gudang !== 'Semua Gudang' ||
+         appliedFilter.value.role !== 'Semua Role' ||
          appliedFilter.value.jenisSampah.length > 0 ||
          data.value.start_date !== formatDate(thirtyDaysAgo) ||
          data.value.end_date !== formatDate(today);
@@ -362,6 +370,12 @@ const handlePrintPdf = async () => {
           <Icon icon="material-symbols:close" class="w-3.5 h-3.5" />
         </button>
       </div>
+      <div v-if="appliedFilter.role && appliedFilter.role !== 'Semua Role'" class="inline-flex items-center gap-1.5 px-3 py-1 bg-[#F5F9F5] text-[#3D5A35] rounded-full text-[11px] font-bold border border-[#4A7043]/20 shadow-sm transition-all hover:bg-[#E9F5E9]">
+        Role: {{ appliedFilter.role }}
+        <button @click="removeFilter('role')" class="text-[#4A7043]/50 hover:text-red-500 transition-colors ml-1 focus:outline-none">
+          <Icon icon="material-symbols:close" class="w-3.5 h-3.5" />
+        </button>
+      </div>
       <div v-if="data.start_date || data.end_date" class="inline-flex items-center gap-1.5 px-3 py-1 bg-[#F5F9F5] text-[#3D5A35] rounded-full text-[11px] font-bold border border-[#4A7043]/20 shadow-sm transition-all hover:bg-[#E9F5E9]">
         Waktu: {{ formatDateRangeText }}
         <button @click="removeFilter('durasi')" class="text-[#4A7043]/50 hover:text-red-500 transition-colors ml-1 focus:outline-none">
@@ -398,7 +412,7 @@ const handlePrintPdf = async () => {
           <thead>
             <tr class="bg-[#F5F5F0] border-b border-stone-200">
               <th class="py-4 px-6 text-xs font-bold text-stone-600 uppercase tracking-wider">Tanggal</th>
-              <th class="py-4 px-6 text-xs font-bold text-stone-600 uppercase tracking-wider">Nasabah</th>
+              <th class="py-4 px-6 text-xs font-bold text-stone-600 uppercase tracking-wider">Role</th>
               <th class="py-4 px-6 text-xs font-bold text-stone-600 uppercase tracking-wider">Jenis Sampah</th>
               <th class="py-4 px-6 text-xs font-bold text-stone-600 uppercase tracking-wider">Berat</th>
               <th class="py-4 px-6 text-xs font-bold text-stone-600 uppercase tracking-wider text-center">Sumber</th>
@@ -427,12 +441,15 @@ const handlePrintPdf = async () => {
               <!-- Group Rows -->
               <tr v-for="(row, rowIdx) in group.rows" :key="`${idx}-${rowIdx}`" class="hover:bg-stone-50 transition-colors group">
                 <td class="py-4 px-6 text-sm text-stone-600 font-medium whitespace-nowrap">{{ row.tanggal }}</td>
-                <td class="py-4 px-6 text-sm text-stone-800 font-medium whitespace-nowrap">{{ row.nasabah }}</td>
+                <td class="py-4 px-6 text-sm text-stone-800 font-medium whitespace-nowrap">{{ row.role }}</td>
                 <td class="py-4 px-6 text-sm text-stone-600 font-medium whitespace-nowrap">{{ row.jenis }}</td>
                 <td class="py-4 px-6 text-sm text-stone-800 font-bold whitespace-nowrap">{{ row.berat }} kg</td>
                 <td class="py-4 px-6 whitespace-nowrap text-center">
                   <div v-if="row.sumber === 'Jemput'" class="inline-flex items-center justify-center px-4 py-1.5 rounded-full bg-[#E9F5E9] text-[#3D5A35] text-[10px] font-bold tracking-wider shadow-sm min-w-[70px] border border-[#3D5A35]/20">
                     Jemput
+                  </div>
+                  <div v-else-if="row.sumber === 'Pengepul'" class="inline-flex items-center justify-center px-4 py-1.5 rounded-full bg-[#E9F0FA] text-[#2563EB] text-[10px] font-bold tracking-wider shadow-sm min-w-[70px] border border-[#2563EB]/20">
+                    Pengepul
                   </div>
                   <div v-else class="inline-flex items-center justify-center px-4 py-1.5 rounded-full bg-stone-100 text-stone-600 text-[10px] font-bold tracking-wider shadow-sm min-w-[70px] border border-stone-200">
                     Setor Manual
@@ -463,12 +480,15 @@ const handlePrintPdf = async () => {
             <template v-else>
               <tr v-for="(row, index) in filteredFlatData" :key="index" class="hover:bg-stone-50 transition-colors group">
                 <td class="py-4 px-6 text-sm text-stone-600 font-medium whitespace-nowrap">{{ row.tanggal }}</td>
-                <td class="py-4 px-6 text-sm text-stone-800 font-medium whitespace-nowrap">{{ row.nasabah }}</td>
+                <td class="py-4 px-6 text-sm text-stone-800 font-medium whitespace-nowrap">{{ row.role }}</td>
                 <td class="py-4 px-6 text-sm text-stone-600 font-medium whitespace-nowrap">{{ row.jenis }}</td>
                 <td class="py-4 px-6 text-sm text-stone-800 font-bold whitespace-nowrap">{{ row.berat }} kg</td>
                 <td class="py-4 px-6 whitespace-nowrap text-center">
                   <div v-if="row.sumber === 'Jemput'" class="inline-flex items-center justify-center px-4 py-1.5 rounded-full bg-[#E9F5E9] text-[#3D5A35] text-[10px] font-bold tracking-wider shadow-sm min-w-[70px] border border-[#3D5A35]/20">
                     Jemput
+                  </div>
+                  <div v-else-if="row.sumber === 'Pengepul'" class="inline-flex items-center justify-center px-4 py-1.5 rounded-full bg-[#E9F0FA] text-[#2563EB] text-[10px] font-bold tracking-wider shadow-sm min-w-[70px] border border-[#2563EB]/20">
+                    Pengepul
                   </div>
                   <div v-else class="inline-flex items-center justify-center px-4 py-1.5 rounded-full bg-stone-100 text-stone-600 text-[10px] font-bold tracking-wider shadow-sm min-w-[70px] border border-stone-200">
                     Setor Manual
@@ -526,6 +546,19 @@ const handlePrintPdf = async () => {
               <option value="" disabled>Pilih Gudang...</option>
               <option value="Semua Gudang">Semua Gudang</option>
               <option v-for="g in gudangOptions" :key="g.gudang_id" :value="g.alamat">{{ g.alamat }}</option>
+            </select>
+            <div class="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none text-stone-400">
+              <Icon icon="material-symbols:keyboard-arrow-down" class="w-5 h-5" />
+            </div>
+          </div>
+        </div>
+        <div class="space-y-2">
+          <label class="block text-sm font-bold text-stone-600">Role</label>
+          <div class="relative">
+            <select v-model="filterForm.role" class="w-full appearance-none px-4 py-2.5 bg-white border border-stone-200 rounded-lg text-sm text-stone-700 focus:outline-none focus:ring-2 focus:ring-[#4A7043]/20 focus:border-[#4A7043] transition-colors cursor-pointer">
+              <option value="Semua Role">Semua Role</option>
+              <option value="Nasabah">Nasabah</option>
+              <option value="Pengepul">Pengepul</option>
             </select>
             <div class="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none text-stone-400">
               <Icon icon="material-symbols:keyboard-arrow-down" class="w-5 h-5" />
@@ -730,13 +763,7 @@ const handlePrintPdf = async () => {
             </div>
           </div>
         </div>
-        <div v-if="!isLoadingSummary && laporanStats?.pendingCount > 0" class="bg-[#F9FAF8] border border-[#E9E3D5] rounded-xl p-5 flex gap-3 items-start shadow-sm mt-2">
-          <Icon icon="material-symbols:info" class="w-5 h-5 text-[#8B5E3C] shrink-0 mt-0.5" />
-          <div>
-            <h5 class="text-sm font-bold text-[#5c3d26] mb-1">Catatan</h5>
-            <p class="text-xs text-[#8c674b] leading-relaxed">Terdapat {{ laporanStats?.pendingCount }} transaksi tidak terlaksana pada periode ini. Periksa modal detail tiap transaksi untuk mengetahui alasan dan pihak yang membatalkan.</p>
-          </div>
-        </div>
+
       </div>
       <div class="p-4 border-t border-stone-100 flex justify-between items-center shrink-0 bg-white z-10">
         <span class="text-[10px] font-bold text-stone-400">Digenerate pada: {{ generateTimeText }}</span>
@@ -773,7 +800,7 @@ const handlePrintPdf = async () => {
               {{ selectedDetailRow?.status }}
             </span>
             <span class="inline-flex items-center justify-center px-4 py-1.5 rounded-full text-[10px] font-bold shadow-sm"
-                  :class="selectedDetailRow?.sumber === 'Jemput' ? 'bg-[#E9F5E9] border border-[#3D5A35]/20 text-[#3D5A35]' : 'bg-stone-100 border border-stone-200 text-stone-600'">
+                  :class="selectedDetailRow?.sumber === 'Jemput' ? 'bg-[#E9F5E9] border border-[#3D5A35]/20 text-[#3D5A35]' : (selectedDetailRow?.sumber === 'Pengepul' ? 'bg-[#E9F0FA] border border-[#2563EB]/20 text-[#2563EB]' : 'bg-stone-100 border border-stone-200 text-stone-600')">
               {{ selectedDetailRow?.sumber }}
             </span>
           </div>
@@ -784,7 +811,7 @@ const handlePrintPdf = async () => {
             <p class="text-sm font-bold text-stone-800">{{ selectedDetailRow?.tanggal }}</p>
           </div>
           <div>
-            <p class="text-[10px] font-bold text-stone-400 uppercase tracking-wider mb-1">Nasabah</p>
+            <p class="text-[10px] font-bold text-stone-400 uppercase tracking-wider mb-1">{{ selectedDetailRow?.role === 'Pengepul' ? 'Pengepul' : 'Nasabah' }}</p>
             <p class="text-sm font-bold text-stone-800">{{ selectedDetailRow?.nasabah }}</p>
           </div>
           <div>
