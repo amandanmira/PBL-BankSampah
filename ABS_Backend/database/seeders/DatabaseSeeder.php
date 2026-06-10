@@ -267,5 +267,6 @@ class DatabaseSeeder extends Seeder
         ]);
 
         $this->call(PenarikanSeeder::class);
+        $this->call(TransaksiSeeder::class);
     }
 }

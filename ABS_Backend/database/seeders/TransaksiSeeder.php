@@ -256,15 +256,15 @@ class TransaksiSeeder extends Seeder
 
         // 9. Seed Pengepul Penjualan Transactions (so that the Sales report tables are populated)
         $pengepulSpecs = [
-            // PengepulIdx, ItemName, Berat, GudangName, DateOffset
-            [0, 'Organik', 35.2, 'Gudang Pusat', 8],
-            [0, 'Kertas', 18.5, 'Gudang Pusat', 8],
-            [1, 'Plastik PET', 24.1, 'Gudang Pusat', 9],
-            [2, 'Logam', 11.7, 'Gudang Pusat', 10],
-            [3, 'Organik', 25.0, 'Gudang Timur', 11],
-            [0, 'Kertas', 20.0, 'Gudang Barat', 12],
-            [1, 'Logam', 15.0, 'Gudang Selatan', 13],
-            [2, 'Plastik PET', 30.0, 'Gudang Surakarta', 14],
+            // PengepulIdx, ItemName, Berat, GudangName, DateOffset, Status
+            [0, 'Organik', 35.2, 'Gudang Pusat', 8, 'selesai'],
+            [0, 'Kertas', 18.5, 'Gudang Pusat', 8, 'selesai'],
+            [1, 'Plastik PET', 24.1, 'Gudang Pusat', 9, 'selesai'],
+            [2, 'Logam', 11.7, 'Gudang Pusat', 10, 'batal'],
+            [3, 'Organik', 25.0, 'Gudang Timur', 11, 'selesai'],
+            [0, 'Kertas', 20.0, 'Gudang Barat', 12, 'tolak'],
+            [1, 'Logam', 15.0, 'Gudang Selatan', 13, 'selesai'],
+            [2, 'Plastik PET', 30.0, 'Gudang Surakarta', 14, 'selesai'],
         ];
 
         foreach ($pengepulSpecs as $spec) {
@@ -273,6 +273,7 @@ class TransaksiSeeder extends Seeder
             $berat = $spec[2];
             $gudangName = $spec[3];
             $date = $now->copy()->subDays($spec[4]);
+            $status = $spec[5];
 
             $g = $gudangs[$gudangName];
             $sampah = $sampahMap[$gudangName][$itemName];
@@ -280,7 +281,7 @@ class TransaksiSeeder extends Seeder
             $totalHarga = $berat * $priceJual;
 
             $tp = TransaksiPengepul::create([
-                'status' => 'selesai',
+                'status' => $status,
                 'deadline' => $date->copy()->addDays(2),
                 'pengepul_id' => $pengepul->pengepul_id,
                 'created_at' => $date,
@@ -292,7 +293,7 @@ class TransaksiSeeder extends Seeder
                 'berat' => $berat,
                 'sampah_id' => $sampah->sampah_id,
                 'transaksi_id' => $tp->transaksi_id,
-                'status' => 'setuju',
+                'status' => $status === 'selesai' ? 'setuju' : 'tolak',
                 'created_at' => $date,
                 'updated_at' => $date,
             ]);

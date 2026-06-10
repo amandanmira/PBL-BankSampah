@@ -82,141 +82,213 @@ class ManagerAuditController extends Controller
         $jenisSampah = $request->query('jenisSampah'); 
         $search = $request->query('search');
         $gudang = $request->query('gudang');
+        $role = $request->query('role');
 
         $parsedStartDate = $startDate ? Carbon::parse($startDate)->startOfDay() : Carbon::now()->subMonth()->startOfDay();
         $parsedEndDate = $endDate ? Carbon::parse($endDate)->endOfDay() : Carbon::now()->endOfDay();
 
-        // 1. Get Completed Transactions
-        $query = Penimbangan::with([
-            'nasabah',
-            'sampah.itemSampah',
-            'tukang',
-            'transaksi.petugas.gudang',
-            'penjemputan.gudang'
-        ])->where(function ($q) {
-            $q->whereHas('penjemputan', function($q2) {
-                $q2->whereIn('status', ['selesai']);
-            })->orWhereHas('transaksi', function($q3) {
-                $q3->where('tipe_transaksi', 'antar_sendiri')
-                   ->whereIn('status', ['selesai']);
-            });
-        });
+        $completedData = collect();
+        $failedData = collect();
+        $pengepulData = collect();
 
-        if ($gudang && $gudang !== 'Semua Gudang') {
-            $query->where(function ($q) use ($gudang) {
-                // Untuk transaksi Jemput, cek alamat dari Gudang Penjemputan
-                $q->where(function ($qJemput) use ($gudang) {
-                    $qJemput->whereHas('penjemputan.gudang', function($q2) use ($gudang) {
-                        $q2->where('alamat', $gudang);
-                    });
-                })
-                // Untuk transaksi Setor Manual, cek alamat dari Gudang Petugas
-                ->orWhere(function ($qSetor) use ($gudang) {
-                    $qSetor->whereHas('transaksi', function($q3) use ($gudang) {
-                        $q3->where('tipe_transaksi', 'antar_sendiri')
-                           ->whereHas('petugas.gudang', function($q4) use ($gudang) {
-                               $q4->where('alamat', $gudang);
-                           });
-                    });
+        // 1. Get Completed Transactions (Nasabah)
+        if (!$role || $role === 'Semua Role' || $role === 'Nasabah') {
+            $query = Penimbangan::with([
+                'nasabah',
+                'sampah.itemSampah',
+                'tukang',
+                'transaksi.petugas.gudang',
+                'penjemputan.gudang'
+            ])->where(function ($q) {
+                $q->whereHas('penjemputan', function($q2) {
+                    $q2->whereIn('status', ['selesai']);
+                })->orWhereHas('transaksi', function($q3) {
+                    $q3->where('tipe_transaksi', 'antar_sendiri')
+                       ->whereIn('status', ['selesai']);
                 });
             });
-        }
-        $query->where('created_at', '>=', $parsedStartDate);
-        $query->where('created_at', '<=', $parsedEndDate);
-        if ($jenisSampah) {
-            $jenisArray = is_array($jenisSampah) ? $jenisSampah : explode(',', $jenisSampah);
-            if (count($jenisArray) > 0) {
-                $query->whereHas('sampah.itemSampah', function($q) use ($jenisArray) {
-                    $q->whereIn('nama', $jenisArray);
+
+            if ($gudang && $gudang !== 'Semua Gudang') {
+                $query->where(function ($q) use ($gudang) {
+                    // Untuk transaksi Jemput, cek alamat dari Gudang Penjemputan
+                    $q->where(function ($qJemput) use ($gudang) {
+                        $qJemput->whereHas('penjemputan.gudang', function($q2) use ($gudang) {
+                            $q2->where('alamat', $gudang);
+                        });
+                    })
+                    // Untuk transaksi Setor Manual, cek alamat dari Gudang Petugas
+                    ->orWhere(function ($qSetor) use ($gudang) {
+                        $qSetor->whereHas('transaksi', function($q3) use ($gudang) {
+                            $q3->where('tipe_transaksi', 'antar_sendiri')
+                               ->whereHas('petugas.gudang', function($q4) use ($gudang) {
+                                   $q4->where('alamat', $gudang);
+                               });
+                        });
+                    });
                 });
             }
-        }
-        if ($search) {
-            $query->where(function($q) use ($search) {
-                $q->whereHas('nasabah', function($nq) use ($search) {
-                    $nq->where('nama', 'like', "%$search%");
-                })->orWhereHas('penjemputan', function($pq) use ($search) {
-                    $pq->where('penjemputan_id', 'like', "%$search%");
+            $query->where('created_at', '>=', $parsedStartDate);
+            $query->where('created_at', '<=', $parsedEndDate);
+            if ($jenisSampah) {
+                $jenisArray = is_array($jenisSampah) ? $jenisSampah : explode(',', $jenisSampah);
+                if (count($jenisArray) > 0) {
+                    $query->whereHas('sampah.itemSampah', function($q) use ($jenisArray) {
+                        $q->whereIn('nama', $jenisArray);
+                    });
+                }
+            }
+            if ($search) {
+                $query->where(function($q) use ($search) {
+                    $q->whereHas('nasabah', function($nq) use ($search) {
+                        $nq->where('nama', 'like', "%$search%");
+                    })->orWhereHas('penjemputan', function($pq) use ($search) {
+                        $pq->where('penjemputan_id', 'like', "%$search%");
+                    });
                 });
-            });
-        }
+            }
 
-        $completedData = $query->get()->map(function ($p) {
-            $created_at = \Carbon\Carbon::parse($p->created_at);
-            $isJemput = !($p->transaksi && $p->transaksi->tipe_transaksi === 'antar_sendiri');
-            
-            $gudangName = $isJemput 
-                ? (optional(optional($p->penjemputan)->gudang)->alamat ?? 'Unknown Gudang')
-                : (optional(optional(optional($p->transaksi)->petugas)->gudang)->alamat ?? 'Unknown Gudang');
-
-            return [
-                'tanggal' => $created_at->translatedFormat('d M Y'),
-                'nasabah' => $p->nasabah->nama ?? 'Unknown',
-                'gudang' => $gudangName,
-                'jenis' => $p->sampah->itemSampah->nama ?? 'Unknown',
-                'berat' => (float)$p->berat_timbang,
-                'sumber' => $isJemput ? 'Jemput' : 'Setor Manual',
-                'status' => 'Selesai',
-                'petugas' => optional(optional($p->transaksi)->petugas)->nama ?? '-',
-                'tukang' => $p->tukang->nama ?? '-',
-                'rawDate' => $p->created_at,
-            ];
-        });
-
-        // 2. Get Failed Transactions (from Penjemputan directly)
-        $failedQuery = \App\Models\Penjemputan::with([
-            'nasabah',
-            'gudang',
-            'petugas',
-            'tukang'
-        ])->whereIn('status', ['tolak', 'batal']);
-        
-        if ($gudang && $gudang !== 'Semua Gudang') {
-            $failedQuery->whereHas('gudang', function($q) use ($gudang) {
-                $q->where('alamat', $gudang);
-            });
-        }
-        if ($startDate) {
-            $failedQuery->where('created_at', '>=', $parsedStartDate);
-        } else {
-            $failedQuery->where('created_at', '>=', $parsedStartDate);
-        }
-        if ($endDate) {
-            $failedQuery->where('created_at', '<=', $parsedEndDate);
-        } else {
-            $failedQuery->where('created_at', '<=', $parsedEndDate);
-        }
-        if ($search) {
-            $failedQuery->where(function($q) use ($search) {
-                $q->whereHas('nasabah', function($nq) use ($search) {
-                    $nq->where('nama', 'like', "%$search%");
-                })->orWhere('penjemputan_id', 'like', "%$search%");
-            });
-        }
-
-        if ($jenisSampah && count(is_array($jenisSampah) ? $jenisSampah : explode(',', $jenisSampah)) > 0) {
-            $failedData = collect([]);
-        } else {
-            $failedData = $failedQuery->get()->map(function ($p) {
+            $completedData = $query->get()->map(function ($p) {
                 $created_at = \Carbon\Carbon::parse($p->created_at);
-                $gudangName = $p->gudang->alamat ?? 'Unknown Gudang';
+                $isJemput = !($p->transaksi && $p->transaksi->tipe_transaksi === 'antar_sendiri');
+                
+                $gudangName = $isJemput 
+                    ? (optional(optional($p->penjemputan)->gudang)->alamat ?? 'Unknown Gudang')
+                    : (optional(optional(optional($p->transaksi)->petugas)->gudang)->alamat ?? 'Unknown Gudang');
 
                 return [
                     'tanggal' => $created_at->translatedFormat('d M Y'),
                     'nasabah' => $p->nasabah->nama ?? 'Unknown',
+                    'role' => 'Nasabah',
                     'gudang' => $gudangName,
-                    'jenis' => 'Belum Ditimbang',
-                    'berat' => 0.0,
-                    'sumber' => 'Jemput',
-                    'status' => 'Tidak Terlaksana',
-                    'petugas' => $p->petugas->nama ?? '-',
+                    'jenis' => $p->sampah->itemSampah->nama ?? 'Unknown',
+                    'berat' => (float)$p->berat_timbang,
+                    'sumber' => $isJemput ? 'Jemput' : 'Setor Manual',
+                    'status' => 'Selesai',
+                    'petugas' => optional(optional($p->transaksi)->petugas)->nama ?? '-',
                     'tukang' => $p->tukang->nama ?? '-',
                     'rawDate' => $p->created_at,
                 ];
             });
         }
 
-        return $completedData->merge($failedData)->sortByDesc('rawDate')->values();
+        // 2. Get Failed Transactions (from Penjemputan directly)
+        if (!$role || $role === 'Semua Role' || $role === 'Nasabah') {
+            $failedQuery = \App\Models\Penjemputan::with([
+                'nasabah',
+                'gudang',
+                'petugas',
+                'tukang'
+            ])->whereIn('status', ['tolak', 'batal']);
+            
+            if ($gudang && $gudang !== 'Semua Gudang') {
+                $failedQuery->whereHas('gudang', function($q) use ($gudang) {
+                    $q->where('alamat', $gudang);
+                });
+            }
+            $failedQuery->where('created_at', '>=', $parsedStartDate);
+            $failedQuery->where('created_at', '<=', $parsedEndDate);
+
+            if ($search) {
+                $failedQuery->where(function($q) use ($search) {
+                    $q->whereHas('nasabah', function($nq) use ($search) {
+                        $nq->where('nama', 'like', "%$search%");
+                    })->orWhere('penjemputan_id', 'like', "%$search%");
+                });
+            }
+
+            if ($jenisSampah && count(is_array($jenisSampah) ? $jenisSampah : explode(',', $jenisSampah)) > 0) {
+                $failedData = collect([]);
+            } else {
+                $failedData = $failedQuery->get()->map(function ($p) {
+                    $created_at = \Carbon\Carbon::parse($p->created_at);
+                    $gudangName = $p->gudang->alamat ?? 'Unknown Gudang';
+
+                    return [
+                        'tanggal' => $created_at->translatedFormat('d M Y'),
+                        'nasabah' => $p->nasabah->nama ?? 'Unknown',
+                        'role' => 'Nasabah',
+                        'gudang' => $gudangName,
+                        'jenis' => 'Belum Ditimbang',
+                        'berat' => 0.0,
+                        'sumber' => 'Jemput',
+                        'status' => 'Tidak Terlaksana',
+                        'petugas' => $p->petugas->nama ?? '-',
+                        'tukang' => $p->tukang->nama ?? '-',
+                        'rawDate' => $p->created_at,
+                    ];
+                });
+            }
+        }
+
+        // 3. Get Pengepul Transactions
+        if (!$role || $role === 'Semua Role' || $role === 'Pengepul') {
+            $pengepulQuery = \App\Models\TransaksiPengepul::with([
+                'pengepul',
+                'detailTransaksi.sampah.itemSampah',
+                'detailTransaksi.sampah.gudang'
+            ])->whereIn('status', ['selesai', 'tolak', 'batal']);
+
+            if ($gudang && $gudang !== 'Semua Gudang') {
+                $pengepulQuery->whereHas('detailTransaksi.sampah.gudang', function($q) use ($gudang) {
+                    $q->where('alamat', $gudang)->orWhere('nama_gudang', $gudang);
+                });
+            }
+            $pengepulQuery->where('created_at', '>=', $parsedStartDate);
+            $pengepulQuery->where('created_at', '<=', $parsedEndDate);
+
+            if ($jenisSampah) {
+                $jenisArray = is_array($jenisSampah) ? $jenisSampah : explode(',', $jenisSampah);
+                if (count($jenisArray) > 0) {
+                    $pengepulQuery->whereHas('detailTransaksi.sampah.itemSampah', function($q) use ($jenisArray) {
+                        $q->whereIn('nama', $jenisArray);
+                    });
+                }
+            }
+
+            if ($search) {
+                $pengepulQuery->where(function($q) use ($search) {
+                    $q->whereHas('pengepul', function($pq) use ($search) {
+                        $pq->where('nama', 'like', "%$search%");
+                    })->orWhere('transaksi_id', 'like', "%$search%");
+                });
+            }
+
+            foreach ($pengepulQuery->get() as $t) {
+                foreach ($t->detailTransaksi as $d) {
+                    $gudangName = optional(optional($d->sampah)->gudang)->alamat ?? 'Unknown Gudang';
+                    $gudangRealName = optional(optional($d->sampah)->gudang)->nama_gudang ?? 'Unknown Gudang';
+                    if ($gudang && $gudang !== 'Semua Gudang' && $gudang !== $gudangName && $gudang !== $gudangRealName) {
+                        continue;
+                    }
+
+                    $jenisNama = optional(optional($d->sampah)->itemSampah)->nama ?? 'Unknown';
+                    if ($jenisSampah) {
+                        $jenisArray = is_array($jenisSampah) ? $jenisSampah : explode(',', $jenisSampah);
+                        if (!in_array($jenisNama, $jenisArray)) {
+                            continue;
+                        }
+                    }
+
+                    $statusStr = $t->status === 'selesai' ? 'Selesai' : 'Tidak Terlaksana';
+
+                    $pengepulData->push([
+                        'tanggal' => Carbon::parse($t->created_at)->translatedFormat('d M Y'),
+                        'nasabah' => $t->pengepul->nama ?? 'Unknown',
+                        'role' => 'Pengepul',
+                        'gudang' => $gudangName,
+                        'jenis' => $jenisNama,
+                        'berat' => (float)$d->berat,
+                        'sumber' => 'Pengepul',
+                        'status' => $statusStr,
+                        'petugas' => '-',
+                        'tukang' => '-',
+                        'rawDate' => $t->created_at,
+                    ]);
+                }
+            }
+        }
+
+        return $completedData->merge($failedData)->merge($pengepulData)->sortByDesc('rawDate')->values();
     }
 
     public function index(Request $request)
