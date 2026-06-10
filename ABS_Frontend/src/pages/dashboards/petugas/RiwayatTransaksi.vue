@@ -94,7 +94,7 @@ watch(activeFilter, () => {
 const openDetail = async (item) => {
   showModal.value = true;
   loadingDetail.value = true;
-  modalActiveTab.value = activeFilter.value === 'penarikan' ? 'penarikan' : 'penjemputan';
+  modalActiveTab.value = activeFilter.value === 'penarikan' ? 'penarikan' : (activeFilter.value === 'setor_manual' ? 'penimbangan' : 'penjemputan');
   
   try {
     let endpoint = "";
@@ -499,7 +499,7 @@ const remainingTimeText = computed(() => {
           </button>
         </div>
 
-        <div v-if="activeFilter !== 'penarikan'" class="p-4 flex gap-2 border-b border-gray-100">
+        <div v-if="activeFilter === 'penjemputan'" class="p-4 flex gap-2 border-b border-gray-100">
           <button
             @click="modalActiveTab = 'penjemputan'"
             :class="[
@@ -701,7 +701,7 @@ const remainingTimeText = computed(() => {
                     <div class="flex flex-col gap-y-4 text-sm">
                         <div class="flex justify-between border-b border-gray-100 pb-2">
                              <span class="text-gray-400">ID Transaksi</span>
-                             <span class="font-bold text-gray-700">{{ activeFilter === 'setor_manual' ? selectedItem.transaksi_id : (selectedItem.penimbangan?.[0]?.transaksi_id || "-") }}</span>
+                             <span class="font-bold text-gray-700">{{ activeFilter === 'setor_manual' ? 'TR-' + String(selectedItem.transaksi_id).padStart(3, '0') : (selectedItem.penimbangan?.[0]?.transaksi_id ? 'TR-' + String(selectedItem.penimbangan[0].transaksi_id).padStart(3, '0') : "-") }}</span>
                         </div>
                         <div v-if="activeFilter === 'penjemputan'" class="flex justify-between border-b border-gray-100 pb-2">
                              <span class="text-gray-400">ID Penjemputan</span>
@@ -717,7 +717,7 @@ const remainingTimeText = computed(() => {
                         </div>
                         <div class="flex justify-between border-b border-gray-100 pb-2">
                              <span class="text-gray-400">Petugas Input</span>
-                             <span class="font-bold text-gray-700">{{ selectedItem.petugas?.nama || selectedItem.penimbangan?.[0]?.transaksi?.petugas?.nama || "-" }}</span>
+                             <span class="font-bold text-gray-700">{{ selectedItem.penimbangan?.[0]?.transaksi?.petugas?.nama || selectedItem.petugas?.nama || "-" }}</span>
                         </div>
                         <div v-if="selectedItem.tukang || selectedItem.penimbangan?.[0]?.tukang" class="flex justify-between border-b border-gray-100 pb-2">
                              <span class="text-gray-400">Tukang</span>

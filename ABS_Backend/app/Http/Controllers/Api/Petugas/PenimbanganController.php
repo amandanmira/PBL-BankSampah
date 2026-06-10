@@ -97,7 +97,9 @@ public function penimbangan(Request $request)
 
             return response()->json([
                 'message' => 'Transaksi dan data penimbangan berhasil disimpan!',
-                'total_keseluruhan' => $total_semua_harga
+                'total_keseluruhan' => $total_semua_harga,
+                'transaksi_id' => $transaksi->transaksi_id,
+                'transaksi' => $transaksi
             ], 200);
 
         } catch (\Exception $e) {
@@ -281,7 +283,9 @@ public function listTukang(Request $request)
 
             return response()->json([
                 'message' => 'Transaksi Antar Sendiri berhasil disimpan!',
-                'total_keseluruhan' => $total_semua_harga
+                'total_keseluruhan' => $total_semua_harga,
+                'transaksi_id' => $transaksi->transaksi_id,
+                'transaksi' => $transaksi
             ], 200);
 
         } catch (\Exception $e) {

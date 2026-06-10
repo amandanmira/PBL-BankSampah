@@ -36,17 +36,15 @@ class RiwayatPenjemputanController extends Controller
 
     public function show($id)
     {
-        $penjemputan = Penjemputan::with('nasabah')->findOrFail($id);
-
-        if (in_array($penjemputan->status, ['selesai', 'tolak', 'batal'])) {
-            $penjemputan->load([
-                'detailPenjemputan.sampah.itemSampah',
-                'penimbangan.sampah.itemSampah',
-                'penimbangan.transaksi.petugas',
-                'tukang',
-                'gudang'
-            ]);
-        }
+        $penjemputan = Penjemputan::with([
+            'nasabah',
+            'detailPenjemputan.sampah.itemSampah',
+            'penimbangan.sampah.itemSampah',
+            'penimbangan.transaksi.petugas',
+            'tukang',
+            'gudang',
+            'petugas'
+        ])->findOrFail($id);
 
         return response()->json([
             'message' => 'Detail berhasil diambil',
