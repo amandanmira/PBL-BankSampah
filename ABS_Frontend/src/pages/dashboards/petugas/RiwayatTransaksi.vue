@@ -8,6 +8,7 @@ import { checkRole } from "@/utils";
 checkRole("petugas");
 
 const axios = inject("axios");
+const user = ref(JSON.parse(sessionStorage.getItem("user") || "{}"));
 
 // State
 const activeFilter = ref("penjemputan"); // penjemputan, setor_manual, penarikan
@@ -51,15 +52,46 @@ const fetchHistory = async (page = 1) => {
       },
     });
 
+    // Array status yang diperbolehkan tampil di Riwayat
+    const allowedStatuses = ['selesai', 'tolak', 'batal', 'jadwal_ditolak'];
+
     if (activeFilter.value === "penarikan") {
-        historyData.value = response.data.penarikan.data;
+        const rawPenarikan = response.data.penarikan.data || [];
+        // Filter Penarikan berdasarkan status selesai/tolak
+        historyData.value = rawPenarikan.filter(item => 
+            allowedStatuses.includes(item.status?.toLowerCase())
+        );
+        
         pagination.value = {
             current_page: response.data.penarikan.current_page,
             last_page: response.data.penarikan.last_page,
             total: response.data.penarikan.total,
         };
     } else {
-        historyData.value = response.data.data;
+        // --- FILTER DINAMIS: STATUS & ANTAR SENDIRI VS PENJEMPUTAN ---
+        const rawData = response.data.data || [];
+        
+        historyData.value = rawData.filter(item => {
+            // 1. Pengecekan Status: Hanya Selesai atau Ditolak/Batal
+            const isStatusValid = allowedStatuses.includes(item.status?.toLowerCase());
+            if (!isStatusValid) return false;
+
+            // 2. Deteksi jenis transaksi
+            const isAntarSendiri = activeFilter.value === 'setor_manual' || 
+                                   item.tipe_transaksi === 'antar_sendiri' || 
+                                   (item.penimbangan && item.penimbangan[0]?.transaksi?.tipe_transaksi === 'antar_sendiri');
+
+            if (isAntarSendiri) {
+                // Untuk antar sendiri, filter dengan ID Petugas
+                const pId = item.petugas_id || (item.penimbangan && item.penimbangan[0]?.transaksi?.petugas_id);
+                return pId === user.value.petugas_id;
+            } else {
+                // Untuk penjemputan biasa, filter dengan ID Gudang
+                return item.gudang_id === user.value.gudang_id;
+            }
+        });
+        // --------------------------------------------------
+
         pagination.value = {
             current_page: response.data.current_page,
             last_page: response.data.last_page,
@@ -94,11 +126,10 @@ watch(activeFilter, () => {
 const openDetail = async (item) => {
   showModal.value = true;
   loadingDetail.value = true;
-  modalActiveTab.value = activeFilter.value === 'penarikan' ? 'penarikan' : 'penjemputan';
+  modalActiveTab.value = activeFilter.value === 'penarikan' ? 'penarikan' : (activeFilter.value === 'setor_manual' ? 'penimbangan' : 'penjemputan');
   
   try {
     let endpoint = "";
-    let id = "";
     
     if (activeFilter.value === 'penjemputan') {
         endpoint = `/api/petugas/riwayat-penjemputan/${item.penjemputan_id}`;
@@ -141,9 +172,7 @@ const openEditModal = async () => {
 
   // Salin data item untuk diedit
   let itemsToEdit = [];
-  if (activeFilter.value === 'penjemputan') {
-      itemsToEdit = selectedItem.value?.penimbangan || [];
-  } else if (activeFilter.value === 'setor_manual') {
+  if (activeFilter.value === 'penjemputan' || activeFilter.value === 'setor_manual') {
       itemsToEdit = selectedItem.value?.penimbangan || [];
   }
   
@@ -281,9 +310,8 @@ const getWasteTypes = (item) => {
 // --- LOGIKA TIMER DINAMIS ---
 const currentTime = ref(new Date());
 let timerInterval = null;
-const batasWaktuEdit = ref(12); // Default 12 jam, akan ditimpa jika ada data dari DB
+const batasWaktuEdit = ref(12);
 
-// Fungsi untuk mengambil durasi batas waktu dari API Web Config
 const fetchConfigWeb = async () => {
   try {
     const res = await axios.get('/api/web-config');
@@ -297,9 +325,8 @@ const fetchConfigWeb = async () => {
 
 onMounted(() => {
   fetchHistory();
-  fetchConfigWeb(); // Panggil konfigurasi saat halaman dimuat
+  fetchConfigWeb();
   
-  // Update currentTime setiap 1 detik agar timer berjalan live
   timerInterval = setInterval(() => {
     currentTime.value = new Date();
   }, 1000); 
@@ -309,7 +336,6 @@ onUnmounted(() => {
   if (timerInterval) clearInterval(timerInterval);
 });
 
-// Cek apakah transaksi belum melewati batas waktu dinamis
 const isEditable = (item) => {
     if (!item) return false;
     const dateString = item.updated_at || item.created_at;
@@ -318,11 +344,9 @@ const isEditable = (item) => {
     const transactionDate = new Date(dateString);
     const diffInHours = (currentTime.value - transactionDate) / (1000 * 60 * 60);
     
-    // Bandingkan dengan batas waktu dinamis dari database
     return diffInHours <= batasWaktuEdit.value; 
 };
 
-// Hitung Sisa Waktu Format Teks
 const remainingTimeText = computed(() => {
     if (!selectedItem.value) return "";
     
@@ -330,7 +354,6 @@ const remainingTimeText = computed(() => {
     if (!dateString) return "";
 
     const transactionDate = new Date(dateString);
-    // Tambahkan durasi jam dinamis ke waktu transaksi
     const deadline = new Date(transactionDate.getTime() + (batasWaktuEdit.value * 60 * 60 * 1000)); 
     const diffMs = deadline - currentTime.value;
 
@@ -701,7 +724,7 @@ const remainingTimeText = computed(() => {
                     <div class="flex flex-col gap-y-4 text-sm">
                         <div class="flex justify-between border-b border-gray-100 pb-2">
                              <span class="text-gray-400">ID Transaksi</span>
-                             <span class="font-bold text-gray-700">{{ activeFilter === 'setor_manual' ? selectedItem.transaksi_id : (selectedItem.penimbangan?.[0]?.transaksi_id || "-") }}</span>
+                             <span class="font-bold text-gray-700">{{ activeFilter === 'setor_manual' ? 'TR-' + String(selectedItem.transaksi_id).padStart(3, '0') : (selectedItem.penimbangan?.[0]?.transaksi_id ? 'TR-' + String(selectedItem.penimbangan[0].transaksi_id).padStart(3, '0') : "-") }}</span>
                         </div>
                         <div v-if="activeFilter === 'penjemputan'" class="flex justify-between border-b border-gray-100 pb-2">
                              <span class="text-gray-400">ID Penjemputan</span>
@@ -717,7 +740,7 @@ const remainingTimeText = computed(() => {
                         </div>
                         <div class="flex justify-between border-b border-gray-100 pb-2">
                              <span class="text-gray-400">Petugas Input</span>
-                             <span class="font-bold text-gray-700">{{ selectedItem.petugas?.nama || selectedItem.penimbangan?.[0]?.transaksi?.petugas?.nama || "-" }}</span>
+                             <span class="font-bold text-gray-700">{{ selectedItem.penimbangan?.[0]?.transaksi?.petugas?.nama || selectedItem.petugas?.nama || "-" }}</span>
                         </div>
                         <div v-if="selectedItem.tukang || selectedItem.penimbangan?.[0]?.tukang" class="flex justify-between border-b border-gray-100 pb-2">
                              <span class="text-gray-400">Tukang</span>
@@ -825,7 +848,7 @@ const remainingTimeText = computed(() => {
             <div class="bg-[#4A7043] p-6 text-white flex justify-between items-center">
                 <div>
                     <h2 class="text-xl font-bold">Edit Penimbangan</h2>
-                    <p class="text-white/60 text-xs font-medium">TXN-{{ selectedItem?.transaksi_id }}</p>
+                    <p class="text-white/60 text-xs font-medium">TR-{{ String(selectedItem?.transaksi_id || selectedItem?.penimbangan?.[0]?.transaksi_id || '0').padStart(3, '0') }}</p>
                 </div>
                 <button @click="closeEditModal" class="p-2 hover:bg-white/10 rounded-full transition-all">
                     <Icon icon="material-symbols:close" class="w-6 h-6" />

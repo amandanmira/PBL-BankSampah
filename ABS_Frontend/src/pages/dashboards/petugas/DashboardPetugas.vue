@@ -3,11 +3,13 @@ import { ref, onMounted, computed, inject } from "vue";
 import { Icon } from "@iconify/vue";
 import DashboardLayout from "@/layouts/DashboardLayout.vue";
 import { checkRole } from "@/utils";
+import { useRouter } from "vue-router";
 
 // Security check
 checkRole("petugas");
 
 const axios = inject("axios");
+const router = useRouter();
 const loading = ref(true);
 
 const user = computed(() => {
@@ -40,52 +42,76 @@ const today = computed(() => {
   return new Date().toLocaleDateString('id-ID', options);
 });
 
-// FUNGSI BARU: Menghitung URL tujuan dengan sangat aman
+// ─────────────────────────────────────────────────────────────────────────────
+// PERBAIKAN UTAMA: getRouteTarget sekarang mengirim `id` (integer murni)
+// agar halaman tujuan bisa langsung scroll & highlight item tersebut.
+// ─────────────────────────────────────────────────────────────────────────────
 const getRouteTarget = (item) => {
   try {
-    // 1. Ambil ID murni secara aman (Cegah error jika data kosong)
-    const idStr = String(item.id || '');
-    const searchParam = idStr.includes('-') ? idStr.split('-').pop().replace(/^0+/, '') : idStr;
-    
-    // 2. Tentukan tab yang aktif berdasarkan status
+    // Ekstrak angka murni dari string ID seperti "REQ-019" → 19
+    const rawId = String(item.id || '');
+    const numericId = parseInt(rawId.replace(/\D/g, ''), 10) || null;
+
     const stat = String(item.status || '').toLowerCase();
 
     if (item.type === 'pickup') {
+      // Tentukan tab yang benar berdasarkan status
       let tab = 'Menunggu';
-      if (stat.includes('proses') || stat.includes('diproses')) tab = 'Diproses';
-      if (stat.includes('jemput') || stat.includes('otw')) tab = 'Dijemput';
-      if (stat.includes('input')) tab = 'Perlu Input Data';
-      
-      return { 
-        path: '/dashboard-petugas/listpenjemputan', 
-        query: { filter: tab, search: searchParam || '' } 
+      if (stat.includes('proses') && !stat.includes('menunggu')) tab = 'Diproses';
+      if (stat.includes('dijemput') || stat.includes('otw')) tab = 'Dijemput';
+      if (stat.includes('perlu_input') || stat.includes('input')) tab = 'Perlu Input Data';
+      if (stat.includes('menunggu_persetujuan')) tab = 'Menunggu';
+
+      return {
+        path: '/dashboard-petugas/listpenjemputan',
+        query: {
+          filter: tab,
+          id: numericId || '',   // ← ID integer untuk highlight
+        }
       };
     } else {
+      // Transaksi penarikan
       let tab = 'menunggu';
       if (stat.includes('selesai')) tab = 'selesai';
       if (stat.includes('tolak') || stat.includes('batal')) tab = 'ditolak';
-      
-      return { 
-        path: '/dashboard-petugas/listpenarikan', 
-        query: { filter: tab, search: searchParam || '' } 
+
+      return {
+        path: '/dashboard-petugas/listpenarikan',
+        query: {
+          filter: tab,
+          id: numericId || '',
+        }
       };
     }
   } catch (error) {
     console.error("Routing error:", error);
-    return { path: '/dashboard-petugas' }; // Fallback aman
+    return { path: '/dashboard-petugas' };
   }
 };
 
 const fetchData = async () => {
   loading.value = true;
   try {
-    const response = await axios.get("/api/petugas/dashboard-stats");
-    const data = response.data;
-    
+    const responseStats = await axios.get("/api/petugas/dashboard-stats");
+    const data = responseStats.data;
+
+    const responsePenjemputan = await axios.get("/api/petugas/penjemputan");
+    const validPenjemputans = responsePenjemputan.data.data || [];
+    const validPickupIds = validPenjemputans.map(p => p.penjemputan_id);
+
+    const filteredAttention = data.attention_items.filter(item => {
+      if (item.type === 'pickup') {
+        const idMurni = parseInt(item.id.replace(/\D/g, ''), 10);
+        return validPickupIds.includes(idMurni);
+      }
+      return true;
+    });
+
     stats.value = data.stats;
-    attentionItems.value = data.attention_items;
+    attentionItems.value = filteredAttention;
     activities.value = data.activities;
     reportSummary.value = data.report_summary;
+
   } catch (err) {
     console.error("Failed to fetch petugas dashboard stats:", err);
   } finally {
@@ -101,7 +127,7 @@ onMounted(() => {
 <template>
   <DashboardLayout title="Dashboard Petugas">
     <div class="space-y-8 animate-in fade-in duration-1000 pb-20 px-4 lg:px-10">
-      
+
       <div class="bg-[#4A7043] rounded-[1.5rem] p-8 text-white relative overflow-hidden shadow-2xl shadow-green-900/20">
         <div class="relative z-10">
           <h2 class="text-3xl font-black mb-2 tracking-tight">Selamat Datang, {{ user.name?.split(' ')[0] || 'Petugas' }}!</h2>
@@ -170,7 +196,7 @@ onMounted(() => {
       </div>
 
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        
+
         <div class="space-y-8">
           <div class="flex justify-between items-end px-4">
             <h3 class="text-2xl font-black text-stone-800">Yang Perlu Perhatian</h3>
@@ -179,9 +205,13 @@ onMounted(() => {
 
           <div class="space-y-4">
             <div v-if="loading" v-for="i in 3" :key="i" class="h-48 bg-white animate-pulse rounded-[1.5rem] border border-stone-100 shadow-sm"></div>
-            
+
             <template v-else>
-              <div v-for="item in attentionItems" :key="item.id" class="bg-white rounded-[1.5rem] p-6 shadow-sm border border-stone-100 flex flex-col gap-6 transition-all hover:shadow-xl hover:-translate-y-1">
+              <div
+                v-for="item in attentionItems"
+                :key="item.id"
+                class="bg-white rounded-[1.5rem] p-6 shadow-sm border border-stone-100 flex flex-col gap-6 transition-all hover:shadow-xl hover:-translate-y-1"
+              >
                 <div class="flex justify-between items-start">
                   <div class="flex items-center gap-4">
                     <div class="w-14 h-14 bg-stone-50 rounded-xl flex items-center justify-center text-stone-300 shadow-inner">
@@ -193,7 +223,7 @@ onMounted(() => {
                       <p class="text-xs font-bold text-stone-500 mt-2">{{ item.time }}</p>
                     </div>
                   </div>
-                  <span :class="['text-[10px] font-black px-4 py-2 rounded-full uppercase tracking-widest', 
+                  <span :class="['text-[10px] font-black px-4 py-2 rounded-full uppercase tracking-widest',
                     item.status === 'Menunggu' ? 'bg-[#FFF9E6] text-[#D9A300]' : 'bg-[#FFF2EB] text-[#E67E22]']">
                     {{ item.status }}
                   </span>
@@ -209,14 +239,16 @@ onMounted(() => {
                 </div>
 
                 <div class="flex gap-3 pt-1">
-                  <router-link 
+                  <!-- Tombol aksi utama — langsung bawa ke item yang tepat -->
+                  <router-link
                     :to="getRouteTarget(item)"
                     :class="['flex-1 py-4 rounded-xl text-white text-sm text-center font-black transition-all active:scale-95 shadow-xl shadow-stone-200 block', item.color]"
                   >
                     {{ item.action }} <span class="ml-1 text-white/50">›</span>
                   </router-link>
-                  <router-link 
-                    v-if="item.type === 'withdrawal'" 
+                  <!-- Tombol "Detail" terpisah untuk withdrawal -->
+                  <router-link
+                    v-if="item.type === 'withdrawal'"
                     :to="getRouteTarget(item)"
                     class="px-8 py-4 rounded-xl bg-white text-stone-400 text-sm font-black border border-stone-200 text-center hover:bg-stone-50 transition-colors block"
                   >
@@ -224,7 +256,7 @@ onMounted(() => {
                   </router-link>
                 </div>
               </div>
-              
+
               <div v-if="attentionItems.length === 0" class="bg-white rounded-[1.5rem] p-16 shadow-sm border border-stone-100 flex flex-col items-center justify-center text-center">
                 <div class="w-20 h-20 bg-stone-50 rounded-full flex items-center justify-center mb-6">
                   <Icon icon="material-symbols:check-circle-outline" class="w-10 h-10 text-stone-200" />
@@ -254,7 +286,7 @@ onMounted(() => {
 
             <template v-else>
               <div v-for="activity in activities" :key="activity.id" class="relative flex gap-8 group">
-                <div :class="['w-12 h-12 rounded-full flex items-center justify-center shrink-0 z-10 transition-all group-hover:scale-110 shadow-md border-[4px] border-white', 
+                <div :class="['w-12 h-12 rounded-full flex items-center justify-center shrink-0 z-10 transition-all group-hover:scale-110 shadow-md border-[4px] border-white',
                   activity.iconBg.replace('rounded-2xl', 'rounded-full')]">
                   <Icon :icon="activity.icon" class="w-6 h-6" />
                 </div>

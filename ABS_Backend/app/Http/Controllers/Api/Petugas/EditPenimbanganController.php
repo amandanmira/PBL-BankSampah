@@ -73,7 +73,6 @@ class EditPenimbanganController extends Controller
             }
 
             // --- CEK BATAS WAKTU DINAMIS ---
-            // Ambil batas waktu dari database (default 12 jika kosong/belum disetting)
             $config = KonfigurasiWeb::first();
             $batasWaktuEdit = $config ? $config->batas_waktu_edit : 12;
 
@@ -83,16 +82,20 @@ class EditPenimbanganController extends Controller
                 ], 400);
             }
 
-            // --- PERBAIKAN: Ambil ID penting dari penimbangan lama ---
+            // --- AMBIL DATA PENTING TERMASUK TIMESTAMPS ASLI ---
             $originalPenimbangan = $transaksi->penimbangan->first();
             
             if (!$originalPenimbangan) {
                 return response()->json(['message' => 'Data penimbangan tidak ditemukan'], 404);
             }
 
-            $nasabah_id     = $originalPenimbangan->nasabah_id;
-            $tukang_id      = $originalPenimbangan->tukang_id;
-            $penjemputan_id = $originalPenimbangan->penjemputan_id;
+            $nasabah_id        = $originalPenimbangan->nasabah_id;
+            $tukang_id         = $originalPenimbangan->tukang_id;
+            $penjemputan_id    = $originalPenimbangan->penjemputan_id;
+            
+            // 🔥 Ambil data penanda waktu asli dari data lama
+            $originalCreatedAt = $originalPenimbangan->created_at;
+            $originalUpdatedAt = $originalPenimbangan->updated_at;
 
             // Cari nasabah menggunakan nasabah_id yang benar
             $nasabah = Nasabah::findOrFail($nasabah_id);
@@ -115,14 +118,21 @@ class EditPenimbanganController extends Controller
             $new_total_harga = 0;
             foreach ($request->items as $itemData) {
                 $penimbangan = new Penimbangan();
+                
+                // 🔥 KUNCI UTAMA 1: Matikan auto timestamps agar waktu tidak melompat ke waktu sekarang
+                $penimbangan->timestamps     = false; 
+                
                 $penimbangan->sampah_id      = $itemData['sampah_id'];
                 $penimbangan->berat_timbang  = $itemData['berat_timbang'];
-                
-                // --- PERBAIKAN: Gunakan variabel $nasabah_id dan $id ---
                 $penimbangan->nasabah_id     = $nasabah_id; 
                 $penimbangan->transaksi_id   = $id; 
                 $penimbangan->tukang_id      = $tukang_id;
                 $penimbangan->penjemputan_id = $penjemputan_id;
+                
+                // 🔥 Pasang kembali waktu orisinil ke item baru
+                $penimbangan->created_at     = $originalCreatedAt;
+                $penimbangan->updated_at     = $originalUpdatedAt;
+                
                 $penimbangan->save();
 
                 // Update stok sampah
@@ -141,7 +151,10 @@ class EditPenimbanganController extends Controller
             $nasabah->save();
 
             // 5. Update transaksi dengan data baru
-            $transaksi->total_harga = $new_total_harga;
+            // 🔥 KUNCI UTAMA 2: Matikan auto timestamps pada Transaksi Utama agar updated_at tidak bergeser ke detik ini
+            $transaksi->timestamps   = false; 
+            
+            $transaksi->total_harga  = $new_total_harga;
             $transaksi->saldo_sebelum = $nasabah->saldo - $new_total_harga;
             $transaksi->saldo_sesudah = $nasabah->saldo;
             $transaksi->save();

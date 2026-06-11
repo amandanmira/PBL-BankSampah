@@ -969,10 +969,10 @@ onMounted(() => {
                 <div class="flex justify-between items-center">
                   <p class="text-stone-400 uppercase tracking-wider font-semibold text-[9px]">ID Transaksi</p>
                   <p class="font-bold text-stone-800">
-                    JMP-{{ String(selectedItem.penjemputan_id).padStart(3, '0') }}
+                    TR-{{ String(selectedItem.transaksi_id || selectedItem.penimbangan?.[0]?.transaksi_id || '0').padStart(3, '0') }}
                   </p>
                 </div>
-                <div class="flex justify-between items-center">
+                <div v-if="selectedItem.penjemputan_id" class="flex justify-between items-center">
                   <p class="text-stone-400 uppercase tracking-wider font-semibold text-[9px]">ID Penjemputan</p>
                   <p class="font-bold text-stone-800">
                     JMP-{{ String(selectedItem.penjemputan_id).padStart(3, '0') }}
@@ -981,7 +981,7 @@ onMounted(() => {
                 <div class="flex justify-between items-center">
                   <p class="text-stone-400 uppercase tracking-wider font-semibold text-[9px]">Gudang</p>
                   <p class="font-bold text-stone-800">
-                    {{ selectedItem.gudang?.nama || 'Gudang Pusat Surabaya' }}
+                    {{ selectedItem.gudang?.alamat || selectedItem.penimbangan?.[0]?.tukang?.gudang?.alamat || '-' }}
                   </p>
                 </div>
                 <div class="flex justify-between items-center">
@@ -993,13 +993,13 @@ onMounted(() => {
                 <div class="flex justify-between items-center">
                   <p class="text-stone-400 uppercase tracking-wider font-semibold text-[9px]">Petugas Input</p>
                   <p class="font-bold text-stone-800">
-                    {{ selectedItem.petugas?.nama || 'Budi Santoso' }}
+                    {{ selectedItem.petugas?.nama || selectedItem.penimbangan?.[0]?.transaksi?.petugas?.nama || '-' }}
                   </p>
                 </div>
                 <div class="flex justify-between items-center">
                   <p class="text-stone-400 uppercase tracking-wider font-semibold text-[9px]">Tukang</p>
                   <p class="font-bold text-stone-800">
-                    {{ selectedItem.tukang?.nama || 'Tatan Sukarman' }}
+                    {{ selectedItem.tukang?.nama || selectedItem.penimbangan?.[0]?.tukang?.nama || '-' }}
                   </p>
                 </div>
               </div>
@@ -1014,12 +1014,12 @@ onMounted(() => {
               <div class="space-y-1.5 text-xs">
                 <div class="flex justify-between items-center">
                   <p class="text-stone-400 uppercase tracking-wider font-semibold text-[9px]">Nama Nasabah</p>
-                  <p class="font-bold text-stone-800">{{ selectedItem.nasabah?.nama || 'Dewi Lestari' }}</p>
+                  <p class="font-bold text-stone-800">{{ selectedItem.nasabah?.nama || selectedItem.penimbangan?.[0]?.nasabah?.nama || '-' }}</p>
                 </div>
                 <div class="flex justify-between items-center">
                   <p class="text-stone-400 uppercase tracking-wider font-semibold text-[9px]">ID Nasabah</p>
                   <p class="font-bold text-stone-800">
-                    NSB-{{ String(selectedItem.nasabah_id || 4).padStart(3, '0') }}
+                    NSB-{{ String(selectedItem.nasabah_id || selectedItem.penimbangan?.[0]?.nasabah_id || '0').padStart(3, '0') }}
                   </p>
                 </div>
               </div>
@@ -1136,7 +1136,7 @@ onMounted(() => {
               <h3 class="font-bold text-[#166534] border-b border-[#DCF2E7] pb-1.5">Informasi Saldo</h3>
               <div class="flex justify-between items-center text-stone-600">
                 <span>Saldo Sebelumnya</span>
-                <span class="font-semibold">Rp {{ (selectedItem.nasabah?.saldo || 320000).toLocaleString('id-ID') }}</span>
+                <span class="font-semibold">Rp {{ Number(selectedItem.saldo_sebelum ?? selectedItem.penimbangan?.[0]?.transaksi?.saldo_sebelum ?? 320000).toLocaleString('id-ID') }}</span>
               </div>
               <div class="flex justify-between items-center text-[#166534]">
                 <span>Nilai Transaksi</span>
@@ -1144,7 +1144,7 @@ onMounted(() => {
               </div>
               <div class="pt-2.5 border-t border-[#DCF2E7] flex justify-between items-center font-bold text-[#166534]">
                 <span>Saldo Sesudah</span>
-                <span class="text-sm">Rp {{ (parseFloat(selectedItem.nasabah?.saldo || 320000) + (selectedItem.penimbangan?.reduce((acc, curr) => acc + curr.berat_timbang * (curr.sampah?.item_sampah?.harga_beli || 0), 0) || 26500)).toLocaleString('id-ID') }}</span>
+                <span class="text-sm">Rp {{ Number(selectedItem.saldo_sesudah ?? selectedItem.penimbangan?.[0]?.transaksi?.saldo_sesudah ?? 346500).toLocaleString('id-ID') }}</span>
               </div>
             </div>
           </div>

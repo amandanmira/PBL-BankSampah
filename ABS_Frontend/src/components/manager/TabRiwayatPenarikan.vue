@@ -290,7 +290,7 @@ onMounted(async () => {
         <p class="text-2xl font-black text-[#4A7043]">{{ penarikanSummary.selesai }}</p>
       </div>
       <div class="bg-white p-5 rounded-2xl shadow-sm border border-stone-100 flex flex-col justify-center">
-        <p class="text-xs font-bold text-stone-500 mb-2">Diproses</p>
+        <p class="text-xs font-bold text-stone-500 mb-2">Menunggu</p>
         <p class="text-2xl font-black text-[#F59E0B]">{{ penarikanSummary.diproses }}</p>
       </div>
       <div class="bg-white p-5 rounded-2xl shadow-sm border border-stone-100 flex flex-col justify-center">
@@ -384,8 +384,8 @@ onMounted(async () => {
                 <div v-if="row.status === 'Selesai'" class="inline-flex items-center justify-center px-4 py-1.5 rounded-full bg-[#3D5A35] text-white text-[10px] font-bold tracking-wider shadow-sm min-w-[70px]">
                   Selesai
                 </div>
-                <div v-else-if="row.status === 'Diproses'" class="inline-flex items-center justify-center px-4 py-1.5 rounded-full bg-[#F59E0B] text-white text-[10px] font-bold tracking-wider shadow-sm min-w-[70px]">
-                  Diproses
+                <div v-else-if="row.status === 'Menunggu'" class="inline-flex items-center justify-center px-4 py-1.5 rounded-full bg-[#F59E0B] text-white text-[10px] font-bold tracking-wider shadow-sm min-w-[70px]">
+                  Menunggu
                 </div>
                 <div v-else-if="row.status === 'Ditolak'" class="inline-flex items-center justify-center px-4 py-1.5 rounded-full bg-[#EF4444] text-white text-[10px] font-bold tracking-wider shadow-sm min-w-[70px]">
                   Ditolak

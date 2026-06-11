@@ -850,20 +850,6 @@
 
     @endif
 
-    {{-- Catatan (Note) --}}
-    <div class="note-container">
-        <div class="note-header">
-            <span class="note-header-icon">!</span> Catatan
-        </div>
-        <div class="note-body">
-            @if($gudangAlamat)
-                Terdapat {{ $tidakTerlaksanaCount }} transaksi tidak terlaksana di {{ $gudangAlamat }} pada periode ini. Periksa detail tiap transaksi untuk mengetahui alasan pembatalan.
-            @else
-                Terdapat {{ $tidakTerlaksanaCount }} transaksi tidak terlaksana pada periode ini. Periksa modal detail tiap transaksi untuk mengetahui alasan dan pihak yang membatalkan.
-            @endif
-        </div>
-    </div>
-
     {{-- Footer Section --}}
     <hr class="footer-separator">
     <table class="footer-table">

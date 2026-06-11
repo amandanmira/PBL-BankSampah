@@ -97,7 +97,9 @@ public function penimbangan(Request $request)
 
             return response()->json([
                 'message' => 'Transaksi dan data penimbangan berhasil disimpan!',
-                'total_keseluruhan' => $total_semua_harga
+                'total_keseluruhan' => $total_semua_harga,
+                'transaksi_id' => $transaksi->transaksi_id,
+                'transaksi' => $transaksi
             ], 200);
 
         } catch (\Exception $e) {
@@ -210,7 +212,7 @@ public function listTukang(Request $request)
             'items'                 => 'required|array|min:1',
             'items.*.sampah_id'     => 'required',
             'items.*.berat_timbang' => 'required|numeric|min:0.1',
-            'items.*.foto'          => 'nullable|image|mimes:jpeg,png,jpg|max:5120',
+            'items.*.foto'          => 'required|image|mimes:jpeg,png,jpg|max:5120',
         ]);
 
         DB::beginTransaction();
@@ -281,7 +283,9 @@ public function listTukang(Request $request)
 
             return response()->json([
                 'message' => 'Transaksi Antar Sendiri berhasil disimpan!',
-                'total_keseluruhan' => $total_semua_harga
+                'total_keseluruhan' => $total_semua_harga,
+                'transaksi_id' => $transaksi->transaksi_id,
+                'transaksi' => $transaksi
             ], 200);
 
         } catch (\Exception $e) {
