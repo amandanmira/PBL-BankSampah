@@ -96,7 +96,19 @@ class LaporanController extends Controller
                         $q->whereIn('item_id', $sampah);
                     });
                 })
-                ->with('detailTransaksi');
+                ->with([
+                    'detailTransaksi' => function ($query) use ($gudangId, $sampah) {
+                        $query->when($gudangId, function ($q) use ($gudangId) {
+                            $q->whereHas('sampah', function ($sq) use ($gudangId) {
+                                $sq->where('gudang_id', $gudangId);
+                            });
+                        })->when($sampah, function ($q) use ($sampah) {
+                            $q->whereHas('sampah', function ($sq) use ($sampah) {
+                                $sq->whereIn('item_id', $sampah);
+                            });
+                        });
+                    }
+                ]);
             }
         ])->get();
         $nasabahData = Nasabah::whereHas('penimbangan', function ($q) use ($startDate, $endDate, $gudangId, $sampah) {
@@ -270,7 +282,9 @@ class LaporanController extends Controller
                 'nama' => $item->nama,
                 'lembaga' => $item->nama_lembaga,
                 'jumlah_transaksi' => $item->transaksiPengepul->count(),
-                'total_harga' => $details->sum('harga'),
+                'total_harga' => $details->sum(function ($dt) {
+                    return ($dt->harga ?? 0) * ($dt->berat ?? 0);
+                }),
                 'total_berat' => $details->sum('berat'),
             ];
         });
@@ -301,7 +315,9 @@ class LaporanController extends Controller
                 'nama' => $item->itemSampah->nama,
                 'gudang' => $item->gudang->alamat,
                 'jumlah_transaksi' => $item->detailTransaksi->count(),
-                'total_harga' => $item->detailTransaksi->sum('harga'),
+                'total_harga' => $item->detailTransaksi->sum(function ($dt) {
+                    return ($dt->harga ?? 0) * ($dt->berat ?? 0);
+                }),
                 'total_berat' => $item->detailTransaksi->sum('berat'),
             ];
         });

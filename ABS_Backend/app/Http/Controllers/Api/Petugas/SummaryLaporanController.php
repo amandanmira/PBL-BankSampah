@@ -38,7 +38,21 @@ class SummaryLaporanController extends Controller
                     $q->whereIn('item_id', $sampah);
                 });
             })
-            ->with(['detailTransaksi.sampah.itemSampah', 'pengepul'])
+            ->with([
+                'detailTransaksi' => function ($query) use ($gudangId, $sampah) {
+                    $query->when($gudangId, function ($q) use ($gudangId) {
+                        $q->whereHas('sampah', function ($sq) use ($gudangId) {
+                            $sq->where('gudang_id', $gudangId);
+                        });
+                    })->when($sampah, function ($q) use ($sampah) {
+                        $q->whereHas('sampah', function ($sq) use ($sampah) {
+                            $sq->whereIn('item_id', $sampah);
+                        });
+                    });
+                },
+                'detailTransaksi.sampah.itemSampah',
+                'pengepul'
+            ])
             ->get();
         $transaksiNasabahData = TransaksiNasabah::whereBetween('updated_at', [$startDate, $endDate])
             ->where('status', 'selesai')
@@ -79,7 +93,9 @@ class SummaryLaporanController extends Controller
             'penjemputan_harga' => $transaksiNasabahData->where('tipe_transaksi', 'dijemput')->sum('total_harga'),
             'setor_harga' => $transaksiNasabahData->where('tipe_transaksi', 'antar_sendiri')->sum('total_harga'),
             'penarikan_harga' => $penarikanData->sum('jumlah'),
-            'pengepul_harga' => $details->sum('harga'),
+            'pengepul_harga' => $details->sum(function ($dt) {
+                return ($dt->harga ?? 0) * ($dt->berat ?? 0);
+            }),
         ];
 
         $dataStatistik = [
