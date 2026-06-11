@@ -45,6 +45,10 @@ const form = ref({
 
 const user = JSON.parse(sessionStorage.getItem('user') || "{}");
 
+const isProfileAddressEmpty = computed(() => {
+  return !user.alamat || user.alamat.trim() === '' || user.alamat === '-';
+});
+
 // Selected Gudang Info
 const selectedGudang = computed(() => {
   return gudangList.value.find(g => g.gudang_id === form.value.gudang_id) || null;
@@ -446,10 +450,26 @@ onMounted(() => {
             <textarea 
               v-model="form.alamat"
               :readonly="addressType === 'alamat_profil'"
-              :placeholder="addressType === 'alamat_profil' ? 'Alamat dari profil akan digunakan' : 'Masukkan alamat baru'"
-              class="w-full bg-[#F5F5F0] border border-stone-100 rounded-2xl py-3.5 px-4 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-[#4A7043]/20 transition-all min-h-[90px] text-stone-700"
+              :placeholder="addressType === 'alamat_profil' ? (isProfileAddressEmpty ? 'Alamat profil Anda masih kosong!' : 'Alamat dari profil akan digunakan') : 'Masukkan alamat baru'"
+              :class="[
+                'w-full rounded-2xl py-3.5 px-4 text-xs font-medium focus:outline-none transition-all min-h-[90px] text-stone-700',
+                addressType === 'alamat_profil' && isProfileAddressEmpty 
+                  ? 'bg-red-50 border border-red-200 placeholder-red-400' 
+                  : 'bg-[#F5F5F0] border border-stone-100 focus:ring-2 focus:ring-[#4A7043]/20'
+              ]"
             ></textarea>
-            <p v-if="addressType === 'alamat_baru'" class="text-[9px] font-medium text-stone-400 italic">Edit alamat di profil jika ingin mengubah alamat default</p>
+            
+            <div v-if="addressType === 'alamat_profil' && isProfileAddressEmpty" class="flex items-center justify-between mt-1 px-1">
+              <p class="text-[10px] font-bold text-red-500 flex items-center gap-1">
+                <Icon icon="material-symbols:error-outline" class="w-3.5 h-3.5" />
+                Alamat profil belum diisi.
+              </p>
+              <RouterLink to="/dashboard-nasabah/edit-profile" class="text-[10px] font-bold text-[#4A7043] hover:underline flex items-center gap-1">
+                Isi Profil Sekarang <Icon icon="material-symbols:arrow-right-alt" class="w-3.5 h-3.5" />
+              </RouterLink>
+            </div>
+
+            <p v-if="addressType === 'alamat_baru'" class="text-[9px] font-medium text-stone-400 italic px-1">Edit alamat di profil jika ingin mengubah alamat default</p>
           </div>
         </div>
 
@@ -671,8 +691,8 @@ onMounted(() => {
         <!-- Submit Button -->
         <button 
           @click="submitRequest"
-          :disabled="loading"
-          class="w-full py-4.5 rounded-2xl bg-[#4A7043] text-white font-black text-sm hover:bg-[#3d5c37] active:scale-[0.98] transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+          :disabled="loading || (addressType === 'alamat_profil' && isProfileAddressEmpty)"
+          class="w-full py-4.5 rounded-2xl bg-[#4A7043] text-white font-black text-sm hover:bg-[#3d5c37] active:scale-[0.98] transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-stone-400"
         >
           <template v-if="!loading">
             Request Penjemputan

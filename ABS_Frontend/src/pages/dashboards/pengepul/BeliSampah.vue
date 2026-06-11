@@ -64,8 +64,8 @@
       <p class="text-base">Tidak ada sampah yang tersedia.</p>
     </div>
 
-    <div v-else>
-      <div :class="['grid gap-6 xl:gap-8 mb-12 transition-all duration-300', isSidebarCollapsed ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4' : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3']">
+    <div v-else class="pb-36">
+      <div :class="['grid gap-4 sm:gap-6 xl:gap-8 mb-8 transition-all duration-300', isSidebarCollapsed ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4' : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3']">
         <div
           v-for="item in paginatedSampah"
           :key="item.sampah_id"
@@ -159,7 +159,7 @@
         </div>
       </div>
       <!-- Pagination Controls -->
-      <div v-if="totalPages > 1" class="flex justify-center items-center gap-2 mb-32">
+      <div v-if="totalPages > 1" class="flex justify-center items-center gap-2 mt-8">
         <button
           @click="currentPage > 1 && (currentPage--)"
           :disabled="currentPage === 1"
@@ -197,43 +197,52 @@
     <!-- Floating Help Button (FAB) -->
     <button
       @click="showTataCara = true"
-      class="fixed bottom-24 right-6 w-14 h-14 bg-[#4A7043] hover:bg-[#3D5C37] text-white rounded-full flex items-center justify-center shadow-2xl transition-all active:scale-95 z-50 cursor-pointer"
+      :class="[
+        'fixed right-4 sm:right-6 w-12 sm:w-14 h-12 sm:h-14 bg-[#4A7043] hover:bg-[#3D5C37] text-white rounded-full flex items-center justify-center shadow-2xl transition-all duration-500 active:scale-95 z-50 cursor-pointer',
+        cartStore.totalItems > 0 ? 'bottom-44 sm:bottom-32' : 'bottom-6 sm:bottom-8'
+      ]"
       title="Tata Cara Pembelian"
     >
-      <Icon icon="material-symbols:help" class="w-7 h-7" />
+      <Icon icon="material-symbols:help" class="w-6 h-6 sm:w-7 sm:h-7" />
     </button>
 
     <!-- Floating Summary Bar Compact -->
     <div
       v-if="cartStore.totalItems > 0"
-      class="fixed bottom-6 left-1/2 -translate-x-1/2 w-full max-w-3xl px-4 z-40 transition-all duration-500 animate-in slide-in-from-bottom-10"
+      :class="[
+        'fixed bottom-4 sm:bottom-6 z-40 transition-all duration-500 animate-in slide-in-from-bottom-10 -translate-x-1/2 max-w-3xl',
+        isSidebarCollapsed 
+          ? 'left-1/2 lg:left-[calc(50%+3rem)] w-[calc(100vw-2rem)] sm:w-[calc(100vw-4rem)] lg:w-[calc(100vw-6rem-4rem)]' 
+          : 'left-1/2 lg:left-[calc(50%+10rem)] w-[calc(100vw-2rem)] sm:w-[calc(100vw-4rem)] lg:w-[calc(100vw-20rem-4rem)]'
+      ]"
     >
-      <div class="bg-[#4A7043]/95 backdrop-blur-md rounded-2xl p-4 shadow-2xl flex items-center justify-between text-white border border-white/10">
-        <div class="flex items-center gap-4">
+      <div class="bg-[#4A7043]/95 backdrop-blur-md rounded-2xl p-3 sm:p-4 shadow-2xl flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-4 text-white border border-white/10">
+        <div class="flex items-center justify-between w-full sm:w-auto gap-4">
           <div class="flex flex-col">
-            <span class="text-xs font-bold uppercase tracking-wider text-white/60">Total</span>
-            <span class="text-2xl font-black">{{ formatCurrency(cartStore.totalPrice) }}</span>
+            <span class="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-white/60">Total</span>
+            <span class="text-xl sm:text-2xl font-black">{{ formatCurrency(cartStore.totalPrice) }}</span>
           </div>
           <div class="h-8 w-[1px] bg-white/20"></div>
-          <div class="flex flex-col">
-            <span class="text-xs font-bold uppercase tracking-wider text-white/60">Berat</span>
-            <span class="text-base font-bold">{{ cartStore.totalWeight }} kg</span>
+          <div class="flex flex-col text-right sm:text-left">
+            <span class="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-white/60">Berat</span>
+            <span class="text-sm sm:text-base font-bold">{{ cartStore.totalWeight }} kg</span>
           </div>
         </div>
-        <div class="flex items-center gap-3">
+        <div class="flex items-center justify-between sm:justify-end w-full sm:w-auto gap-2 sm:gap-3">
           <button
             @click="showAlurPembelian = true"
-            class="bg-white/10 hover:bg-white/20 text-white px-4 py-2.5 rounded-xl font-bold text-sm flex items-center gap-2 transition-all active:scale-95 border border-white/10"
+            class="flex-1 sm:flex-none justify-center bg-white/10 hover:bg-white/20 text-white px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl font-bold text-xs sm:text-sm flex items-center gap-1 sm:gap-2 transition-all active:scale-95 border border-white/10"
           >
             <Icon icon="material-symbols:info-outline" class="w-4 h-4" />
-            Alur Pembelian
+            <span class="hidden sm:inline">Alur Pembelian</span>
+            <span class="inline sm:hidden">Alur</span>
           </button>
           <button
             @click="router.push('/dashboard-pengepul/keranjang')"
-            class="bg-white text-[#4A7043] px-6 py-2.5 rounded-xl font-black text-sm flex items-center gap-2 hover:bg-[#F5F5F0] transition-all hover:scale-105 active:scale-95 shadow-lg"
+            class="flex-1 sm:flex-none justify-center bg-white text-[#4A7043] px-4 sm:px-6 py-2 sm:py-2.5 rounded-xl font-black text-xs sm:text-sm flex items-center gap-2 hover:bg-[#F5F5F0] transition-all hover:scale-105 active:scale-95 shadow-lg"
           >
             KERANJANG
-            <div class="bg-[#4A7043] text-white w-5 h-5 rounded-full flex items-center justify-center text-xs">
+            <div class="bg-[#4A7043] text-white w-5 h-5 rounded-full flex items-center justify-center text-[10px] sm:text-xs">
               {{ cartStore.totalItems }}
             </div>
           </button>

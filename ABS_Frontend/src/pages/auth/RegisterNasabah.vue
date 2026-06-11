@@ -5,8 +5,8 @@
       <div class="flex items-center justify-between">
         <!-- Left -->
         <div class="flex items-center gap-4">
-          <RouterLink to="/" class="text-3xl md:text-4xl font-bold tracking-wide text-white">
-            ABS
+          <RouterLink to="/" class="flex items-center group/logo transition-transform duration-300 active:scale-95">
+            <img v-if="webConfig.logo" :src="webConfig.logo.startsWith('http') ? webConfig.logo : `${axios.defaults.baseURL}/storage/${webConfig.logo}`" class="h-10 w-auto object-contain" alt="Logo" />
           </RouterLink>
         </div>
 
@@ -178,7 +178,7 @@
 
 <script setup>
 import Footer from '@/components/public/Footer.vue'
-import { ref, computed, inject, onUnmounted, nextTick } from 'vue'
+import { ref, computed, inject, onUnmounted, nextTick, onMounted } from 'vue'
 import { useRouter } from "vue-router";
 import { redirectLogin } from "@/utils";
 
@@ -191,6 +191,21 @@ const step = ref(1)
 const otp = ref(['', '', '', '', '', ''])
 const countdown = ref(0)
 let timer = null
+
+const webConfig = ref({ logo: null })
+
+const fetchWebConfig = async () => {
+  try {
+    const res = await axios.get("/api/web-config");
+    webConfig.value = res.data;
+  } catch (err) {
+    console.error("Failed to fetch web config:", err);
+  }
+}
+
+onMounted(() => {
+  fetchWebConfig();
+})
 
 const form = ref({
     username: '',
