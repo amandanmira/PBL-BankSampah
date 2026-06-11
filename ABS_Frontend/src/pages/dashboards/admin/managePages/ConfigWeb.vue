@@ -386,7 +386,7 @@ const getData = async () => {
     };
 
     if (data.logo) {
-      preview.value = `${axios.defaults.baseURL}/storage/${data.logo}`;
+      preview.value = data.logo.startsWith('http') ? data.logo : `${axios.defaults.baseURL}/storage/${data.logo}`;
     }
   } catch (err) {
     console.error(err);

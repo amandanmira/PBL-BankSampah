@@ -115,7 +115,13 @@
 <body>
     <div class="container">
         <div class="header">
-            <div style="font-size: 28px; font-weight: 800; margin-bottom: 8px;">ABS</div>
+            @php $konfig = \App\Models\KonfigurasiWeb::first(); @endphp
+            @if($konfig && $konfig->logo)
+                @php
+                    $logoUrl = \Illuminate\Support\Str::startsWith($konfig->logo, 'http') ? $konfig->logo : url('storage/' . $konfig->logo);
+                @endphp
+                <img src="{{ $logoUrl }}" alt="Logo ABS" style="max-height: 50px; margin-bottom: 8px;">
+            @endif
             <h1>Status Penjemputan</h1>
             <p>Aplikasi Bank Sampah</p>
         </div>

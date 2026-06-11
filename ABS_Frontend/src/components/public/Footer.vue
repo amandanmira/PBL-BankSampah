@@ -42,10 +42,9 @@ onMounted(() => {
 
       <!-- Column 1: Brand Info -->
       <div class="space-y-6">
-        <div v-if="webConfig.logo" class="w-32 h-20 shrink-0 flex items-center justify-start">
-          <img :src="`${axios.defaults.baseURL}/storage/${webConfig.logo}`" class="max-w-full max-h-full object-contain" alt="Logo" />
+        <div class="w-32 h-20 shrink-0 flex items-center justify-start">
+          <img v-if="webConfig.logo" :src="webConfig.logo.startsWith('http') ? webConfig.logo : `${axios.defaults.baseURL}/storage/${webConfig.logo}`" class="max-w-full max-h-full object-contain" alt="Logo" />
         </div>
-        <h2 v-else class="text-4xl md:text-[42px] font-extrabold tracking-wide mb-2 uppercase">ABS</h2>
         
         <p class="text-[14px] leading-relaxed font-medium max-w-[220px]">
           {{ webConfig.quote }}

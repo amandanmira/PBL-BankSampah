@@ -39,15 +39,16 @@ class WebController extends Controller
 
         // handle upload logo
         if ($request->hasFile('logo')) {
-            // hapus logo lama jika ada
-            if ($config->logo && Storage::disk('public')->exists($config->logo)) {
+            // hapus logo lama jika ada (lokal)
+            if ($config->logo && !\Illuminate\Support\Str::startsWith($config->logo, 'http') && Storage::disk('public')->exists($config->logo)) {
                 Storage::disk('public')->delete($config->logo);
             }
 
-            // simpan logo baru
-            $path = $request->file('logo')->store('logo', 'public');
+            // simpan logo baru ke Cloudinary melalui Storage driver
+            $path = $request->file('logo')->store('logo', 'cloudinary');
+            $uploadedFileUrl = Storage::disk('cloudinary')->url($path);
 
-            $validated['logo'] = $path;
+            $validated['logo'] = $uploadedFileUrl;
         }
 
         $config->update($validated);

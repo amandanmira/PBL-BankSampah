@@ -39,10 +39,9 @@ onMounted(() => {
     <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center md:items-start justify-between gap-10">
       <!-- Logo and Info -->
       <div class="flex flex-col md:flex-row items-center md:items-start gap-8 md:gap-16 w-full">
-        <div v-if="webConfig.logo" class="w-24 h-24 shrink-0 flex items-center justify-center bg-white/5 rounded-2xl p-2">
-          <img :src="`${axios.defaults.baseURL}/storage/${webConfig.logo}`" class="max-w-full max-h-full object-contain" alt="Logo" />
+        <div class="w-24 h-24 shrink-0 flex items-center justify-center bg-white/5 rounded-2xl p-2">
+          <img v-if="webConfig.logo" :src="webConfig.logo.startsWith('http') ? webConfig.logo : `${axios.defaults.baseURL}/storage/${webConfig.logo}`" class="max-w-full max-h-full object-contain" alt="Logo" />
         </div>
-        <div v-else class="font-black text-6xl tracking-tighter shrink-0 uppercase">ABS</div>
         
         <!-- Divider (Vertical on desktop) -->
         <div class="hidden md:block w-px h-32 bg-white/30"></div>

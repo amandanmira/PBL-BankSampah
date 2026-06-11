@@ -282,10 +282,9 @@ onMounted(() => {
         >
           <!-- Logo Icon -->
           <div :class="cn('flex items-center justify-center transition-all duration-300', isSidebarCollapsed ? 'w-14 h-14' : 'w-24 h-24 mb-4')">
-            <div v-if="webConfig.logo" class="w-full h-full p-1">
-              <img :src="`${axios.defaults.baseURL}/storage/${webConfig.logo}`" class="w-full h-full object-contain" alt="Logo" />
+            <div class="w-full h-full p-1">
+              <img v-if="webConfig.logo" :src="webConfig.logo.startsWith('http') ? webConfig.logo : `${axios.defaults.baseURL}/storage/${webConfig.logo}`" class="w-full h-full object-contain" alt="Logo" />
             </div>
-            <Icon v-else icon="material-symbols:recycling" :class="cn('text-[#4CAF50] transition-all duration-300', isSidebarCollapsed ? 'w-12 h-12' : 'w-20 h-20')" />
           </div>
 
           <!-- Logo Text -->
@@ -445,8 +444,7 @@ onMounted(() => {
       <div class="p-6 flex items-center justify-between">
         <div class="flex items-center gap-3">
           <div class="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center overflow-hidden shrink-0">
-            <img v-if="webConfig.logo" :src="`${axios.defaults.baseURL}/storage/${webConfig.logo}`" class="w-full h-full object-contain p-1" alt="Logo" />
-            <Icon v-else icon="material-symbols:recycling" class="w-7 h-7 text-[#4CAF50]" />
+            <img v-if="webConfig.logo" :src="webConfig.logo.startsWith('http') ? webConfig.logo : `${axios.defaults.baseURL}/storage/${webConfig.logo}`" class="w-full h-full object-contain p-1" alt="Logo" />
           </div>
           <div>
             <h2 class="text-sm font-black tracking-wide leading-none text-white">Bank Sampah</h2>

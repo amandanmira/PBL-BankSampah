@@ -132,7 +132,13 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>LOGO</h1>
+            @php $konfig = \App\Models\KonfigurasiWeb::first(); @endphp
+            @if($konfig && $konfig->logo)
+                @php
+                    $logoUrl = \Illuminate\Support\Str::startsWith($konfig->logo, 'http') ? $konfig->logo : url('storage/' . $konfig->logo);
+                @endphp
+                <img src="{{ $logoUrl }}" alt="Logo ABS" style="max-height: 50px; margin-bottom: 8px;">
+            @endif
             <h1>Aplikasi Bank Sampah</h1>
             <p>Ubah Sampah Jadi Berkah</p>
         </div>
