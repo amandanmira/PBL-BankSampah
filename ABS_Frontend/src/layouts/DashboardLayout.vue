@@ -63,7 +63,7 @@ const menuItems = computed(() => {
   }
   if (role.value === "pengepul") {
     return [
-      { name: "Profil", path: "/dashboard-pengepul/edit-profile", icon: "material-symbols:person-outline" },
+      
       { name: "Dashboard", path: "/dashboard-pengepul", icon: "material-symbols:grid-view-outline" },
       { name: "Beli Sampah", path: "/dashboard-pengepul/beli-sampah", icon: "material-symbols:shopping-bag-outline" },
       { name: "Keranjang", path: "/dashboard-pengepul/keranjang", icon: "material-symbols:shopping-cart-outline" },
@@ -72,7 +72,7 @@ const menuItems = computed(() => {
   }
   // Default to nasabah
   return [
-    { name: "Profil", path: "/dashboard-nasabah/edit-profile", icon: "material-symbols:person-outline" },
+    
     { name: "Dashboard", path: "/dashboard-nasabah", icon: "material-symbols:home-outline" },
     { name: "Katalog Sampah", path: "/dashboard-nasabah/katalog", icon: "material-symbols:menu-book-outline" },
     { name: "Request Jemput/Setor", path: "/dashboard-nasabah/request-penjemputan", icon: "material-symbols:local-shipping-outline" },

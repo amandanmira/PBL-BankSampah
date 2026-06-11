@@ -307,11 +307,8 @@ const handlePrintPdf = async () => {
 
 <template>
   <div class="space-y-6 relative animate-in fade-in duration-500">
-    <!-- Toolbar -->
     <div class="bg-white p-4 rounded-2xl shadow-sm border border-stone-100 flex flex-row gap-2 justify-between items-center overflow-x-auto">
-      <!-- Left Controls -->
       <div class="flex flex-row gap-2 w-auto shrink-0">
-        <!-- Search -->
         <div class="relative w-48 sm:w-56 flex items-center shrink-0">
           <Icon icon="material-symbols:search" class="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400 w-4 h-4" />
           <input
@@ -323,7 +320,6 @@ const handlePrintPdf = async () => {
           />
         </div>
 
-        <!-- Dropdown Group By (Toggleable) -->
         <button
           @click="isGroupedByGudang = !isGroupedByGudang"
           :class="[
@@ -335,11 +331,9 @@ const handlePrintPdf = async () => {
           Group by Gudang
         </button>
 
-        <!-- Filter Button -->
         <button @click="openFilterModal" class="relative px-3 py-1.5 bg-stone-50 border border-stone-200 rounded-lg text-xs font-bold text-stone-600 hover:bg-stone-100 transition-colors flex items-center gap-1.5 justify-center shadow-sm shrink-0 cursor-pointer">
           <Icon icon="material-symbols:filter-alt-outline" class="w-3.5 h-3.5" />
           Filter
-          <!-- Active Indicator Dot -->
           <span v-if="hasActiveFilters" class="absolute -top-1 -right-1 flex h-3 w-3">
             <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#4A7043] opacity-75"></span>
             <span class="relative inline-flex rounded-full h-3 w-3 bg-[#4A7043] border border-white"></span>
@@ -347,7 +341,6 @@ const handlePrintPdf = async () => {
         </button>
       </div>
 
-      <!-- Right Controls -->
       <div class="flex flex-row gap-2 w-auto shrink-0">
         <button @click="openLaporanModal" :disabled="isLoading" class="px-3 py-1.5 bg-[#4A7043] hover:bg-[#3D5A35] text-white rounded-lg text-xs font-bold transition-colors flex items-center gap-1.5 shadow-sm shrink-0 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
           <Icon icon="material-symbols:description-outline" class="w-3.5 h-3.5" />
@@ -361,7 +354,6 @@ const handlePrintPdf = async () => {
       </div>
     </div>
 
-    <!-- Active Filter Chips Indicator Section -->
     <div v-if="hasActiveFilters" class="flex flex-wrap items-center gap-2 px-1">
       <span class="text-[11px] font-bold text-stone-500 mr-1">Filter Aktif:</span>
       <div v-if="appliedFilter.gudang && appliedFilter.gudang !== 'Semua Gudang'" class="inline-flex items-center gap-1.5 px-3 py-1 bg-[#F5F9F5] text-[#3D5A35] rounded-full text-[11px] font-bold border border-[#4A7043]/20 shadow-sm transition-all hover:bg-[#E9F5E9]">
@@ -393,9 +385,7 @@ const handlePrintPdf = async () => {
       </button>
     </div>
 
-    <!-- Table Container -->
     <div class="bg-white rounded-2xl shadow-sm border border-stone-100 overflow-hidden">
-      <!-- Skeleton Loader -->
       <div v-if="isLoading" class="p-6">
         <div class="grid grid-cols-8 gap-4 mb-4 pb-4 border-b border-stone-100">
           <div v-for="i in 8" :key="`th-${i}`" class="h-3 bg-stone-200 rounded animate-pulse"></div>
@@ -421,7 +411,6 @@ const handlePrintPdf = async () => {
             </tr>
           </thead>
 
-          <!-- GROUPED VIEW -->
           <tbody v-if="isGroupedByGudang" class="divide-y divide-stone-100">
             <template v-if="filteredGroupedData.length === 0">
               <tr>
@@ -429,7 +418,6 @@ const handlePrintPdf = async () => {
               </tr>
             </template>
             <template v-else v-for="(group, idx) in filteredGroupedData" :key="idx">
-              <!-- Group Header Row -->
               <tr class="bg-[#E9F5E9] border-b border-stone-100">
                 <td :colspan="isGroupedByGudang ? 7 : 6" class="py-3 px-6">
                   <div class="flex justify-between items-center w-full">
@@ -438,7 +426,6 @@ const handlePrintPdf = async () => {
                   </div>
                 </td>
               </tr>
-              <!-- Group Rows -->
               <tr v-for="(row, rowIdx) in group.rows" :key="`${idx}-${rowIdx}`" class="hover:bg-stone-50 transition-colors group">
                 <td class="py-4 px-6 text-sm text-stone-600 font-medium whitespace-nowrap">{{ row.tanggal }}</td>
                 <td class="py-4 px-6 text-sm text-stone-800 font-medium whitespace-nowrap">{{ row.role }}</td>
@@ -470,7 +457,6 @@ const handlePrintPdf = async () => {
             </template>
           </tbody>
 
-          <!-- FLAT VIEW -->
           <tbody v-else class="divide-y divide-stone-100">
             <template v-if="filteredFlatData.length === 0">
               <tr>
@@ -509,7 +495,6 @@ const handlePrintPdf = async () => {
       </div>
     </div>
 
-    <!-- Pagination -->
     <div v-if="!isLoading" class="bg-white p-4 rounded-2xl shadow-sm border border-stone-100 flex flex-col sm:flex-row justify-between items-center gap-4">
       <div class="flex items-center gap-3">
         <span class="text-sm font-medium text-stone-500">Tampilkan</span>
@@ -527,7 +512,6 @@ const handlePrintPdf = async () => {
     </div>
   </div>
 
-  <!-- Filter Modal -->
   <Teleport to="body">
   <div v-if="isFilterModalOpen" class="fixed inset-0 z-[100] flex items-center justify-center p-4">
     <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" @click="isFilterModalOpen = false"></div>
@@ -594,7 +578,6 @@ const handlePrintPdf = async () => {
   </div>
   </Teleport>
 
-  <!-- Laporan Modal -->
   <Teleport to="body">
   <div v-if="isLaporanModalOpen" class="fixed inset-0 z-[100] flex items-center justify-center p-4">
     <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" @click="isLaporanModalOpen = false"></div>
@@ -776,7 +759,6 @@ const handlePrintPdf = async () => {
   </div>
   </Teleport>
 
-  <!-- Detail Modal -->
   <Teleport to="body">
   <div v-if="isDetailModalOpen" class="fixed inset-0 z-[60] flex items-center justify-center p-4">
     <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" @click="isDetailModalOpen = false"></div>
@@ -815,19 +797,24 @@ const handlePrintPdf = async () => {
           </div>
           <div>
             <p class="text-[10px] font-bold text-stone-400 uppercase tracking-wider mb-1">{{ selectedDetailRow?.role === 'Pengepul' ? 'Pengepul' : 'Nasabah' }}</p>
-            <p class="text-sm font-bold text-stone-800">{{ selectedDetailRow?.nasabah }}</p>
+            <p class="text-sm font-bold text-stone-800">{{ selectedDetailRow?.nasabah?.nama || selectedDetailRow?.nama_nasabah || selectedDetailRow?.nasabah || '-' }}</p>
           </div>
           <div>
             <p class="text-[10px] font-bold text-stone-400 uppercase tracking-wider mb-1">Gudang</p>
-            <p class="text-sm font-bold text-stone-800">{{ selectedDetailRow?.gudang }}</p>
+            <p class="text-sm font-bold text-stone-800">{{ selectedDetailRow?.gudang?.nama || selectedDetailRow?.nama_gudang || selectedDetailRow?.gudang || '-' }}</p>
           </div>
           <div>
             <p class="text-[10px] font-bold text-stone-400 uppercase tracking-wider mb-1">Petugas</p>
-            <p class="text-sm font-bold text-stone-800">{{ selectedDetailRow?.petugas }}</p>
+            <p class="text-sm font-bold text-stone-800">
+              {{ selectedDetailRow?.petugas?.nama || selectedDetailRow?.nama_petugas || selectedDetailRow?.petugas || '-' }}
+            </p>
           </div>
           <div>
             <p class="text-[10px] font-bold text-stone-400 uppercase tracking-wider mb-1">Tukang Penjemput</p>
-            <p class="text-sm font-bold text-stone-800">{{ selectedDetailRow?.tukang }}</p>
+            <p class="text-sm font-bold text-stone-800">
+              <span v-if="selectedDetailRow?.sumber !== 'Jemput'" class="text-stone-400 italic text-xs font-medium">Bukan Penjemputan</span>
+              <span v-else>{{ selectedDetailRow?.tukang?.nama || selectedDetailRow?.nama_tukang || selectedDetailRow?.tukang || '-' }}</span>
+            </p>
           </div>
         </div>
       </div>

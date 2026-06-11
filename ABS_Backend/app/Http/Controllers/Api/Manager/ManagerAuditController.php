@@ -22,7 +22,8 @@ class ManagerAuditController extends Controller
             'sampah.itemSampah',
             'tukang',
             'transaksi.petugas.gudang',
-            'penjemputan.gudang'
+            'penjemputan.gudang',
+            'penjemputan.tukang' // 🔥 Fix: Tambahkan relasi tukang dari penjemputan
         ])->where(function ($q) {
             $q->whereHas('penjemputan', function($q2) {
                 $q2->whereIn('status', ['selesai', 'tolak', 'batal']);
@@ -98,7 +99,8 @@ class ManagerAuditController extends Controller
                 'sampah.itemSampah',
                 'tukang',
                 'transaksi.petugas.gudang',
-                'penjemputan.gudang'
+                'penjemputan.gudang',
+                'penjemputan.tukang' // 🔥 Fix: Tambahkan relasi tukang dari penjemputan
             ])->where(function ($q) {
                 $q->whereHas('penjemputan', function($q2) {
                     $q2->whereIn('status', ['selesai']);
@@ -165,7 +167,8 @@ class ManagerAuditController extends Controller
                     'sumber' => $isJemput ? 'Jemput' : 'Setor Manual',
                     'status' => 'Selesai',
                     'petugas' => optional(optional($p->transaksi)->petugas)->nama ?? '-',
-                    'tukang' => $p->tukang->nama ?? '-',
+                    // 🔥 Fix: Tampilkan tukang dari penjemputan jika tukang dari penimbangan kosong
+                    'tukang' => optional($p->tukang)->nama ?? optional(optional($p->penjemputan)->tukang)->nama ?? '-',
                     'rawDate' => $p->created_at,
                 ];
             });
@@ -225,7 +228,8 @@ class ManagerAuditController extends Controller
             $pengepulQuery = \App\Models\TransaksiPengepul::with([
                 'pengepul',
                 'detailTransaksi.sampah.itemSampah',
-                'detailTransaksi.sampah.gudang'
+                'detailTransaksi.sampah.gudang',
+                'petugas' // 🔥 Fix: Tambahkan relasi petugas di sini
             ])->whereIn('status', ['selesai', 'tolak', 'batal']);
 
             if ($gudang && $gudang !== 'Semua Gudang') {
@@ -279,7 +283,7 @@ class ManagerAuditController extends Controller
                         'berat' => (float)$d->berat,
                         'sumber' => 'Pengepul',
                         'status' => $statusStr,
-                        'petugas' => '-',
+                        'petugas' => optional($t->petugas)->nama ?? '-', // 🔥 Fix: Ambil nama petugas
                         'tukang' => '-',
                         'rawDate' => $t->created_at,
                     ]);
