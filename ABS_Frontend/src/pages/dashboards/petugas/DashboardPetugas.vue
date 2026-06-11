@@ -3,11 +3,13 @@ import { ref, onMounted, computed, inject } from "vue";
 import { Icon } from "@iconify/vue";
 import DashboardLayout from "@/layouts/DashboardLayout.vue";
 import { checkRole } from "@/utils";
+import { useRouter } from "vue-router";
 
 // Security check
 checkRole("petugas");
 
 const axios = inject("axios");
+const router = useRouter(); 
 const loading = ref(true);
 
 const user = computed(() => {
@@ -33,21 +35,19 @@ const reportSummary = ref({
 });
 
 const activities = ref([]);
-const attentionItems = ref([]);
+const attentionItems = ref([]); // Langsung gunakan ref biasa
 
 const today = computed(() => {
   const options = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' };
   return new Date().toLocaleDateString('id-ID', options);
 });
 
-// FUNGSI BARU: Menghitung URL tujuan dengan sangat aman
+// Menghitung URL tujuan dengan sangat aman
 const getRouteTarget = (item) => {
   try {
-    // 1. Ambil ID murni secara aman (Cegah error jika data kosong)
     const idStr = String(item.id || '');
     const searchParam = idStr.includes('-') ? idStr.split('-').pop().replace(/^0+/, '') : idStr;
     
-    // 2. Tentukan tab yang aktif berdasarkan status
     const stat = String(item.status || '').toLowerCase();
 
     if (item.type === 'pickup') {
@@ -72,20 +72,42 @@ const getRouteTarget = (item) => {
     }
   } catch (error) {
     console.error("Routing error:", error);
-    return { path: '/dashboard-petugas' }; // Fallback aman
+    return { path: '/dashboard-petugas' }; 
   }
 };
 
 const fetchData = async () => {
   loading.value = true;
   try {
-    const response = await axios.get("/api/petugas/dashboard-stats");
-    const data = response.data;
+    // 1. Ambil data stats dashboard dari backend
+    const responseStats = await axios.get("/api/petugas/dashboard-stats");
+    const data = responseStats.data;
     
+    // 2. TRIK JITU: Ambil data penjemputan asli yang SUDAH DIFILTER berdasarkan gudang_id petugas oleh sistem
+    const responsePenjemputan = await axios.get("/api/petugas/penjemputan");
+    const validPenjemputans = responsePenjemputan.data.data || [];
+    
+    // Kumpulkan hanya ID penjemputan yang sah untuk gudang tempat petugas ini bekerja
+    const validPickupIds = validPenjemputans.map(p => p.penjemputan_id);
+
+    // 3. Filter attention_items secara manual: Buang request yang bukan milik gudang petugas ini
+    const filteredAttention = data.attention_items.filter(item => {
+        if (item.type === 'pickup') {
+            // Ekstrak angka murni dari string seperti "REQ-019" menjadi 19
+            const idMurni = parseInt(item.id.replace(/\D/g, ''), 10);
+            
+            // Hanya loloskan jika ID tersebut ada di dalam daftar gudang petugas ini
+            return validPickupIds.includes(idMurni);
+        }
+        return true; // Biarkan tipe transaksi lain (seperti penarikan) tetap tampil
+    });
+    
+    // 4. Masukkan data yang sudah disaring murni ke dalam state
     stats.value = data.stats;
-    attentionItems.value = data.attention_items;
+    attentionItems.value = filteredAttention;
     activities.value = data.activities;
     reportSummary.value = data.report_summary;
+    
   } catch (err) {
     console.error("Failed to fetch petugas dashboard stats:", err);
   } finally {
