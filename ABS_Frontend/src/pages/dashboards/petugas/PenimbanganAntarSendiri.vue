@@ -104,7 +104,6 @@
             </div>
           </div>
 
-          <!-- Hover Indicator -->
           <div class="absolute bottom-4 opacity-0 group-hover:opacity-100 transition-all transform translate-y-2 group-hover:translate-y-0">
             <Icon icon="material-symbols:keyboard-arrow-down-rounded" class="w-6 h-6 text-[#4A7043] animate-bounce" />
           </div>
@@ -129,11 +128,6 @@
               <span class="w-20 text-[#4A7043] font-black">No. HP</span> 
               <span class="w-4">:</span> 
               <span class="text-stone-800 font-black">{{ selectedTukangData?.no_telp || '-' }}</span>
-            </div>
-            <div class="flex items-center text-xs font-bold text-stone-600">
-              <span class="w-20 text-[#4A7043] font-black">Email</span> 
-              <span class="w-4">:</span> 
-              <span class="text-stone-800 font-black">{{ selectedTukangData?.email || '-' }}</span>
             </div>
           </div>
         </div>
@@ -162,18 +156,34 @@
             <div class="flex flex-col md:flex-row gap-6">
               <!-- Upload Foto -->
               <div class="w-full md:w-1/3">
-                <p class="text-[11px] font-black text-stone-800 mb-3 text-center uppercase tracking-widest">Upload Foto Sampah</p>
-                <div @click="triggerFileInput(index)" class="w-full aspect-square border-2 border-dashed border-[#8CA68D] rounded-3xl flex flex-col items-center justify-center cursor-pointer hover:bg-green-50 transition-all relative overflow-hidden group">
+                <p class="text-[11px] font-black text-stone-800 mb-3 text-center uppercase tracking-widest">
+                  Upload Foto Sampah <span class="text-red-500">*</span>
+                </p>
+                <div
+                  @click="triggerFileInput(index)"
+                  :class="[
+                    'w-full aspect-square border-2 border-dashed rounded-3xl',
+                    'flex flex-col items-center justify-center cursor-pointer',
+                    'hover:bg-green-50 transition-all relative overflow-hidden group',
+                    row.foto ? 'border-green-400' : 'border-red-300'
+                  ]"
+                >
                   <img v-if="row.fotoPreview" :src="row.fotoPreview" class="absolute inset-0 w-full h-full object-cover z-10" />
                   <div v-if="row.fotoPreview" class="absolute inset-0 bg-black/40 z-20 opacity-0 group-hover:opacity-100 transition-all flex items-center justify-center">
                     <Icon icon="material-symbols:edit-outline" class="w-8 h-8 text-white" />
                   </div>
-                  <div class="flex flex-col items-center gap-2 text-[#4A7043] group-hover:scale-110 transition-transform">
+                  <div v-if="!row.fotoPreview" class="flex flex-col items-center gap-2 group-hover:scale-110 transition-transform" :class="row.foto ? 'text-green-500' : 'text-red-400'">
                     <Icon icon="material-symbols:upload-2" class="w-10 h-10" />
                   </div>
                   <input :id="'file-input-'+index" type="file" class="hidden" accept="image/*" @change="handleFileUpload($event, index)" />
                 </div>
-                <p class="text-[10px] text-center text-stone-400 mt-3 font-bold">Klik untuk upload foto sampah<br>Format: JPG, PNG (Max 5MB)</p>
+                <p
+                  class="text-[10px] text-center mt-3 font-bold"
+                  :class="row.foto ? 'text-green-500' : 'text-red-400'"
+                >
+                  {{ row.foto ? '✓ Foto terupload' : '⚠ Foto wajib diisi' }}<br>
+                  <span class="text-stone-400">Format: JPG, PNG (Max 5MB)</span>
+                </p>
               </div>
 
               <!-- Inputs -->
@@ -223,6 +233,12 @@
           </div>
         </div>
 
+        <!-- Peringatan global jika ada foto yang belum diisi -->
+        <div v-if="formRows.some(r => r.foto === null)" class="mt-4 bg-red-50 border border-red-200 rounded-2xl p-4 flex items-center gap-3">
+          <Icon icon="material-symbols:warning-outline" class="w-5 h-5 text-red-500 shrink-0" />
+          <p class="text-xs font-black text-red-500">Semua baris wajib memiliki foto sebelum dapat melanjutkan.</p>
+        </div>
+
         <div class="mt-6 bg-[#4A7043] rounded-2xl p-6 flex justify-between items-center text-white shadow-lg">
           <div>
             <p class="text-white/70 text-xs font-bold uppercase tracking-widest">Total Berat</p>
@@ -237,7 +253,7 @@
 
       <div class="flex gap-4">
         <button @click="step = 1" class="flex-1 py-4 rounded-2xl bg-stone-200 text-stone-600 font-black hover:bg-stone-300 transition-all">Batal</button>
-        <button @click="goToPreview" :disabled="!isFormValid" class="flex-[2] py-4 rounded-2xl bg-[#4A7043] text-white font-black hover:bg-[#3D5C37] shadow-lg disabled:opacity-50 transition-all flex items-center justify-center gap-2">
+        <button @click="goToPreview" :disabled="!isFormValid" class="flex-[2] py-4 rounded-2xl bg-[#4A7043] text-white font-black hover:bg-[#3D5C37] shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2">
           Lanjut ke Konfirmasi <Icon icon="material-symbols:arrow-forward" class="w-5 h-5" />
         </button>
       </div>
@@ -283,7 +299,6 @@
             <div class="flex-1 space-y-2">
               <div class="flex items-center text-xs font-bold text-stone-500"><span class="w-20 text-[#4A7043] font-black uppercase tracking-widest">Nama</span> <span class="w-4">:</span> <span class="text-stone-800 font-black">{{ selectedTukangData?.nama || '-' }}</span></div>
               <div class="flex items-center text-xs font-bold text-stone-500"><span class="w-20 text-[#4A7043] font-black uppercase tracking-widest">No. HP</span> <span class="w-4">:</span> <span class="text-stone-800 font-black">{{ selectedTukangData?.no_telp || '-' }}</span></div>
-              <div class="flex items-center text-xs font-bold text-stone-500"><span class="w-20 text-[#4A7043] font-black uppercase tracking-widest">Email</span> <span class="w-4">:</span> <span class="text-stone-800 font-black">{{ selectedTukangData?.email || '-' }}</span></div>
             </div>
           </div>
         </div>
@@ -493,10 +508,6 @@
                   <p class="text-[10px] font-black text-stone-400 uppercase tracking-widest mb-0.5">No. HP:</p>
                   <p class="text-sm font-black text-stone-600">{{ worker.no_telp }}</p>
                 </div>
-                <div>
-                  <p class="text-[10px] font-black text-stone-400 uppercase tracking-widest mb-0.5">Email:</p>
-                  <p class="text-sm font-bold text-stone-400 truncate max-w-[150px]">{{ worker.email || '-' }}</p>
-                </div>
               </div>
             </div>
           </div>
@@ -520,19 +531,19 @@ import { useRouter } from "vue-router";
 import DashboardLayout from "@/layouts/DashboardLayout.vue";
 import { Icon } from "@iconify/vue";
 
-const axios = inject('axios'); // Gunakan axios global
+const axios = inject('axios');
 const router = useRouter();
 
 const step = ref(1);
 const listNasabah = ref([]);
-const selectedNasabah = ref(""); 
+const selectedNasabah = ref("");
 const selectedNasabahData = ref(null);
 const searchQuery = ref("");
 
 const listKategori = ref([]);
 const listSampah = ref([]);
-const listTukang = ref([]); 
-const selectedTukang = ref(""); 
+const listTukang = ref([]);
+const selectedTukang = ref("");
 const selectedTukangData = ref(null);
 const isWorkerModalOpen = ref(false);
 
@@ -598,7 +609,6 @@ const compressImage = (file) => {
               resolve(file);
               return;
             }
-            
             if (blob.size > 1024 * 1024 && q > 0.3) {
               checkAndCompress(q - 0.15);
             } else {
@@ -671,15 +681,15 @@ const formatRupiah = (angka) => {
 const formatDate = (dateString) => {
   if (!dateString) return '-';
   const date = new Date(dateString);
-  return date.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }) + ', ' + 
+  return date.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }) + ', ' +
          date.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
 };
 
 const filteredNasabahList = computed(() => {
   if (!searchQuery.value) return listNasabah.value;
   const lowerQuery = searchQuery.value.toLowerCase();
-  return listNasabah.value.filter(n => 
-    (n.nama && n.nama.toLowerCase().includes(lowerQuery)) || 
+  return listNasabah.value.filter(n =>
+    (n.nama && n.nama.toLowerCase().includes(lowerQuery)) ||
     `NSB-${String(n.nasabah_id).padStart(3, '0')}`.toLowerCase().includes(lowerQuery)
   );
 });
@@ -691,8 +701,15 @@ const selectNasabahAndProceed = (nasabah) => {
   window.scrollTo({ top: 0, behavior: 'smooth' });
 };
 
+// ============================================================
+// PERBAIKAN UTAMA: isFormValid sekarang cek foto !== null
+// ============================================================
 const isFormValid = computed(() => {
-  const validItems = formRows.value.filter(row => row.sampah_id !== "" && row.berat_timbang > 0);
+  const validItems = formRows.value.filter(row =>
+    row.sampah_id !== "" &&
+    row.berat_timbang > 0 &&
+    row.foto !== null
+  );
   return validItems.length === formRows.value.length && validItems.length > 0 && selectedTukang.value !== "";
 });
 
@@ -713,7 +730,6 @@ const goToPreview = () => {
   }
 };
 
-// API CALLS (Menggunakan URL Relatif)
 const fetchListNasabah = async () => {
   try {
     const response = await axios.get("/api/petugas/list-nasabah");
@@ -748,7 +764,7 @@ const submitPenimbangan = async () => {
     const formData = new FormData();
     formData.append("nasabah_id", selectedNasabah.value);
     formData.append("tukang_id", selectedTukang.value);
-    
+
     formRows.value.forEach((item, index) => {
       formData.append(`items[${index}][sampah_id]`, item.sampah_id);
       formData.append(`items[${index}][berat_timbang]`, item.berat_timbang);
@@ -777,8 +793,8 @@ const resetToStart = () => {
 };
 
 onMounted(() => {
-  fetchListNasabah(); 
-  fetchListKategori(); 
+  fetchListNasabah();
+  fetchListKategori();
   fetchListSampah();
   fetchListTukang();
 });

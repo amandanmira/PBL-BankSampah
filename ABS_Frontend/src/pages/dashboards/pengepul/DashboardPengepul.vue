@@ -311,6 +311,10 @@ const chartOptions = computed(() => {
     },
     yaxis: {
       labels: {
+        formatter: (val) => {
+          if (val === undefined || val === null) return '';
+          return val.toLocaleString('id-ID', { minimumFractionDigits: 0, maximumFractionDigits: 1 }) + ' kg';
+        },
         style: { colors: '#9CA3AF' }
       }
     },
@@ -322,7 +326,10 @@ const chartOptions = computed(() => {
     tooltip: {
       theme: 'light',
       y: {
-        formatter: (val) => `${val.toFixed(2)} kg`
+        formatter: (val) => {
+          if (val === undefined || val === null) return '';
+          return val.toLocaleString('id-ID', { minimumFractionDigits: 0, maximumFractionDigits: 2 }) + ' kg';
+        }
       }
     }
   }

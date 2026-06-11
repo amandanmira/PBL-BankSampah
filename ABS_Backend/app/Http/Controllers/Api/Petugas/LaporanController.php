@@ -455,7 +455,13 @@ class LaporanController extends Controller
         )
         ->groupBy('nama_bank')
         ->orderByDesc('total_nominal')
-        ->get();
+        ->get()
+        ->map(function ($item) {
+            if (!$item->nama_bank) {
+                $item->nama_bank = 'Lainnya';
+            }
+            return $item;
+        });
 
         // 2. Table: Gudang details (alamat gudang join dari petugas)
         $gudangReportQuery = DB::table('gudangs')
@@ -708,19 +714,30 @@ class LaporanController extends Controller
         $setorManualCount = $allTransactions->where('sumber', 'Setor Manual')->count();
         $setorManualWeight = $mappedCompleted->where('sumber', 'Setor Manual')->sum('berat');
 
-        // Distribusi Jenis Sampah
+        // Distribusi Jenis Sampah (based on current stock)
+        $stockQuery = \App\Models\Sampah::with('itemSampah')->where('stok', '>', 0);
+        if ($gudangId) {
+            $stockQuery->where('gudang_id', $gudangId);
+        }
+        $stocks = $stockQuery->get();
+
+        $groupedStocks = $stocks->groupBy(function ($s) {
+            return optional($s->itemSampah)->nama ?? 'Lainnya';
+        });
+
+        $totalStok = $stocks->sum('stok');
+
         $jenisSampahList = [];
-        $categories = ['Organik', 'Plastik PET', 'Kertas', 'Logam'];
-        $groupedByJenis = $mappedCompleted->groupBy('jenis');
-        foreach ($categories as $cat) {
-            $catWeight = isset($groupedByJenis[$cat]) ? $groupedByJenis[$cat]->sum('berat') : 0.0;
-            $catPercentage = $totalBerat > 0 ? ($catWeight / $totalBerat) * 100 : 0.0;
+        foreach ($groupedStocks as $name => $items) {
+            $berat = $items->sum('stok');
+            $percentage = $totalStok > 0 ? ($berat / $totalStok) * 100 : 0.0;
             $jenisSampahList[] = [
-                'nama' => $cat,
-                'berat' => $catWeight,
-                'persentase' => $catPercentage
+                'nama' => $name,
+                'berat' => (float)$berat,
+                'persentase' => (float)$percentage
             ];
         }
+
         usort($jenisSampahList, function($a, $b) {
             return $b['berat'] <=> $a['berat'];
         });
@@ -792,16 +809,25 @@ class LaporanController extends Controller
         }
         $transaksiPengepuls = $transaksiPengepulQuery->get();
 
-        $penjualanPengepulList = $transaksiPengepuls->map(function ($t) {
-            $itemNames = $t->detailTransaksi->map(function($d) {
+        $penjualanPengepulList = $transaksiPengepuls->map(function ($t) use ($gudangId) {
+            $details = $t->detailTransaksi;
+            if ($gudangId) {
+                $details = $details->filter(function($d) use ($gudangId) {
+                    return optional($d->sampah)->gudang_id == $gudangId;
+                });
+            }
+
+            $itemNames = $details->map(function($d) {
                 return optional(optional($d->sampah)->itemSampah)->nama;
             })->filter()->unique()->implode(', ');
 
-            $totalBerat = $t->detailTransaksi->sum('berat');
-            $diterima = $t->detailTransaksi->sum('harga');
-            $keuntungan = $t->detailTransaksi->sum(function($d) {
+            $totalBerat = $details->sum('berat');
+            $diterima = $details->sum(function($d) {
+                return $d->harga * $d->berat;
+            });
+            $keuntungan = $details->sum(function($d) {
                 $hargaBeli = optional(optional($d->sampah)->itemSampah)->harga_beli ?? 0.0;
-                return $d->harga - ($d->berat * $hargaBeli);
+                return ($d->harga - $hargaBeli) * $d->berat;
             });
 
             return [
