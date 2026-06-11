@@ -26,7 +26,7 @@ const activeDetailTab = ref('jemput') // 'jemput' or 'timbang'
 
 const timbangPhotos = computed(() => {
   if (!selectedItem.value || !selectedItem.value.penimbangan) return []
-  return selectedItem.value.penimbangan.map(p => p.foto).filter(f => f)
+  return selectedItem.value.penimbangan.map((p) => p.foto).filter((f) => f)
 })
 
 const openDetail = (item) => {
@@ -85,14 +85,16 @@ const fetchTransactions = async () => {
     // Auto-focus logic
     if (route.query.highlight_id) {
       const highlightId = parseInt(route.query.highlight_id)
-      const targetTransaction = transactions.value.find(t => t.penjemputan_id === highlightId)
-      
+      const targetTransaction = transactions.value.find((t) => t.penjemputan_id === highlightId)
+
       if (targetTransaction) {
         activeMainTab.value = 'jemput'
-        
+
         if (targetTransaction.status === 'dijemput' || targetTransaction.status === 'perlu_input') {
           activeStatusFilter.value = 'dijemput'
-        } else if (['pending', 'menunggu_persetujuan', 'jadwal_ditolak'].includes(targetTransaction.status)) {
+        } else if (
+          ['pending', 'menunggu_persetujuan', 'jadwal_ditolak'].includes(targetTransaction.status)
+        ) {
           activeStatusFilter.value = 'pending'
         } else {
           activeStatusFilter.value = targetTransaction.status
@@ -103,13 +105,18 @@ const fetchTransactions = async () => {
           if (cardElement) {
             // Scroll to card
             cardElement.scrollIntoView({ behavior: 'smooth', block: 'center' })
-            
+
             // Add temporary highlight ring
             cardElement.classList.add('ring-4', 'ring-[#4A7043]', 'ring-offset-2', 'animate-pulse')
-            
+
             // Remove highlight after 5 seconds
             setTimeout(() => {
-              cardElement.classList.remove('ring-4', 'ring-[#4A7043]', 'ring-offset-2', 'animate-pulse')
+              cardElement.classList.remove(
+                'ring-4',
+                'ring-[#4A7043]',
+                'ring-offset-2',
+                'animate-pulse',
+              )
             }, 5000)
           }
         })
@@ -243,7 +250,7 @@ const rejectSchedule = async (id) => {
     inputLabel: 'Alasan penolakan',
     inputPlaceholder: 'Tulis alasan Anda menolak jadwal ini...',
     inputAttributes: {
-      'aria-label': 'Tulis alasan Anda menolak jadwal ini'
+      'aria-label': 'Tulis alasan Anda menolak jadwal ini',
     },
     showCancelButton: true,
     confirmButtonColor: '#d33',
@@ -254,13 +261,13 @@ const rejectSchedule = async (id) => {
       if (!value) {
         return 'Anda wajib mengisi alasan penolakan!'
       }
-    }
+    },
   })
 
   if (reason) {
     try {
       await axios.put(`/api/nasabah/penjemputan/${id}/tolak`, {
-        alasan_tolak: reason
+        alasan_tolak: reason,
       })
       Swal.fire('Ditolak!', 'Jadwal penjemputan telah ditolak.', 'success')
       fetchTransactions()
@@ -533,22 +540,35 @@ onMounted(() => {
                           item.gudang?.alamat || 'Alamat gudang tidak diset'
                         }}</template>
                         <template v-else>{{
-                          item.penimbangan?.[0]?.tukang?.gudang?.alamat || 'Alamat gudang tidak diset'
+                          item.penimbangan?.[0]?.tukang?.gudang?.alamat ||
+                          'Alamat gudang tidak diset'
                         }}</template>
                       </span>
                     </div>
                   </div>
 
-                  <div v-if="item.status === 'menunggu_persetujuan'" class="bg-indigo-50 rounded-xl p-3 border border-indigo-100 flex items-start gap-2">
+                  <div
+                    v-if="item.status === 'menunggu_persetujuan'"
+                    class="bg-indigo-50 rounded-xl p-3 border border-indigo-100 flex items-start gap-2"
+                  >
                     <Icon icon="material-symbols:info" class="w-5 h-5 text-indigo-500 shrink-0" />
-                    <p class="text-xs font-bold text-indigo-700">Silahkan setujui jadwal penjemputan Anda untuk diproses lebih lanjut.</p>
+                    <p class="text-xs font-bold text-indigo-700">
+                      Silahkan setujui jadwal penjemputan Anda untuk diproses lebih lanjut.
+                    </p>
                   </div>
-                  
-                  <div v-if="item.status === 'jadwal_ditolak'" class="bg-red-50 rounded-xl p-3 border border-red-100 flex items-start gap-2">
+
+                  <div
+                    v-if="item.status === 'jadwal_ditolak'"
+                    class="bg-red-50 rounded-xl p-3 border border-red-100 flex items-start gap-2"
+                  >
                     <Icon icon="material-symbols:warning" class="w-5 h-5 text-red-500 shrink-0" />
                     <div>
-                       <p class="text-xs font-bold text-red-700">Jadwal Anda tolak. Menunggu petugas mengatur ulang jadwal.</p>
-                       <p class="text-[10px] font-medium text-red-600 mt-0.5">Alasan: {{ item.ket_status }}</p>
+                      <p class="text-xs font-bold text-red-700">
+                        Jadwal Anda tolak. Menunggu petugas mengatur ulang jadwal.
+                      </p>
+                      <p class="text-[10px] font-medium text-red-600 mt-0.5">
+                        Alasan: {{ item.ket_status }}
+                      </p>
                     </div>
                   </div>
 
@@ -556,16 +576,26 @@ onMounted(() => {
                   <div class="flex gap-3 pt-2">
                     <button
                       @click="openDetail(item)"
-                      :class="cn(
-                        'flex-1 py-3 rounded-2xl font-bold text-sm transition-all flex items-center justify-center gap-2 shadow-lg active:scale-[0.98]',
-                        item.status === 'menunggu_persetujuan' ? 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-indigo-600/20' : 'bg-[#4A7043] hover:bg-[#3D5C37] text-white shadow-[#4A7043]/20'
-                      )"
+                      :class="
+                        cn(
+                          'flex-1 py-3 rounded-2xl font-bold text-sm transition-all flex items-center justify-center gap-2 shadow-lg active:scale-[0.98]',
+                          item.status === 'menunggu_persetujuan'
+                            ? 'bg-[#4A7043] hover:bg-[#3D5C37] text-white shadow-[#4A7043]/20'
+                            : 'bg-[#4A7043] hover:bg-[#3D5C37] text-white shadow-[#4A7043]/20',
+                        )
+                      "
                     >
-                      <span>{{ item.status === 'menunggu_persetujuan' ? 'Lihat Konfirmasi Jadwal' : 'Lihat Detail' }}</span>
+                      <span>{{
+                        item.status === 'menunggu_persetujuan'
+                          ? 'Lihat Konfirmasi Jadwal'
+                          : 'Lihat Detail'
+                      }}</span>
                       <Icon icon="material-symbols:arrow-right-alt" class="w-5 h-5" />
                     </button>
                     <button
-                      v-if="['pending', 'menunggu_persetujuan', 'jadwal_ditolak'].includes(item.status)"
+                      v-if="
+                        ['pending', 'menunggu_persetujuan', 'jadwal_ditolak'].includes(item.status)
+                      "
                       @click="cancelTransaction(item.penjemputan_id)"
                       class="px-6 border-2 border-red-100 text-red-500 hover:bg-red-50 rounded-2xl font-bold text-sm transition-all flex items-center justify-center gap-2 active:scale-[0.98]"
                     >
@@ -595,39 +625,47 @@ onMounted(() => {
       <div
         class="relative bg-[#F7F7F5] w-full max-w-md max-h-[90vh] overflow-y-auto rounded-[2rem] shadow-2xl animate-in zoom-in-95 duration-300 no-scrollbar flex flex-col"
       >
-        
         <!-- Header (Selesai status has green header, others have white header) -->
         <div
-          :class="cn(
-            'px-6 py-4 flex items-center justify-between sticky top-0 z-10 shadow-sm border-b shrink-0',
-            selectedItem.status === 'selesai' 
-              ? 'bg-[#4A7043] border-white/10 text-white' 
-              : 'bg-white border-stone-100 text-stone-800'
-          )"
+          :class="
+            cn(
+              'px-6 py-4 flex items-center justify-between sticky top-0 z-10 shadow-sm border-b shrink-0',
+              selectedItem.status === 'selesai'
+                ? 'bg-[#4A7043] border-white/10 text-white'
+                : 'bg-white border-stone-100 text-stone-800',
+            )
+          "
         >
           <div class="flex items-center gap-3">
             <h2 class="text-base font-bold">
               {{ selectedItem.status === 'selesai' ? 'Detail Transaksi' : 'Detail Request' }}
             </h2>
             <span v-if="selectedItem.status === 'selesai'" class="text-xs text-white/70">
-              #{{ selectedItem.penjemputan_id ? 'JMP' : 'TR' }}-{{ String(selectedItem.penjemputan_id || selectedItem.transaksi_id).padStart(3, '0') }}
+              #{{ selectedItem.penjemputan_id ? 'JMP' : 'TR' }}-{{
+                String(selectedItem.penjemputan_id || selectedItem.transaksi_id).padStart(3, '0')
+              }}
             </span>
           </div>
-          
+
           <div class="flex items-center gap-2">
             <!-- Selesai check icon -->
-            <div v-if="selectedItem.status === 'selesai'" class="w-7 h-7 bg-white/10 rounded-full flex items-center justify-center">
+            <div
+              v-if="selectedItem.status === 'selesai'"
+              class="w-7 h-7 bg-white/10 rounded-full flex items-center justify-center"
+            >
               <Icon icon="material-symbols:check" class="w-4 h-4 text-white" />
             </div>
             <!-- Close button -->
             <button
               @click="closeDetail"
-              :class="cn(
-                'w-8 h-8 rounded-full flex items-center justify-center transition-all',
-                selectedItem.status === 'selesai' 
-                  ? 'bg-white/10 text-white hover:bg-white/20' 
-                  : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
-              )"
+              :class="
+                cn(
+                  'w-8 h-8 rounded-full flex items-center justify-center transition-all',
+                  selectedItem.status === 'selesai'
+                    ? 'bg-white/10 text-white hover:bg-white/20'
+                    : 'bg-stone-100 text-stone-600 hover:bg-stone-200',
+                )
+              "
             >
               <Icon icon="material-symbols:close" class="w-4 h-4" />
             </button>
@@ -636,7 +674,6 @@ onMounted(() => {
 
         <!-- Scrollable Modal Body -->
         <div class="p-4 space-y-4 flex-1 overflow-y-auto no-scrollbar">
-
           <!-- TAB SWITCHER (For Completed pick-ups) -->
           <div
             v-if="selectedItem.status === 'selesai' && selectedItem.penjemputan_id"
@@ -644,25 +681,29 @@ onMounted(() => {
           >
             <button
               @click="activeDetailTab = 'jemput'"
-              :class="cn(
-                'flex-1 text-center py-2.5 rounded-lg text-xs font-bold transition-all duration-300 border-b-2',
-                activeDetailTab === 'jemput'
-                  ? 'border-[#4A7043] text-[#4A7043] font-extrabold'
-                  : 'border-transparent text-stone-400 hover:text-stone-600'
-              )"
+              :class="
+                cn(
+                  'flex-1 text-center py-2.5 rounded-lg text-xs font-bold transition-all duration-300 border-b-2',
+                  activeDetailTab === 'jemput'
+                    ? 'border-[#4A7043] text-[#4A7043] font-extrabold'
+                    : 'border-transparent text-stone-400 hover:text-stone-600',
+                )
+              "
             >
               Penjemputan
             </button>
             <button
               @click="activeDetailTab = 'timbang'"
               :disabled="!selectedItem.penimbangan?.length"
-              :class="cn(
-                'flex-1 text-center py-2.5 rounded-lg text-xs font-bold transition-all duration-300 border-b-2',
-                !selectedItem.penimbangan?.length ? 'opacity-50 cursor-not-allowed' : '',
-                activeDetailTab === 'timbang'
-                  ? 'border-[#4A7043] text-[#4A7043] font-extrabold'
-                  : 'border-transparent text-stone-400 hover:text-stone-600'
-              )"
+              :class="
+                cn(
+                  'flex-1 text-center py-2.5 rounded-lg text-xs font-bold transition-all duration-300 border-b-2',
+                  !selectedItem.penimbangan?.length ? 'opacity-50 cursor-not-allowed' : '',
+                  activeDetailTab === 'timbang'
+                    ? 'border-[#4A7043] text-[#4A7043] font-extrabold'
+                    : 'border-transparent text-stone-400 hover:text-stone-600',
+                )
+              "
             >
               Penimbangan
             </button>
@@ -693,7 +734,7 @@ onMounted(() => {
               </div>
 
               <!-- Indicators -->
-              <div 
+              <div
                 v-if="selectedItem.foto && selectedItem.foto.length > 0"
                 class="absolute bottom-3 left-1/2 -translate-x-1/2 bg-black/60 text-white text-[10px] px-2.5 py-0.5 rounded-full font-bold"
               >
@@ -729,10 +770,14 @@ onMounted(() => {
                 v-for="(photo, idx) in selectedItem.foto"
                 :key="idx"
                 @click="currentPhotoIndex = idx"
-                :class="cn(
-                  'w-12 h-12 rounded-lg overflow-hidden shrink-0 border-2 transition-all',
-                  currentPhotoIndex === idx ? 'border-[#4A7043] scale-105' : 'border-transparent opacity-60'
-                )"
+                :class="
+                  cn(
+                    'w-12 h-12 rounded-lg overflow-hidden shrink-0 border-2 transition-all',
+                    currentPhotoIndex === idx
+                      ? 'border-[#4A7043] scale-105'
+                      : 'border-transparent opacity-60',
+                  )
+                "
               >
                 <img
                   :src="`${axios.defaults.baseURL}/storage/${photo}`"
@@ -748,7 +793,9 @@ onMounted(() => {
             class="bg-[#4A7043]/90 text-white px-5 py-4 flex items-center justify-between rounded-2xl shadow-sm"
           >
             <div class="flex items-center gap-3">
-              <div class="w-9 h-9 bg-white/20 rounded-xl flex items-center justify-center text-white shrink-0">
+              <div
+                class="w-9 h-9 bg-white/20 rounded-xl flex items-center justify-center text-white shrink-0"
+              >
                 <Icon icon="material-symbols:local-shipping-outline" class="w-5 h-5" />
               </div>
               <div>
@@ -759,20 +806,32 @@ onMounted(() => {
               </div>
             </div>
             <div
-              :class="cn(
-                'px-3 py-1.5 rounded-full text-[9px] font-bold text-white uppercase tracking-wider shadow-sm',
-                selectedItem.status === 'tolak'
-                  ? 'bg-red-600'
-                  : selectedItem.status === 'batal'
-                    ? 'bg-[#EA580C]'
-                    : selectedItem.status === 'menunggu_persetujuan'
-                      ? 'bg-indigo-600'
-                      : selectedItem.status === 'proses'
-                        ? 'bg-[#C27E3A]'
-                        : 'bg-emerald-600'
-              )"
+              :class="
+                cn(
+                  'px-3 py-1.5 rounded-full text-[9px] font-bold text-white uppercase tracking-wider shadow-sm',
+                  selectedItem.status === 'tolak'
+                    ? 'bg-red-600'
+                    : selectedItem.status === 'batal'
+                      ? 'bg-[#EA580C]'
+                      : selectedItem.status === 'menunggu_persetujuan'
+                        ? 'bg-indigo-600'
+                        : selectedItem.status === 'proses'
+                          ? 'bg-[#C27E3A]'
+                          : 'bg-emerald-600',
+                )
+              "
             >
-              {{ selectedItem.status === 'batal' ? 'Dibatalkan' : selectedItem.status === 'tolak' ? 'Ditolak' : selectedItem.status === 'proses' ? 'Diproses' : selectedItem.status === 'pending' ? 'Menunggu' : getStatusLabel(selectedItem.status) }}
+              {{
+                selectedItem.status === 'batal'
+                  ? 'Dibatalkan'
+                  : selectedItem.status === 'tolak'
+                    ? 'Ditolak'
+                    : selectedItem.status === 'proses'
+                      ? 'Diproses'
+                      : selectedItem.status === 'pending'
+                        ? 'Menunggu'
+                        : getStatusLabel(selectedItem.status)
+              }}
             </div>
           </div>
 
@@ -783,11 +842,18 @@ onMounted(() => {
           >
             <!-- Gudang -->
             <div class="flex items-start gap-3">
-              <div class="w-8 h-8 rounded-xl bg-stone-100 text-stone-500 flex items-center justify-center shrink-0">
-                <Icon icon="material-symbols:warehouse-outline" class="w-4.5 h-4.5 text-stone-400" />
+              <div
+                class="w-8 h-8 rounded-xl bg-stone-100 text-stone-500 flex items-center justify-center shrink-0"
+              >
+                <Icon
+                  icon="material-symbols:warehouse-outline"
+                  class="w-4.5 h-4.5 text-stone-400"
+                />
               </div>
               <div class="space-y-0.5">
-                <p class="text-[10px] text-stone-400 font-semibold uppercase tracking-wider">Nama Gudang</p>
+                <p class="text-[10px] text-stone-400 font-semibold uppercase tracking-wider">
+                  Nama Gudang
+                </p>
                 <p class="font-bold text-[#4A7043] text-sm">
                   {{ selectedItem.gudang?.alamat || 'Belum diset' }}
                 </p>
@@ -796,13 +862,21 @@ onMounted(() => {
 
             <!-- Jenis Sampah -->
             <div class="flex items-start gap-3">
-              <div class="w-8 h-8 rounded-xl bg-stone-100 text-stone-500 flex items-center justify-center shrink-0">
+              <div
+                class="w-8 h-8 rounded-xl bg-stone-100 text-stone-500 flex items-center justify-center shrink-0"
+              >
                 <Icon icon="material-symbols:recycling" class="w-4.5 h-4.5 text-stone-400" />
               </div>
               <div class="space-y-0.5">
-                <p class="text-[10px] text-stone-400 font-semibold uppercase tracking-wider">Jenis Sampah</p>
+                <p class="text-[10px] text-stone-400 font-semibold uppercase tracking-wider">
+                  Jenis Sampah
+                </p>
                 <p class="font-bold text-stone-700 text-sm">
-                  {{ selectedItem.detail_penjemputan?.map((d) => d.sampah?.item_sampah?.nama).join(', ') || 'Botol Plastik, Kaleng' }}
+                  {{
+                    selectedItem.detail_penjemputan
+                      ?.map((d) => d.sampah?.item_sampah?.nama)
+                      .join(', ') || 'Botol Plastik, Kaleng'
+                  }}
                 </p>
                 <p class="text-[10px] font-medium text-stone-400">
                   Estimasi: ~{{ selectedItem.estimasi_berat || '10' }} kg
@@ -812,11 +886,18 @@ onMounted(() => {
 
             <!-- Alamat -->
             <div class="flex items-start gap-3">
-              <div class="w-8 h-8 rounded-xl bg-stone-100 text-stone-500 flex items-center justify-center shrink-0">
-                <Icon icon="material-symbols:location-on-outline" class="w-4.5 h-4.5 text-stone-400" />
+              <div
+                class="w-8 h-8 rounded-xl bg-stone-100 text-stone-500 flex items-center justify-center shrink-0"
+              >
+                <Icon
+                  icon="material-symbols:location-on-outline"
+                  class="w-4.5 h-4.5 text-stone-400"
+                />
               </div>
               <div class="space-y-0.5">
-                <p class="text-[10px] text-stone-400 font-semibold uppercase tracking-wider">Alamat Penjemputan</p>
+                <p class="text-[10px] text-stone-400 font-semibold uppercase tracking-wider">
+                  Alamat Penjemputan
+                </p>
                 <p class="font-bold text-stone-600 text-xs leading-relaxed">
                   {{ selectedItem.alamat || 'Jl. Merdeka No. 123, Jakarta Selatan' }}
                 </p>
@@ -825,11 +906,18 @@ onMounted(() => {
 
             <!-- Tanggal Request -->
             <div class="flex items-start gap-3">
-              <div class="w-8 h-8 rounded-xl bg-stone-100 text-stone-500 flex items-center justify-center shrink-0">
-                <Icon icon="material-symbols:calendar-today-outline" class="w-4.5 h-4.5 text-stone-400" />
+              <div
+                class="w-8 h-8 rounded-xl bg-stone-100 text-stone-500 flex items-center justify-center shrink-0"
+              >
+                <Icon
+                  icon="material-symbols:calendar-today-outline"
+                  class="w-4.5 h-4.5 text-stone-400"
+                />
               </div>
               <div class="space-y-0.5">
-                <p class="text-[10px] text-stone-400 font-semibold uppercase tracking-wider">Tanggal Request</p>
+                <p class="text-[10px] text-stone-400 font-semibold uppercase tracking-wider">
+                  Tanggal Request
+                </p>
                 <p class="font-bold text-stone-700 text-xs">
                   {{ formatDate(selectedItem.created_at, true) }}
                 </p>
@@ -837,15 +925,23 @@ onMounted(() => {
             </div>
 
             <!-- Jadwal Penjemputan Banner (if scheduled) -->
-            <div 
-              v-if="selectedItem.jadwal && selectedItem.status !== 'ditolak' && selectedItem.status !== 'batal'"
+            <div
+              v-if="
+                selectedItem.jadwal &&
+                selectedItem.status !== 'ditolak' &&
+                selectedItem.status !== 'batal'
+              "
               class="flex items-start gap-3 bg-[#E8F0E6] border border-[#D5E5D1] rounded-xl p-3"
             >
-              <div class="w-8 h-8 rounded-lg bg-[#4A7043] text-white flex items-center justify-center shrink-0">
+              <div
+                class="w-8 h-8 rounded-lg bg-[#4A7043] text-white flex items-center justify-center shrink-0"
+              >
                 <Icon icon="material-symbols:calendar-month-outline" class="w-4.5 h-4.5" />
               </div>
               <div class="space-y-0.5">
-                <p class="text-[9px] text-[#4A7043]/80 font-bold uppercase tracking-wider">Jadwal Penjemputan</p>
+                <p class="text-[9px] text-[#4A7043]/80 font-bold uppercase tracking-wider">
+                  Jadwal Penjemputan
+                </p>
                 <p class="font-extrabold text-[#4A7043] text-xs">
                   {{ formatDate(selectedItem.jadwal, true) }}
                 </p>
@@ -853,11 +949,17 @@ onMounted(() => {
             </div>
 
             <!-- Tukang / Driver Card -->
-            <div 
-              v-if="selectedItem.tukang && selectedItem.status !== 'ditolak' && selectedItem.status !== 'batal'"
+            <div
+              v-if="
+                selectedItem.tukang &&
+                selectedItem.status !== 'ditolak' &&
+                selectedItem.status !== 'batal'
+              "
               class="bg-stone-50 rounded-xl p-3 border border-stone-200/50 flex items-center gap-3"
             >
-              <div class="w-10 h-10 rounded-full overflow-hidden bg-white border border-stone-100 shrink-0 shadow-sm">
+              <div
+                class="w-10 h-10 rounded-full overflow-hidden bg-white border border-stone-100 shrink-0 shadow-sm"
+              >
                 <img
                   v-if="selectedItem.tukang.foto"
                   :src="`${axios.defaults.baseURL}/storage/${selectedItem.tukang.foto}`"
@@ -869,7 +971,9 @@ onMounted(() => {
               </div>
               <div class="flex-1 min-w-0">
                 <p class="text-[9px] text-stone-400 font-bold uppercase tracking-wider">Tukang</p>
-                <p class="font-bold text-[#4A7043] text-xs truncate">{{ selectedItem.tukang.nama }}</p>
+                <p class="font-bold text-[#4A7043] text-xs truncate">
+                  {{ selectedItem.tukang.nama }}
+                </p>
                 <p class="text-[10px] text-stone-500">{{ selectedItem.tukang.no_telp }}</p>
               </div>
               <a
@@ -883,13 +987,21 @@ onMounted(() => {
 
             <!-- Catatan -->
             <div class="flex items-start gap-3">
-              <div class="w-8 h-8 rounded-xl bg-stone-100 text-stone-500 flex items-center justify-center shrink-0">
+              <div
+                class="w-8 h-8 rounded-xl bg-stone-100 text-stone-500 flex items-center justify-center shrink-0"
+              >
                 <Icon icon="material-symbols:notes" class="w-4.5 h-4.5 text-stone-400" />
               </div>
               <div class="space-y-0.5 flex-1">
-                <p class="text-[10px] text-stone-400 font-semibold uppercase tracking-wider">Catatan</p>
+                <p class="text-[10px] text-stone-400 font-semibold uppercase tracking-wider">
+                  Catatan
+                </p>
                 <p class="font-medium text-stone-500 text-xs italic">
-                  "{{ selectedItem.deskripsi?.includes('|') ? (selectedItem.deskripsi.split('|')[2] || 'Tidak ada catatan') : (selectedItem.deskripsi || 'Tidak ada catatan') }}"
+                  "{{
+                    selectedItem.deskripsi?.includes('|')
+                      ? selectedItem.deskripsi.split('|')[2] || 'Tidak ada catatan'
+                      : selectedItem.deskripsi || 'Tidak ada catatan'
+                  }}"
                 </p>
               </div>
             </div>
@@ -905,19 +1017,30 @@ onMounted(() => {
               </div>
               <div class="space-y-2 text-xs">
                 <div>
-                  <p class="text-[9px] text-stone-400 font-bold uppercase tracking-wider">Alasan Pembatalan:</p>
+                  <p class="text-[9px] text-stone-400 font-bold uppercase tracking-wider">
+                    Alasan Pembatalan:
+                  </p>
                   <p class="font-bold text-[#EA580C] leading-snug">
-                    {{ selectedItem.ket_status || 'Dibatalkan oleh nasabah - Berubah pikiran, mau dibuang sendiri' }}
+                    {{
+                      selectedItem.ket_status ||
+                      'Dibatalkan oleh nasabah - Berubah pikiran, mau dibuang sendiri'
+                    }}
                   </p>
                 </div>
                 <p class="text-[10px] text-stone-400">
                   Dibatalkan pada: {{ formatDate(selectedItem.updated_at, true) }}
                 </p>
                 <!-- Inner info card -->
-                <div class="bg-white rounded-lg p-2.5 border border-orange-100 shadow-sm flex gap-2">
-                  <Icon icon="material-symbols:info-outline" class="w-4 h-4 text-blue-500 shrink-0 mt-0.5" />
+                <div
+                  class="bg-white rounded-lg p-2.5 border border-orange-100 shadow-sm flex gap-2"
+                >
+                  <Icon
+                    icon="material-symbols:info-outline"
+                    class="w-4 h-4 text-blue-500 shrink-0 mt-0.5"
+                  />
                   <p class="text-[9px] text-stone-500 leading-normal">
-                    <strong>Informasi:</strong> Request ini telah dibatalkan. Anda dapat membuat request baru kapan saja melalui menu Request Jemput atau Setor Manual.
+                    <strong>Informasi:</strong> Request ini telah dibatalkan. Anda dapat membuat
+                    request baru kapan saja melalui menu Request Jemput atau Setor Manual.
                   </p>
                 </div>
               </div>
@@ -934,9 +1057,14 @@ onMounted(() => {
               </div>
               <div class="space-y-2 text-xs">
                 <div>
-                  <p class="text-[9px] text-stone-400 font-bold uppercase tracking-wider">Alasan Penolakan:</p>
+                  <p class="text-[9px] text-stone-400 font-bold uppercase tracking-wider">
+                    Alasan Penolakan:
+                  </p>
                   <p class="font-bold text-red-600 leading-snug">
-                    {{ selectedItem.ket_status || 'Sampah organik tidak dapat diterima. Hanya menerima sampah anorganik (plastik, kertas, kardus, kaleng, dll)' }}
+                    {{
+                      selectedItem.ket_status ||
+                      'Sampah organik tidak dapat diterima. Hanya menerima sampah anorganik (plastik, kertas, kardus, kaleng, dll)'
+                    }}
                   </p>
                 </div>
                 <p class="text-[10px] text-stone-400">
@@ -944,14 +1072,17 @@ onMounted(() => {
                 </p>
                 <!-- Inner saran card -->
                 <div class="bg-white rounded-lg p-2.5 border border-red-100 shadow-sm flex gap-2">
-                  <Icon icon="material-symbols:lightbulb-outline" class="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
+                  <Icon
+                    icon="material-symbols:lightbulb-outline"
+                    class="w-4 h-4 text-amber-500 shrink-0 mt-0.5"
+                  />
                   <p class="text-[9px] text-stone-500 leading-normal">
-                    <strong>Saran:</strong> Silakan buat request baru dengan memperhatikan alasan penolakan di atas. Pastikan sampah sudah sesuai ketentuan yang berlaku.
+                    <strong>Saran:</strong> Silakan buat request baru dengan memperhatikan alasan
+                    penolakan di atas. Pastikan sampah sudah sesuai ketentuan yang berlaku.
                   </p>
                 </div>
               </div>
             </div>
-
           </div>
 
           <!-- SECTION 4: TAB CONTENT - PENIMBANGAN (Only for completed Selesai status) -->
@@ -961,45 +1092,77 @@ onMounted(() => {
           >
             <!-- Informasi Transaksi -->
             <div class="bg-white rounded-2xl p-4 shadow-sm border border-stone-100 space-y-3">
-              <h3 class="text-xs font-bold text-stone-800 flex items-center gap-2 border-b border-stone-100 pb-2">
+              <h3
+                class="text-xs font-bold text-stone-800 flex items-center gap-2 border-b border-stone-100 pb-2"
+              >
                 <Icon icon="material-symbols:receipt-long-outline" class="w-4 h-4 text-[#4A7043]" />
                 Informasi Transaksi
               </h3>
               <div class="space-y-2 text-xs">
                 <div class="flex justify-between items-center">
-                  <p class="text-stone-400 uppercase tracking-wider font-semibold text-[9px]">ID Transaksi</p>
+                  <p class="text-stone-400 uppercase tracking-wider font-semibold text-[9px]">
+                    ID Transaksi
+                  </p>
                   <p class="font-bold text-stone-800">
-                    TR-{{ String(selectedItem.transaksi_id || selectedItem.penimbangan?.[0]?.transaksi_id || '0').padStart(3, '0') }}
+                    TR-{{
+                      String(
+                        selectedItem.transaksi_id ||
+                          selectedItem.penimbangan?.[0]?.transaksi_id ||
+                          '0',
+                      ).padStart(3, '0')
+                    }}
                   </p>
                 </div>
                 <div v-if="selectedItem.penjemputan_id" class="flex justify-between items-center">
-                  <p class="text-stone-400 uppercase tracking-wider font-semibold text-[9px]">ID Penjemputan</p>
+                  <p class="text-stone-400 uppercase tracking-wider font-semibold text-[9px]">
+                    ID Penjemputan
+                  </p>
                   <p class="font-bold text-stone-800">
                     JMP-{{ String(selectedItem.penjemputan_id).padStart(3, '0') }}
                   </p>
                 </div>
                 <div class="flex justify-between items-center">
-                  <p class="text-stone-400 uppercase tracking-wider font-semibold text-[9px]">Gudang</p>
+                  <p class="text-stone-400 uppercase tracking-wider font-semibold text-[9px]">
+                    Gudang
+                  </p>
                   <p class="font-bold text-stone-800">
-                    {{ selectedItem.gudang?.alamat || selectedItem.penimbangan?.[0]?.tukang?.gudang?.alamat || '-' }}
+                    {{
+                      selectedItem.gudang?.alamat ||
+                      selectedItem.penimbangan?.[0]?.tukang?.gudang?.alamat ||
+                      '-'
+                    }}
                   </p>
                 </div>
                 <div class="flex justify-between items-center">
-                  <p class="text-stone-400 uppercase tracking-wider font-semibold text-[9px]">Tanggal</p>
+                  <p class="text-stone-400 uppercase tracking-wider font-semibold text-[9px]">
+                    Tanggal
+                  </p>
                   <p class="font-bold text-stone-800">
                     {{ formatDate(selectedItem.updated_at, false) }}
                   </p>
                 </div>
                 <div class="flex justify-between items-center">
-                  <p class="text-stone-400 uppercase tracking-wider font-semibold text-[9px]">Petugas Input</p>
+                  <p class="text-stone-400 uppercase tracking-wider font-semibold text-[9px]">
+                    Petugas Input
+                  </p>
                   <p class="font-bold text-stone-800">
-                    {{ selectedItem.petugas?.nama || selectedItem.penimbangan?.[0]?.transaksi?.petugas?.nama || '-' }}
+                    {{
+                      selectedItem.petugas?.nama ||
+                      selectedItem.penimbangan?.[0]?.transaksi?.petugas?.nama ||
+                      '-'
+                    }}
                   </p>
                 </div>
                 <div class="flex justify-between items-center">
-                  <p class="text-stone-400 uppercase tracking-wider font-semibold text-[9px]">Tukang</p>
+                  <p class="text-stone-400 uppercase tracking-wider font-semibold text-[9px]">
+                    Tukang
+                  </p>
                   <p class="font-bold text-stone-800">
-                    {{ selectedItem.tukang?.nama || selectedItem.penimbangan?.[0]?.tukang?.nama || '-' }}
+                    {{
+                      selectedItem.tukang?.nama ||
+                      selectedItem.penimbangan?.[0]?.tukang?.nama ||
+                      '-'
+                    }}
                   </p>
                 </div>
               </div>
@@ -1007,19 +1170,35 @@ onMounted(() => {
 
             <!-- Informasi Nasabah -->
             <div class="bg-white rounded-2xl p-4 shadow-sm border border-stone-100 space-y-2">
-              <h3 class="text-xs font-bold text-stone-800 flex items-center gap-2 border-b border-stone-100 pb-2">
+              <h3
+                class="text-xs font-bold text-stone-800 flex items-center gap-2 border-b border-stone-100 pb-2"
+              >
                 <Icon icon="material-symbols:person-outline" class="w-4 h-4 text-[#4A7043]" />
                 Informasi Nasabah
               </h3>
               <div class="space-y-1.5 text-xs">
                 <div class="flex justify-between items-center">
-                  <p class="text-stone-400 uppercase tracking-wider font-semibold text-[9px]">Nama Nasabah</p>
-                  <p class="font-bold text-stone-800">{{ selectedItem.nasabah?.nama || selectedItem.penimbangan?.[0]?.nasabah?.nama || '-' }}</p>
+                  <p class="text-stone-400 uppercase tracking-wider font-semibold text-[9px]">
+                    Nama Nasabah
+                  </p>
+                  <p class="font-bold text-stone-800">
+                    {{
+                      selectedItem.nasabah?.nama ||
+                      selectedItem.penimbangan?.[0]?.nasabah?.nama ||
+                      '-'
+                    }}
+                  </p>
                 </div>
                 <div class="flex justify-between items-center">
-                  <p class="text-stone-400 uppercase tracking-wider font-semibold text-[9px]">ID Nasabah</p>
+                  <p class="text-stone-400 uppercase tracking-wider font-semibold text-[9px]">
+                    ID Nasabah
+                  </p>
                   <p class="font-bold text-stone-800">
-                    NSB-{{ String(selectedItem.nasabah_id || selectedItem.penimbangan?.[0]?.nasabah_id || '0').padStart(3, '0') }}
+                    NSB-{{
+                      String(
+                        selectedItem.nasabah_id || selectedItem.penimbangan?.[0]?.nasabah_id || '0',
+                      ).padStart(3, '0')
+                    }}
                   </p>
                 </div>
               </div>
@@ -1028,21 +1207,26 @@ onMounted(() => {
             <!-- Foto Sampah -->
             <div class="bg-white rounded-2xl p-4 shadow-sm border border-stone-100 space-y-2">
               <p class="text-xs font-bold text-stone-800">Foto Sampah Penimbangan</p>
-              
+
               <!-- Image Carousel Container -->
-              <div class="relative aspect-video rounded-xl overflow-hidden bg-stone-50 border border-stone-100 group">
+              <div
+                class="relative aspect-video rounded-xl overflow-hidden bg-stone-50 border border-stone-100 group"
+              >
                 <img
                   v-if="timbangPhotos && timbangPhotos.length > 0"
                   :src="`${axios.defaults.baseURL}/storage/${timbangPhotos[currentTimbangPhotoIndex]}`"
                   class="w-full h-full object-cover transition-all duration-500"
                 />
-                <div v-else class="w-full h-full flex flex-col items-center justify-center text-stone-300 gap-1.5">
+                <div
+                  v-else
+                  class="w-full h-full flex flex-col items-center justify-center text-stone-300 gap-1.5"
+                >
                   <Icon icon="material-symbols:image-outline" class="w-10 h-10" />
                   <p class="text-[10px] font-bold uppercase tracking-widest">Tidak ada foto</p>
                 </div>
 
                 <!-- Indicators -->
-                <div 
+                <div
                   v-if="timbangPhotos && timbangPhotos.length > 0"
                   class="absolute bottom-3 left-1/2 -translate-x-1/2 bg-black/60 text-white text-[10px] px-2.5 py-0.5 rounded-full font-bold"
                 >
@@ -1052,13 +1236,23 @@ onMounted(() => {
                 <!-- Left/Right Controls -->
                 <template v-if="timbangPhotos && timbangPhotos.length > 1">
                   <button
-                    @click="currentTimbangPhotoIndex = currentTimbangPhotoIndex === 0 ? timbangPhotos.length - 1 : currentTimbangPhotoIndex - 1"
+                    @click="
+                      currentTimbangPhotoIndex =
+                        currentTimbangPhotoIndex === 0
+                          ? timbangPhotos.length - 1
+                          : currentTimbangPhotoIndex - 1
+                    "
                     class="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 bg-white/80 hover:bg-white text-stone-800 rounded-full flex items-center justify-center shadow-sm opacity-0 group-hover:opacity-100 transition-all active:scale-95"
                   >
                     <Icon icon="material-symbols:chevron-left-rounded" class="w-6 h-6" />
                   </button>
                   <button
-                    @click="currentTimbangPhotoIndex = currentTimbangPhotoIndex === timbangPhotos.length - 1 ? 0 : currentTimbangPhotoIndex + 1"
+                    @click="
+                      currentTimbangPhotoIndex =
+                        currentTimbangPhotoIndex === timbangPhotos.length - 1
+                          ? 0
+                          : currentTimbangPhotoIndex + 1
+                    "
                     class="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 bg-white/80 hover:bg-white text-stone-800 rounded-full flex items-center justify-center shadow-sm opacity-0 group-hover:opacity-100 transition-all active:scale-95"
                   >
                     <Icon icon="material-symbols:chevron-right-rounded" class="w-6 h-6" />
@@ -1069,7 +1263,9 @@ onMounted(() => {
 
             <!-- Detail Sampah Weighing Breakdown -->
             <div class="bg-white rounded-2xl p-4 shadow-sm border border-stone-100 space-y-3">
-              <p class="text-xs font-bold text-stone-800 border-b border-stone-100 pb-2">Detail Sampah</p>
+              <p class="text-xs font-bold text-stone-800 border-b border-stone-100 pb-2">
+                Detail Sampah
+              </p>
               <div class="space-y-3">
                 <div
                   v-for="(p, i) in selectedItem.penimbangan"
@@ -1081,11 +1277,17 @@ onMounted(() => {
                       {{ p.sampah?.item_sampah?.nama }}
                     </p>
                     <p class="text-[10px] text-stone-400 mt-0.5">
-                      {{ p.berat_timbang }} kg × Rp {{ (p.sampah?.item_sampah?.harga_beli || 0).toLocaleString('id-ID') }}
+                      {{ p.berat_timbang }} kg × Rp
+                      {{ (p.sampah?.item_sampah?.harga_beli || 0).toLocaleString('id-ID') }}
                     </p>
                   </div>
                   <p class="font-bold text-stone-800">
-                    Rp {{ (p.berat_timbang * (p.sampah?.item_sampah?.harga_beli || 0)).toLocaleString('id-ID') }}
+                    Rp
+                    {{
+                      (p.berat_timbang * (p.sampah?.item_sampah?.harga_beli || 0)).toLocaleString(
+                        'id-ID',
+                      )
+                    }}
                   </p>
                 </div>
 
@@ -1119,13 +1321,28 @@ onMounted(() => {
                 <div class="flex justify-between items-center text-stone-500">
                   <span class="font-semibold">Total Berat</span>
                   <span class="font-bold text-stone-800">
-                    {{ selectedItem.penimbangan?.reduce((acc, curr) => acc + parseFloat(curr.berat_timbang), 0) || 10 }} kg
+                    {{
+                      selectedItem.penimbangan?.reduce(
+                        (acc, curr) => acc + parseFloat(curr.berat_timbang),
+                        0,
+                      ) || 10
+                    }}
+                    kg
                   </span>
                 </div>
                 <div class="flex justify-between items-center text-stone-500">
                   <span class="font-bold">Total Nilai</span>
                   <span class="font-bold text-[#4A7043] text-sm">
-                    Rp {{ (selectedItem.penimbangan?.reduce((acc, curr) => acc + curr.berat_timbang * (curr.sampah?.item_sampah?.harga_beli || 0), 0) || 26500).toLocaleString('id-ID') }}
+                    Rp
+                    {{
+                      (
+                        selectedItem.penimbangan?.reduce(
+                          (acc, curr) =>
+                            acc + curr.berat_timbang * (curr.sampah?.item_sampah?.harga_beli || 0),
+                          0,
+                        ) || 26500
+                      ).toLocaleString('id-ID')
+                    }}
                   </span>
                 </div>
               </div>
@@ -1133,22 +1350,54 @@ onMounted(() => {
 
             <!-- Informasi Saldo -->
             <div class="bg-[#F0FAF4] rounded-2xl p-4 border border-[#DCF2E7] space-y-2 text-xs">
-              <h3 class="font-bold text-[#166534] border-b border-[#DCF2E7] pb-1.5">Informasi Saldo</h3>
+              <h3 class="font-bold text-[#166534] border-b border-[#DCF2E7] pb-1.5">
+                Informasi Saldo
+              </h3>
               <div class="flex justify-between items-center text-stone-600">
                 <span>Saldo Sebelumnya</span>
-                <span class="font-semibold">Rp {{ Number(selectedItem.saldo_sebelum ?? selectedItem.penimbangan?.[0]?.transaksi?.saldo_sebelum ?? 320000).toLocaleString('id-ID') }}</span>
+                <span class="font-semibold"
+                  >Rp
+                  {{
+                    Number(
+                      selectedItem.saldo_sebelum ??
+                        selectedItem.penimbangan?.[0]?.transaksi?.saldo_sebelum ??
+                        320000,
+                    ).toLocaleString('id-ID')
+                  }}</span
+                >
               </div>
               <div class="flex justify-between items-center text-[#166534]">
                 <span>Nilai Transaksi</span>
-                <span class="font-bold">+ Rp {{ (selectedItem.penimbangan?.reduce((acc, curr) => acc + curr.berat_timbang * (curr.sampah?.item_sampah?.harga_beli || 0), 0) || 26500).toLocaleString('id-ID') }}</span>
+                <span class="font-bold"
+                  >+ Rp
+                  {{
+                    (
+                      selectedItem.penimbangan?.reduce(
+                        (acc, curr) =>
+                          acc + curr.berat_timbang * (curr.sampah?.item_sampah?.harga_beli || 0),
+                        0,
+                      ) || 26500
+                    ).toLocaleString('id-ID')
+                  }}</span
+                >
               </div>
-              <div class="pt-2.5 border-t border-[#DCF2E7] flex justify-between items-center font-bold text-[#166534]">
+              <div
+                class="pt-2.5 border-t border-[#DCF2E7] flex justify-between items-center font-bold text-[#166534]"
+              >
                 <span>Saldo Sesudah</span>
-                <span class="text-sm">Rp {{ Number(selectedItem.saldo_sesudah ?? selectedItem.penimbangan?.[0]?.transaksi?.saldo_sesudah ?? 346500).toLocaleString('id-ID') }}</span>
+                <span class="text-sm"
+                  >Rp
+                  {{
+                    Number(
+                      selectedItem.saldo_sesudah ??
+                        selectedItem.penimbangan?.[0]?.transaksi?.saldo_sesudah ??
+                        346500,
+                    ).toLocaleString('id-ID')
+                  }}</span
+                >
               </div>
             </div>
           </div>
-
         </div>
 
         <!-- Sticky Footer Action Button (Tutup) -->
@@ -1163,7 +1412,7 @@ onMounted(() => {
               </button>
               <button
                 @click="acceptSchedule(selectedItem.penjemputan_id)"
-                class="flex-[2] py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs transition-all shadow-md active:scale-[0.98]"
+                class="flex-[2] py-3 rounded-xl bg-[#4A7043] hover:bg-[#3D5C37] text-white font-bold text-xs transition-all shadow-md active:scale-[0.98]"
               >
                 Setujui Jadwal
               </button>
@@ -1178,7 +1427,6 @@ onMounted(() => {
             </button>
           </template>
         </div>
-
       </div>
     </div>
   </DashboardLayout>
