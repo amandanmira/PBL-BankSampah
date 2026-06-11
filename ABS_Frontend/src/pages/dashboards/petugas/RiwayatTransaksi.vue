@@ -52,19 +52,31 @@ const fetchHistory = async (page = 1) => {
       },
     });
 
+    // Array status yang diperbolehkan tampil di Riwayat
+    const allowedStatuses = ['selesai', 'tolak', 'batal', 'jadwal_ditolak'];
+
     if (activeFilter.value === "penarikan") {
-        historyData.value = response.data.penarikan.data;
+        const rawPenarikan = response.data.penarikan.data || [];
+        // Filter Penarikan berdasarkan status selesai/tolak
+        historyData.value = rawPenarikan.filter(item => 
+            allowedStatuses.includes(item.status?.toLowerCase())
+        );
+        
         pagination.value = {
             current_page: response.data.penarikan.current_page,
             last_page: response.data.penarikan.last_page,
             total: response.data.penarikan.total,
         };
     } else {
-        // --- FILTER DINAMIS ANTAR SENDIRI VS PENJEMPUTAN ---
-        const rawData = response.data.data;
+        // --- FILTER DINAMIS: STATUS & ANTAR SENDIRI VS PENJEMPUTAN ---
+        const rawData = response.data.data || [];
         
         historyData.value = rawData.filter(item => {
-            // Deteksi jenis transaksi
+            // 1. Pengecekan Status: Hanya Selesai atau Ditolak/Batal
+            const isStatusValid = allowedStatuses.includes(item.status?.toLowerCase());
+            if (!isStatusValid) return false;
+
+            // 2. Deteksi jenis transaksi
             const isAntarSendiri = activeFilter.value === 'setor_manual' || 
                                    item.tipe_transaksi === 'antar_sendiri' || 
                                    (item.penimbangan && item.penimbangan[0]?.transaksi?.tipe_transaksi === 'antar_sendiri');
@@ -510,7 +522,7 @@ const remainingTimeText = computed(() => {
           </button>
         </div>
 
-        <div v-if="activeFilter === 'penjemputan'" class="p-4 flex gap-2 border-b border-gray-100">
+        <div v-if="activeFilter !== 'penarikan'" class="p-4 flex gap-2 border-b border-gray-100">
           <button
             @click="modalActiveTab = 'penjemputan'"
             :class="[
