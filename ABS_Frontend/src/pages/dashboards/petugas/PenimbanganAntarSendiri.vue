@@ -392,7 +392,7 @@
         <div class="p-8 space-y-8 text-left">
           <!-- Meta Data -->
           <div class="grid grid-cols-1 md:grid-cols-2 gap-y-3 gap-x-10 text-[11px] font-bold text-stone-500 uppercase tracking-wider">
-            <div class="flex justify-between border-b border-stone-50 pb-1.5"><span class="opacity-60">No. Transaksi:</span> <span class="text-stone-800 font-black">TRX-{{ String(receiptData?.transaksi_id || 0).padStart(6, '0') }}</span></div>
+            <div class="flex justify-between border-b border-stone-50 pb-1.5"><span class="opacity-60">No. Transaksi:</span> <span class="text-stone-800 font-black">TR-{{ String(receiptData?.transaksi_id || 0).padStart(6, '0') }}</span></div>
             <div class="flex justify-between border-b border-stone-50 pb-1.5"><span class="opacity-60">Gudang:</span> <span class="text-stone-800 font-black">{{ user?.gudang?.alamat || '-' }}</span></div>
             <div class="flex justify-between border-b border-stone-50 pb-1.5"><span class="opacity-60">Tanggal:</span> <span class="text-stone-800 font-black">{{ formatDate(new Date().toISOString()) }}</span></div>
             <div class="flex justify-between border-b border-stone-50 pb-1.5"><span class="opacity-60">Petugas Input:</span> <span class="text-stone-800 font-black">{{ user?.nama || 'Staff' }}</span></div>

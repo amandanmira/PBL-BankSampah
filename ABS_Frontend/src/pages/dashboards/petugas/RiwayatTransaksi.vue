@@ -848,7 +848,7 @@ const remainingTimeText = computed(() => {
             <div class="bg-[#4A7043] p-6 text-white flex justify-between items-center">
                 <div>
                     <h2 class="text-xl font-bold">Edit Penimbangan</h2>
-                    <p class="text-white/60 text-xs font-medium">TXN-{{ selectedItem?.transaksi_id }}</p>
+                    <p class="text-white/60 text-xs font-medium">TR-{{ String(selectedItem?.transaksi_id || selectedItem?.penimbangan?.[0]?.transaksi_id || '0').padStart(3, '0') }}</p>
                 </div>
                 <button @click="closeEditModal" class="p-2 hover:bg-white/10 rounded-full transition-all">
                     <Icon icon="material-symbols:close" class="w-6 h-6" />
