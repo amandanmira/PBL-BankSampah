@@ -39,7 +39,6 @@
           <div v-if="activeTab === 'pribadi'" class="space-y-5 animate-in slide-in-from-bottom-4 duration-300">
             <div class="grid grid-cols-1 gap-5">
               
-              <!-- Username -->
               <div class="space-y-1">
                 <label class="flex items-center gap-2 text-xs md:text-sm font-bold text-stone-700 mb-1.5">
                   <Icon icon="material-symbols:person-outline" class="w-4 h-4 text-stone-500" />
@@ -54,7 +53,6 @@
                 <p v-if="errors.username" class="text-xs text-red-600 font-bold mt-1">{{ errors.username[0] }}</p>
               </div>
 
-              <!-- Nama Lembaga -->
               <div class="space-y-1">
                 <label class="flex items-center gap-2 text-xs md:text-sm font-bold text-stone-700 mb-1.5">
                   <Icon icon="material-symbols:person-outline" class="w-4 h-4 text-stone-500" />
@@ -69,7 +67,6 @@
                 <p v-if="errors.nama_lembaga" class="text-xs text-red-600 font-bold mt-1">{{ errors.nama_lembaga[0] }}</p>
               </div>
 
-              <!-- Nama Lengkap -->
               <div class="space-y-1">
                 <label class="flex items-center gap-2 text-xs md:text-sm font-bold text-stone-700 mb-1.5">
                   <Icon icon="material-symbols:person-outline" class="w-4 h-4 text-stone-500" />
@@ -84,7 +81,6 @@
                 <p v-if="errors.nama" class="text-xs text-red-600 font-bold mt-1">{{ errors.nama[0] }}</p>
               </div>
 
-              <!-- Email (Read-only) -->
               <div class="space-y-1 opacity-70">
                 <label class="flex items-center gap-2 text-xs md:text-sm font-bold text-stone-700 mb-1.5">
                   <Icon icon="material-symbols:description-outline" class="w-4 h-4 text-stone-500" />
@@ -99,7 +95,6 @@
                 <p class="text-[10px] font-bold text-stone-400 mt-1 italic">* Email tidak dapat diubah secara mandiri</p>
               </div>
 
-              <!-- Nomor Telepon -->
               <div class="space-y-1">
                 <label class="flex items-center gap-2 text-xs md:text-sm font-bold text-stone-700 mb-1.5">
                   <Icon icon="material-symbols:description-outline" class="w-4 h-4 text-stone-500" />
@@ -114,7 +109,6 @@
                 <p v-if="errors.no_telp" class="text-xs text-red-600 font-bold mt-1">{{ errors.no_telp[0] }}</p>
               </div>
 
-              <!-- Alamat Lengkap -->
               <div class="space-y-1">
                 <label class="flex items-center gap-2 text-xs md:text-sm font-bold text-stone-700 mb-1.5">
                   <Icon icon="material-symbols:description-outline" class="w-4 h-4 text-stone-500" />
@@ -131,7 +125,6 @@
 
             </div>
 
-            <!-- Submit Button -->
             <div class="pt-4">
               <button 
                 @click="updateProfile"
@@ -147,42 +140,147 @@
 
           <!-- TAB 2: UBAH PASSWORD -->
           <div v-if="activeTab === 'password'" class="space-y-5 animate-in slide-in-from-bottom-4 duration-300">
+
+            <!-- Info banner -->
+            <div class="flex items-start gap-3 bg-blue-50 border border-blue-100 rounded-2xl px-4 py-3.5">
+              <Icon icon="material-symbols:info-outline" class="w-5 h-5 text-blue-500 shrink-0 mt-0.5" />
+              <p class="text-xs font-bold text-blue-700 leading-relaxed">
+                Untuk keamanan akun, masukkan password lama Anda terlebih dahulu sebelum membuat password baru.
+              </p>
+            </div>
             
             <div class="space-y-5">
-              
-              <!-- Password Baru -->
+
+              <!-- Password Lama -->
               <div class="space-y-1">
                 <label class="flex items-center gap-2 text-xs md:text-sm font-bold text-stone-700 mb-1.5">
                   <Icon icon="material-symbols:lock-outline" class="w-4 h-4 text-stone-500" />
+                  Password Lama<span class="text-red-500">*</span>
+                </label>
+                <div class="relative">
+                  <input 
+                    v-model="passwordForm.password_current"
+                    :type="showCurrentPassword ? 'text' : 'password'"
+                    :class="[
+                      'w-full border-0 rounded-xl py-2.5 px-3.5 pr-11 text-xs md:text-sm font-semibold focus:outline-none focus:ring-2 transition-all duration-200',
+                      errors.password_current
+                        ? 'bg-red-50 text-red-700 focus:ring-red-400/30'
+                        : 'bg-[#EEF0ED] text-stone-700 focus:ring-[#4A7043]/20 focus:bg-white'
+                    ]"
+                    placeholder="Masukkan password lama Anda"
+                  />
+                  <button
+                    type="button"
+                    @click="showCurrentPassword = !showCurrentPassword"
+                    class="absolute right-3.5 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-600 transition-colors cursor-pointer"
+                  >
+                    <Icon :icon="showCurrentPassword ? 'material-symbols:visibility-off-outline' : 'material-symbols:visibility-outline'" class="w-5 h-5" />
+                  </button>
+                </div>
+                <!-- Error dari server (password salah) -->
+                <p v-if="errors.password_current" class="text-xs text-red-600 font-bold mt-1 flex items-center gap-1.5">
+                  <Icon icon="material-symbols:error-outline" class="w-3.5 h-3.5" />
+                  {{ errors.password_current[0] }}
+                </p>
+              </div>
+
+              <!-- Divider -->
+              <div class="flex items-center gap-3 py-1">
+                <div class="flex-1 h-px bg-stone-100"></div>
+                <span class="text-[10px] font-black text-stone-300 uppercase tracking-widest">Password Baru</span>
+                <div class="flex-1 h-px bg-stone-100"></div>
+              </div>
+
+              <!-- Password Baru -->
+              <div class="space-y-1">
+                <label class="flex items-center gap-2 text-xs md:text-sm font-bold text-stone-700 mb-1.5">
+                  <Icon icon="material-symbols:lock-reset" class="w-4 h-4 text-stone-500" />
                   Password Baru<span class="text-red-500">*</span>
                 </label>
                 <div class="relative">
                   <input 
                     v-model="passwordForm.password" 
                     :type="showPassword ? 'text' : 'password'" 
-                    class="w-full bg-[#EEF0ED] border-0 rounded-xl py-2.5 px-3.5 text-xs md:text-sm font-semibold text-stone-700 focus:outline-none focus:ring-2 focus:ring-[#4A7043]/20 focus:bg-white transition-all duration-200" 
-                    placeholder="Kosongkan jika tidak ingin mengubah" 
+                    class="w-full bg-[#EEF0ED] border-0 rounded-xl py-2.5 px-3.5 pr-11 text-xs md:text-sm font-semibold text-stone-700 focus:outline-none focus:ring-2 focus:ring-[#4A7043]/20 focus:bg-white transition-all duration-200" 
+                    placeholder="Buat password baru (min. 6 karakter)"
                   />
-                  <button @click="showPassword = !showPassword" class="absolute right-4 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-600 transition-colors cursor-pointer">
+                  <button
+                    type="button"
+                    @click="showPassword = !showPassword"
+                    class="absolute right-3.5 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-600 transition-colors cursor-pointer"
+                  >
                     <Icon :icon="showPassword ? 'material-symbols:visibility-off-outline' : 'material-symbols:visibility-outline'" class="w-5 h-5" />
                   </button>
                 </div>
-                <p class="text-[10px] font-bold text-stone-400 mt-1">Minimal 6 karakter</p>
+                <!-- Strength indicator -->
+                <div v-if="passwordForm.password.length > 0" class="flex gap-1.5 mt-2">
+                  <div
+                    v-for="i in 4" :key="i"
+                    :class="[
+                      'h-1 flex-1 rounded-full transition-all duration-300',
+                      passwordStrength >= i
+                        ? passwordStrength <= 1 ? 'bg-red-400'
+                          : passwordStrength === 2 ? 'bg-orange-400'
+                          : passwordStrength === 3 ? 'bg-yellow-400'
+                          : 'bg-green-500'
+                        : 'bg-stone-100'
+                    ]"
+                  ></div>
+                </div>
+                <p v-if="passwordForm.password.length > 0" :class="[
+                  'text-[10px] font-bold mt-1',
+                  passwordStrength <= 1 ? 'text-red-500' : passwordStrength === 2 ? 'text-orange-500' : passwordStrength === 3 ? 'text-yellow-600' : 'text-green-600'
+                ]">
+                  {{
+                    passwordStrength <= 1 ? 'Terlalu lemah' :
+                    passwordStrength === 2 ? 'Cukup' :
+                    passwordStrength === 3 ? 'Bagus' : 'Kuat'
+                  }}
+                </p>
                 <p v-if="errors.password" class="text-xs text-red-600 font-bold mt-1">{{ errors.password[0] }}</p>
               </div>
 
-              <!-- Konfirmasi Password -->
+              <!-- Konfirmasi Password Baru -->
               <div class="space-y-1">
                 <label class="flex items-center gap-2 text-xs md:text-sm font-bold text-stone-700 mb-1.5">
-                  <Icon icon="material-symbols:lock-outline" class="w-4 h-4 text-stone-500" />
-                  Konfirmasi Password<span class="text-red-500">*</span>
+                  <Icon icon="material-symbols:lock-reset" class="w-4 h-4 text-stone-500" />
+                  Konfirmasi Password Baru<span class="text-red-500">*</span>
                 </label>
-                <input 
-                  v-model="passwordForm.password_confirmation" 
-                  :type="showPassword ? 'text' : 'password'" 
-                  class="w-full bg-[#EEF0ED] border-0 rounded-xl py-2.5 px-3.5 text-xs md:text-sm font-semibold text-stone-700 focus:outline-none focus:ring-2 focus:ring-[#4A7043]/20 focus:bg-white transition-all duration-200" 
-                  placeholder="Ulangi password baru" 
-                />
+                <div class="relative">
+                  <input 
+                    v-model="passwordForm.password_confirmation" 
+                    :type="showPassword ? 'text' : 'password'"
+                    :class="[
+                      'w-full border-0 rounded-xl py-2.5 px-3.5 pr-11 text-xs md:text-sm font-semibold focus:outline-none focus:ring-2 transition-all duration-200',
+                      passwordForm.password_confirmation.length > 0 && passwordForm.password !== passwordForm.password_confirmation
+                        ? 'bg-red-50 text-red-700 focus:ring-red-400/30'
+                        : passwordForm.password_confirmation.length > 0 && passwordForm.password === passwordForm.password_confirmation
+                        ? 'bg-green-50 text-green-700 focus:ring-green-400/30'
+                        : 'bg-[#EEF0ED] text-stone-700 focus:ring-[#4A7043]/20 focus:bg-white'
+                    ]"
+                    placeholder="Ulangi password baru"
+                  />
+                  <!-- Match indicator icon -->
+                  <div class="absolute right-3.5 top-1/2 -translate-y-1/2">
+                    <Icon
+                      v-if="passwordForm.password_confirmation.length > 0 && passwordForm.password === passwordForm.password_confirmation"
+                      icon="material-symbols:check-circle"
+                      class="w-5 h-5 text-green-500"
+                    />
+                    <Icon
+                      v-else-if="passwordForm.password_confirmation.length > 0 && passwordForm.password !== passwordForm.password_confirmation"
+                      icon="material-symbols:cancel"
+                      class="w-5 h-5 text-red-400"
+                    />
+                  </div>
+                </div>
+                <p
+                  v-if="passwordForm.password_confirmation.length > 0 && passwordForm.password !== passwordForm.password_confirmation"
+                  class="text-xs text-red-600 font-bold mt-1 flex items-center gap-1.5"
+                >
+                  <Icon icon="material-symbols:error-outline" class="w-3.5 h-3.5" />
+                  Password tidak cocok
+                </p>
               </div>
 
             </div>
@@ -195,8 +293,8 @@
                 class="w-full bg-[#4A7043] hover:bg-[#3D5C37] text-white py-3 rounded-xl font-bold text-xs md:text-sm flex items-center justify-center gap-2 transition-all duration-200 disabled:opacity-50 shadow-sm cursor-pointer"
               >
                 <Icon v-if="isUpdating" icon="line-md:loading-twotone-loop" class="w-5 h-5" />
-                <Icon v-else icon="material-symbols:save-outline" class="w-5 h-5" />
-                Simpan Perubahan
+                <Icon v-else icon="material-symbols:lock-reset" class="w-5 h-5" />
+                Perbarui Password
               </button>
             </div>
           </div>
@@ -210,21 +308,8 @@
 
             <div class="grid grid-cols-1 gap-6">
               
-              <!-- Hidden Inputs for File Selection -->
-              <input 
-                type="file" 
-                ref="ktpInput" 
-                @change="handleKtpChange" 
-                accept="image/*,application/pdf" 
-                class="hidden" 
-              />
-              <input 
-                type="file" 
-                ref="npwpInput" 
-                @change="handleNpwpChange" 
-                accept="image/*,application/pdf" 
-                class="hidden" 
-              />
+              <input type="file" ref="ktpInput" @change="handleKtpChange" accept="image/*,application/pdf" class="hidden" />
+              <input type="file" ref="npwpInput" @change="handleNpwpChange" accept="image/*,application/pdf" class="hidden" />
 
               <!-- KTP Box -->
               <div class="bg-white rounded-3xl p-5 border border-stone-200/60 shadow-sm space-y-4">
@@ -238,37 +323,19 @@
                     <span>Sudah diunggah</span>
                   </div>
                 </div>
-
-                <!-- Preview container -->
                 <div class="bg-[#EEF0ED] rounded-[1.5rem] p-4 flex items-center justify-center h-48 md:h-64 overflow-hidden relative group">
-                  <img 
-                    v-if="form.ktp && !isKtpPdf" 
-                    :src="`${axios.defaults.baseURL}/storage/${form.ktp}`" 
-                    class="w-full h-full object-contain rounded-xl hover:scale-105 transition-transform duration-300" 
-                    alt="KTP Preview"
-                  />
+                  <img v-if="form.ktp && !isKtpPdf" :src="`${axios.defaults.baseURL}/storage/${form.ktp}`" class="w-full h-full object-contain rounded-xl hover:scale-105 transition-transform duration-300" alt="KTP Preview" />
                   <div v-else-if="form.ktp && isKtpPdf" class="flex flex-col items-center gap-3 text-[#4A7043]">
                     <Icon icon="material-symbols:picture-as-pdf-outline" class="w-16 h-16" />
                     <span class="text-xs font-bold">KTP Dokumen (PDF)</span>
-                    <a 
-                      :href="`${axios.defaults.baseURL}/storage/${form.ktp}`" 
-                      target="_blank" 
-                      class="text-xs font-black text-[#4A7043] underline hover:text-[#3D5C37]"
-                    >
-                      Lihat Dokumen
-                    </a>
+                    <a :href="`${axios.defaults.baseURL}/storage/${form.ktp}`" target="_blank" class="text-xs font-black text-[#4A7043] underline hover:text-[#3D5C37]">Lihat Dokumen</a>
                   </div>
                   <div v-else class="text-stone-400 flex flex-col items-center gap-2">
                     <Icon icon="material-symbols:image-not-supported-outline" class="w-12 h-12 opacity-40" />
                     <span class="text-xs font-bold">KTP belum diunggah</span>
                   </div>
                 </div>
-
-                <button 
-                  @click="triggerKtpUpload"
-                  :disabled="isUploading"
-                  class="w-full bg-[#EEF0ED]/65 hover:bg-[#EEF0ED] text-[#4A7043] border border-stone-200/50 py-3 rounded-xl font-bold text-xs md:text-sm flex items-center justify-center gap-2 transition-all duration-200 active:scale-[0.99] cursor-pointer"
-                >
+                <button @click="triggerKtpUpload" :disabled="isUploading" class="w-full bg-[#EEF0ED]/65 hover:bg-[#EEF0ED] text-[#4A7043] border border-stone-200/50 py-3 rounded-xl font-bold text-xs md:text-sm flex items-center justify-center gap-2 transition-all duration-200 active:scale-[0.99] cursor-pointer">
                   <Icon icon="material-symbols:upload" class="w-4.5 h-4.5" />
                   Ganti KTP
                 </button>
@@ -286,37 +353,19 @@
                     <span>Sudah diunggah</span>
                   </div>
                 </div>
-
-                <!-- Preview container -->
                 <div class="bg-[#EEF0ED] rounded-[1.5rem] p-4 flex items-center justify-center h-48 md:h-64 overflow-hidden relative group">
-                  <img 
-                    v-if="form.npwp && !isNpwpPdf" 
-                    :src="`${axios.defaults.baseURL}/storage/${form.npwp}`" 
-                    class="w-full h-full object-contain rounded-xl hover:scale-105 transition-transform duration-300" 
-                    alt="NPWP Preview"
-                  />
+                  <img v-if="form.npwp && !isNpwpPdf" :src="`${axios.defaults.baseURL}/storage/${form.npwp}`" class="w-full h-full object-contain rounded-xl hover:scale-105 transition-transform duration-300" alt="NPWP Preview" />
                   <div v-else-if="form.npwp && isNpwpPdf" class="flex flex-col items-center gap-3 text-[#4A7043]">
                     <Icon icon="material-symbols:picture-as-pdf-outline" class="w-16 h-16" />
                     <span class="text-xs font-bold">NPWP Dokumen (PDF)</span>
-                    <a 
-                      :href="`${axios.defaults.baseURL}/storage/${form.npwp}`" 
-                      target="_blank" 
-                      class="text-xs font-black text-[#4A7043] underline hover:text-[#3D5C37]"
-                    >
-                      Lihat Dokumen
-                    </a>
+                    <a :href="`${axios.defaults.baseURL}/storage/${form.npwp}`" target="_blank" class="text-xs font-black text-[#4A7043] underline hover:text-[#3D5C37]">Lihat Dokumen</a>
                   </div>
                   <div v-else class="text-stone-400 flex flex-col items-center gap-2">
                     <Icon icon="material-symbols:image-not-supported-outline" class="w-12 h-12 opacity-40" />
                     <span class="text-xs font-bold">NPWP belum diunggah</span>
                   </div>
                 </div>
-
-                <button 
-                  @click="triggerNpwpUpload"
-                  :disabled="isUploading"
-                  class="w-full bg-[#EEF0ED]/65 hover:bg-[#EEF0ED] text-[#4A7043] border border-stone-200/50 py-3 rounded-xl font-bold text-xs md:text-sm flex items-center justify-center gap-2 transition-all duration-200 active:scale-[0.99] cursor-pointer"
-                >
+                <button @click="triggerNpwpUpload" :disabled="isUploading" class="w-full bg-[#EEF0ED]/65 hover:bg-[#EEF0ED] text-[#4A7043] border border-stone-200/50 py-3 rounded-xl font-bold text-xs md:text-sm flex items-center justify-center gap-2 transition-all duration-200 active:scale-[0.99] cursor-pointer">
                   <Icon icon="material-symbols:upload" class="w-4.5 h-4.5" />
                   Ganti NPWP
                 </button>
@@ -324,12 +373,8 @@
 
             </div>
 
-            <!-- Submit Button (Visual Confirm/Back) -->
             <div class="pt-6">
-              <button 
-                @click="confirmDocuments"
-                class="w-full bg-[#4A7043] hover:bg-[#3D5C37] text-white py-4 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all duration-200 active:scale-[0.99] cursor-pointer"
-              >
+              <button @click="confirmDocuments" class="w-full bg-[#4A7043] hover:bg-[#3D5C37] text-white py-4 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all duration-200 active:scale-[0.99] cursor-pointer">
                 <Icon icon="material-symbols:save-outline" class="w-5 h-5" />
                 Simpan Perubahan
               </button>
@@ -337,13 +382,11 @@
           </div>
 
         </div>
-
       </div>
-
     </div>
 
-    <!-- Success Toast Notification -->
-    <transition 
+    <!-- Success Toast -->
+    <transition
       enter-active-class="transform ease-out duration-300 transition"
       enter-from-class="translate-y-2 opacity-0 sm:translate-y-0 sm:translate-x-2"
       enter-to-class="translate-y-0 opacity-100 sm:translate-x-0"
@@ -351,16 +394,11 @@
       leave-from-class="opacity-100"
       leave-to-class="opacity-0"
     >
-      <div 
-        v-if="toastMessage" 
-        class="fixed bottom-6 right-6 z-50 bg-white rounded-2xl shadow-xl border border-stone-150 p-5 pr-8 flex items-center gap-3 animate-in slide-in-from-right-4 duration-300"
-      >
+      <div v-if="toastMessage" class="fixed bottom-6 right-6 z-50 bg-white rounded-2xl shadow-xl border border-stone-150 p-5 pr-8 flex items-center gap-3">
         <div class="w-8 h-8 rounded-full bg-green-50 flex items-center justify-center text-green-600 shrink-0">
           <Icon icon="material-symbols:check-circle" class="w-5 h-5" />
         </div>
-        <div>
-          <p class="text-sm font-bold text-stone-800">{{ toastMessage }}</p>
-        </div>
+        <p class="text-sm font-bold text-stone-800">{{ toastMessage }}</p>
       </div>
     </transition>
 
@@ -374,72 +412,77 @@ import { Icon } from '@iconify/vue';
 import { cn } from '@/lib/utils';
 import { checkRole } from '@/utils';
 
-// Check role authentication
 checkRole('pengepul');
 
 const axios = inject('axios');
 
-// Tab Configuration
 const activeTab = ref('pribadi');
 const tabs = [
-  { id: 'pribadi', name: 'Informasi Pribadi', icon: 'material-symbols:person-outline' },
-  { id: 'password', name: 'Ubah Password', icon: 'material-symbols:lock-outline' },
-  { id: 'dokumen', name: 'Dokumen', icon: 'material-symbols:description-outline' }
+  { id: 'pribadi',  name: 'Informasi Pribadi', icon: 'material-symbols:person-outline' },
+  { id: 'password', name: 'Ubah Password',     icon: 'material-symbols:lock-outline' },
+  { id: 'dokumen',  name: 'Dokumen',            icon: 'material-symbols:description-outline' }
 ];
 
-// Profile data state
 const form = ref({
-  nama: '',
-  username: '',
-  email: '',
-  no_telp: '',
-  nama_lembaga: '',
-  alamat: '',
-  ktp: '',
-  npwp: ''
+  nama: '', username: '', email: '',
+  no_telp: '', nama_lembaga: '', alamat: '',
+  ktp: '', npwp: ''
 });
 
-// Password form state
+// ── Password form sekarang punya 3 field ─────────────────────────────────────
 const passwordForm = ref({
-  password: '',
+  password_current:      '',   // ← field baru: password lama
+  password:              '',
   password_confirmation: ''
 });
 
-// Loading & UI States
-const isUpdating = ref(false);
+const isUpdating  = ref(false);
+const isUploading = ref(false);
 const successMessage = ref('');
-const toastMessage = ref('');
-const showPassword = ref(false);
-const errors = ref({});
+const toastMessage   = ref('');
+const errors         = ref({});
 
-// Hidden upload triggers
-const ktpInput = ref(null);
+// Visibility toggles
+const showCurrentPassword = ref(false);
+const showPassword        = ref(false);
+
+const ktpInput  = ref(null);
 const npwpInput = ref(null);
 
-// Get Pengepul user from session storage
 const user = computed(() => {
-  try {
-    return JSON.parse(sessionStorage.getItem("user") || "{}");
-  } catch (e) {
-    return {};
-  }
+  try { return JSON.parse(sessionStorage.getItem("user") || "{}"); }
+  catch (e) { return {}; }
 });
 
-// Check if document files are PDFs
-const isKtpPdf = computed(() => {
-  return form.value.ktp && form.value.ktp.toLowerCase().endsWith('.pdf');
+const isKtpPdf  = computed(() => form.value.ktp  && form.value.ktp.toLowerCase().endsWith('.pdf'));
+const isNpwpPdf = computed(() => form.value.npwp && form.value.npwp.toLowerCase().endsWith('.pdf'));
+
+// ── Password strength meter ───────────────────────────────────────────────────
+const passwordStrength = computed(() => {
+  const p = passwordForm.value.password;
+  if (!p) return 0;
+  let score = 0;
+  if (p.length >= 6)  score++;
+  if (p.length >= 10) score++;
+  if (/[A-Z]/.test(p) || /[0-9]/.test(p)) score++;
+  if (/[^A-Za-z0-9]/.test(p)) score++;
+  return score;
 });
 
-const isNpwpPdf = computed(() => {
-  return form.value.npwp && form.value.npwp.toLowerCase().endsWith('.pdf');
+// ── Form valid: semua 3 field terisi, password baru cocok, min 6 char ─────────
+const isPasswordFormValid = computed(() => {
+  return (
+    passwordForm.value.password_current.length > 0 &&
+    passwordForm.value.password.length >= 6 &&
+    passwordForm.value.password === passwordForm.value.password_confirmation
+  );
 });
 
-// Fetch Pengepul Profile Info
+// ── Fetch profile ─────────────────────────────────────────────────────────────
 const fetchProfile = async () => {
   try {
     const id = user.value.pengepul_id;
     if (!id) return;
-    
     const res = await axios.get(`/api/pengepul/profile/${id}`);
     form.value = { ...res.data };
   } catch (err) {
@@ -447,65 +490,55 @@ const fetchProfile = async () => {
   }
 };
 
-// Validate password strength & confirmation
-const isPasswordFormValid = computed(() => {
-  return passwordForm.value.password.length >= 6 && 
-         passwordForm.value.password === passwordForm.value.password_confirmation;
-});
-
-// Update personal information
+// ── Update profil ─────────────────────────────────────────────────────────────
 const updateProfile = async () => {
   isUpdating.value = true;
   errors.value = {};
   successMessage.value = '';
-  
   try {
     const id = user.value.pengepul_id;
     const payload = {
-      nama: form.value.nama,
-      username: form.value.username,
-      no_telp: form.value.no_telp,
-      nama_lembaga: form.value.nama_lembaga,
+      nama: form.value.nama, username: form.value.username,
+      no_telp: form.value.no_telp, nama_lembaga: form.value.nama_lembaga,
       alamat: form.value.alamat
     };
-    
     const res = await axios.put(`/api/pengepul/edit-profile/${id}`, payload);
-    
-    // Update session storage
     sessionStorage.setItem("user", JSON.stringify(res.data.data));
     form.value = { ...res.data.data };
-    
     successMessage.value = "Profil berhasil diperbarui!";
     window.scrollTo({ top: 0, behavior: 'smooth' });
     setTimeout(() => successMessage.value = '', 3000);
   } catch (err) {
-    if (err.response && err.response.status === 422) {
-      errors.value = err.response.data.errors;
-    } else {
-      alert("Gagal memperbarui profil: " + (err.response?.data?.message || err.message));
-    }
+    if (err.response?.status === 422) errors.value = err.response.data.errors;
+    else alert("Gagal memperbarui profil: " + (err.response?.data?.message || err.message));
   } finally {
     isUpdating.value = false;
   }
 };
 
-// Update Password
+// ── Update password — sekarang kirim password_current ke backend ──────────────
 const updatePassword = async () => {
   isUpdating.value = true;
   errors.value = {};
   successMessage.value = '';
-  
   try {
     const id = user.value.pengepul_id;
-    await axios.put(`/api/pengepul/update-password/${id}`, passwordForm.value);
-    
-    passwordForm.value = { password: '', password_confirmation: '' };
+    await axios.put(`/api/pengepul/update-password/${id}`, {
+      password_current:      passwordForm.value.password_current,
+      password:              passwordForm.value.password,
+      password_confirmation: passwordForm.value.password_confirmation,
+    });
+    // Reset semua field setelah sukses
+    passwordForm.value = { password_current: '', password: '', password_confirmation: '' };
     successMessage.value = "Password berhasil diubah!";
     window.scrollTo({ top: 0, behavior: 'smooth' });
     setTimeout(() => successMessage.value = '', 3000);
   } catch (err) {
-    if (err.response && err.response.status === 422) {
+    if (err.response?.status === 422) {
       errors.value = err.response.data.errors;
+    } else if (err.response?.status === 400) {
+      // Backend mengembalikan 400 jika password lama salah
+      errors.value = { password_current: [err.response.data.message] };
     } else {
       alert("Gagal mengubah password: " + (err.response?.data?.message || err.message));
     }
@@ -514,120 +547,72 @@ const updatePassword = async () => {
   }
 };
 
-// Document Upload Programmatic Click
-const triggerKtpUpload = () => {
-  ktpInput.value.click();
-};
+// ── Document upload helpers ───────────────────────────────────────────────────
+const triggerKtpUpload  = () => ktpInput.value.click();
+const triggerNpwpUpload = () => npwpInput.value.click();
 
-const triggerNpwpUpload = () => {
-  npwpInput.value.click();
-};
-
-// Handle file selections & immediately upload
 const handleKtpChange = async (event) => {
   const file = event.target.files[0];
   if (!file) return;
-
-  // Validate size (max 5MB)
-  if (file.size > 5 * 1024 * 1024) {
-    alert("Ukuran berkas melebihi batas maksimal 5MB.");
-    return;
-  }
-
+  if (file.size > 5 * 1024 * 1024) { alert("Ukuran berkas melebihi batas maksimal 5MB."); return; }
   isUpdating.value = true;
   const formData = new FormData();
   formData.append('ktp', file);
-
   try {
     const id = user.value.pengepul_id;
-    const res = await axios.post(`/api/pengepul/upload-ktp/${id}`, formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data'
-      }
-    });
-
-    // Update state & session
+    const res = await axios.post(`/api/pengepul/upload-ktp/${id}`, formData, { headers: { 'Content-Type': 'multipart/form-data' } });
     form.value.ktp = res.data.data.ktp;
     sessionStorage.setItem("user", JSON.stringify(res.data.data));
-
     showToast("KTP berhasil diunggah");
   } catch (err) {
     alert("Gagal mengunggah KTP: " + (err.response?.data?.message || err.message));
   } finally {
     isUpdating.value = false;
-    event.target.value = ''; // Reset input selection
+    event.target.value = '';
   }
 };
 
 const handleNpwpChange = async (event) => {
   const file = event.target.files[0];
   if (!file) return;
-
-  // Validate size (max 5MB)
-  if (file.size > 5 * 1024 * 1024) {
-    alert("Ukuran berkas melebihi batas maksimal 5MB.");
-    return;
-  }
-
+  if (file.size > 5 * 1024 * 1024) { alert("Ukuran berkas melebihi batas maksimal 5MB."); return; }
   isUpdating.value = true;
   const formData = new FormData();
   formData.append('npwp', file);
-
   try {
     const id = user.value.pengepul_id;
-    const res = await axios.post(`/api/pengepul/upload-npwp/${id}`, formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data'
-      }
-    });
-
-    // Update state & session
+    const res = await axios.post(`/api/pengepul/upload-npwp/${id}`, formData, { headers: { 'Content-Type': 'multipart/form-data' } });
     form.value.npwp = res.data.data.npwp;
     sessionStorage.setItem("user", JSON.stringify(res.data.data));
-
     showToast("NPWP berhasil diunggah");
   } catch (err) {
     alert("Gagal mengunggah NPWP: " + (err.response?.data?.message || err.message));
   } finally {
     isUpdating.value = false;
-    event.target.value = ''; // Reset input selection
+    event.target.value = '';
   }
 };
 
-// Helper to trigger success toast
 const showToast = (message) => {
   toastMessage.value = message;
-  setTimeout(() => {
-    toastMessage.value = '';
-  }, 4000);
+  setTimeout(() => toastMessage.value = '', 4000);
 };
 
-// Visual confirm on Document tab
 const confirmDocuments = () => {
   successMessage.value = "Dokumen verifikasi berhasil diperbarui!";
   window.scrollTo({ top: 0, behavior: 'smooth' });
   setTimeout(() => successMessage.value = '', 3000);
 };
 
-onMounted(() => {
-  fetchProfile();
-});
+onMounted(() => { fetchProfile(); });
 </script>
 
 <style scoped>
-/* Smooth transition effects */
 .animate-in {
   animation: fadeIn 0.4s ease-out forwards;
 }
-
 @keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 </style>

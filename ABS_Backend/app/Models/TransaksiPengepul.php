@@ -11,6 +11,7 @@ class TransaksiPengepul extends Model
     protected $fillable = [
         'status',
         'ket_status',
+        'petugas_id',
         'deadline',
         'bukti_transfer',
         'pengepul_id'
@@ -24,5 +25,10 @@ class TransaksiPengepul extends Model
     public function pengepul()
     {
         return $this->belongsTo(Pengepul::class,'pengepul_id','pengepul_id');
+    }
+
+    public function petugas()
+    {
+        return $this->belongsTo(Petugas::class, 'petugas_id', 'petugas_id');
     }
 }
