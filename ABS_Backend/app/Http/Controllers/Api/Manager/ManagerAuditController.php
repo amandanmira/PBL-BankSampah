@@ -36,9 +36,9 @@ class ManagerAuditController extends Controller
         if ($gudang && $gudang !== 'Semua Gudang') {
             $query->where(function ($q) use ($gudang) {
                 $q->whereHas('penjemputan.gudang', function($q2) use ($gudang) {
-                    $q2->where('alamat', $gudang)->orWhere('nama_gudang', $gudang);
+                    $q2->where('alamat', $gudang);
                 })->orWhereHas('transaksi.petugas.gudang', function($q3) use ($gudang) {
-                    $q3->where('alamat', $gudang)->orWhere('nama_gudang', $gudang);
+                    $q3->where('alamat', $gudang);
                 });
             });
         }
@@ -230,7 +230,7 @@ class ManagerAuditController extends Controller
 
             if ($gudang && $gudang !== 'Semua Gudang') {
                 $pengepulQuery->whereHas('detailTransaksi.sampah.gudang', function($q) use ($gudang) {
-                    $q->where('alamat', $gudang)->orWhere('nama_gudang', $gudang);
+                    $q->where('alamat', $gudang);
                 });
             }
             $pengepulQuery->where('created_at', '>=', $parsedStartDate);
@@ -256,8 +256,7 @@ class ManagerAuditController extends Controller
             foreach ($pengepulQuery->get() as $t) {
                 foreach ($t->detailTransaksi as $d) {
                     $gudangName = optional(optional($d->sampah)->gudang)->alamat ?? 'Unknown Gudang';
-                    $gudangRealName = optional(optional($d->sampah)->gudang)->nama_gudang ?? 'Unknown Gudang';
-                    if ($gudang && $gudang !== 'Semua Gudang' && $gudang !== $gudangName && $gudang !== $gudangRealName) {
+                    if ($gudang && $gudang !== 'Semua Gudang' && $gudang !== $gudangName) {
                         continue;
                     }
 

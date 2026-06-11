@@ -1136,7 +1136,7 @@ onMounted(() => {
               <h3 class="font-bold text-[#166534] border-b border-[#DCF2E7] pb-1.5">Informasi Saldo</h3>
               <div class="flex justify-between items-center text-stone-600">
                 <span>Saldo Sebelumnya</span>
-                <span class="font-semibold">Rp {{ (selectedItem.nasabah?.saldo || selectedItem.penimbangan?.[0]?.nasabah?.saldo || 320000).toLocaleString('id-ID') }}</span>
+                <span class="font-semibold">Rp {{ Number(selectedItem.saldo_sebelum ?? selectedItem.penimbangan?.[0]?.transaksi?.saldo_sebelum ?? 320000).toLocaleString('id-ID') }}</span>
               </div>
               <div class="flex justify-between items-center text-[#166534]">
                 <span>Nilai Transaksi</span>
@@ -1144,7 +1144,7 @@ onMounted(() => {
               </div>
               <div class="pt-2.5 border-t border-[#DCF2E7] flex justify-between items-center font-bold text-[#166534]">
                 <span>Saldo Sesudah</span>
-                <span class="text-sm">Rp {{ (parseFloat(selectedItem.nasabah?.saldo || selectedItem.penimbangan?.[0]?.nasabah?.saldo || 320000) + (selectedItem.penimbangan?.reduce((acc, curr) => acc + curr.berat_timbang * (curr.sampah?.item_sampah?.harga_beli || 0), 0) || 26500)).toLocaleString('id-ID') }}</span>
+                <span class="text-sm">Rp {{ Number(selectedItem.saldo_sesudah ?? selectedItem.penimbangan?.[0]?.transaksi?.saldo_sesudah ?? 346500).toLocaleString('id-ID') }}</span>
               </div>
             </div>
           </div>
