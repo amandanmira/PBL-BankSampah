@@ -283,7 +283,9 @@ class PesananPengepulController extends Controller
             ], 400);
         }
 
-        $gudangId = Auth::user()->gudang_id;
+        $user = Auth::user();
+        $gudangId = $user->gudang_id;
+        $petugasId = $user->petugas_id; // 🔥 Ambil ID Petugas yang sedang login
 
         // Selesaikan hanya item milik gudang yang login
         DetailTransaksi::where('transaksi_id', $id)
@@ -299,10 +301,12 @@ class PesananPengepulController extends Controller
             ->where('status_pengambilan', 'pending')
             ->exists();
 
+        // Jika semua barang sudah diserahkan
         if (!$masihPending) {
             $transaksi->update([
                 'status' => 'selesai',
-                'ket_status' => 'Semua barang telah diserahkan kepada pengepul.'
+                'ket_status' => 'Semua barang telah diserahkan kepada pengepul.',
+                'petugas_id' => $petugasId // 🔥 SIMPAN ID PETUGAS KE DATABASE
             ]);
 
             return response()->json([
