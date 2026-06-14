@@ -468,7 +468,7 @@ onMounted(() => {
                       <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest">
                         {{
                           activeMainTab === 'jemput'
-                            ? `#JMP-${String(item.penjemputan_id).padStart(3, '0')}`
+                            ? `#REQ-${String(item.penjemputan_id).padStart(3, '0')}`
                             : `#TR-${String(item.transaksi_id).padStart(3, '0')}`
                         }}
                       </p>
@@ -501,7 +501,7 @@ onMounted(() => {
                       <Icon icon="material-symbols:weight-outline" class="w-4 h-4" />
                       <span class="text-xs font-bold">
                         <template v-if="activeMainTab === 'jemput'"
-                          >{{ item.estimasi_berat || '-' }} kg</template
+                          >{{ item.estimasi_berat || '-' }} </template
                         >
                         <template v-else
                           >{{
@@ -641,7 +641,7 @@ onMounted(() => {
               {{ selectedItem.status === 'selesai' ? 'Detail Transaksi' : 'Detail Request' }}
             </h2>
             <span v-if="selectedItem.status === 'selesai'" class="text-xs text-white/70">
-              #{{ selectedItem.penjemputan_id ? 'JMP' : 'TR' }}-{{
+              #{{ selectedItem.penjemputan_id ? 'REQ' : 'TR' }}-{{
                 String(selectedItem.penjemputan_id || selectedItem.transaksi_id).padStart(3, '0')
               }}
             </span>
@@ -801,7 +801,7 @@ onMounted(() => {
               <div>
                 <p class="text-[9px] text-white/70 uppercase tracking-widest">Tracking ID</p>
                 <h4 class="text-base font-bold">
-                  #JMP-{{ String(selectedItem.penjemputan_id).padStart(3, '0') }}
+                  #REQ-{{ String(selectedItem.penjemputan_id).padStart(3, '0') }}
                 </h4>
               </div>
             </div>
@@ -879,7 +879,7 @@ onMounted(() => {
                   }}
                 </p>
                 <p class="text-[10px] font-medium text-stone-400">
-                  Estimasi: ~{{ selectedItem.estimasi_berat || '10' }} kg
+                  Estimasi: ~{{ selectedItem.estimasi_berat || '10' }} 
                 </p>
               </div>
             </div>
@@ -1118,7 +1118,7 @@ onMounted(() => {
                     ID Penjemputan
                   </p>
                   <p class="font-bold text-stone-800">
-                    JMP-{{ String(selectedItem.penjemputan_id).padStart(3, '0') }}
+                    REQ-{{ String(selectedItem.penjemputan_id).padStart(3, '0') }}
                   </p>
                 </div>
                 <div class="flex justify-between items-center">
