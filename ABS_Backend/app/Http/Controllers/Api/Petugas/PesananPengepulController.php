@@ -18,6 +18,8 @@ class PesananPengepulController extends Controller
      */
     public function index(Request $request)
     {
+        TransaksiPengepul::cancelExpiredTransactions();
+
         $user = Auth::user();
         $gudangId = $user->gudang_id;
 

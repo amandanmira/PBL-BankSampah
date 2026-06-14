@@ -26,7 +26,7 @@ class RequestPembelianController extends Controller
     }
 
     public function index(Request $request, $pengepul_id) {
-        $this->cancelExpiredTransactions($pengepul_id);
+        TransaksiPengepul::cancelExpiredTransactions($pengepul_id);
 
         $activeTab = $request->input('status', 'menunggu');
         $search = $request->input('search', '');
@@ -116,7 +116,7 @@ class RequestPembelianController extends Controller
 
     public function show(string $id)
     {
-        $this->cancelExpiredTransactions(null, $id);
+        TransaksiPengepul::cancelExpiredTransactions(null, $id);
 
         $transaksi = TransaksiPengepul::with([
             'detailTransaksi.sampah.itemSampah',
@@ -460,7 +460,6 @@ class RequestPembelianController extends Controller
             $insightStokMenipis,
             $insightHargaTurun
         ];
-
         return response()->json([
             'total_pengeluaran' => (float)$totalPengeluaran,
             'total_sampah' => (float)$totalSampah,
@@ -469,47 +468,5 @@ class RequestPembelianController extends Controller
             'chart_data' => $chartData,
             'market_insights' => $marketInsights
         ]);
-    }
-
-    private function cancelExpiredTransactions($pengepul_id = null, $transaksi_id = null)
-    {
-        $query = TransaksiPengepul::with('detailTransaksi')
-            ->where('status', 'proses')
-            ->where('deadline', '<', now())
-            ->where(function ($q) {
-                $q->whereNull('bukti_transfer')
-                  ->orWhere('bukti_transfer', '');
-            });
-
-        if ($pengepul_id) {
-            $query->where('pengepul_id', $pengepul_id);
-        }
-
-        if ($transaksi_id) {
-            $query->where('transaksi_id', $transaksi_id);
-        }
-
-        $expired = $query->get();
-
-        foreach ($expired as $t) {
-            // Restore stock
-            foreach ($t->detailTransaksi as $d) {
-                $sampah = Sampah::find($d->sampah_id);
-                if ($sampah) {
-                    $sampah->update([
-                        'stok' => $sampah->stok + $d->berat,
-                    ]);
-                }
-            }
-
-            // Update status & ket_status
-            $t->update([
-                'status' => 'tolak',
-                'ket_status' => 'Dibatalkan otomatis oleh sistem (melewati batas waktu pembayaran)'
-            ]);
-
-            // Update detail_transaksis status
-            $t->detailTransaksi()->update(['status' => 'tolak']);
-        }
     }
 }

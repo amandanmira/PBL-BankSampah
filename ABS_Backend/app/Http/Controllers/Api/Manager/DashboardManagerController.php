@@ -288,6 +288,8 @@ class DashboardManagerController extends Controller
 
     public function transaksiBulanIni(Request $request)
     {
+        \App\Models\TransaksiPengepul::cancelExpiredTransactions();
+
         $startOfMonth = now()->startOfMonth();
         $endOfMonth = now()->endOfMonth();
 

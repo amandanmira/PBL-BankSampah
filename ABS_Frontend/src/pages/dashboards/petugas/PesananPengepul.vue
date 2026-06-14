@@ -395,7 +395,7 @@ onMounted(() => {
         >
           <div class="flex justify-between items-center pb-2">
             <div class="flex items-center gap-2">
-              <span class="text-base font-bold text-stone-800">PSN-{{ String(order.transaksi_id).padStart(3, '0') }}</span>
+              <span class="text-base font-bold text-stone-800">PO-{{ String(order.transaksi_id).padStart(3, '0') }}</span>
               <span class="text-xs text-stone-400 font-semibold">{{ formatDate(order.created_at) }}</span>
             </div>
             <span :class="[

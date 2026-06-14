@@ -353,7 +353,7 @@ onMounted(async () => {
               <td colspan="7" class="py-8 text-center text-stone-400 font-medium">Tidak ada data setor manual</td>
             </tr>
             <tr v-for="item in detailsLaporan.setor_manual" :key="item.transaksi_id" class="hover:bg-stone-50/50 transition-colors">
-              <td class="py-4 px-4 font-bold text-stone-700">TRX-{{ String(item.transaksi_id).padStart(3, '0') }}</td>
+              <td class="py-4 px-4 font-bold text-stone-700">TR-{{ String(item.transaksi_id).padStart(3, '0') }}</td>
               <td class="py-4 px-4 text-stone-500">{{ formatTimeDisplay(item.created_at) }}</td>
               <td class="py-4 px-4">
                 <div class="font-bold text-stone-800">{{ item.penimbangan?.[0]?.nasabah?.nama || '-' }}</div>

@@ -61,10 +61,16 @@
           </div>
         </div>
 
+        <!-- Error Message -->
+        <div v-if="errorMessage" class="mb-6 bg-red-50 border border-red-200 text-red-600 rounded-2xl p-4 flex items-center gap-3">
+          <Icon icon="material-symbols:error-outline" class="w-6 h-6 shrink-0" />
+          <span class="text-sm font-semibold">{{ errorMessage }}</span>
+        </div>
+
         <!-- Save Button -->
         <button 
           @click="saveDeadline"
-          :disabled="loading"
+          :disabled="loading || !!errorMessage"
           class="w-full bg-[#4A7043] text-white font-bold py-5 rounded-3xl flex items-center justify-center gap-3 transition-all duration-300 shadow-xl shadow-green-900/20 hover:bg-[#3D5C37] active:scale-[0.98] disabled:opacity-50 group"
         >
           <Icon :icon="loading ? 'line-md:loading-twotone-loop' : 'material-symbols:save-outline'" class="w-6 h-6 transition-transform group-hover:scale-110" />
@@ -135,9 +141,38 @@ if (!token) {
 const days = ref(0);
 const hours = ref(24);
 const loading = ref(false);
+const errorMessage = ref("");
+
+const validateInputs = () => {
+  const dVal = days.value;
+  const hVal = hours.value;
+
+  if (dVal === "" || hVal === "" || dVal === null || hVal === null) {
+    errorMessage.value = "Kolom hari dan jam tidak boleh kosong.";
+    return false;
+  }
+
+  if (dVal < 0 || hVal < 0) {
+    errorMessage.value = "Jumlah hari dan jam tidak boleh kurang dari 0.";
+    return false;
+  }
+
+  if (!Number.isInteger(Number(dVal)) || !Number.isInteger(Number(hVal))) {
+    errorMessage.value = "Jumlah hari dan jam harus berupa bilangan bulat (tidak boleh desimal seperti 0.5).";
+    return false;
+  }
+
+  errorMessage.value = "";
+  return true;
+};
+
+watch([days, hours], () => {
+  validateInputs();
+});
 
 // Definisikan totalHours lebih awal sebelum dipakai
 const totalHours = computed(() => {
+  if (errorMessage.value) return 0;
   return (parseInt(days.value || 0) * 24) + parseInt(hours.value || 0);
 });
 
@@ -189,6 +224,10 @@ const fetchConfig = async () => {
 };
 
 const saveDeadline = async () => {
+  if (!validateInputs()) {
+    alert(errorMessage.value);
+    return;
+  }
   try {
     loading.value = true;
     const formData = new FormData();
