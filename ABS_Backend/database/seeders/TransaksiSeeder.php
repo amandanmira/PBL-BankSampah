@@ -6,6 +6,8 @@ use Illuminate\Database\Seeder;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Storage;
 
 // Models
 use App\Models\Gudang;
@@ -26,6 +28,50 @@ class TransaksiSeeder extends Seeder
 {
     public function run(): void
     {
+        // =========================================================
+        // LOGIKA COPY GAMBAR TUKANG DARI PUBLIC KE STORAGE
+        // =========================================================
+        Storage::disk('public')->makeDirectory('tukang_foto'); // Pastikan folder ada
+
+        $daftarGambarTukang = ['tukang3.jpeg', 'tukang4.jpeg', 'Untilted.jpeg'];
+        $pathFotoTersedia = [];
+
+        foreach ($daftarGambarTukang as $namaFile) {
+            $sourcePath = public_path('dummy_images/tukang/' . $namaFile);
+            if (File::exists($sourcePath)) {
+                $destPath = 'tukang_foto/' . $namaFile;
+                // Salin gambar ke storage
+                Storage::disk('public')->put($destPath, File::get($sourcePath));
+                $pathFotoTersedia[] = $destPath; // Simpan path untuk digunakan nanti
+            }
+        }
+
+        // =========================================================
+        // LOGIKA COPY GAMBAR BUKTI PENJEMPUTAN/PENIMBANGAN
+        // =========================================================
+        Storage::disk('public')->makeDirectory('penjemputan_foto'); 
+        
+        $pathFotoPenjemputan = null;
+        $sourcePenjemputan = public_path('dummy_images/penimbangan/timbang.jpeg');
+        
+        if (File::exists($sourcePenjemputan)) {
+            $pathFotoPenjemputan = 'penjemputan_foto/timbang.jpeg';
+            Storage::disk('public')->put($pathFotoPenjemputan, File::get($sourcePenjemputan));
+        }
+
+        // =========================================================
+        // LOGIKA COPY GAMBAR BUKTI TRANSFER PENGEPUL
+        // =========================================================
+        Storage::disk('public')->makeDirectory('bukti_transfer'); 
+        
+        $pathBuktiTransfer = null;
+        $sourceBukti = public_path('dummy_images/bukti/bukti.jpeg');
+        
+        if (File::exists($sourceBukti)) {
+            $pathBuktiTransfer = 'bukti_transfer/bukti.jpeg';
+            Storage::disk('public')->put($pathBuktiTransfer, File::get($sourceBukti));
+        }
+
         // 1. Ensure Warehouses Exist
         $gudangs = [];
         $gudangNames = ['Gudang Pusat', 'Gudang Timur', 'Gudang Barat', 'Gudang Selatan', 'Gudang Surakarta'];
@@ -44,7 +90,7 @@ class TransaksiSeeder extends Seeder
             'Logam' => KategoriSampah::firstOrCreate(['nama' => 'Logam']),
         ];
 
-        // 3. Ensure ItemSampah Exist (Exactly matching screenshot names)
+        // 3. Ensure ItemSampah Exist
         $items = [
             'Organik' => ItemSampah::firstOrCreate(
                 ['nama' => 'Organik'],
@@ -65,7 +111,7 @@ class TransaksiSeeder extends Seeder
         ];
 
         // 4. Link Items to all Warehouses (Sampah model)
-        $sampahMap = []; // [$gudangAlamat][$itemName] = $sampahModel
+        $sampahMap = []; 
         foreach ($gudangs as $gudangName => $g) {
             foreach ($items as $itemName => $it) {
                 $sampahMap[$gudangName][$itemName] = Sampah::firstOrCreate(
@@ -128,17 +174,23 @@ class TransaksiSeeder extends Seeder
                 ]
             );
 
+            $fotoTerpilih = null;
+            if (count($pathFotoTersedia) > 0) {
+                $fotoTerpilih = $pathFotoTersedia[array_rand($pathFotoTersedia)];
+            }
+
             $tukangList[$gudangName] = Tukang::firstOrCreate(
                 ['nama' => 'Tukang ' . $gudangName],
                 [
                     'no_telp' => '0812' . rand(10000000, 99999999),
                     'active' => 1,
-                    'gudang_id' => $g->gudang_id
+                    'gudang_id' => $g->gudang_id,
+                    'foto' => $fotoTerpilih 
                 ]
             );
         }
 
-        // Clean existing Penimbangan, Penjemputan, TransaksiNasabah, DetailTransaksi, TransaksiPengepul
+        // Clean existing Data
         DB::statement('SET FOREIGN_KEY_CHECKS=0;');
         Penimbangan::truncate();
         Penjemputan::truncate();
@@ -147,30 +199,29 @@ class TransaksiSeeder extends Seeder
         TransaksiPengepul::truncate();
         DB::statement('SET FOREIGN_KEY_CHECKS=1;');
 
-        // 8. Seed 20 Diverse Audit Transactions (Selesai and Tidak Terlaksana)
+        // 8. Seed 20 Diverse Audit Transactions
         $now = Carbon::now();
         $auditSpecs = [
-            // Format: [DateOffsetDays, NasabahIndex, ItemName, Berat, Sumber, Status, GudangName]
-            [1, 0, 'Organik', 15.5, 'Jemput', 'Selesai', 'Gudang Pusat'],
-            [1, 1, 'Plastik PET', 8.2, 'Setor Manual', 'Selesai', 'Gudang Pusat'],
-            [2, 2, 'Kertas', 12.0, 'Jemput', 'Selesai', 'Gudang Timur'],
-            [2, 3, 'Logam', 6.5, 'Jemput', 'Tidak Terlaksana', 'Gudang Timur'],
-            [3, 4, 'Organik', 18.3, 'Setor Manual', 'Selesai', 'Gudang Barat'],
-            [4, 5, 'Plastik PET', 0.0, 'Jemput', 'Tidak Terlaksana', 'Gudang Barat'],
-            [5, 6, 'Kertas', 9.5, 'Jemput', 'Selesai', 'Gudang Selatan'],
-            [6, 7, 'Logam', 11.2, 'Setor Manual', 'Selesai', 'Gudang Selatan'],
-            [7, 8, 'Organik', 14.0, 'Jemput', 'Selesai', 'Gudang Surakarta'],
-            [8, 9, 'Plastik PET', 7.5, 'Jemput', 'Tidak Terlaksana', 'Gudang Surakarta'],
-            [9, 0, 'Kertas', 22.1, 'Setor Manual', 'Selesai', 'Gudang Pusat'],
-            [10, 1, 'Logam', 5.8, 'Jemput', 'Selesai', 'Gudang Timur'],
-            [11, 2, 'Organik', 11.3, 'Jemput', 'Tidak Terlaksana', 'Gudang Barat'],
-            [12, 3, 'Plastik PET', 13.4, 'Setor Manual', 'Selesai', 'Gudang Selatan'],
-            [13, 4, 'Kertas', 8.7, 'Jemput', 'Selesai', 'Gudang Surakarta'],
-            [14, 5, 'Logam', 0.0, 'Jemput', 'Tidak Terlaksana', 'Gudang Pusat'],
-            [15, 6, 'Organik', 19.1, 'Setor Manual', 'Selesai', 'Gudang Timur'],
-            [16, 7, 'Plastik PET', 10.8, 'Jemput', 'Selesai', 'Gudang Barat'],
-            [17, 8, 'Kertas', 0.0, 'Jemput', 'Tidak Terlaksana', 'Gudang Selatan'],
-            [18, 9, 'Logam', 16.4, 'Setor Manual', 'Selesai', 'Gudang Surakarta'],
+            [1, 0, 'Organik', 15.5, 'Jemput', 'Selesai', 'Gudang Pusat', 'Senin - Jumat', '08:00 - 12:00'],
+            [1, 1, 'Plastik PET', 8.2, 'Setor Manual', 'Selesai', 'Gudang Pusat', 'Senin - Jumat', '13:00 - 17:00'],
+            [2, 2, 'Kertas', 12.0, 'Jemput', 'Selesai', 'Gudang Timur', 'Sabtu - Minggu', '08:00 - 12:00'],
+            [2, 3, 'Logam', 6.5, 'Jemput', 'Tidak Terlaksana', 'Gudang Timur', 'Senin - Jumat', '13:00 - 17:00'],
+            [3, 4, 'Organik', 18.3, 'Setor Manual', 'Selesai', 'Gudang Barat', 'Sabtu - Minggu', '13:00 - 17:00'],
+            [4, 5, 'Plastik PET', 0.0, 'Jemput', 'Tidak Terlaksana', 'Gudang Barat', 'Senin - Jumat', '08:00 - 12:00'],
+            [5, 6, 'Kertas', 9.5, 'Jemput', 'Selesai', 'Gudang Selatan', 'Sabtu - Minggu', '08:00 - 12:00'],
+            [6, 7, 'Logam', 11.2, 'Setor Manual', 'Selesai', 'Gudang Selatan', 'Senin - Jumat', '13:00 - 17:00'],
+            [7, 8, 'Organik', 14.0, 'Jemput', 'Selesai', 'Gudang Surakarta', 'Setiap Hari', '08:00 - 16:00'],
+            [8, 9, 'Plastik PET', 7.5, 'Jemput', 'Tidak Terlaksana', 'Gudang Surakarta', 'Setiap Hari', '08:00 - 16:00'],
+            [9, 0, 'Kertas', 22.1, 'Setor Manual', 'Selesai', 'Gudang Pusat', 'Senin - Jumat', '13:00 - 17:00'],
+            [10, 1, 'Logam', 5.8, 'Jemput', 'Selesai', 'Gudang Timur', 'Sabtu - Minggu', '13:00 - 17:00'],
+            [11, 2, 'Organik', 11.3, 'Jemput', 'Tidak Terlaksana', 'Gudang Barat', 'Senin - Jumat', '08:00 - 12:00'],
+            [12, 3, 'Plastik PET', 13.4, 'Setor Manual', 'Selesai', 'Gudang Selatan', 'Senin - Jumat', '13:00 - 17:00'],
+            [13, 4, 'Kertas', 8.7, 'Jemput', 'Selesai', 'Gudang Surakarta', 'Sabtu - Minggu', '08:00 - 12:00'],
+            [14, 5, 'Logam', 0.0, 'Jemput', 'Tidak Terlaksana', 'Gudang Pusat', 'Senin - Jumat', '08:00 - 12:00'],
+            [15, 6, 'Organik', 19.1, 'Setor Manual', 'Selesai', 'Gudang Timur', 'Setiap Hari', '08:00 - 16:00'],
+            [16, 7, 'Plastik PET', 10.8, 'Jemput', 'Selesai', 'Gudang Barat', 'Senin - Jumat', '13:00 - 17:00'],
+            [17, 8, 'Kertas', 0.0, 'Jemput', 'Tidak Terlaksana', 'Gudang Selatan', 'Sabtu - Minggu', '13:00 - 17:00'],
+            [18, 9, 'Logam', 16.4, 'Setor Manual', 'Selesai', 'Gudang Surakarta', 'Senin - Jumat', '08:00 - 12:00'],
         ];
 
         foreach ($auditSpecs as $spec) {
@@ -181,6 +232,8 @@ class TransaksiSeeder extends Seeder
             $sumber = $spec[4];
             $status = $spec[5];
             $gudangName = $spec[6];
+            $rentangHari = $spec[7];
+            $rentanWaktu = $spec[8];
 
             $g = $gudangs[$gudangName];
             $petugas = $petugasList[$gudangName];
@@ -188,11 +241,12 @@ class TransaksiSeeder extends Seeder
             $sampah = $sampahMap[$gudangName][$itemName];
 
             if ($status === 'Tidak Terlaksana') {
-                // Creates a failed pickup (tolak/batal)
                 Penjemputan::create([
                     'deskripsi' => 'Penjemputan dibatalkan oleh pihak nasabah/petugas.',
                     'alamat' => $nasabah->alamat ?? 'Alamat Nasabah',
                     'jadwal' => $date,
+                    'rentang_hari' => $rentangHari,
+                    'rentan_waktu' => $rentanWaktu,
                     'estimasi_berat' => 10,
                     'status' => rand(0, 1) ? 'tolak' : 'batal',
                     'ket_status' => 'Dibatalkan oleh sistem/petugas.',
@@ -200,15 +254,14 @@ class TransaksiSeeder extends Seeder
                     'nasabah_id' => $nasabah->nasabah_id,
                     'petugas_id' => $petugas->petugas_id,
                     'gudang_id' => $g->gudang_id,
+                    'foto' => $pathFotoPenjemputan,
                     'created_at' => $date,
                     'updated_at' => $date,
                 ]);
             } else {
-                // Completed Transaction
                 $priceBeli = $items[$itemName]->harga_beli;
                 $totalHarga = $berat * $priceBeli;
 
-                // TransaksiNasabah
                 $transName = TransaksiNasabah::create([
                     'tipe_transaksi' => ($sumber === 'Jemput') ? 'dijemput' : 'antar_sendiri',
                     'tanggal' => $date,
@@ -221,26 +274,27 @@ class TransaksiSeeder extends Seeder
                     'updated_at' => $date,
                 ]);
 
-                // Create Penjemputan first if Sumber is Jemput
                 $penjemputanId = null;
                 if ($sumber === 'Jemput') {
                     $pj = Penjemputan::create([
                         'deskripsi' => 'Minta penjemputan sampah rutin.',
                         'alamat' => $nasabah->alamat ?? 'Alamat Nasabah',
                         'jadwal' => $date,
+                        'rentang_hari' => $rentangHari,
+                        'rentan_waktu' => $rentanWaktu,
                         'estimasi_berat' => $berat,
                         'status' => 'selesai',
                         'tukang_id' => $tukang->tukang_id,
                         'nasabah_id' => $nasabah->nasabah_id,
                         'petugas_id' => $petugas->petugas_id,
                         'gudang_id' => $g->gudang_id,
+                        'foto' => $pathFotoPenjemputan,
                         'created_at' => $date,
                         'updated_at' => $date,
                     ]);
                     $penjemputanId = $pj->penjemputan_id;
                 }
 
-                // Penimbangan
                 Penimbangan::create([
                     'berat_timbang' => $berat,
                     'nasabah_id' => $nasabah->nasabah_id,
@@ -254,9 +308,8 @@ class TransaksiSeeder extends Seeder
             }
         }
 
-        // 9. Seed Pengepul Penjualan Transactions (so that the Sales report tables are populated)
+        // 9. Seed Pengepul Penjualan Transactions
         $pengepulSpecs = [
-            // PengepulIdx, ItemName, Berat, GudangName, DateOffset, Status
             [0, 'Organik', 35.2, 'Gudang Pusat', 8, 'selesai'],
             [0, 'Kertas', 18.5, 'Gudang Pusat', 8, 'selesai'],
             [1, 'Plastik PET', 24.1, 'Gudang Pusat', 9, 'selesai'],
@@ -265,6 +318,14 @@ class TransaksiSeeder extends Seeder
             [0, 'Kertas', 20.0, 'Gudang Barat', 12, 'tolak'],
             [1, 'Logam', 15.0, 'Gudang Selatan', 13, 'selesai'],
             [2, 'Plastik PET', 30.0, 'Gudang Surakarta', 14, 'selesai'],
+        ];
+
+        // Daftar alasan acak jika status pesanan pengepul batal atau tolak
+        $alasanBatalPengepul = [
+            'Dibatalkan oleh pengepul karena perubahan harga pasar.',
+            'Batas waktu pembayaran (deadline) telah berakhir secara otomatis.',
+            'Dibatalkan oleh petugas gudang karena stok tidak mencukupi.',
+            'Pengepul membatalkan pesanan secara sepihak.'
         ];
 
         foreach ($pengepulSpecs as $spec) {
@@ -279,11 +340,28 @@ class TransaksiSeeder extends Seeder
             $sampah = $sampahMap[$gudangName][$itemName];
             $priceJual = $items[$itemName]->harga_jual;
             $totalHarga = $berat * $priceJual;
+            $petugas = $petugasList[$gudangName];
+
+            // Tentukan ket_status dan bukti_transfer berdasarkan status
+            $ketStatus = null;
+            $buktiTf = null;
+
+            if ($status === 'selesai') {
+                $ketStatus = 'Pembayaran telah diverifikasi dan barang sudah diserahkan.';
+                $buktiTf = $pathBuktiTransfer; // Memasukkan gambar bukti transfer
+            } elseif ($status === 'batal' || $status === 'tolak') {
+                $ketStatus = $alasanBatalPengepul[array_rand($alasanBatalPengepul)]; // Alasan acak
+            } else {
+                $ketStatus = 'Menunggu pembayaran dari pengepul.';
+            }
 
             $tp = TransaksiPengepul::create([
                 'status' => $status,
+                'ket_status' => $ketStatus,
+                'bukti_transfer' => $buktiTf,
                 'deadline' => $date->copy()->addDays(2),
                 'pengepul_id' => $pengepul->pengepul_id,
+                'petugas_id' => $petugas->petugas_id,
                 'created_at' => $date,
                 'updated_at' => $date,
             ]);

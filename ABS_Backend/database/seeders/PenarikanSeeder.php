@@ -8,11 +8,27 @@ use App\Models\Nasabah;
 use App\Models\Petugas;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Storage;
 
 class PenarikanSeeder extends Seeder
 {
     public function run(): void
     {
+        // =========================================================
+        // LOGIKA COPY GAMBAR BUKTI TRANSFER DARI PUBLIC KE STORAGE
+        // =========================================================
+        Storage::disk('public')->makeDirectory('bukti_tf'); // Pastikan folder ada
+
+        $pathBukti = null;
+        $sourceBukti = public_path('dummy_images/bukti/bukti.jpeg');
+        
+        if (File::exists($sourceBukti)) {
+            $pathBukti = 'bukti_tf/bukti.jpeg';
+            // Salin gambar ke storage
+            Storage::disk('public')->put($pathBukti, File::get($sourceBukti));
+        }
+
         // Get all nasabahs
         $nasabahs = Nasabah::all();
         if ($nasabahs->isEmpty()) {
@@ -36,7 +52,18 @@ class PenarikanSeeder extends Seeder
         $petugasId = $petugas ? $petugas->petugas_id : null;
 
         $banks = ['BRI', 'BCA', 'DANA', 'Bank Jago', 'Bank Mandiri', 'BNI', 'OVO', 'GoPay', 'LinkAja', 'ShopeePay', 'CIMB Niaga', 'Bank Permata', 'BSI'];
-        $statuses = ['selesai', 'tolak'];
+        
+        // Tambahkan status 'batal' ke dalam array
+        $statuses = ['selesai', 'tolak', 'batal'];
+
+        // Variasi alasan untuk status batal
+        $alasanBatal = [
+            'Dibatalkan oleh nasabah yang bersangkutan',
+            'Sistem bank sedang mengalami gangguan, silakan ajukan ulang',
+            'Terindikasi aktivitas mencurigakan, penarikan ditahan',
+            'Dibatalkan otomatis karena melewati batas waktu antrean',
+            'Dibatalkan karena akun e-wallet tujuan tidak premium/belum upgrade'
+        ];
 
         // Clean up existing penarikans to avoid clutter
         DB::table('penarikans')->truncate();
@@ -55,10 +82,13 @@ class PenarikanSeeder extends Seeder
 
             if ($status === 'selesai') {
                 $ketStatus = 'Transfer berhasil dikirim ke rekening tujuan';
-                $buktiTf = 'bukti_tf_' . $i . '.png';
+                $buktiTf = $pathBukti; // Gunakan foto bukti yang sudah di-copy
                 $assignedPetugas = $petugasId;
             } elseif ($status === 'tolak') {
                 $ketStatus = 'Nomor rekening tidak valid atau saldo tidak mencukupi';
+                $assignedPetugas = $petugasId;
+            } elseif ($status === 'batal') {
+                $ketStatus = $alasanBatal[array_rand($alasanBatal)]; // Pilih alasan acak
                 $assignedPetugas = $petugasId;
             } else {
                 $ketStatus = 'Menunggu konfirmasi petugas';
