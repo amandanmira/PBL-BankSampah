@@ -114,7 +114,7 @@ class DashboardPetugasController extends Controller
                 'iconBg' => 'bg-green-50 text-green-600',
                 'title' => 'Setoran ' . ($p->sampah->itemSampah->nama ?? 'Sampah'),
                 'user' => $p->nasabah->nama ?? 'Nasabah',
-                'ref' => 'TRX-' . $p->transaksi_id,
+                'ref' => 'TR-' . $p->transaksi_id,
                 'time' => $p->created_at->format('H:i'),
                 'timestamp' => $p->created_at->timestamp
             ];
