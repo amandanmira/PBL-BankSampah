@@ -12,8 +12,21 @@ class KonfigurasiWebSeeder extends Seeder
      */
     public function run(): void
     {
+        // Copy logo from public to storage/app/public
+        $sourcePath = public_path('bank.webp');
+        $destinationDir = storage_path('app/public');
+        $destinationPath = $destinationDir . '/bank.webp';
+
+        if (!is_dir($destinationDir)) {
+            mkdir($destinationDir, 0755, true);
+        }
+
+        if (file_exists($sourcePath)) {
+            copy($sourcePath, $destinationPath);
+        }
+
         KonfigurasiWeb::create([
-            'logo' => url('bank.webp'),
+            'logo' => 'bank.webp',
             'quote' => 'Ubah sampahmu menjadi pundi-pundi rupiah yang berharga bersama kami.',
             'hero_quote_top' => 'Mari Bersama',
             'hero_quote_bottom' => 'Jaga Bumi Kita',
