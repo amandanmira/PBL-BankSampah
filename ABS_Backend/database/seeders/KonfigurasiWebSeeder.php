@@ -12,6 +12,9 @@ class KonfigurasiWebSeeder extends Seeder
      */
     public function run(): void
     {
+        // Kosongkan tabel agar tidak terjadi duplikasi saat seeder dijalankan berulang kali
+        KonfigurasiWeb::truncate();
+
         // Copy logo from public to storage/app/public
         $sourcePath = public_path('bank.webp');
         $destinationDir = storage_path('app/public');
