@@ -242,7 +242,7 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'role:admin'])->group(functi
     // Item Sampah
     Route::get('/item-sampah', [SampahController::class, 'indexItem']);
     Route::delete('/item-sampah/{id}', [SampahController::class, 'destroyItem']);
-    Route::post('/item-sampah/{id}', [SampahController::class, 'updateItem']);
+    Route::put('/item-sampah/{id}', [SampahController::class, 'updateItem']);
 
     // Konfigurasi Web
     Route::get('/web-config', [WebController::class, 'show']);
