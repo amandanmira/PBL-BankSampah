@@ -74,13 +74,13 @@ const currentSteps = computed(() => {
             ? 'bg-[#EAEAEA] text-[#555555] font-bold shadow-sm border border-gray-200/50'
             : 'bg-transparent text-[#777777] font-semibold hover:text-[#555555]'"
             class="px-5 py-2 md:px-7 md:py-2.5 rounded-full text-sm md:text-base transition-all duration-300 cursor-pointer">
-            Daftar Nasabah
+            Untuk Nasabah
           </button>
           <button @click="activeMode = 'pengepul'" :class="activeMode === 'pengepul'
             ? 'bg-[#EAEAEA] text-[#555555] font-bold shadow-sm border border-gray-200/50'
             : 'bg-transparent text-[#777777] font-semibold hover:text-[#555555]'"
             class="px-5 py-2 md:px-7 md:py-2.5 rounded-full text-sm md:text-base transition-all duration-300 cursor-pointer">
-            Daftar Pengepul
+            Untuk Pengepul
           </button>
         </div>
       </div>

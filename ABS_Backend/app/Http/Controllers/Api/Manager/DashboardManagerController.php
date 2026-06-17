@@ -301,7 +301,7 @@ class DashboardManagerController extends Controller
                 $nasabahName = $t->penimbangan->first()?->nasabah?->nama ?? 'Nasabah';
                 return [
                     'transaksi_id' => $t->transaksi_id,
-                    'kode' => 'TXN-' . str_pad($t->transaksi_id, 5, '0', STR_PAD_LEFT),
+                    'kode' => 'TR-' . str_pad($t->transaksi_id, 5, '0', STR_PAD_LEFT),
                     'tipe' => 'Nasabah',
                     'pelaku' => $nasabahName,
                     'tanggal' => $t->created_at->format('d M Y H:i'),
@@ -323,7 +323,7 @@ class DashboardManagerController extends Controller
                 });
                 return [
                     'transaksi_id' => $t->transaksi_id,
-                    'kode' => 'TXP-' . str_pad($t->transaksi_id, 5, '0', STR_PAD_LEFT),
+                    'kode' => 'TR-' . str_pad($t->transaksi_id, 5, '0', STR_PAD_LEFT),
                     'tipe' => 'Pengepul',
                     'pelaku' => $pengepulName,
                     'tanggal' => $t->created_at->format('d M Y H:i'),
