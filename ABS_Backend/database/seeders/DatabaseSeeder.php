@@ -266,6 +266,7 @@ class DatabaseSeeder extends Seeder
             'gudang_id' => 1,
         ]);
 
+        $this->call(KonfigurasiWebSeeder::class);
         $this->call(PenarikanSeeder::class);
         $this->call(TransaksiSeeder::class);
     }
