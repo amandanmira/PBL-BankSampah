@@ -376,19 +376,31 @@ onMounted(() => {
                   <h4 class="text-lg font-bold text-gray-800 mb-4 truncate">{{ item.nama }}</h4>
                   
                   <div class="space-y-2 text-sm">
-                    <div class="flex justify-between">
+  
+                    <div class="flex justify-between items-center">
                       <span class="text-gray-500">Harga Beli:</span>
                       <span class="font-bold text-[#4A7043]">{{ formatRupiah(item.harga_beli) }}/kg</span>
                     </div>
-                    <div class="flex justify-between">
+
+                    <div class="flex justify-between items-center">
                       <span class="text-gray-500">Harga Jual:</span>
-                      <span class="font-bold text-blue-600">{{ formatRupiah(item.harga_jual) }}/kg</span>
+                      <div class="text-right">
+                        <span v-if="item.diskon > 0" class="text-xs text-gray-400 line-through mr-1 font-normal">
+                          {{ formatRupiah(item.harga_jual) }}
+                        </span>
+                        <span class="font-bold text-blue-600">
+                          {{ formatRupiah(item.harga_jual - (item.harga_jual * item.diskon)) }}/kg
+                        </span>
+                      </div>
                     </div>
+
                     <div class="flex justify-between">
                       <span class="text-gray-500">Diskon:</span>
                       <span class="font-bold text-orange-500">{{ item.diskon * 100 }}%</span>
                     </div>
+
                   </div>
+
                 </div>
               </div>
             </div>
