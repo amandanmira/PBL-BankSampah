@@ -1,8 +1,8 @@
 {
     "plus jakarta sans": {
-        "normal": "C:\\PBL-BankSampah\\ABS_Backend\\storage\\fonts\/plus_jakarta_sans_normal_a61e26c3bf7a8dd6b37143de092efef8",
-        "600": "C:\\PBL-BankSampah\\ABS_Backend\\storage\\fonts\/plus_jakarta_sans_600_9f311d0ee9acf3e7bf95a4348b029c33",
-        "bold": "C:\\PBL-BankSampah\\ABS_Backend\\storage\\fonts\/plus_jakarta_sans_bold_78a6995f90ba527650463aab62b3a3b3",
-        "800": "plus_jakarta_sans_800_2eb7c869ec83f0492f5164518a4ccaff"
+        "normal": "\/var\/www\/storage\/fonts\/plus_jakarta_sans_normal_a61e26c3bf7a8dd6b37143de092efef8",
+        "600": "\/var\/www\/storage\/fonts\/plus_jakarta_sans_600_9f311d0ee9acf3e7bf95a4348b029c33",
+        "bold": "plus_jakarta_sans_bold_78a6995f90ba527650463aab62b3a3b3",
+        "800": "\/var\/www\/storage\/fonts\/plus_jakarta_sans_800_2eb7c869ec83f0492f5164518a4ccaff"
     }
 }

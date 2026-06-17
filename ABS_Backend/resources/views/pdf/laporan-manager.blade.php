@@ -489,7 +489,7 @@
     {{-- Header Section --}}
     <div class="header-container">
         @php
-            $logoPath = $config->logo && file_exists(storage_path('app/public/' . $config->logo)) 
+            $logoPath = ($config->logo && file_exists(storage_path('app/public/' . $config->logo)) && (pathinfo($config->logo, PATHINFO_EXTENSION) !== 'webp' || function_exists('imagecreatefromwebp'))) 
                         ? storage_path('app/public/' . $config->logo) 
                         : public_path('logo.png');
         @endphp

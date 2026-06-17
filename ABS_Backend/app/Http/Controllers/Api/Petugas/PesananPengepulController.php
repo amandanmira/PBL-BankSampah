@@ -62,7 +62,9 @@ class PesananPengepulController extends Controller
 
         // 1. Count for Perlu Validasi
         // (status = pending and this warehouse has pending items) OR (status = proses and bukti_transfer is uploaded)
-        $perluValidasiCount = TransaksiPengepul::where(function ($q) use ($gudangId) {
+        $perluValidasiCount = TransaksiPengepul::whereHas('detailTransaksi.sampah', function ($q) use ($gudangId) {
+            $q->where('gudang_id', $gudangId);
+        })->where(function ($q) use ($gudangId) {
             $q->where(function ($sub) use ($gudangId) {
                 $sub->where('status', 'pending')
                     ->whereHas('detailTransaksi', function ($dt) use ($gudangId) {

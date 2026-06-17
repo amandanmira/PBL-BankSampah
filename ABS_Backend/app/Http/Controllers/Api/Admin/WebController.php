@@ -44,11 +44,17 @@ class WebController extends Controller
                 Storage::disk('public')->delete($config->logo);
             }
 
-            // simpan logo baru ke Cloudinary melalui Storage driver
-            $path = $request->file('logo')->store('logo', 'cloudinary');
-            $uploadedFileUrl = Storage::disk('cloudinary')->url($path);
-
-            $validated['logo'] = $uploadedFileUrl;
+            // simpan logo baru
+            if (filled(env('CLOUDINARY_URL'))) {
+                // simpan ke Cloudinary jika CLOUDINARY_URL terkonfigurasi
+                $path = $request->file('logo')->store('logo', 'cloudinary');
+                $uploadedFileUrl = Storage::disk('cloudinary')->url($path);
+                $validated['logo'] = $uploadedFileUrl;
+            } else {
+                // simpan ke disk public lokal jika tidak ada Cloudinary
+                $path = $request->file('logo')->store('logo', 'public');
+                $validated['logo'] = $path;
+            }
         }
 
         $config->update($validated);
