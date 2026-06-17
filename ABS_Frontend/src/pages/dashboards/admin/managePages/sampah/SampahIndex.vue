@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, computed, inject } from "vue";
+import { ref, onMounted, inject } from "vue";
 import { Icon } from "@iconify/vue";
 import DashboardLayout from "@/layouts/DashboardLayout.vue";
 import { checkRole } from '@/utils';
@@ -12,16 +12,33 @@ const kategoriList = ref([]);
 const loading = ref(false);
 const expandedCategoryId = ref(null);
 
-// Modal States
+// ==========================================
+// MODAL STATE KATEGORI (Multi-Step)
+// ==========================================
 const isModalOpen = ref(false);
 const modalMode = ref('add'); // 'add' or 'edit'
-const currentStep = ref(1); // 1: Category Name, 2: Item List
+const currentStep = ref(1); 
 const currentCategory = ref({
   id: null,
   nama: '',
   items: [
     { nama: '', harga_beli: 0, harga_jual: 0, diskon: 0, foto: null, fotoPreview: null }
   ]
+});
+
+// ==========================================
+// MODAL STATE SINGLE ITEM (Edit 1 Item)
+// ==========================================
+const isItemModalOpen = ref(false);
+const currentItem = ref({
+  item_id: null,
+  nama: '',
+  harga_beli: 0,
+  harga_jual: 0,
+  diskon: 0,
+  active: 1,
+  foto: null,
+  fotoPreview: null
 });
 
 const toggleAccordion = (id) => {
@@ -51,6 +68,7 @@ const fetchKategori = async () => {
   }
 };
 
+// --- FUNGSI MODAL KATEGORI ---
 const openAddModal = () => {
   modalMode.value = 'add';
   currentStep.value = 1;
@@ -73,9 +91,9 @@ const openEditModal = (kategori) => {
       nama: item.nama,
       harga_beli: item.harga_beli,
       harga_jual: item.harga_jual,
-      diskon: item.diskon * 100, // DB stores 0.10, UI shows 10
+      diskon: item.diskon * 100,
       foto: null,
-      fotoPreview: item.foto ? `${axios.defaults.baseURL}/storage/${item.foto}` : null,
+      fotoPreview: item.foto ? (item.foto.startsWith('http') ? item.foto : `${axios.defaults.baseURL}/storage/${item.foto}`) : null,
       active: item.active
     }))
   };
@@ -93,24 +111,15 @@ const nextStep = () => {
   currentStep.value = 2;
 };
 
-const prevStep = () => {
-  currentStep.value = 1;
-};
+const prevStep = () => currentStep.value = 1;
 
 const addItem = () => {
   currentCategory.value.items.push({
-    nama: '',
-    harga_beli: 0,
-    harga_jual: 0,
-    diskon: 0,
-    foto: null,
-    fotoPreview: null
+    nama: '', harga_beli: 0, harga_jual: 0, diskon: 0, foto: null, fotoPreview: null
   });
 };
 
-const removeItem = (index) => {
-  currentCategory.value.items.splice(index, 1);
-};
+const removeItem = (index) => currentCategory.value.items.splice(index, 1);
 
 const handleFileUpload = (event, index) => {
   const file = event.target.files[0];
@@ -140,20 +149,13 @@ const saveKategori = async () => {
     const token = sessionStorage.getItem("token");
     if (modalMode.value === 'add') {
       await axios.post("/api/admin/kategori-sampah", formData, {
-        headers: { 
-          'Content-Type': 'multipart/form-data',
-          'Authorization': `Bearer ${token}`
-        }
+        headers: { 'Content-Type': 'multipart/form-data', 'Authorization': `Bearer ${token}` }
       });
       Swal.fire('Berhasil', 'Kategori sampah berhasil ditambahkan', 'success');
     } else {
-      // Laravel PUT with FormData hack
       formData.append('_method', 'PUT');
       await axios.post(`/api/admin/kategori-sampah/${currentCategory.value.id}`, formData, {
-        headers: { 
-          'Content-Type': 'multipart/form-data',
-          'Authorization': `Bearer ${token}`
-        }
+        headers: { 'Content-Type': 'multipart/form-data', 'Authorization': `Bearer ${token}` }
       });
       Swal.fire('Berhasil', 'Kategori sampah berhasil diperbarui', 'success');
     }
@@ -161,7 +163,6 @@ const saveKategori = async () => {
     isModalOpen.value = false;
     fetchKategori();
   } catch (err) {
-    console.error("Failed to save category:", err);
     Swal.fire('Error', err.response?.data?.message || 'Gagal menyimpan data', 'error');
   } finally {
     loading.value = false;
@@ -196,6 +197,63 @@ const toggleStatus = async (kategori) => {
   }
 };
 
+// ==========================================
+// FUNGSI SINGLE ITEM (Baru)
+// ==========================================
+const openEditItemModal = (item) => {
+  currentItem.value = {
+    item_id: item.item_id,
+    nama: item.nama,
+    harga_beli: item.harga_beli,
+    harga_jual: item.harga_jual,
+    diskon: item.diskon * 100,
+    active: item.active !== undefined ? item.active : 1,
+    foto: null,
+    fotoPreview: item.foto ? (item.foto.startsWith('http') ? item.foto : `${axios.defaults.baseURL}/storage/${item.foto}`) : null,
+  };
+  isItemModalOpen.value = true;
+};
+
+const handleSingleItemPhoto = (event) => {
+  const file = event.target.files[0];
+  if (file) {
+    currentItem.value.foto = file;
+    currentItem.value.fotoPreview = URL.createObjectURL(file);
+  }
+};
+
+const saveSingleItem = async () => {
+  loading.value = true;
+  try {
+    const formData = new FormData();
+    formData.append('_method', 'PUT'); // Trick for Laravel PUT request with files
+    formData.append('nama', currentItem.value.nama);
+    formData.append('harga_beli', currentItem.value.harga_beli);
+    formData.append('harga_jual', currentItem.value.harga_jual);
+    formData.append('diskon', currentItem.value.diskon);
+    formData.append('active', currentItem.value.active ? 1 : 0);
+    if (currentItem.value.foto) {
+      formData.append('foto', currentItem.value.foto);
+    }
+
+    const token = sessionStorage.getItem("token");
+    await axios.post(`/api/admin/item-sampah/${currentItem.value.item_id}`, formData, {
+      headers: { 
+        'Content-Type': 'multipart/form-data',
+        'Authorization': `Bearer ${token}`
+      }
+    });
+
+    Swal.fire('Berhasil', 'Item sampah berhasil diperbarui', 'success');
+    isItemModalOpen.value = false;
+    fetchKategori(); // Refresh tampilan
+  } catch (err) {
+    Swal.fire('Error', err.response?.data?.message || 'Gagal menyimpan item', 'error');
+  } finally {
+    loading.value = false;
+  }
+};
+
 onMounted(() => {
   fetchKategori();
 });
@@ -204,7 +262,6 @@ onMounted(() => {
 <template>
   <DashboardLayout title="Kelola Sampah">
     <div class="space-y-6">
-      <!-- Header Actions -->
       <div class="flex justify-between items-center mb-8">
         <div>
           <h2 class="text-2xl font-bold text-[#4A7043]">Kategori Sampah</h2>
@@ -215,11 +272,10 @@ onMounted(() => {
           class="bg-[#4A7043] hover:bg-[#3D5C37] text-white px-6 py-3 rounded-xl flex items-center gap-2 shadow-lg transition-all duration-300 transform hover:scale-105"
         >
           <Icon icon="material-symbols:add-box-outline" class="w-6 h-6" />
-          <span class="font-bold">Tambah Kategori Sampah</span>
+          <span class="font-bold">Tambah Kategori</span>
         </button>
       </div>
 
-      <!-- Categories List -->
       <div v-if="loading && kategoriList.length === 0" class="flex justify-center py-20">
         <Icon icon="line-md:loading-twotone-loop" class="w-12 h-12 text-[#4A7043]" />
       </div>
@@ -230,7 +286,6 @@ onMounted(() => {
           :key="kategori.kategori_id"
           class="overflow-hidden"
         >
-          <!-- Category Row -->
           <div 
             :class="[
               'rounded-2xl p-6 flex items-center justify-between transition-all duration-300 border-2',
@@ -258,7 +313,7 @@ onMounted(() => {
                 class="bg-white text-gray-700 hover:bg-gray-100 px-5 py-2.5 rounded-xl flex items-center gap-2 font-bold text-sm shadow-md transition-all active:scale-95"
               >
                 <Icon icon="material-symbols:edit-outline" class="w-5 h-5" />
-                Edit
+                Edit Semua
               </button>
 
               <button 
@@ -276,7 +331,6 @@ onMounted(() => {
             </div>
           </div>
 
-          <!-- Items Accordion Content -->
           <transition
             enter-active-class="transition-all duration-500 ease-out"
             leave-active-class="transition-all duration-300 ease-in"
@@ -293,12 +347,17 @@ onMounted(() => {
                 <div 
                   v-for="item in kategori.item_sampah" 
                   :key="item.item_id"
-                  class="bg-white rounded-2xl border-2 border-gray-100 p-4 shadow-sm hover:shadow-md transition-all duration-300 group"
+                  @click="openEditItemModal(item)"
+                  class="bg-white rounded-2xl border-2 border-gray-100 p-4 shadow-sm hover:shadow-lg hover:border-[#4A7043] transition-all duration-300 group cursor-pointer relative"
                 >
+                  <div v-if="item.active === 0" class="absolute top-2 right-2 bg-red-500 text-white text-[10px] font-bold px-2 py-1 rounded-md z-10">
+                    NONAKTIF
+                  </div>
+
                   <div class="relative aspect-video rounded-xl overflow-hidden mb-4 bg-gray-100">
                     <img 
                       v-if="item.foto" 
-                      :src="`${axios.defaults.baseURL}/storage/${item.foto}`" 
+                      :src="item.foto.startsWith('http') ? item.foto : `${axios.defaults.baseURL}/storage/${item.foto}`" 
                       class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                       alt="Item Foto"
                     />
@@ -306,9 +365,15 @@ onMounted(() => {
                       <Icon icon="material-symbols:image-outline" class="w-12 h-12" />
                       <span class="text-xs font-bold uppercase tracking-widest mt-2">No Photo</span>
                     </div>
+                    
+                    <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+                      <div class="bg-white text-gray-800 px-4 py-2 rounded-full font-bold text-sm flex items-center gap-2">
+                        <Icon icon="material-symbols:edit" class="w-4 h-4" /> Edit
+                      </div>
+                    </div>
                   </div>
                   
-                  <h4 class="text-lg font-bold text-gray-800 mb-4">{{ item.nama }}</h4>
+                  <h4 class="text-lg font-bold text-gray-800 mb-4 truncate">{{ item.nama }}</h4>
                   
                   <div class="space-y-2 text-sm">
                     <div class="flex justify-between">
@@ -332,14 +397,114 @@ onMounted(() => {
       </div>
     </div>
 
-    <!-- Multi-Step Modal -->
+    <div v-if="isItemModalOpen" class="fixed inset-0 z-[70] flex items-center justify-center p-4">
+      <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" @click="isItemModalOpen = false"></div>
+      
+      <div class="relative bg-white w-full max-w-2xl max-h-[90vh] overflow-hidden rounded-[2.5rem] shadow-2xl flex flex-col">
+        <div class="bg-[#4A7043] p-8 text-white">
+          <h3 class="text-2xl font-bold">Edit Item Sampah</h3>
+          <p class="text-sm opacity-80 mt-1">Perbarui detail, harga, atau foto untuk item ini</p>
+        </div>
+
+        <div class="flex-1 overflow-y-auto p-8 custom-scrollbar bg-gray-50/30">
+          <div class="space-y-6">
+            <div class="space-y-1.5">
+              <label class="text-xs font-bold text-gray-500 uppercase tracking-wider">Nama Item Sampah *</label>
+              <input 
+                v-model="currentItem.nama"
+                type="text" 
+                class="w-full bg-white border border-gray-200 rounded-xl p-3.5 focus:ring-2 focus:ring-[#4A7043]/20 focus:border-[#4A7043] outline-none transition-all"
+              />
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+              <div class="space-y-1.5">
+                <label class="text-xs font-bold text-gray-500 uppercase tracking-wider">Harga Beli (Rp) *</label>
+                <input 
+                  v-model="currentItem.harga_beli"
+                  type="number"
+                  class="w-full bg-white border border-gray-200 rounded-xl p-3.5 focus:ring-2 focus:ring-[#4A7043]/20 focus:border-[#4A7043] outline-none transition-all"
+                />
+              </div>
+              <div class="space-y-1.5">
+                <label class="text-xs font-bold text-gray-500 uppercase tracking-wider">Harga Jual (Rp) *</label>
+                <input 
+                  v-model="currentItem.harga_jual"
+                  type="number"
+                  class="w-full bg-white border border-gray-200 rounded-xl p-3.5 focus:ring-2 focus:ring-[#4A7043]/20 focus:border-[#4A7043] outline-none transition-all"
+                />
+              </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+              <div class="space-y-1.5">
+                <label class="text-xs font-bold text-gray-500 uppercase tracking-wider">Diskon (%)</label>
+                <input 
+                  v-model="currentItem.diskon"
+                  type="number"
+                  class="w-full bg-white border border-gray-200 rounded-xl p-3.5 focus:ring-2 focus:ring-[#4A7043]/20 focus:border-[#4A7043] outline-none transition-all"
+                />
+              </div>
+              
+              <div class="space-y-1.5">
+                <label class="text-xs font-bold text-gray-500 uppercase tracking-wider">Status</label>
+                <select 
+                  v-model="currentItem.active"
+                  class="w-full bg-white border border-gray-200 rounded-xl p-3.5 focus:ring-2 focus:ring-[#4A7043]/20 focus:border-[#4A7043] outline-none transition-all"
+                >
+                  <option :value="1">Aktif</option>
+                  <option :value="0">Nonaktif</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="space-y-1.5">
+              <label class="text-xs font-bold text-gray-500 uppercase tracking-wider">Foto Item (Opsional)</label>
+              <div 
+                @click="$refs.singleFileInput.click()"
+                class="relative aspect-video rounded-2xl border-2 border-dashed border-gray-300 hover:border-[#4A7043] transition-all cursor-pointer overflow-hidden flex flex-col items-center justify-center bg-white group"
+              >
+                <img v-if="currentItem.fotoPreview" :src="currentItem.fotoPreview" class="w-full h-full object-cover" />
+                <div v-else class="flex flex-col items-center text-gray-400 group-hover:text-[#4A7043]">
+                  <Icon icon="material-symbols:cloud-upload-outline" class="w-10 h-10 mb-2" />
+                  <span class="text-xs font-bold uppercase tracking-widest">Klik untuk Ubah Foto</span>
+                </div>
+                <input 
+                  ref="singleFileInput"
+                  type="file" 
+                  class="hidden" 
+                  accept="image/*"
+                  @change="handleSingleItemPhoto"
+                />
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <div class="p-6 border-t border-gray-100 flex items-center justify-end gap-4 bg-white">
+          <button 
+            @click="isItemModalOpen = false"
+            class="px-6 py-3 rounded-xl text-gray-600 font-bold hover:bg-gray-100 transition-all"
+          >
+            Batal
+          </button>
+          <button 
+            @click="saveSingleItem"
+            :disabled="loading"
+            class="bg-[#4A7043] hover:bg-[#3D5C37] text-white px-8 py-3 rounded-xl font-bold shadow-md hover:shadow-lg transition-all active:scale-95 flex items-center gap-2"
+          >
+            <Icon v-if="loading" icon="line-md:loading-twotone-loop" class="w-5 h-5" />
+            Simpan Perubahan
+          </button>
+        </div>
+      </div>
+    </div>
+
     <div v-if="isModalOpen" class="fixed inset-0 z-[60] flex items-center justify-center p-4">
-      <!-- Backdrop -->
       <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" @click="isModalOpen = false"></div>
       
-      <!-- Modal Content -->
       <div class="relative bg-white w-full max-w-4xl max-h-[90vh] overflow-hidden rounded-[2.5rem] shadow-2xl flex flex-col">
-        <!-- Modal Header -->
         <div class="bg-[#4A7043] p-8 text-white">
           <h3 class="text-2xl font-bold">{{ modalMode === 'add' ? 'Tambah Kategori Sampah Baru' : 'Edit Kategori Sampah' }}</h3>
           <p class="text-sm opacity-80 mt-1">
@@ -347,9 +512,7 @@ onMounted(() => {
           </p>
         </div>
 
-        <!-- Modal Body (Scrollable) -->
         <div class="flex-1 overflow-y-auto p-8 custom-scrollbar">
-          <!-- Step 1: Category Name -->
           <div v-if="currentStep === 1" class="space-y-6 max-w-2xl mx-auto py-10">
             <div class="space-y-3">
               <label class="text-sm font-bold text-gray-700 uppercase tracking-widest ml-1">Nama Kategori *</label>
@@ -368,7 +531,6 @@ onMounted(() => {
             </div>
           </div>
 
-          <!-- Step 2: Items List -->
           <div v-if="currentStep === 2" class="space-y-8">
             <div class="flex justify-between items-center mb-4">
               <h4 class="text-xl font-bold text-gray-800">Daftar Item Sampah ({{ currentCategory.items.length }})</h4>
@@ -387,7 +549,6 @@ onMounted(() => {
                 :key="index"
                 class="relative p-8 rounded-3xl border-2 border-gray-100 bg-gray-50/30 space-y-6"
               >
-                <!-- Badge & Remove -->
                 <div class="flex justify-between items-center">
                   <span class="bg-[#4A7043] text-white px-4 py-1 rounded-lg text-xs font-bold">Item #{{ index + 1 }}</span>
                   <button 
@@ -401,13 +562,12 @@ onMounted(() => {
                 </div>
 
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                  <!-- Name & Prices -->
                   <div class="space-y-4">
                     <div class="space-y-1.5">
                       <label class="text-xs font-bold text-gray-500 uppercase tracking-wider">Nama Item Sampah *</label>
                       <input 
                         v-model="item.nama"
-                        placeholder="Contoh: Plastik PET, Kardus Tebal"
+                        placeholder="Contoh: Plastik PET"
                         class="w-full bg-white border border-gray-200 rounded-xl p-3.5 focus:ring-2 focus:ring-[#4A7043]/20 focus:border-[#4A7043] outline-none transition-all"
                       />
                     </div>
@@ -415,35 +575,20 @@ onMounted(() => {
                     <div class="grid grid-cols-2 gap-4">
                       <div class="space-y-1.5">
                         <label class="text-xs font-bold text-gray-500 uppercase tracking-wider">Harga Beli (Rp/kg) *</label>
-                        <input 
-                          v-model="item.harga_beli"
-                          type="number"
-                          class="w-full bg-white border border-gray-200 rounded-xl p-3.5 focus:ring-2 focus:ring-[#4A7043]/20 focus:border-[#4A7043] outline-none transition-all"
-                        />
+                        <input v-model="item.harga_beli" type="number" class="w-full bg-white border border-gray-200 rounded-xl p-3.5 focus:ring-2 focus:ring-[#4A7043]/20 focus:border-[#4A7043] outline-none transition-all" />
                       </div>
                       <div class="space-y-1.5">
                         <label class="text-xs font-bold text-gray-500 uppercase tracking-wider">Harga Jual (Rp/kg) *</label>
-                        <input 
-                          v-model="item.harga_jual"
-                          type="number"
-                          class="w-full bg-white border border-gray-200 rounded-xl p-3.5 focus:ring-2 focus:ring-[#4A7043]/20 focus:border-[#4A7043] outline-none transition-all"
-                        />
+                        <input v-model="item.harga_jual" type="number" class="w-full bg-white border border-gray-200 rounded-xl p-3.5 focus:ring-2 focus:ring-[#4A7043]/20 focus:border-[#4A7043] outline-none transition-all" />
                       </div>
                     </div>
 
                     <div class="space-y-1.5">
                       <label class="text-xs font-bold text-gray-500 uppercase tracking-wider">Diskon (%)</label>
-                      <input 
-                        v-model="item.diskon"
-                        type="number"
-                        placeholder="0"
-                        class="w-full bg-white border border-gray-200 rounded-xl p-3.5 focus:ring-2 focus:ring-[#4A7043]/20 focus:border-[#4A7043] outline-none transition-all"
-                      />
-                      <p class="text-[10px] text-gray-400 italic mt-1">Kosongkan atau isi 0 jika tidak ada diskon</p>
+                      <input v-model="item.diskon" type="number" placeholder="0" class="w-full bg-white border border-gray-200 rounded-xl p-3.5 focus:ring-2 focus:ring-[#4A7043]/20 focus:border-[#4A7043] outline-none transition-all" />
                     </div>
                   </div>
 
-                  <!-- Photo Upload -->
                   <div class="space-y-1.5">
                     <label class="text-xs font-bold text-gray-500 uppercase tracking-wider">Foto Item</label>
                     <div 
@@ -455,13 +600,7 @@ onMounted(() => {
                         <Icon icon="material-symbols:cloud-upload-outline" class="w-10 h-10 mb-2" />
                         <span class="text-xs font-bold uppercase tracking-widest">Upload Foto</span>
                       </div>
-                      <input 
-                        :ref="`fileInput${index}`"
-                        type="file" 
-                        class="hidden" 
-                        accept="image/*"
-                        @change="(e) => handleFileUpload(e, index)"
-                      />
+                      <input :ref="`fileInput${index}`" type="file" class="hidden" accept="image/*" @change="(e) => handleFileUpload(e, index)" />
                     </div>
                   </div>
                 </div>
@@ -470,39 +609,16 @@ onMounted(() => {
           </div>
         </div>
 
-        <!-- Modal Footer -->
         <div class="p-8 border-t border-gray-100 flex items-center justify-between bg-gray-50/50">
-          <button 
-            @click="isModalOpen = false"
-            class="text-gray-500 hover:text-gray-700 font-bold"
-          >
-            Batal
-          </button>
-          
+          <button @click="isModalOpen = false" class="text-gray-500 hover:text-gray-700 font-bold">Batal</button>
           <div class="flex items-center gap-4">
-            <button 
-              v-if="currentStep === 2"
-              @click="prevStep"
-              class="px-8 py-3.5 rounded-2xl border-2 border-gray-200 text-gray-600 font-bold flex items-center gap-2 hover:bg-gray-100 transition-all active:scale-95"
-            >
-              <Icon icon="material-symbols:arrow-back" class="w-5 h-5" />
-              Kembali
+            <button v-if="currentStep === 2" @click="prevStep" class="px-8 py-3.5 rounded-2xl border-2 border-gray-200 text-gray-600 font-bold flex items-center gap-2 hover:bg-gray-100 transition-all active:scale-95">
+              <Icon icon="material-symbols:arrow-back" class="w-5 h-5" /> Kembali
             </button>
-            
-            <button 
-              v-if="currentStep === 1"
-              @click="nextStep"
-              class="bg-[#4A7043] text-white px-10 py-3.5 rounded-2xl font-bold shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all active:scale-95"
-            >
+            <button v-if="currentStep === 1" @click="nextStep" class="bg-[#4A7043] text-white px-10 py-3.5 rounded-2xl font-bold shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all active:scale-95">
               Lanjutkan ke Item
             </button>
-            
-            <button 
-              v-if="currentStep === 2"
-              @click="saveKategori"
-              :disabled="loading"
-              class="bg-[#4A7043] text-white px-10 py-3.5 rounded-2xl font-bold shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all active:scale-95 flex items-center gap-2 disabled:opacity-50"
-            >
+            <button v-if="currentStep === 2" @click="saveKategori" :disabled="loading" class="bg-[#4A7043] text-white px-10 py-3.5 rounded-2xl font-bold shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all active:scale-95 flex items-center gap-2 disabled:opacity-50">
               <Icon v-if="loading" icon="line-md:loading-twotone-loop" class="w-5 h-5" />
               {{ modalMode === 'add' ? 'Tambah Kategori Sampah' : 'Simpan Perubahan' }}
             </button>

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\Admin;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\DB;
 use App\Models\KategoriSampah;
 use App\Models\ItemSampah;
 use App\Models\Sampah;
@@ -37,7 +38,7 @@ class SampahController extends Controller
             'items.*.foto' => 'nullable|image|max:2048'
         ]);
 
-        return \DB::transaction(function () use ($request) {
+        return DB::transaction(function () use ($request) {
             $kategori = KategoriSampah::create([
                 'nama' => $request->nama,
             ]);
@@ -63,14 +64,14 @@ class SampahController extends Controller
         });
     }
 
-    // SHOW detail
+    // SHOW detail kategori dan itemnya
     public function show($id)
     {
         $kategori = KategoriSampah::with('itemSampah')->findOrFail($id);
         return response()->json($kategori);
     }
 
-    // UPDATE jenis + kategori
+    // UPDATE jenis + kategori (Secara Bersamaan)
     public function update(Request $request, $id)
     {
         $kategori = KategoriSampah::findOrFail($id);
@@ -81,7 +82,7 @@ class SampahController extends Controller
             'items' => 'nullable|array',
         ]);
 
-        return \DB::transaction(function () use ($request, $kategori) {
+        return DB::transaction(function () use ($request, $kategori) {
             $kategori->update([
                 'nama' => $request->nama ?? $kategori->nama,
                 'active' => $request->active ?? $kategori->active,
@@ -118,9 +119,6 @@ class SampahController extends Controller
                         $sentItemIds[] = $newItem->item_id;
                     }
                 }
-
-                // Optional: Delete items that were not sent in the update (careful with this!)
-                // $kategori->itemSampah()->whereNotIn('item_id', $sentItemIds)->delete();
             }
 
             return response()->json([
@@ -129,6 +127,48 @@ class SampahController extends Controller
         });
     }
 
+    // ========================================================
+    // UPDATE KHUSUS 1 ITEM SAMPAH (Endpoint Baru)
+    // ========================================================
+    public function updateItem(Request $request, $id)
+    {
+        $item = ItemSampah::findOrFail($id);
+
+        $request->validate([
+            'nama' => 'nullable|string|max:50',
+            'harga_beli' => 'nullable|numeric',
+            'harga_jual' => 'nullable|numeric',
+            'diskon' => 'nullable|numeric',
+            'active' => 'nullable|boolean',
+            'foto' => 'nullable|image|max:2048'
+        ]);
+
+        return DB::transaction(function () use ($request, $item) {
+            $data = $request->only(['nama', 'harga_beli', 'harga_jual', 'active']);
+            
+            if ($request->has('diskon')) {
+                $data['diskon'] = $request->diskon / 100;
+            }
+
+            if ($request->hasFile('foto')) {
+                // Hapus foto lama jika ada
+                if ($item->foto && Storage::disk('public')->exists($item->foto)) {
+                    Storage::disk('public')->delete($item->foto);
+                }
+                // Simpan foto baru
+                $data['foto'] = $request->file('foto')->store('foto-item-sampah', 'public');
+            }
+
+            $item->update($data);
+
+            return response()->json([
+                'message' => 'Item berhasil diperbarui',
+                'data' => $item
+            ]);
+        });
+    }
+
+    // UPDATE STATUS MASSAL (Kategori, Item, dan Stok Gudang)
     public function updateStatus(Request $request, $id) {
         $request->validate([
             'active' => 'required'
@@ -178,11 +218,18 @@ class SampahController extends Controller
         return response()->json(['message' => 'Deleted']);
     }
 
+    // DELETE khusus 1 Item
     public function destroyItem($id)
     {
         $item = ItemSampah::findOrFail($id);
+        
+        // Opsional: Jika ingin fotonya juga terhapus dari storage saat data dihapus
+        if ($item->foto && Storage::disk('public')->exists($item->foto)) {
+            Storage::disk('public')->delete($item->foto);
+        }
+
         $item->delete();
 
-        return response()->json(['message' => 'Kategori deleted']);
+        return response()->json(['message' => 'Item deleted']);
     }
 }
