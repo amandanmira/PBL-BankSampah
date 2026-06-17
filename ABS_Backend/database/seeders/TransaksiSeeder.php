@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 // Models
 use App\Models\Gudang;
@@ -31,7 +32,7 @@ class TransaksiSeeder extends Seeder
         // =========================================================
         // LOGIKA COPY GAMBAR TUKANG DARI PUBLIC KE STORAGE
         // =========================================================
-        Storage::disk('public')->makeDirectory('tukang_foto'); // Pastikan folder ada
+        Storage::disk('public')->makeDirectory('tukang_foto');
 
         $daftarGambarTukang = ['tukang3.jpeg', 'tukang4.jpeg', 'Untilted.jpeg'];
         $pathFotoTersedia = [];
@@ -40,33 +41,25 @@ class TransaksiSeeder extends Seeder
             $sourcePath = public_path('dummy_images/tukang/' . $namaFile);
             if (File::exists($sourcePath)) {
                 $destPath = 'tukang_foto/' . $namaFile;
-                // Salin gambar ke storage
                 Storage::disk('public')->put($destPath, File::get($sourcePath));
-                $pathFotoTersedia[] = $destPath; // Simpan path untuk digunakan nanti
+                $pathFotoTersedia[] = $destPath; 
             }
         }
 
         // =========================================================
-        // LOGIKA COPY GAMBAR BUKTI PENJEMPUTAN/PENIMBANGAN
+        // LOGIKA COPY GAMBAR BUKTI PENJEMPUTAN & TRANSFER
         // =========================================================
         Storage::disk('public')->makeDirectory('penjemputan_foto'); 
-        
         $pathFotoPenjemputan = null;
         $sourcePenjemputan = public_path('dummy_images/penimbangan/timbang.jpeg');
-        
         if (File::exists($sourcePenjemputan)) {
             $pathFotoPenjemputan = 'penjemputan_foto/timbang.jpeg';
             Storage::disk('public')->put($pathFotoPenjemputan, File::get($sourcePenjemputan));
         }
 
-        // =========================================================
-        // LOGIKA COPY GAMBAR BUKTI TRANSFER PENGEPUL
-        // =========================================================
         Storage::disk('public')->makeDirectory('bukti_transfer'); 
-        
         $pathBuktiTransfer = null;
         $sourceBukti = public_path('dummy_images/bukti/bukti.jpeg');
-        
         if (File::exists($sourceBukti)) {
             $pathBuktiTransfer = 'bukti_transfer/bukti.jpeg';
             Storage::disk('public')->put($pathBuktiTransfer, File::get($sourceBukti));
@@ -83,32 +76,126 @@ class TransaksiSeeder extends Seeder
         }
 
         // 2. Ensure Categories Exist
-        $categories = [
-            'Organik' => KategoriSampah::firstOrCreate(['nama' => 'Organik']),
-            'Plastik' => KategoriSampah::firstOrCreate(['nama' => 'Plastik']),
-            'Kertas' => KategoriSampah::firstOrCreate(['nama' => 'Kertas']),
-            'Logam' => KategoriSampah::firstOrCreate(['nama' => 'Logam']),
+        $kategoriNames = ['Organik', 'Plastik', 'Kertas', 'Logam', 'Residu', 'Kaca & Beling', 'Rosok', 'Elektronik', 'Minyak'];
+        $categories = [];
+        foreach ($kategoriNames as $catName) {
+            $categories[$catName] = KategoriSampah::firstOrCreate(['nama' => $catName]);
+        }
+
+        // Clean existing Data
+        DB::statement('SET FOREIGN_KEY_CHECKS=0;');
+        ItemSampah::truncate();
+        Sampah::truncate();
+        Penimbangan::truncate();
+        Penjemputan::truncate();
+        TransaksiNasabah::truncate();
+        DetailTransaksi::truncate();
+        TransaksiPengepul::truncate();
+        DB::statement('SET FOREIGN_KEY_CHECKS=1;');
+
+        // 3. Ensure ItemSampah Exist (25 Item dengan Keyword Gambar yang Nyambung)
+        $dataItem = [
+            // Plastik
+            ['nama' => 'Gelas Plastik Bening (PET)', 'kategori' => 'Plastik', 'beli' => 2000, 'jual' => 3000],
+            ['nama' => 'Gelas Plastik Warna (PET)', 'kategori' => 'Plastik', 'beli' => 500, 'jual' => 1000],
+            ['nama' => 'Botol Plastik Bening (PET)', 'kategori' => 'Plastik', 'beli' => 2000, 'jual' => 3500],
+            ['nama' => 'Botol Plastik Warna', 'kategori' => 'Plastik', 'beli' => 1000, 'jual' => 1500],
+            ['nama' => 'Plastik HD Bening', 'kategori' => 'Plastik', 'beli' => 1500, 'jual' => 2500],
+            ['nama' => 'Plastik Kresek Campur', 'kategori' => 'Plastik', 'beli' => 200, 'jual' => 500],
+            ['nama' => 'Plastik Multilayer (Kemasan)', 'kategori' => 'Plastik', 'beli' => 100, 'jual' => 300],
+            ['nama' => 'Galon Plastik', 'kategori' => 'Plastik', 'beli' => 2000, 'jual' => 3000],
+            
+            // Kertas
+            ['nama' => 'Kardus Bekas (Corrugated)', 'kategori' => 'Kertas', 'beli' => 5000, 'jual' => 6500],
+            ['nama' => 'Kertas HVS/Buku Tulis', 'kategori' => 'Kertas', 'beli' => 1500, 'jual' => 2500],
+            ['nama' => 'Kertas Koran', 'kategori' => 'Kertas', 'beli' => 1000, 'jual' => 2000],
+            ['nama' => 'Kertas Duplek (Karton)', 'kategori' => 'Kertas', 'beli' => 300, 'jual' => 800],
+            ['nama' => 'Kertas Semen', 'kategori' => 'Kertas', 'beli' => 2000, 'jual' => 3000],
+            
+            // Residu
+            ['nama' => 'Sterofom', 'kategori' => 'Residu', 'beli' => 100, 'jual' => 300],
+            ['nama' => 'Tisu Bekas', 'kategori' => 'Residu', 'beli' => 50, 'jual' => 100],
+            ['nama' => 'Sapon (Sampah Sapuan)', 'kategori' => 'Residu', 'beli' => 50, 'jual' => 100],
+            ['nama' => 'Kain Perca / Baju Bekas', 'kategori' => 'Residu', 'beli' => 300, 'jual' => 600],
+            
+            // Kaca & Beling
+            ['nama' => 'Botol Kaca Bening', 'kategori' => 'Kaca & Beling', 'beli' => 300, 'jual' => 800],
+            ['nama' => 'Botol Kaca Sirup', 'kategori' => 'Kaca & Beling', 'beli' => 200, 'jual' => 500],
+            ['nama' => 'Pecahan Kaca Campur', 'kategori' => 'Kaca & Beling', 'beli' => 100, 'jual' => 300],
+
+            // Logam
+            ['nama' => 'Besi Padat/Super', 'kategori' => 'Logam', 'beli' => 4500, 'jual' => 5600],
+            ['nama' => 'Besi Kopong/Tipis (Kaleng)', 'kategori' => 'Logam', 'beli' => 3000, 'jual' => 4000],
+            ['nama' => 'Aluminium Kaleng', 'kategori' => 'Logam', 'beli' => 10000, 'jual' => 14000],
+            ['nama' => 'Tembaga Super (Kabel)', 'kategori' => 'Logam', 'beli' => 50000, 'jual' => 65000],
+            ['nama' => 'Kuningan', 'kategori' => 'Logam', 'beli' => 30000, 'jual' => 45000],
+
+            // Rosok
+            ['nama' => 'Plastik Keras (Ember/Baskom)', 'kategori' => 'Rosok', 'beli' => 1000, 'jual' => 2000],
+            ['nama' => 'Sepatu/Sandal Karet', 'kategori' => 'Rosok', 'beli' => 200, 'jual' => 500],
+            
+            // Elektronik
+            ['nama' => 'Handphone Rusak (Unit)', 'kategori' => 'Elektronik', 'beli' => 5000, 'jual' => 10000],
+            ['nama' => 'Kabel Elektronik Campur', 'kategori' => 'Elektronik', 'beli' => 8000, 'jual' => 12000],
+            ['nama' => 'Motherboard Komputer', 'kategori' => 'Elektronik', 'beli' => 15000, 'jual' => 25000],
+            
+            // Minyak & Organik
+            ['nama' => 'Minyak Jelantah Bening', 'kategori' => 'Minyak', 'beli' => 2000, 'jual' => 3500],
+            ['nama' => 'Sampah Dapur Organik', 'kategori' => 'Organik', 'beli' => 100, 'jual' => 300],
         ];
 
-        // 3. Ensure ItemSampah Exist
-        $items = [
-            'Organik' => ItemSampah::firstOrCreate(
-                ['nama' => 'Organik'],
-                ['harga_beli' => 1500, 'harga_jual' => 2800, 'kategori_id' => $categories['Organik']->kategori_id, 'active' => 1]
-            ),
-            'Plastik PET' => ItemSampah::firstOrCreate(
-                ['nama' => 'Plastik PET'],
-                ['harga_beli' => 2500, 'harga_jual' => 4500, 'kategori_id' => $categories['Plastik']->kategori_id, 'active' => 1]
-            ),
-            'Kertas' => ItemSampah::firstOrCreate(
-                ['nama' => 'Kertas'],
-                ['harga_beli' => 2000, 'harga_jual' => 3800, 'kategori_id' => $categories['Kertas']->kategori_id, 'active' => 1]
-            ),
-            'Logam' => ItemSampah::firstOrCreate(
-                ['nama' => 'Logam'],
-                ['harga_beli' => 5000, 'harga_jual' => 9500, 'kategori_id' => $categories['Logam']->kategori_id, 'active' => 1]
-            ),
+        // KAMUS KATA KUNCI AGAR GAMBAR NYAMBUNG
+        $kategoriKeywords = [
+            'Plastik' => 'plastic,bottle,waste',
+            'Kertas' => 'cardboard,paper,waste',
+            'Residu' => 'garbage,trash',
+            'Kaca & Beling' => 'glass,bottle,broken',
+            'Logam' => 'scrap,metal,steel',
+            'Rosok' => 'junk,plastic',
+            'Elektronik' => 'ewaste,electronic,motherboard',
+            'Minyak' => 'cooking,oil,waste',
+            'Organik' => 'compost,vegetable,waste',
         ];
+
+        Storage::disk('public')->makeDirectory('sampah_foto');
+        $items = [];
+
+        foreach ($dataItem as $item) {
+            $namaFileLokal = Str::slug($item['nama']) . '.jpg';
+            $pathFotoLokal = 'sampah_foto/' . $namaFileLokal;
+
+            if (!Storage::disk('public')->exists($pathFotoLokal)) {
+                // Ambil keyword inggris berdasarkan kategori sampahnya
+                $keyword = $kategoriKeywords[$item['kategori']] ?? 'recycle';
+                
+                // Gunakan id acak berdasarkan nama agar beda-beda tiap item tapi nyambung dengan kategorinya
+                $lockId = crc32($item['nama']) % 1000 + 1; 
+                
+                // Panggil LoremFlickr (mengerti keyword)
+                $urlGambarBermakna = "https://loremflickr.com/400/400/{$keyword}/all?lock={$lockId}";
+                
+                // Tambahkan User-Agent palsu karena kadang LoremFlickr menolak proses download dari script
+                $context = stream_context_create([
+                    'http' => [
+                        'header' => 'User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64)'
+                    ]
+                ]);
+
+                $imageContent = @file_get_contents($urlGambarBermakna, false, $context);
+                if ($imageContent) {
+                    Storage::disk('public')->put($pathFotoLokal, $imageContent);
+                }
+            }
+            
+            $items[$item['nama']] = ItemSampah::create([
+                'nama' => $item['nama'],
+                'harga_beli' => $item['beli'],
+                'harga_jual' => $item['jual'],
+                'kategori_id' => $categories[$item['kategori']]->kategori_id,
+                'active' => 1,
+                'foto' => $pathFotoLokal
+            ]);
+        }
 
         // 4. Link Items to all Warehouses (Sampah model)
         $sampahMap = []; 
@@ -190,7 +277,7 @@ class TransaksiSeeder extends Seeder
             );
         }
 
-        // Clean existing Data
+        // Clean existing Transaksi
         DB::statement('SET FOREIGN_KEY_CHECKS=0;');
         Penimbangan::truncate();
         Penjemputan::truncate();
@@ -202,26 +289,26 @@ class TransaksiSeeder extends Seeder
         // 8. Seed 20 Diverse Audit Transactions
         $now = Carbon::now();
         $auditSpecs = [
-            [1, 0, 'Organik', 15.5, 'Jemput', 'Selesai', 'Gudang Pusat', 'Senin - Jumat', '08:00 - 12:00'],
-            [1, 1, 'Plastik PET', 8.2, 'Setor Manual', 'Selesai', 'Gudang Pusat', 'Senin - Jumat', '13:00 - 17:00'],
-            [2, 2, 'Kertas', 12.0, 'Jemput', 'Selesai', 'Gudang Timur', 'Sabtu - Minggu', '08:00 - 12:00'],
-            [2, 3, 'Logam', 6.5, 'Jemput', 'Tidak Terlaksana', 'Gudang Timur', 'Senin - Jumat', '13:00 - 17:00'],
-            [3, 4, 'Organik', 18.3, 'Setor Manual', 'Selesai', 'Gudang Barat', 'Sabtu - Minggu', '13:00 - 17:00'],
-            [4, 5, 'Plastik PET', 0.0, 'Jemput', 'Tidak Terlaksana', 'Gudang Barat', 'Senin - Jumat', '08:00 - 12:00'],
-            [5, 6, 'Kertas', 9.5, 'Jemput', 'Selesai', 'Gudang Selatan', 'Sabtu - Minggu', '08:00 - 12:00'],
-            [6, 7, 'Logam', 11.2, 'Setor Manual', 'Selesai', 'Gudang Selatan', 'Senin - Jumat', '13:00 - 17:00'],
-            [7, 8, 'Organik', 14.0, 'Jemput', 'Selesai', 'Gudang Surakarta', 'Setiap Hari', '08:00 - 16:00'],
-            [8, 9, 'Plastik PET', 7.5, 'Jemput', 'Tidak Terlaksana', 'Gudang Surakarta', 'Setiap Hari', '08:00 - 16:00'],
-            [9, 0, 'Kertas', 22.1, 'Setor Manual', 'Selesai', 'Gudang Pusat', 'Senin - Jumat', '13:00 - 17:00'],
-            [10, 1, 'Logam', 5.8, 'Jemput', 'Selesai', 'Gudang Timur', 'Sabtu - Minggu', '13:00 - 17:00'],
-            [11, 2, 'Organik', 11.3, 'Jemput', 'Tidak Terlaksana', 'Gudang Barat', 'Senin - Jumat', '08:00 - 12:00'],
-            [12, 3, 'Plastik PET', 13.4, 'Setor Manual', 'Selesai', 'Gudang Selatan', 'Senin - Jumat', '13:00 - 17:00'],
-            [13, 4, 'Kertas', 8.7, 'Jemput', 'Selesai', 'Gudang Surakarta', 'Sabtu - Minggu', '08:00 - 12:00'],
-            [14, 5, 'Logam', 0.0, 'Jemput', 'Tidak Terlaksana', 'Gudang Pusat', 'Senin - Jumat', '08:00 - 12:00'],
-            [15, 6, 'Organik', 19.1, 'Setor Manual', 'Selesai', 'Gudang Timur', 'Setiap Hari', '08:00 - 16:00'],
-            [16, 7, 'Plastik PET', 10.8, 'Jemput', 'Selesai', 'Gudang Barat', 'Senin - Jumat', '13:00 - 17:00'],
-            [17, 8, 'Kertas', 0.0, 'Jemput', 'Tidak Terlaksana', 'Gudang Selatan', 'Sabtu - Minggu', '13:00 - 17:00'],
-            [18, 9, 'Logam', 16.4, 'Setor Manual', 'Selesai', 'Gudang Surakarta', 'Senin - Jumat', '08:00 - 12:00'],
+            [1, 0, 'Sampah Dapur Organik', 15.5, 'Jemput', 'Selesai', 'Gudang Pusat', 'Senin - Jumat', '08:00 - 12:00'],
+            [1, 1, 'Botol Plastik Bening (PET)', 8.2, 'Setor Manual', 'Selesai', 'Gudang Pusat', 'Senin - Jumat', '13:00 - 17:00'],
+            [2, 2, 'Kardus Bekas (Corrugated)', 12.0, 'Jemput', 'Selesai', 'Gudang Timur', 'Sabtu - Minggu', '08:00 - 12:00'],
+            [2, 3, 'Besi Padat/Super', 6.5, 'Jemput', 'Tidak Terlaksana', 'Gudang Timur', 'Senin - Jumat', '13:00 - 17:00'],
+            [3, 4, 'Sampah Dapur Organik', 18.3, 'Setor Manual', 'Selesai', 'Gudang Barat', 'Sabtu - Minggu', '13:00 - 17:00'],
+            [4, 5, 'Botol Plastik Bening (PET)', 0.0, 'Jemput', 'Tidak Terlaksana', 'Gudang Barat', 'Senin - Jumat', '08:00 - 12:00'],
+            [5, 6, 'Kardus Bekas (Corrugated)', 9.5, 'Jemput', 'Selesai', 'Gudang Selatan', 'Sabtu - Minggu', '08:00 - 12:00'],
+            [6, 7, 'Besi Padat/Super', 11.2, 'Setor Manual', 'Selesai', 'Gudang Selatan', 'Senin - Jumat', '13:00 - 17:00'],
+            [7, 8, 'Sampah Dapur Organik', 14.0, 'Jemput', 'Selesai', 'Gudang Surakarta', 'Setiap Hari', '08:00 - 16:00'],
+            [8, 9, 'Botol Plastik Bening (PET)', 7.5, 'Jemput', 'Tidak Terlaksana', 'Gudang Surakarta', 'Setiap Hari', '08:00 - 16:00'],
+            [9, 0, 'Kardus Bekas (Corrugated)', 22.1, 'Setor Manual', 'Selesai', 'Gudang Pusat', 'Senin - Jumat', '13:00 - 17:00'],
+            [10, 1, 'Besi Padat/Super', 5.8, 'Jemput', 'Selesai', 'Gudang Timur', 'Sabtu - Minggu', '13:00 - 17:00'],
+            [11, 2, 'Sampah Dapur Organik', 11.3, 'Jemput', 'Tidak Terlaksana', 'Gudang Barat', 'Senin - Jumat', '08:00 - 12:00'],
+            [12, 3, 'Botol Plastik Bening (PET)', 13.4, 'Setor Manual', 'Selesai', 'Gudang Selatan', 'Senin - Jumat', '13:00 - 17:00'],
+            [13, 4, 'Kardus Bekas (Corrugated)', 8.7, 'Jemput', 'Selesai', 'Gudang Surakarta', 'Sabtu - Minggu', '08:00 - 12:00'],
+            [14, 5, 'Besi Padat/Super', 0.0, 'Jemput', 'Tidak Terlaksana', 'Gudang Pusat', 'Senin - Jumat', '08:00 - 12:00'],
+            [15, 6, 'Sampah Dapur Organik', 19.1, 'Setor Manual', 'Selesai', 'Gudang Timur', 'Setiap Hari', '08:00 - 16:00'],
+            [16, 7, 'Botol Plastik Bening (PET)', 10.8, 'Jemput', 'Selesai', 'Gudang Barat', 'Senin - Jumat', '13:00 - 17:00'],
+            [17, 8, 'Kardus Bekas (Corrugated)', 0.0, 'Jemput', 'Tidak Terlaksana', 'Gudang Selatan', 'Sabtu - Minggu', '13:00 - 17:00'],
+            [18, 9, 'Besi Padat/Super', 16.4, 'Setor Manual', 'Selesai', 'Gudang Surakarta', 'Senin - Jumat', '08:00 - 12:00'],
         ];
 
         foreach ($auditSpecs as $spec) {
@@ -310,17 +397,16 @@ class TransaksiSeeder extends Seeder
 
         // 9. Seed Pengepul Penjualan Transactions
         $pengepulSpecs = [
-            [0, 'Organik', 35.2, 'Gudang Pusat', 8, 'selesai'],
-            [0, 'Kertas', 18.5, 'Gudang Pusat', 8, 'selesai'],
-            [1, 'Plastik PET', 24.1, 'Gudang Pusat', 9, 'selesai'],
-            [2, 'Logam', 11.7, 'Gudang Pusat', 10, 'batal'],
-            [3, 'Organik', 25.0, 'Gudang Timur', 11, 'selesai'],
-            [0, 'Kertas', 20.0, 'Gudang Barat', 12, 'tolak'],
-            [1, 'Logam', 15.0, 'Gudang Selatan', 13, 'selesai'],
-            [2, 'Plastik PET', 30.0, 'Gudang Surakarta', 14, 'selesai'],
+            [0, 'Sampah Dapur Organik', 35.2, 'Gudang Pusat', 8, 'selesai'],
+            [0, 'Kardus Bekas (Corrugated)', 18.5, 'Gudang Pusat', 8, 'selesai'],
+            [1, 'Botol Plastik Bening (PET)', 24.1, 'Gudang Pusat', 9, 'selesai'],
+            [2, 'Besi Padat/Super', 11.7, 'Gudang Pusat', 10, 'batal'],
+            [3, 'Sampah Dapur Organik', 25.0, 'Gudang Timur', 11, 'selesai'],
+            [0, 'Kardus Bekas (Corrugated)', 20.0, 'Gudang Barat', 12, 'tolak'],
+            [1, 'Besi Padat/Super', 15.0, 'Gudang Selatan', 13, 'selesai'],
+            [2, 'Botol Plastik Bening (PET)', 30.0, 'Gudang Surakarta', 14, 'selesai'],
         ];
 
-        // Daftar alasan acak jika status pesanan pengepul batal atau tolak
         $alasanBatalPengepul = [
             'Dibatalkan oleh pengepul karena perubahan harga pasar.',
             'Batas waktu pembayaran (deadline) telah berakhir secara otomatis.',
@@ -342,15 +428,14 @@ class TransaksiSeeder extends Seeder
             $totalHarga = $berat * $priceJual;
             $petugas = $petugasList[$gudangName];
 
-            // Tentukan ket_status dan bukti_transfer berdasarkan status
             $ketStatus = null;
             $buktiTf = null;
 
             if ($status === 'selesai') {
                 $ketStatus = 'Pembayaran telah diverifikasi dan barang sudah diserahkan.';
-                $buktiTf = $pathBuktiTransfer; // Memasukkan gambar bukti transfer
+                $buktiTf = $pathBuktiTransfer; 
             } elseif ($status === 'batal' || $status === 'tolak') {
-                $ketStatus = $alasanBatalPengepul[array_rand($alasanBatalPengepul)]; // Alasan acak
+                $ketStatus = $alasanBatalPengepul[array_rand($alasanBatalPengepul)]; 
             } else {
                 $ketStatus = 'Menunggu pembayaran dari pengepul.';
             }
