@@ -156,6 +156,55 @@ const handleFileUpload = (event, index) => {
 };
 
 const saveKategori = async () => {
+  // --- VALIDASI FRONTEND ITEM SAMPAH ---
+  let duplicateName = null;
+  let hasEmptyName = false;
+
+  // 1. Cek internal duplikat di dalam form yang sedang diisi (jika admin input nama kembar di multiple form)
+  const itemNamesInForm = currentCategory.value.items.map(i => i.nama.trim().toLowerCase()).filter(n => n !== '');
+  const uniqueNamesInForm = new Set(itemNamesInForm);
+  if (itemNamesInForm.length !== uniqueNamesInForm.size) {
+    Swal.fire('Error', 'Terdapat nama item yang kembar di dalam form yang Anda isi!', 'error');
+    return;
+  }
+
+  // 2. Cek eksternal dan nama kosong
+  for (const formItem of currentCategory.value.items) {
+    const inputNama = formItem.nama.trim();
+    if (inputNama === '') {
+      hasEmptyName = true;
+      break;
+    }
+
+    const isDuplicate = kategoriList.value.some(kategori => {
+      return kategori.item_sampah?.some(dbItem => {
+        // Abaikan jika item_id nya sama (sedang diedit)
+        if (formItem.item_id && dbItem.item_id === formItem.item_id) return false;
+        return dbItem.nama.toLowerCase() === inputNama.toLowerCase();
+      });
+    });
+
+    if (isDuplicate) {
+      duplicateName = inputNama;
+      break;
+    }
+  }
+
+  if (hasEmptyName) {
+    Swal.fire('Error', 'Semua kolom nama item harus diisi', 'error');
+    return;
+  }
+
+  if (duplicateName) {
+    Swal.fire({
+      title: 'Nama Item Sudah Ada!',
+      text: `Item sampah dengan nama "${duplicateName}" sudah terdaftar di database. Silakan gunakan nama yang berbeda.`,
+      icon: 'warning',
+      confirmButtonColor: '#4A7043'
+    });
+    return;
+  }
+
   loading.value = true;
   try {
     const formData = new FormData();
@@ -189,8 +238,15 @@ const saveKategori = async () => {
     isModalOpen.value = false;
     fetchKategori();
   } catch (err) {
-    // Menangkap pesan error dari validasi backend jika masih tembus
-    const errorMsg = err.response?.data?.message || err.response?.data?.errors?.nama?.[0] || 'Gagal menyimpan data';
+    // Menangkap pesan error dari validasi backend jika masih tembus (fallback)
+    let errorMsg = 'Gagal menyimpan data';
+    if (err.response?.data?.errors) {
+      const errors = err.response.data.errors;
+      // Mengambil pesan error pertama secara dinamis (misal: "items.0.nama")
+      errorMsg = Object.values(errors)[0][0];
+    } else if (err.response?.data?.message) {
+      errorMsg = err.response.data.message;
+    }
     Swal.fire('Error', errorMsg, 'error');
   } finally {
     loading.value = false;
@@ -251,6 +307,31 @@ const handleSingleItemPhoto = (event) => {
 };
 
 const saveSingleItem = async () => {
+  const inputNama = currentItem.value.nama.trim();
+  
+  if (inputNama === '') {
+    Swal.fire('Error', 'Nama item harus diisi', 'error');
+    return;
+  }
+
+  // Cek duplikat eksternal (mengabaikan miliknya sendiri)
+  const isDuplicate = kategoriList.value.some(kategori => {
+    return kategori.item_sampah?.some(item => {
+      if (item.item_id === currentItem.value.item_id) return false;
+      return item.nama.toLowerCase() === inputNama.toLowerCase();
+    });
+  });
+
+  if (isDuplicate) {
+    Swal.fire({
+      title: 'Nama Item Sudah Ada!',
+      text: `Item sampah dengan nama "${inputNama}" sudah terdaftar. Silakan gunakan nama yang berbeda.`,
+      icon: 'warning',
+      confirmButtonColor: '#4A7043'
+    });
+    return;
+  }
+
   loading.value = true;
   try {
     const formData = new FormData();
