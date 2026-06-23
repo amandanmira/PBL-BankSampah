@@ -340,7 +340,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <DashboardLayout title="Request Jemput / Setor Manual">
+  <DashboardLayout title="Request Jemput/Setor">
     <div class="space-y-6 animate-in fade-in duration-700 pb-10 max-w-xl lg:max-w-7xl mx-auto">
       
       <!-- Top Tab Switcher -->
@@ -798,7 +798,7 @@ onMounted(() => {
             <!-- Card Body -->
             <div class="p-5 space-y-4">
               <!-- Grid Stats -->
-              <div class="grid grid-cols-3 gap-3">
+              <div class="grid grid-cols-[1fr_1fr_1.2fr] gap-2">
                 <div class="bg-[#F5F5F0] p-3.5 rounded-2xl text-center">
                   <p class="text-base font-black text-[#4A7043] leading-none">{{ gudang.petugas?.length || 0 }}</p>
                   <p class="text-[9px] font-bold text-stone-400 uppercase tracking-wider mt-1.5">Petugas</p>
@@ -808,7 +808,7 @@ onMounted(() => {
                   <p class="text-[9px] font-bold text-stone-400 uppercase tracking-wider mt-1.5">Tukang</p>
                 </div>
                 <div class="bg-[#F5F5F0] p-3.5 rounded-2xl text-center flex flex-col justify-center">
-                  <p class="text-base font-black text-[#EA580C] leading-none">
+                  <p class="text-xs sm:text-sm lg:text-base font-black text-[#EA580C] leading-none">
                     {{ Math.round(getGudangStats(gudang).totalStok) }}/{{ gudang.kapasitas }}
                   </p>
                   <p class="text-[9px] font-bold text-stone-400 uppercase tracking-wider mt-1.5">kg</p>

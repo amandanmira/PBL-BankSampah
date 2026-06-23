@@ -147,6 +147,15 @@ const webConfig = ref({
   logo: null,
 });
 
+const logoSrc = computed(() => {
+  if (webConfig.value?.logo) {
+    return webConfig.value.logo.startsWith('http')
+      ? webConfig.value.logo
+      : `${axios.defaults.baseURL}/storage/${webConfig.value.logo}`;
+  }
+  return '/favicon.ico';
+});
+
 const fetchWebConfig = async () => {
   try {
     const res = await axios.get("/api/web-config");
@@ -283,7 +292,7 @@ onMounted(() => {
           <!-- Logo Icon -->
           <div :class="cn('flex items-center justify-center transition-all duration-300', isSidebarCollapsed ? 'w-14 h-14' : 'w-24 h-24 mb-4')">
             <div class="w-full h-full p-1">
-              <img v-if="webConfig.logo" :src="webConfig.logo.startsWith('http') ? webConfig.logo : `${axios.defaults.baseURL}/storage/${webConfig.logo}`" class="w-full h-full object-contain" alt="Logo" />
+              <img :src="logoSrc" @error="e => e.target.src = '/favicon.ico'" class="w-full h-full object-contain" alt="Logo" />
             </div>
           </div>
 
@@ -444,7 +453,7 @@ onMounted(() => {
       <div class="p-6 flex items-center justify-between">
         <div class="flex items-center gap-3">
           <div class="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center overflow-hidden shrink-0">
-            <img v-if="webConfig.logo" :src="webConfig.logo.startsWith('http') ? webConfig.logo : `${axios.defaults.baseURL}/storage/${webConfig.logo}`" class="w-full h-full object-contain p-1" alt="Logo" />
+            <img :src="logoSrc" @error="e => e.target.src = '/favicon.ico'" class="w-full h-full object-contain p-1" alt="Logo" />
           </div>
           <div>
             <h2 class="text-sm font-black tracking-wide leading-none text-white">Bank Sampah</h2>
@@ -527,7 +536,7 @@ onMounted(() => {
             >
               <Icon icon="material-symbols:menu" class="w-6 h-6 text-white" />
             </button>
-            <h1 class="text-lg lg:text-2xl font-bold tracking-wide uppercase lg:normal-case text-white">{{ title }}</h1>
+            <h1 class="text-sm md:text-lg lg:text-2xl font-bold tracking-wide text-white">{{ title }}</h1>
           </div>
 
           <!-- Profile Button or Balance (Top Right Header) -->

@@ -81,6 +81,29 @@ const paginatedSampah = computed(() => {
   return filteredSampah.value.slice(start, start + itemsPerPage);
 });
 
+const visiblePages = computed(() => {
+  const range = [];
+  const delta = 2; // Number of pages to show around current page
+  const left = currentPage.value - delta;
+  const right = currentPage.value + delta + 1;
+  
+  for (let i = 1; i <= totalPages.value; i++) {
+    if (i === 1 || i === totalPages.value || (i >= left && i < right)) {
+      range.push(i);
+    } else if (i === left - 1 || i === right) {
+      range.push('...');
+    }
+  }
+  
+  const uniqueRange = [];
+  for (let i = 0; i < range.length; i++) {
+    if (range[i] !== '...' || range[i - 1] !== '...') {
+      uniqueRange.push(range[i]);
+    }
+  }
+  return uniqueRange;
+});
+
 const formatCurrency = (val) => {
   return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(val);
 };
@@ -236,29 +259,31 @@ const onSearchInput = () => {
             <button 
               @click="currentPage > 1 && currentPage--"
               :disabled="currentPage === 1"
-              class="w-10 h-10 flex items-center justify-center text-stone-400 hover:text-stone-800 disabled:opacity-20 transition-colors cursor-pointer"
+              class="w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center text-stone-400 hover:text-stone-800 disabled:opacity-20 transition-colors cursor-pointer"
             >
               <Icon icon="material-symbols:chevron-left" class="w-6 h-6" />
             </button>
-            <div class="flex items-center gap-1.5">
-              <button 
-                v-for="p in totalPages" 
-                :key="p"
-                @click="currentPage = p"
-                :class="[
-                  'w-10 h-10 flex items-center justify-center text-sm font-bold transition-all rounded-full',
-                  currentPage === p 
-                    ? 'bg-stone-700 text-white shadow-md' 
-                    : 'text-stone-500 hover:text-stone-800 hover:bg-stone-100/50'
-                ]"
-              >
-                {{ p }}
-              </button>
+            <div class="flex items-center gap-1 sm:gap-1.5 flex-wrap justify-center">
+              <template v-for="(p, index) in visiblePages" :key="index">
+                <span v-if="p === '...'" class="px-1.5 text-stone-400 font-bold select-none">...</span>
+                <button 
+                  v-else
+                  @click="currentPage = p"
+                  :class="[
+                    'w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center text-xs sm:text-sm font-bold transition-all rounded-full cursor-pointer',
+                    currentPage === p 
+                      ? 'bg-stone-700 text-white shadow-md' 
+                      : 'text-stone-500 hover:text-stone-800 hover:bg-stone-100/50'
+                  ]"
+                >
+                  {{ p }}
+                </button>
+              </template>
             </div>
             <button 
               @click="currentPage < totalPages && currentPage++"
               :disabled="currentPage === totalPages"
-              class="w-10 h-10 flex items-center justify-center text-stone-400 hover:text-stone-800 disabled:opacity-20 transition-colors cursor-pointer"
+              class="w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center text-stone-400 hover:text-stone-800 disabled:opacity-20 transition-colors cursor-pointer"
             >
               <Icon icon="material-symbols:chevron-right" class="w-6 h-6" />
             </button>
