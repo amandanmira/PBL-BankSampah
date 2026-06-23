@@ -10,7 +10,7 @@ use App\Models\KategoriSampah;
 use App\Models\ItemSampah;
 use App\Models\Sampah;
 
-class SampahController extends Controller
+class SampahGudangController extends Controller
 {
     public function index()
     {
