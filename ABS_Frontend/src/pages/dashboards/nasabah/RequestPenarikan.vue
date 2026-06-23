@@ -1,9 +1,9 @@
 <template>
   <DashboardLayout title="Penarikan Uang">
-    <div class="p-6 max-w-5xl mx-auto space-y-6 font-sans antialiased text-stone-800">
+    <div class="p-3 sm:p-6 max-w-5xl mx-auto space-y-6 font-sans antialiased text-stone-800">
       
       <!-- Main Content Card -->
-      <div class="bg-white rounded-3xl p-8 shadow-sm border border-stone-200/60 space-y-6">
+      <div class="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-8 shadow-sm border border-stone-200/60 space-y-6">
         
         <!-- Saldo Tersedia Card -->
         <div class="bg-[#5D7A56] rounded-3xl p-6 text-white flex justify-between items-center relative overflow-hidden shadow-sm">

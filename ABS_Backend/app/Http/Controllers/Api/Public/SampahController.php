@@ -14,7 +14,8 @@ class SampahController extends Controller
         // Get all active categories with their active items
         $categories = KategoriSampah::where('active', 1)
             ->with(['itemSampah' => function ($query) {
-                $query->where('active', 1)->select('item_id', 'kategori_id', 'nama', 'harga_beli', 'harga_jual', 'foto');
+                // TAMBAHKAN 'diskon' DI SINI AGAR TERKIRIM KE FRONT-END
+                $query->where('active', 1)->select('item_id', 'kategori_id', 'nama', 'harga_beli', 'harga_jual', 'foto', 'diskon');
             }])
             ->get(['kategori_id', 'nama', 'active']);
 
