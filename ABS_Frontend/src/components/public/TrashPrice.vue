@@ -80,7 +80,7 @@ const filteredTrash = computed(() => {
         </p>
       </div>
 
-      <div class="flex justify-end mb-4 px-2 md:px-0">
+      <div class="flex justify-center md:justify-end mb-4 px-2 md:px-0">
         <div class="inline-flex items-center border-[1.5px] border-[#999999] p-0.5 rounded-full bg-transparent shadow-sm">
           <button @click="roleView = 'nasabah'" :class="[
             'px-3 py-1 rounded-full text-[12px] font-bold transition-all duration-300',
