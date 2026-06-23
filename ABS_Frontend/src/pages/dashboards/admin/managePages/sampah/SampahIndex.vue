@@ -103,11 +103,37 @@ const openEditModal = (kategori) => {
   isModalOpen.value = true;
 };
 
+// --- VALIDASI UNIQUE DI FRONT-END ---
 const nextStep = () => {
-  if (currentCategory.value.nama.trim() === '') {
+  const inputNama = currentCategory.value.nama.trim();
+
+  // 1. Validasi Kosong
+  if (inputNama === '') {
     Swal.fire('Error', 'Nama kategori harus diisi', 'error');
     return;
   }
+
+  // 2. Validasi Unique (Mencegah Duplikat)
+  const isDuplicate = kategoriList.value.some(kategori => {
+    // Jika sedang mode 'edit', abaikan nama miliknya sendiri
+    if (modalMode.value === 'edit' && kategori.kategori_id === currentCategory.value.id) {
+      return false;
+    }
+    // Pengecekan case-insensitive (huruf besar/kecil tidak ngaruh)
+    return kategori.nama.toLowerCase() === inputNama.toLowerCase();
+  });
+
+  if (isDuplicate) {
+    Swal.fire({
+      title: 'Nama Sudah Ada!',
+      text: `Kategori dengan nama "${inputNama}" sudah terdaftar. Silakan gunakan nama yang berbeda.`,
+      icon: 'warning',
+      confirmButtonColor: '#4A7043'
+    });
+    return;
+  }
+
+  // Jika lulus validasi, lanjut ke Step 2
   currentStep.value = 2;
 };
 
@@ -163,7 +189,9 @@ const saveKategori = async () => {
     isModalOpen.value = false;
     fetchKategori();
   } catch (err) {
-    Swal.fire('Error', err.response?.data?.message || 'Gagal menyimpan data', 'error');
+    // Menangkap pesan error dari validasi backend jika masih tembus
+    const errorMsg = err.response?.data?.message || err.response?.data?.errors?.nama?.[0] || 'Gagal menyimpan data';
+    Swal.fire('Error', errorMsg, 'error');
   } finally {
     loading.value = false;
   }
