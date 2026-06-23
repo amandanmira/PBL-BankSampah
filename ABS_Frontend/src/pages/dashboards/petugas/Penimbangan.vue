@@ -504,12 +504,12 @@ const removeRow = (index) => {
 
 const filteredSampah = (kategoriId) => {
   if (!kategoriId) return [];
-  return listSampah.value.filter(item => item.item_sampah && item.item_sampah.kategori_id === kategoriId);
+  return listSampah.value.filter(item => item.item_sampah && Number(item.item_sampah.kategori_id) === Number(kategoriId));
 };
 
 const getHargaPerKg = (sampah_id) => {
   if (!sampah_id) return 0;
-  const selectedItem = listSampah.value.find(item => item.sampah_id === sampah_id);
+  const selectedItem = listSampah.value.find(item => Number(item.sampah_id) === Number(sampah_id));
   if (selectedItem && selectedItem.item_sampah) {
     return Number(selectedItem.item_sampah.harga_beli);
   }
@@ -536,7 +536,7 @@ const formatRupiah = (angka) => {
 };
 
 const getSampahName = (sampah_id) => {
-  const selectedItem = listSampah.value.find(item => item.sampah_id === sampah_id);
+  const selectedItem = listSampah.value.find(item => Number(item.sampah_id) === Number(sampah_id));
   return selectedItem?.item_sampah?.nama || 'Unknown';
 };
 

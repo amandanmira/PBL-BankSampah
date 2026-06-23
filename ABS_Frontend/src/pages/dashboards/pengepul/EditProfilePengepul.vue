@@ -102,7 +102,9 @@
                 </label>
                 <input 
                   v-model="form.no_telp" 
-                  type="text" 
+                  type="tel" 
+                  @input="form.no_telp = $event.target.value.replace(/[^\d+]/g, '')"
+                  maxlength="15"
                   class="w-full bg-[#EEF0ED] border-0 rounded-xl py-2.5 px-3.5 text-xs md:text-sm font-semibold text-stone-700 focus:outline-none focus:ring-2 focus:ring-[#4A7043]/20 focus:bg-white transition-all duration-200" 
                   placeholder="Masukkan Nomor Telepon"
                 />

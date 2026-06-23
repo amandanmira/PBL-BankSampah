@@ -257,7 +257,7 @@ onMounted(() => {
               </tr>
               <tr v-for="item in penarikans" :key="item.penarikan_id" class="hover:bg-stone-50/50 transition-colors group">
                 <td class="py-4 px-6 text-center">
-                  <span class="text-xs font-bold text-stone-500">WD-{{ item.created_at ? new Date(item.created_at).toISOString().slice(0, 10).replace(/-/g, '') : '0000' }}-{{ String(item.penarikan_id).padStart(3, '0') }}</span>
+                  <span class="text-xs font-bold text-stone-500">WD-{{ String(item.penarikan_id).padStart(3, '0') }}</span>
                 </td>
                 <td class="py-4 px-6">
                   <div class="flex flex-col">
