@@ -170,7 +170,7 @@ const saveKategori = async () => {
 };
 
 const toggleStatus = async (kategori) => {
-  const newStatus = kategori.active === 1 ? 0 : 1;
+  const newStatus = Number(kategori.active) === 1 ? 0 : 1;
   const action = newStatus === 1 ? 'mengaktifkan' : 'menonaktifkan';
   
   const result = await Swal.fire({
@@ -207,7 +207,7 @@ const openEditItemModal = (item) => {
     harga_beli: item.harga_beli,
     harga_jual: item.harga_jual,
     diskon: item.diskon * 100,
-    active: item.active !== undefined ? item.active : 1,
+    active: item.active !== undefined ? Number(item.active) : 1,
     foto: null,
     fotoPreview: item.foto ? (item.foto.startsWith('http') ? item.foto : `${axios.defaults.baseURL}/storage/${item.foto}`) : null,
   };
@@ -231,7 +231,7 @@ const saveSingleItem = async () => {
     formData.append('harga_beli', currentItem.value.harga_beli);
     formData.append('harga_jual', currentItem.value.harga_jual);
     formData.append('diskon', currentItem.value.diskon);
-    formData.append('active', currentItem.value.active ? 1 : 0);
+    formData.append('active', Number(currentItem.value.active) === 1 ? 1 : 0);
     if (currentItem.value.foto) {
       formData.append('foto', currentItem.value.foto);
     }
@@ -289,7 +289,7 @@ onMounted(() => {
           <div 
             :class="[
               'rounded-2xl p-6 flex items-center justify-between transition-all duration-300 border-2',
-              kategori.active === 1 
+              Number(kategori.active) === 1 
                 ? 'bg-[#4A7043] text-white border-[#4A7043]' 
                 : 'bg-gray-400 text-white border-gray-400'
             ]"
@@ -306,7 +306,7 @@ onMounted(() => {
             </div>
 
             <div class="flex items-center gap-3">
-              <span v-if="kategori.active === 0" class="bg-red-500 text-white px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest mr-4">Nonaktif</span>
+              <span v-if="Number(kategori.active) === 0" class="bg-red-500 text-white px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest mr-4">Nonaktif</span>
               
               <button 
                 @click="openEditModal(kategori)"
@@ -320,13 +320,13 @@ onMounted(() => {
                 @click="toggleStatus(kategori)"
                 :class="[
                   'px-5 py-2.5 rounded-xl flex items-center gap-2 font-bold text-sm shadow-md transition-all active:scale-95',
-                  kategori.active === 1 
+                  Number(kategori.active) === 1 
                     ? 'bg-red-500 hover:bg-red-600 text-white' 
                     : 'bg-[#4A7043] hover:bg-[#3D5C37] text-white'
                 ]"
               >
-                <Icon :icon="kategori.active === 1 ? 'material-symbols:power-settings-new' : 'material-symbols:check-circle-outline'" class="w-5 h-5" />
-                {{ kategori.active === 1 ? 'Nonaktifkan' : 'Aktifkan' }}
+                <Icon :icon="Number(kategori.active) === 1 ? 'material-symbols:power-settings-new' : 'material-symbols:check-circle-outline'" class="w-5 h-5" />
+                {{ Number(kategori.active) === 1 ? 'Nonaktifkan' : 'Aktifkan' }}
               </button>
             </div>
           </div>
@@ -350,7 +350,7 @@ onMounted(() => {
                   @click="openEditItemModal(item)"
                   class="bg-white rounded-2xl border-2 border-gray-100 p-4 shadow-sm hover:shadow-lg hover:border-[#4A7043] transition-all duration-300 group cursor-pointer relative"
                 >
-                  <div v-if="item.active === 0" class="absolute top-2 right-2 bg-red-500 text-white text-[10px] font-bold px-2 py-1 rounded-md z-10">
+                  <div v-if="Number(item.active) === 0" class="absolute top-2 right-2 bg-red-500 text-white text-[10px] font-bold px-2 py-1 rounded-md z-10">
                     NONAKTIF
                   </div>
 
