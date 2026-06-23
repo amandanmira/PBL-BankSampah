@@ -79,7 +79,37 @@ const closeModal = () => {
   isModalOpen.value = false;
 };
 
+// --- FRONTEND VALIDATION & SUBMIT ---
 const handleSubmit = async () => {
+  const inputAlamat = formData.value.alamat.trim();
+
+  // 1. Validasi Kosong
+  if (!inputAlamat) {
+    Swal.fire("Error", "Alamat gudang harus diisi", "error");
+    return;
+  }
+
+  // 2. Validasi Unique (Mencegah Duplikat)
+  const isDuplicate = gudangList.value.some(gudang => {
+    // Jika sedang mode 'edit', abaikan alamat gudang itu sendiri
+    if (isEditing.value && gudang.gudang_id === currentGudangId.value) {
+      return false;
+    }
+    // Pengecekan case-insensitive (huruf besar/kecil tidak ngaruh)
+    return gudang.alamat.toLowerCase() === inputAlamat.toLowerCase();
+  });
+
+  if (isDuplicate) {
+    Swal.fire({
+      title: "Alamat Sudah Ada!",
+      text: `Gudang dengan alamat "${inputAlamat}" sudah terdaftar. Silakan gunakan alamat yang berbeda.`,
+      icon: "warning",
+      confirmButtonColor: "#4A7043"
+    });
+    return;
+  }
+
+  // 3. Eksekusi API
   try {
     if (isEditing.value) {
       await axios.put(`/api/admin/gudang/${currentGudangId.value}`, formData.value);
@@ -104,7 +134,9 @@ const handleSubmit = async () => {
     fetchGudang();
   } catch (err) {
     console.error("Submit failed:", err);
-    Swal.fire("Error", "Gagal menyimpan data gudang", "error");
+    // Menangkap pesan error dari validasi backend jika masih tembus
+    const errorMsg = err.response?.data?.message || err.response?.data?.errors?.alamat?.[0] || "Gagal menyimpan data gudang";
+    Swal.fire("Error", errorMsg, "error");
   }
 };
 
