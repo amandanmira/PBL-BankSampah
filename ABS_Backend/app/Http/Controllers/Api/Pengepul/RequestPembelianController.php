@@ -129,8 +129,11 @@ class RequestPembelianController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'pengepul_id' => 'required',
-            'detail' => 'required|array'
+            'pengepul_id' => 'required|integer',
+            'detail' => 'required|array',
+            'detail.*.sampah_id' => 'required|integer',
+            'detail.*.berat' => 'required|numeric',
+            'detail.*.harga' => 'required|numeric'
         ]);
 
         // simpan item jika ada

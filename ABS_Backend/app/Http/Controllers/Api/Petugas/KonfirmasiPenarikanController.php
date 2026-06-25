@@ -70,9 +70,9 @@ class KonfirmasiPenarikanController extends Controller
 
     public function terima(Request $request, $id)
     {
-        // 1. Validasi file foto bukti transfer
+        // 1. Validasi file foto bukti transfer (opsional)
         $request->validate([
-            'bukti_tf' => 'required|image|mimes:jpeg,png,jpg|max:5120', // Wajib upload
+            'bukti_tf' => 'nullable|image|mimes:jpeg,png,jpg|max:5120', // Tidak wajib upload
         ]);
 
         DB::beginTransaction();
