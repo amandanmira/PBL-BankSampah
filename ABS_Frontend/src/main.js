@@ -6,8 +6,13 @@ import App from './App.vue'
 import router from './router'
 
 // Set alamat dasar ke Laravel-mu
-axios.defaults.baseURL = 'https://api.tabungansampah.online';
-//axios.defaults.baseURL = 'http://localhost:8000';
+// axios.defaults.baseURL = 'https://api.tabungansampah.online';
+
+// alamat ke backend sekarang dari file .env
+// jika belum punya .env copy dari .env.example dulu.
+console.log(import.meta.env.VITE_API_BASE_URL);
+axios.defaults.baseURL = import.meta.env.VITE_API_BASE_URL;
+
 // INI WAJIB TRUE! Agar browser mau mengirim/menerima Cookie Sanctum
 axios.defaults.withCredentials = true;
 axios.defaults.withXSRFToken = true;

@@ -51,7 +51,7 @@ const isProfileAddressEmpty = computed(() => {
 
 // Selected Gudang Info
 const selectedGudang = computed(() => {
-  return gudangList.value.find(g => g.gudang_id === form.value.gudang_id) || null;
+  return gudangList.value.find(g => Number(g.gudang_id) === Number(form.value.gudang_id)) || null;
 });
 
 // Paginated Sampah

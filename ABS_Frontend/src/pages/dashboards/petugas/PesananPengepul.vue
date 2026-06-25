@@ -118,12 +118,12 @@ const fetchData = async (page = 1) => {
 // Filter detail items helper
 const getTugasAndaItems = (detailTransaksi) => {
   if (!detailTransaksi) return [];
-  return detailTransaksi.filter(d => d.sampah?.gudang_id === currentGudangId.value);
+  return detailTransaksi.filter(d => Number(d.sampah?.gudang_id) === Number(currentGudangId.value));
 };
 
 const getGudangLainItems = (detailTransaksi) => {
   if (!detailTransaksi) return [];
-  return detailTransaksi.filter(d => d.sampah?.gudang_id !== currentGudangId.value);
+  return detailTransaksi.filter(d => Number(d.sampah?.gudang_id) !== Number(currentGudangId.value));
 };
 
 // Check if other warehouses are still pending stock approval

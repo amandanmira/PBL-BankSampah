@@ -172,7 +172,7 @@ const toggleStatus = async (account) => {
     });
 
     // Update local state
-    const index = allAccounts.value.findIndex(a => a.id === account.id && a.role === account.role);
+    const index = allAccounts.value.findIndex(a => Number(a.id) === Number(account.id) && a.role === account.role);
     if (index !== -1) {
       if (isPetugas) {
         allAccounts.value[index].active = !allAccounts.value[index].active;

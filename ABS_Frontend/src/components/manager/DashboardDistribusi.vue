@@ -96,7 +96,7 @@ const isDistribusiModalOpen = ref(false);
               
               <!-- Items List -->
               <div class="grid grid-cols-1 md:grid-cols-2 gap-3 pl-2">
-                <div v-for="(item, idx) in detailSampah.filter(i => i.kategori_id === category.id)" :key="idx"
+                <div v-for="(item, idx) in detailSampah.filter(i => Number(i.kategori_id) === Number(category.id))" :key="idx"
                   class="p-4 rounded-xl border border-stone-100 bg-white flex flex-col justify-between gap-3 hover:bg-stone-50 transition-all duration-200 shadow-sm">
                   <div class="space-y-1">
                     <h5 class="text-xs font-bold text-stone-800">{{ item.nama_item }}</h5>
@@ -114,7 +114,7 @@ const isDistribusiModalOpen = ref(false);
                   </div>
                 </div>
                 <!-- Empty Item Handler -->
-                <div v-if="detailSampah.filter(i => i.kategori_id === category.id).length === 0" 
+                <div v-if="detailSampah.filter(i => Number(i.kategori_id) === Number(category.id)).length === 0" 
                   class="col-span-full py-4 text-center text-xs text-stone-400 italic">
                   Belum ada rincian item untuk kategori ini.
                 </div>

@@ -65,7 +65,7 @@ const filteredRequests = computed(() => {
   let filtered = requests.value;
 
   if (user.value?.gudang_id) {
-    filtered = filtered.filter(r => r.gudang_id === user.value.gudang_id);
+    filtered = filtered.filter(r => Number(r.gudang_id) === Number(user.value.gudang_id));
   }
 
   if (activeFilter.value === "Menunggu") {
@@ -91,12 +91,12 @@ const filteredRequests = computed(() => {
 
 const filteredWorkers = computed(() => {
   if (!selectedRequest.value) return [];
-  return workers.value.filter(w => w.gudang_id === selectedRequest.value.gudang_id);
+  return workers.value.filter(w => Number(w.gudang_id) === Number(selectedRequest.value.gudang_id));
 });
 
 const getCount = (filter) => {
   let valid = requests.value;
-  if (user.value?.gudang_id) valid = valid.filter(r => r.gudang_id === user.value.gudang_id);
+  if (user.value?.gudang_id) valid = valid.filter(r => Number(r.gudang_id) === Number(user.value.gudang_id));
   if (filter === "Menunggu")         return valid.filter(r => ['pending', 'menunggu_persetujuan', 'jadwal_ditolak'].includes(r.status)).length;
   if (filter === "Diproses")         return valid.filter(r => r.status === 'proses').length;
   if (filter === "Dijemput")         return valid.filter(r => r.status === 'dijemput').length;

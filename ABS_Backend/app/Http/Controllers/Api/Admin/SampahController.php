@@ -77,7 +77,7 @@ class SampahController extends Controller
         $kategori = KategoriSampah::findOrFail($id);
 
         $request->validate([
-            'nama' => 'nullable|string|max:50|unique:kategori_sampahs,nama',
+            'nama' => 'nullable|string|max:50|unique:kategori_sampahs,nama,' . $id . ',kategori_id',
             'active' => 'nullable|boolean',
             'items' => 'nullable|array',
         ]);
@@ -135,7 +135,7 @@ class SampahController extends Controller
         $item = ItemSampah::findOrFail($id);
 
         $request->validate([
-            'nama' => 'nullable|string|max:50|unique:item_sampahs,nama',
+            'nama' => 'nullable|string|max:50|unique:item_sampahs,nama,' . $id . ',item_id',
             'harga_beli' => 'nullable|numeric',
             'harga_jual' => 'nullable|numeric',
             'diskon' => 'nullable|numeric',
