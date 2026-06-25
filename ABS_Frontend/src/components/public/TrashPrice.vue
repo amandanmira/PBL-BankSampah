@@ -41,7 +41,7 @@ const fetchTrashData = async () => {
             harga_jual: Number(item.harga_jual) || 0,
             diskon: diskonDesimal,
             category: category.nama,
-            image: item.foto ? (item.foto.startsWith('http') ? item.foto : `http://localhost:8000/storage/${item.foto}`) : null
+            image: item.foto ? (item.foto.startsWith('http') ? item.foto : `https://api.tabungansampah.online/storage/${item.foto}`) : null
           });
         });
       }
