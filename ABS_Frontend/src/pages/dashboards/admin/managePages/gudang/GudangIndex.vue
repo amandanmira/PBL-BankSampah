@@ -141,7 +141,7 @@ const handleSubmit = async () => {
 };
 
 const toggleStatus = async (gudang) => {
-  const newStatus = gudang.active === 1 ? 0 : 1;
+  const newStatus = Number(gudang.active) === 1 ? 0 : 1;
   const actionText = newStatus === 1 ? "mengaktifkan" : "menonaktifkan";
 
   const result = await Swal.fire({
@@ -183,7 +183,7 @@ const openManageSampah = async (gudang) => {
   
   try {
     const res = await axios.get("/api/admin/kategori-sampah");
-    itemSampahList.value = res.data.filter(c => c.active === 1);
+    itemSampahList.value = res.data.filter(c => Number(c.active) === 1);
     isManageSampahModalOpen.value = true;
   } catch (err) {
     console.error("Failed to fetch categories:", err);
@@ -254,7 +254,7 @@ const openManageTukang = (gudang) => {
   selectedGudang.value = gudang;
   managedTukang.value = JSON.parse(JSON.stringify(gudang.tukang || [])).map(t => ({
     ...t,
-    checkbox: t.active === 1,
+    checkbox: Number(t.active) === 1,
     foto_baru: null,
     preview_url: t.foto ? `${axios.defaults.baseURL}/storage/${t.foto}` : null
   }));
@@ -383,7 +383,7 @@ const submitTukang = async () => {
           <div
             :class="[
               'rounded-[2rem] p-6 flex flex-col transition-all duration-300 shadow-md',
-              gudang.active === 1 ? 'bg-[#4A7043] text-white' : 'bg-[#D1D5DB] text-gray-600'
+              Number(gudang.active) === 1 ? 'bg-[#4A7043] text-white' : 'bg-[#D1D5DB] text-gray-600'
             ]"
           >
             <!-- Card Header -->
@@ -401,7 +401,7 @@ const submitTukang = async () => {
               <div 
                 :class="[
                   'w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 border-2',
-                  gudang.active === 1 ? 'bg-white/10 border-white/20' : 'bg-gray-200 border-gray-300'
+                  Number(gudang.active) === 1 ? 'bg-white/10 border-white/20' : 'bg-gray-200 border-gray-300'
                 ]"
               >
                 <Icon icon="material-symbols:home-work-outline" class="w-8 h-8" />
@@ -420,7 +420,7 @@ const submitTukang = async () => {
               </div>
 
               <!-- Status Badge (Only if inactive) -->
-              <div v-if="gudang.active === 0" class="hidden md:block bg-red-500 text-white px-4 py-1 rounded-full text-xs font-bold uppercase tracking-wider shadow-sm">
+              <div v-if="Number(gudang.active) === 0" class="hidden md:block bg-red-500 text-white px-4 py-1 rounded-full text-xs font-bold uppercase tracking-wider shadow-sm">
                 Nonaktif
               </div>
 
@@ -437,16 +437,16 @@ const submitTukang = async () => {
                   @click="toggleStatus(gudang)"
                   :class="[
                     'px-4 py-2 rounded-xl flex items-center gap-2 font-bold text-sm shadow-sm transition-all',
-                    gudang.active === 1 
+                    Number(gudang.active) === 1 
                       ? 'bg-[#EF4444] hover:bg-red-600 text-white' 
                       : 'bg-white text-[#4A7043] hover:bg-gray-50'
                   ]"
                 >
                   <Icon 
-                    :icon="gudang.active === 1 ? 'material-symbols:power-settings-new' : 'material-symbols:power-settings-new'" 
+                    :icon="Number(gudang.active) === 1 ? 'material-symbols:power-settings-new' : 'material-symbols:power-settings-new'" 
                     class="w-5 h-5" 
                   />
-                  {{ gudang.active === 1 ? 'Nonaktifkan' : 'Aktifkan' }}
+                  {{ Number(gudang.active) === 1 ? 'Nonaktifkan' : 'Aktifkan' }}
                 </button>
               </div>
             </div>
