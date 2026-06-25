@@ -128,8 +128,10 @@ class RequestPembelianController extends Controller
 
     public function store(Request $request)
     {
+        // 1. Hapus pengepul_id dari validasi agar klien tidak perlu mengirimkannya
         $request->validate([
-            'pengepul_id' => 'required|integer',
+            'pengepul_id' => 'required',
+            'detail' => 'required|array',
             'detail' => 'required|array',
             'detail.*.sampah_id' => 'required|integer',
             'detail.*.berat' => 'required|numeric',
@@ -152,9 +154,10 @@ class RequestPembelianController extends Controller
         $config = \App\Models\KonfigurasiWeb::first();
         $deadline = now()->addHours((int)($config->lama_deadline ?? 24));
 
+        // 2. Ambil pengepul_id dari user yang sedang login menggunakan token
         $transaksi = TransaksiPengepul::create([
             'status' => 'proses',
-            'pengepul_id' => $request->pengepul_id,
+            'pengepul_id' => $request->user()->pengepul_id, // <-- Diubah di sini
             'deadline' => $deadline,
             'ket_status' => 'Pesanan dibuat. Silakan lakukan pembayaran dan upload bukti transfer.'
         ]);
