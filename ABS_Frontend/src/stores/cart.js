@@ -16,7 +16,7 @@ export const useCartStore = defineStore('cart', {
   },
   actions: {
     addItem(sampah, quantity) {
-      const existingItem = this.items.find((i) => i.sampah_id === sampah.sampah_id)
+      const existingItem = this.items.find((i) => Number(i.sampah_id) === Number(sampah.sampah_id))
       if (existingItem) {
         existingItem.quantity += quantity
       } else {

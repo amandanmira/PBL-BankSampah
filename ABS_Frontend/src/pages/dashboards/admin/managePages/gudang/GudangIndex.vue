@@ -92,7 +92,7 @@ const handleSubmit = async () => {
   // 2. Validasi Unique (Mencegah Duplikat)
   const isDuplicate = gudangList.value.some(gudang => {
     // Jika sedang mode 'edit', abaikan alamat gudang itu sendiri
-    if (isEditing.value && gudang.gudang_id === currentGudangId.value) {
+    if (isEditing.value && Number(gudang.gudang_id) === Number(currentGudangId.value)) {
       return false;
     }
     // Pengecekan case-insensitive (huruf besar/kecil tidak ngaruh)
@@ -194,7 +194,7 @@ const selectCategory = (category) => {
   selectedCategory.value = category;
   // Initialize missing items in managedSampah for this category
   category.item_sampah.forEach(item => {
-    if (!managedSampah.value.find(s => s.item_id === item.item_id)) {
+    if (!managedSampah.value.find(s => Number(s.item_id) === Number(item.item_id))) {
       managedSampah.value.push({
         item_id: item.item_id,
         stok: 0,
@@ -587,13 +587,13 @@ const submitTukang = async () => {
                 @click="selectCategory(cat)"
                 :class="[
                   'p-6 rounded-3xl border-2 transition-all text-center group',
-                  selectedCategory?.kategori_id === cat.kategori_id
+                  Number(selectedCategory?.kategori_id) === Number(cat.kategori_id)
                     ? 'bg-[#4A7043] border-[#4A7043] text-white shadow-lg'
                     : 'bg-gray-50 border-gray-100 text-gray-500 hover:border-[#4A7043]/30 hover:bg-white'
                 ]"
               >
                 <p class="font-black text-lg">{{ cat.nama }}</p>
-                <p :class="['text-xs mt-1 font-bold', selectedCategory?.kategori_id === cat.kategori_id ? 'text-white/70' : 'text-gray-400']">
+                <p :class="['text-xs mt-1 font-bold', Number(selectedCategory?.kategori_id) === Number(cat.kategori_id) ? 'text-white/70' : 'text-gray-400']">
                   {{ cat.item_sampah?.length || 0 }} item
                 </p>
               </button>
@@ -623,7 +623,7 @@ const submitTukang = async () => {
                   <div class="w-40 relative">
                     <input
                       type="number"
-                      v-model.number="managedSampah.find(s => s.item_id === item.item_id).stok"
+                      v-model.number="managedSampah.find(s => Number(s.item_id) === Number(item.item_id)).stok"
                       placeholder="0"
                       class="w-full bg-white border-2 border-gray-100 rounded-2xl p-4 pr-10 text-right font-black focus:border-[#4A7043] focus:ring-0 transition-all"
                     />

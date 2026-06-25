@@ -116,7 +116,7 @@ const nextStep = () => {
   // 2. Validasi Unique (Mencegah Duplikat)
   const isDuplicate = kategoriList.value.some(kategori => {
     // Jika sedang mode 'edit', abaikan nama miliknya sendiri
-    if (modalMode.value === 'edit' && kategori.kategori_id === currentCategory.value.id) {
+    if (modalMode.value === 'edit' && Number(kategori.kategori_id) === Number(currentCategory.value.id)) {
       return false;
     }
     // Pengecekan case-insensitive (huruf besar/kecil tidak ngaruh)
@@ -179,7 +179,7 @@ const saveKategori = async () => {
     const isDuplicate = kategoriList.value.some(kategori => {
       return kategori.item_sampah?.some(dbItem => {
         // Abaikan jika item_id nya sama (sedang diedit)
-        if (formItem.item_id && dbItem.item_id === formItem.item_id) return false;
+        if (formItem.item_id && Number(dbItem.item_id) === Number(formItem.item_id)) return false;
         return dbItem.nama.toLowerCase() === inputNama.toLowerCase();
       });
     });
@@ -317,7 +317,7 @@ const saveSingleItem = async () => {
   // Cek duplikat eksternal (mengabaikan miliknya sendiri)
   const isDuplicate = kategoriList.value.some(kategori => {
     return kategori.item_sampah?.some(item => {
-      if (item.item_id === currentItem.value.item_id) return false;
+      if (Number(item.item_id) === Number(currentItem.value.item_id)) return false;
       return item.nama.toLowerCase() === inputNama.toLowerCase();
     });
   });
