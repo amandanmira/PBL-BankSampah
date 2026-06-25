@@ -27,9 +27,9 @@
             <Icon icon="material-symbols:delete-outline" class="w-5 h-5" />
           </button>
 
-          <div class="flex gap-6">
+          <div class="flex flex-col sm:flex-row gap-4 sm:gap-6">
             <!-- Image with Discount Badge -->
-            <div class="w-32 h-32 rounded-xl overflow-hidden bg-gray-50 shrink-0 relative border border-gray-100">
+            <div class="w-24 h-24 sm:w-32 sm:h-32 rounded-xl overflow-hidden bg-gray-50 shrink-0 relative border border-gray-100">
               <img
                 v-if="item.item_sampah.foto"
                 :src="`${axios.defaults.baseURL}/storage/${item.item_sampah.foto}`"
@@ -44,50 +44,54 @@
               </div>
             </div>
 
-            <!-- Details -->
-            <div class="flex-1">
-              <h3 class="text-lg font-bold text-gray-800">{{ item.item_sampah.nama }}</h3>
-              <div class="flex items-center gap-3 mt-1.5">
-                <span class="bg-gray-100 text-gray-500 text-[9px] px-2 py-0.5 rounded-md font-bold uppercase tracking-wider">{{ item.item_sampah.kategori_sampah.nama_kategori }}</span>
-                <div class="flex items-center gap-2">
-                  <div class="w-2.5 h-2.5 rounded-full bg-blue-600 shadow-sm"></div>
-                  <span class="text-[10px] font-bold text-gray-600 uppercase tracking-widest">GUDANG {{ item.gudang_id }}</span>
+            <!-- Details & Quantity Wrapper -->
+            <div class="flex flex-1 flex-col sm:flex-row gap-4 sm:gap-6">
+              <!-- Details -->
+              <div class="flex-1">
+                <h3 class="text-lg font-bold text-gray-800">{{ item.item_sampah.nama }}</h3>
+                <div class="flex items-center gap-3 mt-1.5">
+                  <span class="bg-gray-100 text-gray-500 text-[9px] px-2 py-0.5 rounded-md font-bold uppercase tracking-wider">{{ item.item_sampah.kategori_sampah.nama_kategori }}</span>
+                  <div class="flex items-center gap-2">
+                    <div class="w-2.5 h-2.5 rounded-full bg-blue-600 shadow-sm"></div>
+                    <span class="text-[10px] font-bold text-gray-600 uppercase tracking-widest">GUDANG {{ item.gudang_id }}</span>
+                  </div>
                 </div>
+
+                <div class="mt-3 flex items-baseline gap-2">
+                  <span class="text-lg font-black text-[#4A7043]">
+                    {{ formatCurrency(item.item_sampah.harga_jual * (1 - (parseFloat(item.item_sampah.diskon) || 0))) }}<span class="text-xs font-bold text-gray-400">/kg</span>
+                  </span>
+                  <span v-if="item.item_sampah.diskon && parseFloat(item.item_sampah.diskon) > 0" class="text-xs text-gray-400 line-through">
+                    {{ formatCurrency(item.item_sampah.harga_jual) }}
+                  </span>
+                </div>
+                
+                <p class="text-[10px] font-bold text-gray-400 mt-1">Stok: {{ item.stok }} kg</p>
               </div>
 
-              <div class="mt-3 flex items-baseline gap-2">
-                <span class="text-lg font-black text-[#4A7043]">
-                  {{ formatCurrency(item.item_sampah.harga_jual * (1 - (parseFloat(item.item_sampah.diskon) || 0))) }}<span class="text-xs font-bold text-gray-400">/kg</span>
-                </span>
-                <span v-if="item.item_sampah.diskon && parseFloat(item.item_sampah.diskon) > 0" class="text-xs text-gray-400 line-through">
-                  {{ formatCurrency(item.item_sampah.harga_jual) }}
-                </span>
-              </div>
-              
-              <p class="text-[10px] font-bold text-gray-400 mt-1">Stok: {{ item.stok }} kg</p>
-            </div>
-
-            <!-- Quantity Selector (Middle Right) -->
-            <div class="flex items-center self-center">
-              <div class="flex items-center bg-gray-50 rounded-lg p-0.5 border border-gray-100">
-                <button
-                  @click="updateQty(item.sampah_id, -1)"
-                  class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white transition-colors text-gray-400"
-                >
-                  <Icon icon="material-symbols:remove" class="w-4 h-4" />
-                </button>
-                <input
-                  type="number"
-                  :value="item.quantity"
-                  @change="(e) => cartStore.updateQuantity(item.sampah_id, Math.max(1, Math.min(item.stok, parseInt(e.target.value))))"
-                  class="w-10 text-center border-none bg-transparent font-bold text-sm text-gray-700 focus:ring-0 p-0"
-                />
-                <button
-                  @click="updateQty(item.sampah_id, 1, item.stok)"
-                  class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white transition-colors text-gray-400"
-                >
-                  <Icon icon="material-symbols:add" class="w-4 h-4" />
-                </button>
+              <!-- Quantity Selector -->
+              <div class="flex items-center justify-between sm:justify-end self-stretch sm:self-center border-t sm:border-t-0 border-gray-100 pt-3 sm:pt-0">
+                <span class="sm:hidden text-xs font-bold text-gray-400">Atur Jumlah:</span>
+                <div class="flex items-center bg-gray-50 rounded-lg p-0.5 border border-gray-100">
+                  <button
+                    @click="updateQty(item.sampah_id, -1)"
+                    class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white transition-colors text-gray-400"
+                  >
+                    <Icon icon="material-symbols:remove" class="w-4 h-4" />
+                  </button>
+                  <input
+                    type="number"
+                    :value="item.quantity"
+                    @change="(e) => cartStore.updateQuantity(item.sampah_id, Math.max(1, Math.min(item.stok, parseInt(e.target.value))))"
+                    class="w-10 text-center border-none bg-transparent font-bold text-sm text-gray-700 focus:ring-0 p-0"
+                  />
+                  <button
+                    @click="updateQty(item.sampah_id, 1, item.stok)"
+                    class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white transition-colors text-gray-400"
+                  >
+                    <Icon icon="material-symbols:add" class="w-4 h-4" />
+                  </button>
+                </div>
               </div>
             </div>
           </div>

@@ -66,7 +66,7 @@ const fetchDashboardData = async () => {
   isLoadingStats.value = true;
   try {
     const token = sessionStorage.getItem('token');
-    const response = await axios.get("http://localhost:8000/api/manager/dashboard-stats", {
+    const response = await axios.get("/api/manager/dashboard-stats", {
       headers: {
         'Authorization': `Bearer ${token}`
       }
@@ -107,7 +107,7 @@ const fetchChartsData = async () => {
   isLoadingCharts.value = true;
   try {
     const token = sessionStorage.getItem('token');
-    const response = await axios.get(`http://localhost:8000/api/manager/dashboard-charts?period=${selectedPeriod.value}`, {
+    const response = await axios.get(`/api/manager/dashboard-charts?period=${selectedPeriod.value}`, {
       headers: {
         'Authorization': `Bearer ${token}`
       }

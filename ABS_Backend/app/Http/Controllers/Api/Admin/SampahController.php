@@ -29,9 +29,9 @@ class SampahController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'nama' => 'required|string|max:50',
+            'nama' => 'required|string|max:50|unique:kategori_sampahs,nama',
             'items' => 'nullable|array',
-            'items.*.nama' => 'required|string|max:50',
+            'items.*.nama' => 'required|string|max:50|unique:item_sampahs,nama',
             'items.*.harga_beli' => 'required|numeric',
             'items.*.harga_jual' => 'required|numeric',
             'items.*.diskon' => 'nullable|numeric',
@@ -77,7 +77,7 @@ class SampahController extends Controller
         $kategori = KategoriSampah::findOrFail($id);
 
         $request->validate([
-            'nama' => 'nullable|string|max:50',
+            'nama' => 'nullable|string|max:50|unique:kategori_sampahs,nama,' . $id . ',kategori_id',
             'active' => 'nullable|boolean',
             'items' => 'nullable|array',
         ]);
@@ -135,7 +135,7 @@ class SampahController extends Controller
         $item = ItemSampah::findOrFail($id);
 
         $request->validate([
-            'nama' => 'nullable|string|max:50',
+            'nama' => 'nullable|string|max:50|unique:item_sampahs,nama,' . $id . ',item_id',
             'harga_beli' => 'nullable|numeric',
             'harga_jual' => 'nullable|numeric',
             'diskon' => 'nullable|numeric',
@@ -145,7 +145,7 @@ class SampahController extends Controller
 
         return DB::transaction(function () use ($request, $item) {
             $data = $request->only(['nama', 'harga_beli', 'harga_jual', 'active']);
-            
+
             if ($request->has('diskon')) {
                 $data['diskon'] = $request->diskon / 100;
             }
@@ -222,7 +222,7 @@ class SampahController extends Controller
     public function destroyItem($id)
     {
         $item = ItemSampah::findOrFail($id);
-        
+
         // Opsional: Jika ingin fotonya juga terhapus dari storage saat data dihapus
         if ($item->foto && Storage::disk('public')->exists($item->foto)) {
             Storage::disk('public')->delete($item->foto);

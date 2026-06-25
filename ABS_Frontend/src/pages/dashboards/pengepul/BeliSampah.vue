@@ -23,33 +23,54 @@
         </button>
       </div>
 
-      <div class="mb-4">
+      <div class="mb-4 relative z-20">
         <h2 class="text-xl font-bold text-gray-800 mb-3">Daftar Sampah Tersedia</h2>
-        <div class="flex flex-wrap gap-2">
-          <button
-            @click="selectedGudang = null"
-            :class="[
-              'px-4 py-1.5 rounded-full text-sm font-semibold transition-all cursor-pointer',
-              selectedGudang === null
-                ? 'bg-[#4A7043] text-white shadow-md'
-                : 'bg-white text-gray-600 hover:bg-gray-100'
-            ]"
+        <div class="relative w-full sm:max-w-md" ref="dropdownRef">
+          <!-- Trigger Button -->
+          <button 
+            @click="isDropdownOpen = !isDropdownOpen" 
+            class="w-full flex items-center justify-between bg-white border border-gray-200 hover:border-[#4A7043] rounded-xl px-4 py-3 shadow-sm transition-all text-left cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#4A7043]/50"
           >
-            Semua Gudang
+             <div class="flex items-center gap-3 overflow-hidden">
+               <Icon icon="material-symbols:warehouse-outline" class="text-gray-500 w-5 h-5 shrink-0" />
+               <span class="truncate text-sm font-semibold text-gray-700">
+                 {{ selectedGudang ? getGudangAddress(selectedGudang) : 'Semua Gudang' }}
+               </span>
+             </div>
+             <Icon icon="material-symbols:expand-more" class="text-gray-500 w-5 h-5 shrink-0 transition-transform duration-300" :class="{'rotate-180': isDropdownOpen}" />
           </button>
-          <button
-            v-for="g in warehouses"
-            :key="g.gudang_id"
-            @click="selectedGudang = g.gudang_id"
-            :class="[
-              'px-4 py-1.5 rounded-full text-sm font-semibold transition-all flex items-center gap-2 cursor-pointer',
-              selectedGudang === g.gudang_id
-                ? 'bg-[#4A7043] text-white shadow-md'
-                : 'bg-white text-gray-600 hover:bg-gray-100'
-            ]"
+
+          <!-- Dropdown Menu -->
+          <transition
+            enter-active-class="transition duration-200 ease-out"
+            enter-from-class="transform scale-95 opacity-0"
+            enter-to-class="transform scale-100 opacity-100"
+            leave-active-class="transition duration-150 ease-in"
+            leave-from-class="transform scale-100 opacity-100"
+            leave-to-class="transform scale-95 opacity-0"
           >
-            <span>Gudang {{ g.gudang_id }}</span>
-          </button>
+            <div 
+              v-if="isDropdownOpen" 
+              class="absolute z-50 w-full mt-2 bg-white border border-gray-100 rounded-xl shadow-xl max-h-[60vh] overflow-y-auto custom-scrollbar"
+            >
+              <button 
+                @click="selectedGudang = null; isDropdownOpen = false" 
+                :class="['w-full text-left px-5 py-3.5 transition-colors border-b border-gray-50 text-sm font-semibold flex items-center gap-3', selectedGudang === null ? 'bg-[#F5F8F5] text-[#4A7043]' : 'text-gray-700 hover:bg-gray-50']"
+              >
+                <div class="w-2.5 h-2.5 rounded-full bg-gray-300 shadow-sm shrink-0"></div>
+                Semua Gudang
+              </button>
+              <button 
+                v-for="g in warehouses" 
+                :key="g.gudang_id" 
+                @click="selectedGudang = g.gudang_id; isDropdownOpen = false" 
+                :class="['w-full text-left px-5 py-3.5 transition-colors border-b border-gray-50 text-sm flex items-start gap-3', selectedGudang === g.gudang_id ? 'bg-[#F5F8F5] text-[#4A7043] font-semibold' : 'text-gray-600 hover:bg-gray-50 font-medium']"
+              >
+                <div :class="['w-2.5 h-2.5 rounded-full shadow-sm shrink-0 mt-1', getGudangColor(g.gudang_id)]"></div>
+                <span class="leading-relaxed">{{ g.alamat }}</span>
+              </button>
+            </div>
+          </transition>
         </div>
       </div>
     </div>
@@ -99,9 +120,9 @@
           <div class="p-5 flex flex-col flex-1 justify-between">
             <div class="mb-4">
               <h3 class="font-bold text-gray-800 text-xl leading-tight truncate">{{ item.item_sampah.nama }}</h3>
-              <div class="flex items-center gap-2 mt-2">
-                <div class="w-2 h-2 rounded-full bg-[#4A7043] shadow-sm"></div>
-                <span class="text-xs font-bold text-gray-500 uppercase tracking-wider">GUDANG {{ item.gudang_id }}</span>
+              <div class="flex items-start gap-2 mt-2">
+                <div :class="['w-2.5 h-2.5 rounded-full shadow-sm shrink-0 mt-1', getGudangColor(item.gudang_id)]"></div>
+                <span class="text-[10px] font-bold text-gray-500 uppercase tracking-widest leading-relaxed">{{ getGudangAddress(item.gudang_id) }}</span>
               </div>
             </div>
 
@@ -169,19 +190,21 @@
         </button>
         
         <div class="flex items-center gap-1">
-          <button
-            v-for="page in totalPages"
-            :key="page"
-            @click="currentPage = page"
-            :class="[
-              'w-10 h-10 rounded-xl font-bold text-base transition-all cursor-pointer shadow-sm flex items-center justify-center',
-              currentPage === page
-                ? 'bg-[#4A7043] text-white'
-                : 'bg-white text-gray-500 border border-gray-100 hover:bg-gray-50'
-            ]"
-          >
-            {{ page }}
-          </button>
+          <template v-for="(page, index) in visiblePages" :key="index">
+            <span v-if="page === '...'" class="px-2 text-gray-400 font-bold">...</span>
+            <button
+              v-else
+              @click="currentPage = page"
+              :class="[
+                'w-10 h-10 rounded-xl font-bold text-base transition-all cursor-pointer shadow-sm flex items-center justify-center',
+                currentPage === page
+                  ? 'bg-[#4A7043] text-white'
+                  : 'bg-white text-gray-500 border border-gray-100 hover:bg-gray-50'
+              ]"
+            >
+              {{ page }}
+            </button>
+          </template>
         </div>
 
         <button
@@ -359,6 +382,7 @@ import { Icon } from '@iconify/vue'
 import { useCartStore } from '@/stores/cart'
 import { checkRole } from '@/utils'
 import Swal from 'sweetalert2'
+import { onClickOutside } from '@vueuse/core'
 
 checkRole('pengepul')
 
@@ -377,6 +401,12 @@ const showTataCara = ref(false)
 const showAlurPembelian = ref(false)
 const currentPage = ref(1)
 const itemsPerPage = 8
+const isDropdownOpen = ref(false)
+const dropdownRef = ref(null)
+
+onClickOutside(dropdownRef, () => {
+  isDropdownOpen.value = false
+})
 
 const alurPembelian = [
   {
@@ -454,7 +484,7 @@ const fetchData = async () => {
 const filteredSampah = computed(() => {
   const filtered = sampahList.value.filter(item => {
     const matchesSearch = item.item_sampah.nama.toLowerCase().includes(searchQuery.value.toLowerCase())
-    const matchesGudang = selectedGudang.value === null || item.gudang_id === selectedGudang.value
+    const matchesGudang = selectedGudang.value === null || Number(item.gudang_id) === Number(selectedGudang.value)
     return matchesSearch && matchesGudang
   })
 
@@ -473,6 +503,39 @@ const paginatedSampah = computed(() => {
 })
 
 const totalPages = computed(() => Math.ceil(filteredSampah.value.length / itemsPerPage))
+
+const visiblePages = computed(() => {
+  const pages = []
+  const current = currentPage.value
+  const total = totalPages.value
+
+  if (total <= 7) {
+    for (let i = 1; i <= total; i++) pages.push(i)
+  } else {
+    if (current <= 4) {
+      pages.push(1, 2, 3, 4, 5, '...', total)
+    } else if (current >= total - 3) {
+      pages.push(1, '...', total - 4, total - 3, total - 2, total - 1, total)
+    } else {
+      pages.push(1, '...', current - 1, current, current + 1, '...', total)
+    }
+  }
+  return pages
+})
+
+const getGudangAddress = (id) => {
+  const gudang = warehouses.value.find(g => Number(g.gudang_id) === Number(id))
+  return gudang ? gudang.alamat : `Gudang ${id}`
+}
+
+const getGudangColor = (id) => {
+  const colors = [
+    'bg-blue-500', 'bg-red-500', 'bg-emerald-500', 'bg-amber-500', 
+    'bg-purple-500', 'bg-pink-500', 'bg-indigo-500', 'bg-teal-500', 
+    'bg-orange-500', 'bg-cyan-500'
+  ]
+  return colors[Number(id) % colors.length]
+}
 
 const updateQty = (id, delta, max = 9999) => {
   const current = itemQuantities.value[id] || 0

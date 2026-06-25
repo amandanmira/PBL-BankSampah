@@ -4,52 +4,63 @@ namespace App\Http\Controllers\Api\Admin;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use App\Models\Sampah;
+use Illuminate\Support\Facades\DB;
+use App\Models\Sampah; 
+use App\Models\Gudang;
 
 class SampahGudangController extends Controller
 {
+    /**
+     * Memperbarui atau menambahkan stok item sampah di dalam Gudang
+     */
     public function update(Request $request, $id)
     {
-        foreach ($request->sampah as $s) {
-            if (isset($s['sampah_id'])) {
-                $sampah = Sampah::find($s['sampah_id']);
-                if ($sampah) {
-                    $sampah->update([
-                        'item_id' => $s['item_id'],
-                        'stok' => $s['stok'],
-                        'active' => $s['active'],
-                    ]);
-                }
-            }
-            else {
-                $existing = Sampah::where('gudang_id', $id)->where('item_id', $s['item_id'])->first();
-                if ($existing) {
-                    $existing->update([
-                        'stok' => $s['stok'],
-                        'active' => $s['active'],
-                    ]);
-                } else {
-                    Sampah::create([
-                        'item_id' => $s['item_id'],
-                        'stok' => $s['stok'],
-                        'active' => $s['active'],
-                        'gudang_id' => $id,
-                    ]);
-                }
-            }
-        }
-
-
-        return response()->json([
-            'message' => 'Update Sampah Berhasil!'
+        // 1. Validasi data yang dikirim dari Vue
+        $request->validate([
+            'sampah' => 'required|array',
+            'sampah.*.item_id' => 'required|exists:item_sampahs,item_id',
+            'sampah.*.stok' => 'required|numeric|min:0',
+            'sampah.*.active' => 'required|boolean'
         ]);
+
+        return DB::transaction(function () use ($request, $id) {
+            // Pastikan gudangnya memang ada
+            $gudang = Gudang::findOrFail($id);
+
+            // 2. Looping data array sampah dari Vue
+            foreach ($request->sampah as $item) {
+                
+                // Gunakan updateOrCreate agar:
+                // - Jika item belum ada di gudang ini, maka dibuatkan row baru
+                // - Jika item sudah ada, maka stoknya ditimpa dengan angka baru
+                Sampah::updateOrCreate(
+                    [
+                        'gudang_id' => $gudang->gudang_id,
+                        'item_id'   => $item['item_id']
+                    ],
+                    [
+                        'stok'      => $item['stok'],
+                        'active'    => $item['active']
+                    ]
+                );
+            }
+
+            return response()->json([
+                'message' => 'Stok gudang berhasil diperbarui',
+            ], 200);
+        });
     }
 
+    /**
+     * Menghapus referensi stok sampah dari gudang tertentu
+     */
     public function destroy($id)
     {
         $sampah = Sampah::findOrFail($id);
         $sampah->delete();
 
-        return response()->json(['message' => 'Deleted']);
+        return response()->json([
+            'message' => 'Item sampah berhasil dihapus dari gudang'
+        ], 200);
     }
 }

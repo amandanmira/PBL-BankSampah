@@ -138,6 +138,8 @@
               <input 
                 v-model="form.no_telp" 
                 type="text" 
+                @input="form.no_telp = $event.target.value.replace(/[^\d+]/g, '')"
+                maxlength="15"
                 placeholder="Masukkan nomor telepon"
                 class="w-full bg-white border border-stone-200 rounded-2xl py-3 px-4 text-xs font-bold text-stone-700 focus:outline-none focus:border-[#4A7043] transition-all" 
               />

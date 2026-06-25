@@ -2,6 +2,18 @@
 import { ref, onMounted, inject, computed } from 'vue';
 
 const axios = inject('axios');
+const token = sessionStorage.getItem("token");
+const role = sessionStorage.getItem("role");
+
+const getDashboardRoute = () => {
+  if (role === 'admin') return '/dashboard-admin';
+  if (role === 'manager') return '/dashboard-manager';
+  if (role === 'petugas') return '/dashboard-petugas';
+  if (role === 'pengepul') return '/dashboard-pengepul';
+  if (role === 'nasabah') return '/dashboard-nasabah';
+  return '/login';
+};
+
 const config = ref({
   hero_quote_top: "Kelola Sampah, Raih Manfaat",
   hero_quote_bottom: "Kelola Sampah Menjadi Tabungan Digital yang Transparan dan Terintegrasi"
@@ -74,14 +86,25 @@ onMounted(() => {
 
         <div
           class="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4 lg:gap-5 mt-4 text-[15px] font-bold tracking-wide">
-          <RouterLink to="/register-pengepul"
-            class="w-full sm:w-auto bg-[#F5F5F0] text-[#4A7043] px-8 py-3.5 rounded-full hover:bg-gray-50 hover:scale-105 active:scale-95 transition-all shadow-md flex justify-center items-center">
-            Beli Sampah
-          </RouterLink>
-          <RouterLink to="/register-nasabah"
-            class="w-full sm:w-auto bg-transparent border border-[#F5F5F0] text-[#F5F5F0] px-8 py-3.5 rounded-full hover:bg-white/10 hover:scale-105 active:scale-95 transition-all flex justify-center items-center">
-            Setor Sampah
-          </RouterLink>
+          
+          <template v-if="!token">
+            <RouterLink to="/register-pengepul"
+              class="w-full sm:w-auto bg-[#F5F5F0] text-[#4A7043] px-8 py-3.5 rounded-full hover:bg-gray-50 hover:scale-105 active:scale-95 transition-all shadow-md flex justify-center items-center">
+              Beli Sampah
+            </RouterLink>
+            <RouterLink to="/register-nasabah"
+              class="w-full sm:w-auto bg-transparent border border-[#F5F5F0] text-[#F5F5F0] px-8 py-3.5 rounded-full hover:bg-white/10 hover:scale-105 active:scale-95 transition-all flex justify-center items-center">
+              Setor Sampah
+            </RouterLink>
+          </template>
+
+          <template v-else>
+            <RouterLink :to="getDashboardRoute()"
+              class="w-full sm:w-auto bg-[#F5F5F0] text-[#4A7043] px-8 py-3.5 rounded-full hover:bg-gray-50 hover:scale-105 active:scale-95 transition-all shadow-md flex justify-center items-center gap-2">
+              Ke Dashboard Saya 🚀
+            </RouterLink>
+          </template>
+
         </div>
       </div>
 

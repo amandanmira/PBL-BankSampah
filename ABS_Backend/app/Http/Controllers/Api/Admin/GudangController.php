@@ -52,7 +52,7 @@ class GudangController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'alamat' => 'required|string',
+            'alamat' => 'required|string|unique:gudangs,alamat',
             'kapasitas' => 'required|integer',
         ]);
 
@@ -79,7 +79,7 @@ class GudangController extends Controller
         $gudang = Gudang::findOrFail($id);
 
         $validated = $request->validate([
-            'alamat' => 'sometimes|required|string',
+            'alamat' => 'sometimes|required|string|unique:gudangs,alamat,' . $gudang->gudang_id,
             'kapasitas' => 'sometimes|required|integer',
         ]);
 

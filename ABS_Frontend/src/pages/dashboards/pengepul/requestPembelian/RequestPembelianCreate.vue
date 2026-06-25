@@ -110,8 +110,8 @@ const removeSampah = (index) => {
 };
 
 const getHarga = (kategori_id, item_id) => {
-	const kategori = ref(sampahList.value.find(i => i.kategori_id === kategori_id))
-	const item = kategori.value.item_sampah.find(i => i.item_id === item_id)
+	const kategori = ref(sampahList.value.find(i => Number(i.kategori_id) === Number(kategori_id)))
+	const item = kategori.value.item_sampah.find(i => Number(i.item_id) === Number(item_id))
 	return item ? item.harga_beli : 0
 }
 
@@ -126,7 +126,7 @@ const getSubtotal = (item) => {
 }
 
 const getSampahByKategori = (kategori_id, item_id) => {
-	const sampah = getItems(kategori_id).find(s => s.item_id === item_id)
+	const sampah = getItems(kategori_id).find(s => Number(s.item_id) === Number(item_id))
 	return sampah ? sampah.sampah : []
 }
 
@@ -147,7 +147,7 @@ const fetchGudang = async () => {
 }
 
 const getItems = (kategori_id) => {
-	const kategori = sampahList.value.find(k => k.kategori_id === kategori_id)
+	const kategori = sampahList.value.find(k => Number(k.kategori_id) === Number(kategori_id))
 	return kategori ? kategori.item_sampah : []
 }
 

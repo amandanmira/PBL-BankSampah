@@ -31,8 +31,8 @@ class KonfigurasiWebSeeder extends Seeder
         KonfigurasiWeb::create([
             'logo' => 'bank.webp',
             'quote' => 'Ubah sampahmu menjadi pundi-pundi rupiah yang berharga bersama kami.',
-            'hero_quote_top' => 'Mari Bersama',
-            'hero_quote_bottom' => 'Jaga Bumi Kita',
+            'hero_quote_top' => 'Kelola Sampah, Raih Manfaat',
+            'hero_quote_bottom' => 'Kelola Sampah Menjadi Tabungan Digital yang Transparan dan Terintegrasi',
             'instagram' => 'https://instagram.com/',
             'facebook' => 'https://facebook.com/',
             'linkedin' => 'https://linkedin.com/',

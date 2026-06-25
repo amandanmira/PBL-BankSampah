@@ -36,7 +36,7 @@ class DatabaseSeeder extends Seeder
         // ]);
 
         Gudang::create([
-            'alamat' => 'Surakarta',
+            'alamat' => 'Gudang Pusat',
             'kapasitas' => '1000',
         ]);
 

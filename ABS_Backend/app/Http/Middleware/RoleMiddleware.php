@@ -24,6 +24,20 @@ class RoleMiddleware
             return response()->json(['message' => 'Forbidden - Anda bukan ' . $role], 403);
         }
 
+        // Cek status aktif akun
+        $isActive = true;
+        if (isset($user->status)) {
+            $isActive = $user->status === 'aktif';
+        } elseif (isset($user->active)) {
+            $isActive = $user->active == 1;
+        }
+
+        if (!$isActive) {
+            // Hapus token saat ini
+            $user->currentAccessToken()->delete();
+            return response()->json(['message' => 'Akun Anda telah dinonaktifkan.'], 403);
+        }
+
         return $next($request);
     }
 }
