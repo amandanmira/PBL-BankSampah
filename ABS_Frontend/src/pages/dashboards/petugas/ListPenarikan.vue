@@ -448,7 +448,7 @@ onMounted(() => {
             <div v-if="selectedPenarikan.status === 'selesai' && selectedPenarikan.bukti_tf" class="space-y-3">
               <div class="bg-green-50 border border-green-100 rounded-xl p-4">
                  <p class="text-[10px] font-black text-green-800 uppercase tracking-widest mb-1">Bukti Transfer</p>
-                 <a :href="`http://localhost:8000/storage/${selectedPenarikan.bukti_tf}`" target="_blank" class="text-xs font-bold text-green-600 hover:underline flex items-center gap-1">
+                 <a :href="`${axios.defaults.baseURL}/storage/${selectedPenarikan.bukti_tf}`" target="_blank" class="text-xs font-bold text-green-600 hover:underline flex items-center gap-1">
                     <Icon icon="material-symbols:image" class="w-4 h-4" />
                     {{ selectedPenarikan.bukti_tf.split('/').pop() }}
                  </a>

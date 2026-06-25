@@ -87,7 +87,7 @@ const fetchHistory = async (page = 1) => {
                 return pId === user.value.petugas_id;
             } else {
                 // Untuk penjemputan biasa, filter dengan ID Gudang
-                return item.gudang_id === user.value.gudang_id;
+                return Number(item.gudang_id) === Number(user.value.gudang_id);
             }
         });
         // --------------------------------------------------

@@ -60,7 +60,7 @@ const filteredSampah = computed(() => {
   let result = allSampah.value;
 
   if (selectedGudangFilter.value !== null) {
-    result = result.filter(s => s.gudang_id === selectedGudangFilter.value);
+    result = result.filter(s => Number(s.gudang_id) === Number(selectedGudangFilter.value));
   }
 
   if (searchQuery.value.trim() !== "") {
