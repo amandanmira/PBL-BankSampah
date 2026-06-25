@@ -25,7 +25,7 @@
 
       <div class="mb-4 relative z-20">
         <h2 class="text-xl font-bold text-gray-800 mb-3">Daftar Sampah Tersedia</h2>
-        <div class="relative w-full sm:max-w-md">
+        <div class="relative w-full sm:max-w-md" ref="dropdownRef">
           <!-- Trigger Button -->
           <button 
             @click="isDropdownOpen = !isDropdownOpen" 
@@ -71,9 +71,6 @@
               </button>
             </div>
           </transition>
-          
-          <!-- Invisible overlay to close dropdown when clicking outside -->
-          <div v-if="isDropdownOpen" @click="isDropdownOpen = false" class="fixed inset-0 z-40"></div>
         </div>
       </div>
     </div>
@@ -385,6 +382,7 @@ import { Icon } from '@iconify/vue'
 import { useCartStore } from '@/stores/cart'
 import { checkRole } from '@/utils'
 import Swal from 'sweetalert2'
+import { onClickOutside } from '@vueuse/core'
 
 checkRole('pengepul')
 
@@ -404,6 +402,11 @@ const showAlurPembelian = ref(false)
 const currentPage = ref(1)
 const itemsPerPage = 8
 const isDropdownOpen = ref(false)
+const dropdownRef = ref(null)
+
+onClickOutside(dropdownRef, () => {
+  isDropdownOpen.value = false
+})
 
 const alurPembelian = [
   {
