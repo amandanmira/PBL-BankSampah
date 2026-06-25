@@ -454,7 +454,7 @@ const fetchData = async () => {
 const filteredSampah = computed(() => {
   const filtered = sampahList.value.filter(item => {
     const matchesSearch = item.item_sampah.nama.toLowerCase().includes(searchQuery.value.toLowerCase())
-    const matchesGudang = selectedGudang.value === null || item.gudang_id === selectedGudang.value
+    const matchesGudang = selectedGudang.value === null || Number(item.gudang_id) === Number(selectedGudang.value)
     return matchesSearch && matchesGudang
   })
 

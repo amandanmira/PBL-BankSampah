@@ -27,6 +27,12 @@ return [
         'version' => env('API_VERSION', '1.0.0'),
 
         /*
+         * Define the title of the documentation's website. 
+         * Dipindahkan ke sini agar terbaca oleh standar OpenAPI & Scalar.
+         */
+        'title' => 'API Bank Sampah (ABS)',
+
+        /*
          * Description rendered on the home page of the API documentation (`/docs/api`).
          */
         'description' => "
@@ -43,46 +49,14 @@ API ini menyediakan berbagai endpoint untuk mengelola sistem Bank Sampah secara 
     ],
 
     /*
-     * Customize Stoplight Elements UI
+     * Menggunakan Scalar sebagai UI dokumentasi
+     * Scalar jauh lebih baik dalam menangani input multipart/form-data untuk array of files
      */
     'ui' => [
-        /*
-         * Define the title of the documentation's website. App name is used when this config is `null`.
-         */
         'title' => 'API Bank Sampah (ABS)',
-
-        /*
-         * Define the theme of the documentation. Available options are `light`, `dark`, and `system`.
-         */
         'theme' => 'system',
-
-        /*
-         * Hide the `Try It` feature. Enabled by default.
-         */
         'hide_try_it' => false,
-
-        /*
-         * Hide the schemas in the Table of Contents. Enabled by default.
-         */
-        'hide_schemas' => false,
-
-        /*
-         * URL to an image that displays as a small square logo next to the title, above the table of contents.
-         */
-        // 'logo' => env('APP_URL') . '/assets/logo-abs.png',
-
-        /*
-         * Use to fetch the credential policy for the Try It feature. Options are: omit, include (default), and same-origin
-         */
-        'try_it_credentials_policy' => 'include',
-
-        /*
-         * There are three layouts for Elements:
-         * - sidebar - (Elements default) Three-column design with a sidebar that can be resized.
-         * - responsive - Like sidebar, except at small screen sizes it collapses the sidebar into a drawer that can be toggled open.
-         * - stacked - Everything in a single column, making integrations with existing websites that have their own sidebar or other columns already.
-         */
-        'layout' => 'responsive',
+        'logo' => '',
     ],
 
     /*

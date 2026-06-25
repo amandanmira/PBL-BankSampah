@@ -147,7 +147,7 @@ class RequestPembelianController extends Controller
         }
 
         $config = \App\Models\KonfigurasiWeb::first();
-        $deadline = now()->addHours($config->lama_deadline ?? 24);
+        $deadline = now()->addHours((int)($config->lama_deadline ?? 24));
 
         $transaksi = TransaksiPengepul::create([
             'status' => 'proses',
