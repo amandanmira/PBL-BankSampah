@@ -54,7 +54,7 @@ class RequestPembelianController extends Controller
                   $sub->where('status', 'proses')
                       ->where(function ($sub2) {
                           $sub2->whereNull('bukti_transfer')
-                               ->orWhere('bukti_transfer', '');
+                               ->orWhere('bukti_transfer', ''); 
                       });
               });
         })->count();
@@ -179,7 +179,7 @@ class RequestPembelianController extends Controller
         $transaksi = TransaksiPengepul::findOrFail($id);
 
         $validated = $request->validate([
-            'bukti_transfer' => 'required|image|mimes:jpg,jpeg,png,webp|max:4096',
+            'bukti_transfer' => 'image|mimes:jpg,jpeg,png,webp|max:4096',
         ]);
 
         if ($request->hasFile('bukti_transfer')) {
