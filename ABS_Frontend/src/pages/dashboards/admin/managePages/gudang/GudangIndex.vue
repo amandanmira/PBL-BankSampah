@@ -228,7 +228,7 @@ const submitSampah = async () => {
     const payload = {
       sampah: managedSampah.value.map(s => ({
         item_id: s.item_id,
-        stok: s.stok,
+        stok: s.stok === "" || s.stok === null ? 0 : parseFloat(s.stok),
         active: 1
       }))
     };
@@ -244,6 +244,7 @@ const submitSampah = async () => {
     fetchGudang();
   } catch (err) {
     console.error("Submit sampah failed:", err);
+    Swal.fire("Error", "Gagal memperbarui stok sampah", "error");
   } finally {
     isSubmittingSampah.value = false;
   }
@@ -429,7 +430,7 @@ const submitTukang = async () => {
                   <span class="hidden sm:inline">•</span>
                   <span class="flex items-center gap-1">{{ gudang.tukang?.length || 0 }} Tukang</span>
                   <span class="hidden sm:inline">•</span>
-                  <span class="flex items-center gap-1">{{ gudang.sampah?.length || 0 }} Jenis Stok</span>
+                  <span class="flex items-center gap-1">{{ gudang.sampah?.filter(s => parseFloat(s.stok) > 0).length || 0 }} Jenis Stok</span>
                 </div>
               </div>
 
