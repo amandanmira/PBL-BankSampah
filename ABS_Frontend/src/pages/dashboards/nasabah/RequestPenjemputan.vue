@@ -385,8 +385,8 @@ onMounted(() => {
                 class="w-full bg-[#F5F5F0] border border-stone-100 rounded-2xl py-4 px-5 text-sm font-bold appearance-none focus:outline-none focus:ring-2 focus:ring-[#4A7043]/20 transition-all pr-12 text-stone-700"
               >
                 <option value="" disabled>Pilih Gudang Cabang</option>
-                <option v-for="gudang in gudangList" :key="gudang.gudang_id" :value="gudang.gudang_id">
-                  Gudang {{ gudang.alamat.split(',')[0] }}
+                <option v-for="gudang in gudangList" :key="gudang.gudang_id" :value="gudang.gudang_id" :disabled="getGudangStats(gudang).isFull">
+                  Gudang {{ gudang.alamat.split(',')[0] }} {{ getGudangStats(gudang).isFull ? '(Penuh)' : '' }}
                 </option>
               </select>
               <Icon icon="material-symbols:keyboard-arrow-down" class="absolute right-5 top-1/2 -translate-y-1/2 w-6 h-6 text-stone-400 pointer-events-none" />
@@ -808,7 +808,7 @@ onMounted(() => {
                   <p class="text-[9px] font-bold text-stone-400 uppercase tracking-wider mt-1.5">Tukang</p>
                 </div>
                 <div class="bg-[#F5F5F0] p-3.5 rounded-2xl text-center flex flex-col justify-center">
-                  <p class="text-xs sm:text-sm lg:text-base font-black text-[#EA580C] leading-none">
+                  <p :class="['text-xs sm:text-sm lg:text-base font-black leading-none', getGudangStats(gudang).isFull ? 'text-[#E86B6B]' : 'text-[#4A7043]']">
                     {{ Math.round(getGudangStats(gudang).totalStok) }}/{{ gudang.kapasitas }}
                   </p>
                   <p class="text-[9px] font-bold text-stone-400 uppercase tracking-wider mt-1.5">kg</p>
