@@ -318,6 +318,21 @@ const handleTukangFile = (e, index) => {
 };
 
 const submitTukang = async () => {
+  // Validasi Kelengkapan Data
+  const isIncomplete = managedTukang.value.some(t => {
+    return !t.nama || String(t.nama).trim() === '' || !t.no_telp || String(t.no_telp).trim() === '';
+  });
+
+  if (isIncomplete) {
+    Swal.fire({
+      title: "Data Tidak Lengkap!",
+      text: "Pastikan semua nama dan nomor telepon tukang telah diisi dengan benar.",
+      icon: "warning",
+      confirmButtonColor: "#4A7043"
+    });
+    return;
+  }
+
   isSubmittingTukang.value = true;
   const formData = new FormData();
   
@@ -387,10 +402,9 @@ const submitTukang = async () => {
             ]"
           >
             <!-- Card Header -->
-            <div class="flex items-center gap-4">
+            <div @click="toggleAccordion(gudang.gudang_id)" class="flex items-center gap-4 cursor-pointer">
               <!-- Expand Toggle -->
               <button
-                @click="toggleAccordion(gudang.gudang_id)"
                 class="hover:bg-black/10 rounded-full p-1 transition-transform duration-300"
                 :style="{ transform: expandedId === gudang.gudang_id ? 'rotate(180deg)' : 'rotate(0deg)' }"
               >
@@ -427,14 +441,14 @@ const submitTukang = async () => {
               <!-- Actions -->
               <div class="flex items-center gap-3">
                 <button
-                  @click="openEditModal(gudang)"
+                  @click.stop="openEditModal(gudang)"
                   class="bg-white text-gray-700 hover:bg-gray-50 px-4 py-2 rounded-xl flex items-center gap-2 font-bold text-sm shadow-sm transition-all"
                 >
                   <Icon icon="material-symbols:edit-square-outline" class="w-5 h-5 text-gray-400" />
                   Edit
                 </button>
                 <button
-                  @click="toggleStatus(gudang)"
+                  @click.stop="toggleStatus(gudang)"
                   :class="[
                     'px-4 py-2 rounded-xl flex items-center gap-2 font-bold text-sm shadow-sm transition-all',
                     Number(gudang.active) === 1 
