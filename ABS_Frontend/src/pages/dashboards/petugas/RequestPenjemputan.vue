@@ -614,7 +614,7 @@ onMounted(async () => {
             class="bg-[#4A7043] rounded-2xl p-5 text-white flex items-center gap-6 cursor-pointer hover:scale-[1.02] active:scale-[0.98] transition-all group"
           >
             <div class="w-20 h-20 bg-white/10 rounded-2xl flex items-center justify-center overflow-hidden border border-white/10 shrink-0">
-              <img v-if="worker.foto" :src="`http://localhost:8000/storage/${worker.foto}`" alt="Foto Tukang" class="w-full h-full object-cover" />
+              <img v-if="worker.foto" :src="`https://api.tabungansampah.online/storage/${worker.foto}`" alt="Foto Tukang" class="w-full h-full object-cover" />
               <Icon v-else icon="material-symbols:image-outline" class="w-8 h-8 text-white/30" />
             </div>
             <div class="flex-1 space-y-1">
@@ -751,10 +751,10 @@ onMounted(async () => {
             <h5 class="text-sm font-black text-stone-800 mb-2">Foto Sampah</h5>
             <div v-if="detailRequest.foto && (Array.isArray(detailRequest.foto) ? detailRequest.foto.length > 0 : true)" class="flex gap-4 overflow-x-auto pb-2">
               <template v-if="Array.isArray(detailRequest.foto)">
-                <img v-for="(f, i) in detailRequest.foto" :key="i" :src="`http://localhost:8000/storage/${f}`" alt="Foto Sampah" class="w-32 h-32 rounded-xl object-cover shadow-sm border border-stone-100 flex-shrink-0" />
+                <img v-for="(f, i) in detailRequest.foto" :key="i" :src="`https://api.tabungansampah.online/storage/${f}`" alt="Foto Sampah" class="w-32 h-32 rounded-xl object-cover shadow-sm border border-stone-100 flex-shrink-0" />
               </template>
               <template v-else>
-                <img :src="`http://localhost:8000/storage/${detailRequest.foto}`" alt="Foto Sampah" class="w-32 h-32 rounded-xl object-cover shadow-sm border border-stone-100 flex-shrink-0" />
+                <img :src="`https://api.tabungansampah.online/storage/${detailRequest.foto}`" alt="Foto Sampah" class="w-32 h-32 rounded-xl object-cover shadow-sm border border-stone-100 flex-shrink-0" />
               </template>
             </div>
             <div v-else class="text-stone-400 text-sm font-bold italic">Tidak ada foto terlampir.</div>
