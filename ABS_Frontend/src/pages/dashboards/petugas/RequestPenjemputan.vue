@@ -104,6 +104,15 @@ const getCount = (filter) => {
   return 0;
 };
 
+// MENDAPATKAN TANGGAL HARI INI UNTUK MEMBLOKIR KALENDER MASA LALU
+const minDate = computed(() => {
+  const d = new Date();
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+});
+
 // ─────────────────────────────────────────────────────────────────────────────
 // INTI FITUR BARU: Baca query param dari dashboard, set filter & scroll/highlight
 // ─────────────────────────────────────────────────────────────────────────────
@@ -164,6 +173,24 @@ const confirmSchedule = async (request) => {
     alert("Mohon lengkapi tanggal dan waktu penjemputan.");
     return;
   }
+
+  // --- VALIDASI TANGGAL DIPERBAIKI ---
+  // Kita ubah input tanggal menjadi format Date, lalu nol-kan jamnya (00:00:00)
+  const selectedDate = new Date(request.scheduleDate);
+  selectedDate.setHours(0, 0, 0, 0);
+
+  // Ambil tanggal hari ini, lalu nol-kan juga jamnya (00:00:00)
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  // Bandingkan murni hanya TANGGAL-nya saja. 
+  // Jika hari ini, hasilnya sama (=) sehingga tidak akan diblokir.
+  if (selectedDate < today) {
+    alert("Tanggal tidak valid! Jadwal penjemputan tidak boleh diatur ke hari yang sudah lewat.");
+    return;
+  }
+  // ------------------------------------
+
   try {
     loading.value = true;
     const datetime = `${request.scheduleDate} ${request.scheduleHour}:${request.scheduleMinute}:00`;
@@ -471,7 +498,7 @@ onMounted(async () => {
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div class="space-y-1.5">
                     <label class="text-xs font-semibold text-stone-600">Tanggal</label>
-                    <input type="date" v-model="request.scheduleDate"
+                    <input type="date" v-model="request.scheduleDate" :min="minDate"
                       class="w-full bg-white border border-[#A8C4AC] rounded-xl py-2.5 px-4 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#84A087]/30 transition-all text-stone-700" />
                   </div>
                   <div class="space-y-1.5">
@@ -614,7 +641,7 @@ onMounted(async () => {
             class="bg-[#4A7043] rounded-2xl p-5 text-white flex items-center gap-6 cursor-pointer hover:scale-[1.02] active:scale-[0.98] transition-all group"
           >
             <div class="w-20 h-20 bg-white/10 rounded-2xl flex items-center justify-center overflow-hidden border border-white/10 shrink-0">
-              <img v-if="worker.foto" :src="`http://localhost:8000/storage/${worker.foto}`" alt="Foto Tukang" class="w-full h-full object-cover" />
+              <img v-if="worker.foto" :src="`https://api.tabungansampah.online/storage/${worker.foto}`" alt="Foto Tukang" class="w-full h-full object-cover" />
               <Icon v-else icon="material-symbols:image-outline" class="w-8 h-8 text-white/30" />
             </div>
             <div class="flex-1 space-y-1">
@@ -751,10 +778,10 @@ onMounted(async () => {
             <h5 class="text-sm font-black text-stone-800 mb-2">Foto Sampah</h5>
             <div v-if="detailRequest.foto && (Array.isArray(detailRequest.foto) ? detailRequest.foto.length > 0 : true)" class="flex gap-4 overflow-x-auto pb-2">
               <template v-if="Array.isArray(detailRequest.foto)">
-                <img v-for="(f, i) in detailRequest.foto" :key="i" :src="`http://localhost:8000/storage/${f}`" alt="Foto Sampah" class="w-32 h-32 rounded-xl object-cover shadow-sm border border-stone-100 flex-shrink-0" />
+                <img v-for="(f, i) in detailRequest.foto" :key="i" :src="`https://api.tabungansampah.online/storage/${f}`" alt="Foto Sampah" class="w-32 h-32 rounded-xl object-cover shadow-sm border border-stone-100 flex-shrink-0" />
               </template>
               <template v-else>
-                <img :src="`http://localhost:8000/storage/${detailRequest.foto}`" alt="Foto Sampah" class="w-32 h-32 rounded-xl object-cover shadow-sm border border-stone-100 flex-shrink-0" />
+                <img :src="`https://api.tabungansampah.online/storage/${detailRequest.foto}`" alt="Foto Sampah" class="w-32 h-32 rounded-xl object-cover shadow-sm border border-stone-100 flex-shrink-0" />
               </template>
             </div>
             <div v-else class="text-stone-400 text-sm font-bold italic">Tidak ada foto terlampir.</div>

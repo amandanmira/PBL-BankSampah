@@ -20,9 +20,23 @@ const activeStatusFilter = ref('pending') // pending, proses, dijemput, selesai,
 const searchQuery = ref('')
 const showDetailModal = ref(false)
 const selectedItem = ref(null)
+const showTukangModal = ref(false)
+const selectedTukang = ref(null)
 const currentPhotoIndex = ref(0)
 const currentTimbangPhotoIndex = ref(0)
 const activeDetailTab = ref('jemput') // 'jemput' or 'timbang'
+
+const openTukang = (tukang) => {
+  selectedTukang.value = tukang
+  showTukangModal.value = true
+}
+
+const closeTukang = () => {
+  showTukangModal.value = false
+  setTimeout(() => {
+    selectedTukang.value = null
+  }, 300)
+}
 
 const timbangPhotos = computed(() => {
   if (!selectedItem.value || !selectedItem.value.penimbangan) return []
@@ -955,7 +969,8 @@ onMounted(() => {
                 selectedItem.status !== 'ditolak' &&
                 selectedItem.status !== 'batal'
               "
-              class="bg-stone-50 rounded-xl p-3 border border-stone-200/50 flex items-center gap-3"
+              @click="openTukang(selectedItem.tukang)"
+              class="bg-stone-50 rounded-xl p-3 border border-stone-200/50 flex items-center gap-3 cursor-pointer hover:bg-stone-100 transition-colors"
             >
               <div
                 class="w-10 h-10 rounded-full overflow-hidden bg-white border border-stone-100 shrink-0 shadow-sm"
@@ -979,7 +994,8 @@ onMounted(() => {
               <a
                 :href="`https://wa.me/${selectedItem.tukang.no_telp.replace(/^0/, '62')}`"
                 target="_blank"
-                class="w-8 h-8 bg-[#25D366] text-white rounded-full flex items-center justify-center hover:scale-105 active:scale-95 transition-all shadow-sm"
+                @click.stop
+                class="w-8 h-8 bg-[#25D366] text-white rounded-full flex items-center justify-center hover:scale-105 active:scale-95 transition-all shadow-sm shrink-0"
               >
                 <Icon icon="logos:whatsapp-icon" class="w-4 h-4" />
               </a>
@@ -1426,6 +1442,56 @@ onMounted(() => {
               Tutup
             </button>
           </template>
+        </div>
+      </div>
+    </div>
+    <!-- Modal Detail Tukang -->
+    <div v-if="showTukangModal" class="fixed inset-0 z-[110] flex items-center justify-center p-4">
+      <div class="absolute inset-0 bg-stone-900/60 backdrop-blur-sm" @click="closeTukang"></div>
+      <div class="relative bg-white w-full max-w-sm rounded-[2rem] shadow-2xl overflow-hidden flex flex-col">
+        <!-- Header Image/Avatar -->
+        <div class="bg-[#4A7043] h-24 w-full relative">
+          <button @click="closeTukang" class="absolute top-4 right-4 w-8 h-8 bg-white/20 hover:bg-white/30 text-white rounded-full flex items-center justify-center backdrop-blur-md transition-colors z-10">
+            <Icon icon="material-symbols:close" class="w-4 h-4" />
+          </button>
+        </div>
+        
+        <!-- Profile Content -->
+        <div class="px-6 pb-8 -mt-12 relative flex flex-col items-center text-center">
+          <!-- Avatar -->
+          <div class="w-24 h-24 rounded-full border-4 border-white overflow-hidden bg-stone-100 shadow-lg mb-4 relative z-10">
+            <img v-if="selectedTukang?.foto" :src="`${axios.defaults.baseURL}/storage/${selectedTukang.foto}`" class="w-full h-full object-cover" />
+            <div v-else class="w-full h-full flex items-center justify-center text-stone-300">
+              <Icon icon="material-symbols:person-outline" class="w-10 h-10" />
+            </div>
+          </div>
+          
+          <!-- Info -->
+          <h3 class="text-xl font-black text-stone-800 leading-none mb-1">{{ selectedTukang?.nama }}</h3>
+          <p class="text-xs font-bold text-stone-400 uppercase tracking-widest mb-6">Petugas Penjemput</p>
+          
+          <div class="w-full bg-stone-50 rounded-2xl p-4 border border-stone-100 space-y-3">
+            <div class="flex items-center gap-3">
+              <div class="w-8 h-8 rounded-full bg-stone-200/50 flex items-center justify-center text-stone-500 shrink-0">
+                <Icon icon="material-symbols:call-outline" class="w-4 h-4" />
+              </div>
+              <div class="text-left flex-1 min-w-0">
+                <p class="text-[9px] font-bold text-stone-400 uppercase tracking-wider">No. Telepon</p>
+                <p class="text-sm font-bold text-stone-700 truncate">{{ selectedTukang?.no_telp }}</p>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Action -->
+          <a
+            v-if="selectedTukang?.no_telp"
+            :href="`https://wa.me/${selectedTukang.no_telp.replace(/^0/, '62')}`"
+            target="_blank"
+            class="w-full mt-6 py-3.5 bg-[#25D366] hover:bg-[#20bd5a] text-white rounded-xl font-black text-sm flex items-center justify-center gap-2 transition-all shadow-md hover:shadow-lg active:scale-95"
+          >
+            <Icon icon="logos:whatsapp-icon" class="w-5 h-5" />
+            Hubungi via WhatsApp
+          </a>
         </div>
       </div>
     </div>

@@ -127,6 +127,7 @@ Route::prefix('petugas')->middleware(['auth:sanctum', 'role:petugas'])->group(fu
 
     //penarikan
     Route::get('/penarikan', [KonfirmasiPenarikanController::class, 'penarikan']);
+    Route::put('penarikan/{id}/proses', [KonfirmasiPenarikanController::class, 'proses']);
     Route::put('penarikan/{penarikan}/terima', [KonfirmasiPenarikanController::class, 'terima']);
     Route::put('penarikan/{penarikan}/tolak', [KonfirmasiPenarikanController::class, 'tolak']);
     Route::get('/riwayat-penarikan', [KonfirmasiPenarikanController::class, 'riwayatPenarikan']);

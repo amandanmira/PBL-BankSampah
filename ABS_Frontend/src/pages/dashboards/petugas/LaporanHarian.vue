@@ -121,7 +121,7 @@ const navigateToPreview = () => {
 
 const fetchData = async () => {
   try {
-    const response = await axios.get("http://localhost:8000/api/laporan/list-sampah", { headers });
+    const response = await axios.get("https://api.tabungansampah.online/api/laporan/list-sampah", { headers });
     listSampah.value = response.data;
 
     const responseG = await axios.get(`${axios.defaults.baseURL}/api/laporan/list-gudang`, { headers });

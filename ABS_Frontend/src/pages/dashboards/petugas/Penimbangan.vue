@@ -548,8 +548,8 @@ const formatDate = (dateString) => {
 };
 
 const isFormValid = computed(() => {
-  // Pastikan setiap row punya kategori, sampah, dan berat
-  const validItems = formRows.value.filter(row => row.sampah_id !== "" && row.berat_timbang > 0);
+  // Pastikan setiap row punya kategori, sampah, berat, dan foto
+  const validItems = formRows.value.filter(row => row.sampah_id !== "" && row.berat_timbang > 0 && row.foto !== null);
   return validItems.length === formRows.value.length && validItems.length > 0;
 });
 

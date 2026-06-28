@@ -107,11 +107,13 @@ const periodeLaporan = computed(() => {
 });
 
 const totalSampahMasuk = computed(() => {
-  return Number(summaryLaporan.value.penjemputan_berat || 0) + Number(summaryLaporan.value.setor_berat || 0);
+  const total = Number(summaryLaporan.value.penjemputan_berat || 0) + Number(summaryLaporan.value.setor_berat || 0);
+  return Number(total.toFixed(2));
 });
 
 const totalSampahKeluar = computed(() => {
-  return Number(summaryLaporan.value.pengepul_berat || 0);
+  const total = Number(summaryLaporan.value.pengepul_berat || 0);
+  return Number(total.toFixed(2));
 });
 
 const totalTransaksi = computed(() => {
@@ -172,11 +174,14 @@ const rincianPenjualan = computed(() => {
 });
 
 const rincianPenarikan = computed(() => {
-  return detailsLaporan.value.penarikan.map(item => ({
-    tanggal: item.created_at,
-    nasabah: item.nasabah?.nama || '-',
-    nominal: item.jumlah || 0
-  })).sort((a, b) => new Date(b.tanggal) - new Date(a.tanggal));
+  const currentPetugasId = user.value?.petugas_id || user.value?.id;
+  return detailsLaporan.value.penarikan
+    .filter(item => item.petugas_id == currentPetugasId)
+    .map(item => ({
+      tanggal: item.created_at,
+      nasabah: item.nasabah?.nama || '-',
+      nominal: item.jumlah || 0
+    })).sort((a, b) => new Date(b.tanggal) - new Date(a.tanggal));
 });
 
 const handlePrint = () => {
