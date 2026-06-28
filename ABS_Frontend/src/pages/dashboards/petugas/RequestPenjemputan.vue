@@ -104,6 +104,15 @@ const getCount = (filter) => {
   return 0;
 };
 
+// MENDAPATKAN TANGGAL HARI INI UNTUK MEMBLOKIR KALENDER MASA LALU
+const minDate = computed(() => {
+  const d = new Date();
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+});
+
 // ─────────────────────────────────────────────────────────────────────────────
 // INTI FITUR BARU: Baca query param dari dashboard, set filter & scroll/highlight
 // ─────────────────────────────────────────────────────────────────────────────
@@ -164,6 +173,24 @@ const confirmSchedule = async (request) => {
     alert("Mohon lengkapi tanggal dan waktu penjemputan.");
     return;
   }
+
+  // --- VALIDASI TANGGAL DIPERBAIKI ---
+  // Kita ubah input tanggal menjadi format Date, lalu nol-kan jamnya (00:00:00)
+  const selectedDate = new Date(request.scheduleDate);
+  selectedDate.setHours(0, 0, 0, 0);
+
+  // Ambil tanggal hari ini, lalu nol-kan juga jamnya (00:00:00)
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  // Bandingkan murni hanya TANGGAL-nya saja. 
+  // Jika hari ini, hasilnya sama (=) sehingga tidak akan diblokir.
+  if (selectedDate < today) {
+    alert("Tanggal tidak valid! Jadwal penjemputan tidak boleh diatur ke hari yang sudah lewat.");
+    return;
+  }
+  // ------------------------------------
+
   try {
     loading.value = true;
     const datetime = `${request.scheduleDate} ${request.scheduleHour}:${request.scheduleMinute}:00`;
@@ -471,7 +498,7 @@ onMounted(async () => {
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div class="space-y-1.5">
                     <label class="text-xs font-semibold text-stone-600">Tanggal</label>
-                    <input type="date" v-model="request.scheduleDate"
+                    <input type="date" v-model="request.scheduleDate" :min="minDate"
                       class="w-full bg-white border border-[#A8C4AC] rounded-xl py-2.5 px-4 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#84A087]/30 transition-all text-stone-700" />
                   </div>
                   <div class="space-y-1.5">
