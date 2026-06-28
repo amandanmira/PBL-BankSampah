@@ -60,6 +60,7 @@ class KelolaAkunController extends Controller
      */
     public function indexNasabah()
     {
+        // Pastikan baris ini menggunakan ->get(); bukan ->paginate(10);
         $nasabah = Nasabah::latest()->get();
         return response()->json(['data' => $nasabah], 200);
     }

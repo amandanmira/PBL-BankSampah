@@ -130,6 +130,8 @@ class RequestPembelianController extends Controller
     {
         // 1. Hapus pengepul_id dari validasi agar klien tidak perlu mengirimkannya
         $request->validate([
+            'pengepul_id' => 'required',
+            'detail' => 'required|array',
             'detail' => 'required|array',
             'detail.*.sampah_id' => 'required|integer',
             'detail.*.berat' => 'required|numeric',

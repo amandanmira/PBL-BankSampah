@@ -64,25 +64,61 @@ class KonfirmasiPenarikanController extends Controller
         return response()->json([
             'penarikan' => $penarikan,
             'today_total' => $todayTotal,
-            'daily_limit' => 5000000
+            'daily_limit' => 5000000,
+            'current_user_id' => Auth::id()
         ], 200);
+    }
+
+    public function proses(Request $request, $id)
+    {
+        DB::beginTransaction();
+        try {
+            // Menggunakan lockForUpdate untuk mencegah Race Condition
+            $penarikan = \App\Models\Penarikan::lockForUpdate()->findOrFail($id);
+
+            if ($penarikan->status !== 'pending') {
+                DB::rollBack();
+                return response()->json([
+                    'message' => 'Maaf, tugas ini sudah diambil atau diproses oleh petugas lain.'
+                ], 409);
+            }
+
+            $penarikan->status = 'proses';
+            $penarikan->petugas_id = Auth::id();
+            $penarikan->save();
+
+            DB::commit();
+            return response()->json(['message' => 'Tugas berhasil diambil. Silakan lakukan transfer dan unggah bukti.'], 200);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(['message' => 'Gagal mengambil tugas.', 'error' => $e->getMessage()], 500);
+        }
     }
 
     public function terima(Request $request, $id)
     {
-        // 1. Validasi file foto bukti transfer
+        // 1. Validasi file foto bukti transfer (opsional)
         $request->validate([
-            'bukti_tf' => 'required|image|mimes:jpeg,png,jpg|max:5120', // Wajib upload
+            'bukti_tf' => 'nullable|image|mimes:jpeg,png,jpg|max:5120', // Tidak wajib upload
         ]);
 
         DB::beginTransaction();
 
         try {
-            // Cari data penarikan beserta data nasabahnya
-            $penarikan = \App\Models\Penarikan::with('nasabah')->findOrFail($id);
+            // Menggunakan lockForUpdate untuk mencegah Race Condition (Pessimistic Locking)
+            $penarikan = \App\Models\Penarikan::with('nasabah')->lockForUpdate()->findOrFail($id);
+
+            // Validasi Ganda: Pastikan status sudah diproses dan oleh petugas yang benar
+            if ($penarikan->status !== 'proses' || $penarikan->petugas_id !== Auth::id()) {
+                DB::rollBack();
+                return response()->json([
+                    'message' => 'Akses ditolak. Tugas ini belum Anda ambil atau sudah diambil petugas lain.'
+                ], 403);
+            }
 
             // Keamanan: Cek apakah saldo nasabah cukup
             if ($penarikan->nasabah->saldo < $penarikan->jumlah) {
+                DB::rollBack();
                 return response()->json([
                     'message' => 'Gagal memproses. Saldo nasabah (' . $penarikan->nasabah->saldo . ') lebih kecil dari jumlah penarikan.'
                 ], 400);
@@ -121,21 +157,43 @@ class KonfirmasiPenarikanController extends Controller
         }
     }
 
-    public function tolak(Request $request, Penarikan $penarikan)
+    public function tolak(Request $request, $id)
     {
         // 1. Validasi request untuk memastikan alasan diisi
         $request->validate([
             'ket_status' => 'required|string|max:255',
         ]);
 
-        // 2. Simpan alasan dan ubah status
-        $penarikan->status = 'tolak';
-        $penarikan->ket_status = $request->ket_status;
-        $penarikan->petugas_id = Auth::id(); // Mengisi ID petugas yang sedang login
-        $penarikan->save();
+        DB::beginTransaction();
 
+        try {
+            // Menggunakan lockForUpdate untuk mencegah Race Condition (Pessimistic Locking)
+            $penarikan = \App\Models\Penarikan::lockForUpdate()->findOrFail($id);
 
-        return response()->json(['message' => 'Registrasi penarikan$penarikan ditolak, status diubah menjadi nonaktif, dan notifikasi email terkirim'], 200);
+            // Validasi Ganda: Pastikan status sudah diproses dan oleh petugas yang benar
+            if ($penarikan->status !== 'proses' || $penarikan->petugas_id !== Auth::id()) {
+                DB::rollBack();
+                return response()->json([
+                    'message' => 'Akses ditolak. Tugas ini belum Anda ambil atau sudah diambil petugas lain.'
+                ], 403);
+            }
+
+            // 2. Simpan alasan dan ubah status
+            $penarikan->status = 'tolak';
+            $penarikan->ket_status = $request->ket_status;
+            $penarikan->petugas_id = Auth::id(); // Mengisi ID petugas yang sedang login
+            $penarikan->save();
+
+            DB::commit();
+
+            return response()->json(['message' => 'Request penarikan ditolak, status diubah menjadi tolak.'], 200);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'message' => 'Gagal memproses penolakan.',
+                'error'   => $e->getMessage()
+            ], 500);
+        }
     }
 
     public function riwayatPenarikan()

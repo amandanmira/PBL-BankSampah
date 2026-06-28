@@ -111,11 +111,12 @@ const filteredAccounts = computed(() => {
   return result;
 });
 
-const totalPages = computed(() => Math.ceil(filteredAccounts.value.length / itemsPerPage.value));
+const totalPages = computed(() => Math.ceil(filteredAccounts.value.length / Number(itemsPerPage.value)));
 
 const paginatedAccounts = computed(() => {
-  const start = (currentPage.value - 1) * itemsPerPage.value;
-  const end = start + itemsPerPage.value;
+  const limit = Number(itemsPerPage.value);
+  const start = (currentPage.value - 1) * limit;
+  const end = start + limit;
   return filteredAccounts.value.slice(start, end);
 });
 
@@ -420,8 +421,8 @@ const formatDate = (dateStr) => {
             Sebelumnya
           </button>
           
-          <div class="bg-[#4A7043] text-white px-4 py-2 rounded-xl text-sm font-bold shadow-sm">
-            {{ currentPage }} / {{ totalPages || 1 }}
+          <div class="bg-[#4A7043] text-white px-4 py-2 rounded-xl text-sm font-bold shadow-sm whitespace-nowrap">
+            {{ currentPage }} / {{ totalPages || 1 }} (Total: {{ filteredAccounts.length }})
           </div>
           
           <button 
