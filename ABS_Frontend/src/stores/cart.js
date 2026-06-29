@@ -18,11 +18,11 @@ export const useCartStore = defineStore('cart', {
     addItem(sampah, quantity) {
       const existingItem = this.items.find((i) => Number(i.sampah_id) === Number(sampah.sampah_id))
       if (existingItem) {
-        existingItem.quantity += quantity
+        existingItem.quantity = Math.min(existingItem.quantity + quantity, sampah.stok)
       } else {
         this.items.push({
           ...sampah,
-          quantity: quantity,
+          quantity: Math.min(quantity, sampah.stok),
         })
       }
     },
@@ -32,7 +32,7 @@ export const useCartStore = defineStore('cart', {
     updateQuantity(sampahId, quantity) {
       const item = this.items.find((i) => i.sampah_id === sampahId)
       if (item) {
-        item.quantity = quantity
+        item.quantity = Math.max(1, Math.min(quantity, item.stok))
       }
     },
     clearCart() {

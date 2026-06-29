@@ -134,46 +134,59 @@ class RequestPembelianController extends Controller
             'detail' => 'required|array',
             'detail' => 'required|array',
             'detail.*.sampah_id' => 'required|integer',
-            'detail.*.berat' => 'required|numeric',
+            'detail.*.berat' => 'required|numeric|min:0.01',
             'detail.*.harga' => 'required|numeric'
         ]);
 
-        // simpan item jika ada
-        foreach ($request->detail as $d) {
-            $sampah = Sampah::lockForUpdate()->findOrFail($d['sampah_id']);
+        \Illuminate\Support\Facades\DB::beginTransaction();
+        try {
+            // simpan item jika ada
+            foreach ($request->detail as $d) {
+                $sampah = Sampah::with('itemSampah')->lockForUpdate()->findOrFail($d['sampah_id']);
 
-            if ($sampah->stok >= $d['berat']){
+                if ($sampah->stok < $d['berat']) {
+                    \Illuminate\Support\Facades\DB::rollBack();
+                    return response()->json([
+                        'message' => 'Stok tidak cukup untuk ' . ($sampah->itemSampah->nama ?? 'item ini') . '. Sisa: ' . $sampah->stok . 'kg'
+                    ], 400);
+                }
+
                 $sampah->update([
                     'stok' => $sampah->stok - $d['berat'],
                 ]);
-            } else {
-                throw new \Exception('Stok tidak cukup');
             }
-        }
 
-        $config = \App\Models\KonfigurasiWeb::first();
-        $deadline = now()->addHours((int)($config->lama_deadline ?? 24));
+            $config = \App\Models\KonfigurasiWeb::first();
+            $deadline = now()->addHours((int)($config->lama_deadline ?? 24));
 
-        // 2. Ambil pengepul_id dari user yang sedang login menggunakan token
-        $transaksi = TransaksiPengepul::create([
-            'status' => 'proses',
-            'pengepul_id' => $request->user()->pengepul_id, // <-- Diubah di sini
-            'deadline' => $deadline,
-            'ket_status' => 'Pesanan dibuat. Silakan lakukan pembayaran dan upload bukti transfer.'
-        ]);
-
-        foreach ($request->detail as $d) {
-            $transaksi->detailTransaksi()->create([
-                'sampah_id' => $d['sampah_id'],
-                'berat' => $d['berat'] ?? 0,
-                'harga' => $d['harga'] ?? 0,
-                'status' => 'pending',
-                'status_pembayaran' => 'pending',
-                'status_pengambilan' => 'pending',
+            // 2. Ambil pengepul_id dari user yang sedang login menggunakan token
+            $transaksi = TransaksiPengepul::create([
+                'status' => 'proses',
+                'pengepul_id' => $request->user()->pengepul_id, // <-- Diubah di sini
+                'deadline' => $deadline,
+                'ket_status' => 'Pesanan dibuat. Silakan lakukan pembayaran dan upload bukti transfer.'
             ]);
-        }
 
-        return response()->json($transaksi->load('detailTransaksi'), 201);
+            foreach ($request->detail as $d) {
+                $transaksi->detailTransaksi()->create([
+                    'sampah_id' => $d['sampah_id'],
+                    'berat' => $d['berat'] ?? 0,
+                    'harga' => $d['harga'] ?? 0,
+                    'status' => 'pending',
+                    'status_pembayaran' => 'pending',
+                    'status_pengambilan' => 'pending',
+                ]);
+            }
+
+            \Illuminate\Support\Facades\DB::commit();
+            return response()->json($transaksi->load('detailTransaksi'), 201);
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\DB::rollBack();
+            return response()->json([
+                'message' => 'Terjadi kesalahan sistem saat memproses pesanan.',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 
     public function update(Request $request, $id)

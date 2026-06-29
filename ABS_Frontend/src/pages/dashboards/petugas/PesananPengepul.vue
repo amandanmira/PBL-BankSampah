@@ -362,32 +362,26 @@ onMounted(() => {
         </div>
       </div>
 
-      <div
-        class="bg-white rounded-2xl p-2 shadow-sm border border-stone-100 flex overflow-x-auto no-scrollbar"
-      >
-        <button
+      <div class="bg-white rounded-2xl p-1.5 md:p-2 shadow-sm border border-stone-100 grid grid-cols-2 md:flex gap-1.5 md:gap-0">
+        <button 
           v-for="tab in [
             { id: 'perlu_validasi', label: 'Perlu Validasi', count: counts.perlu_validasi },
             { id: 'siap_diambil', label: 'Siap Diambil', count: counts.siap_diambil },
             { id: 'selesai', label: 'Selesai', count: counts.selesai },
-            { id: 'ditolak', label: 'Ditolak/Batal', count: counts.ditolak },
-          ]"
+            { id: 'ditolak', label: 'Ditolak/Batal', count: counts.ditolak }
+          ]" 
           :key="tab.id"
           @click="setFilter(tab.id)"
           :class="[
-            'flex-1 min-w-[150px] py-3.5 rounded-xl text-sm font-bold transition-all whitespace-nowrap flex items-center justify-center gap-2',
-            activeFilter === tab.id
-              ? 'bg-[#4A7043] text-white shadow-md'
-              : 'text-stone-400 hover:bg-stone-50',
+            'w-full py-2.5 md:py-3.5 rounded-xl text-xs md:text-sm font-bold transition-all whitespace-nowrap flex items-center justify-center gap-1.5 md:gap-2 cursor-pointer',
+            activeFilter === tab.id ? 'bg-[#4A7043] text-white shadow-md' : 'text-stone-400 hover:bg-stone-50'
           ]"
         >
           <span>{{ tab.label }}</span>
-          <span
-            :class="[
-              'px-2 py-0.5 rounded-full text-xs font-black',
-              activeFilter === tab.id ? 'bg-white/20 text-white' : 'bg-stone-100 text-stone-500',
-            ]"
-          >
+          <span :class="[
+            'px-1.5 py-0.5 rounded-full text-[10px] md:text-xs font-black',
+            activeFilter === tab.id ? 'bg-white/20 text-white' : 'bg-stone-100 text-stone-500'
+          ]">
             {{ tab.count }}
           </span>
         </button>

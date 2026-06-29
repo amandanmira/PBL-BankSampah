@@ -48,9 +48,11 @@ const fetchHistory = async (page = 1) => {
       endpoint = "/api/petugas/riwayat-penarikan";
     }
 
+    const perPage = window.innerWidth < 768 ? 3 : 10;
     const params = {
       page: page,
       search: searchQuery.value,
+      per_page: perPage,
     };
 
     if (activeFilter.value === "setor_manual") {
@@ -370,28 +372,31 @@ const remainingTimeText = computed(() => {
               v-model="searchQuery"
               type="text"
               placeholder="Cari ID Transaksi atau Nama Nasabah"
-              class="w-full pl-6 pr-12 py-4 bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-[#4A7043] transition-all text-sm"
+              class="w-full pl-5 pr-11 py-2.5 sm:py-4 bg-gray-50 border-none rounded-xl sm:rounded-2xl focus:ring-2 focus:ring-[#4A7043] transition-all text-xs sm:text-sm"
             />
-            <div class="absolute right-4 top-1/2 -translate-y-1/2 bg-[#4A7043] p-2 rounded-xl text-white">
-              <Icon icon="material-symbols:search" class="w-5 h-5" />
+            <div class="absolute right-3 sm:right-4 top-1/2 -translate-y-1/2 bg-[#4A7043] p-1.5 sm:p-2 rounded-lg sm:rounded-xl text-white">
+              <Icon icon="material-symbols:search" class="w-4 h-4 sm:w-5 sm:h-5" />
             </div>
           </div>
         </div>
 
-        <div class="flex flex-wrap gap-2">
+        <div class="flex flex-wrap gap-1.5 sm:gap-2">
           <button
             v-for="filter in filters"
             :key="filter.id"
             @click="activeFilter = filter.id"
             :class="[
-              'px-6 py-3 rounded-2xl flex items-center gap-3 transition-all text-sm font-medium border',
+              'px-3 py-2 sm:px-6 sm:py-3 rounded-xl sm:rounded-2xl flex items-center gap-2 sm:gap-3 transition-all text-xs sm:text-sm font-semibold border cursor-pointer',
               activeFilter === filter.id
                 ? 'bg-[#4A7043] text-white border-[#4A7043] shadow-lg shadow-[#4A7043]/20'
                 : 'bg-white text-gray-500 border-gray-200 hover:border-[#4A7043] hover:text-[#4A7043]'
             ]"
           >
-            <Icon :icon="filter.icon" class="w-5 h-5" />
-            {{ filter.label }}
+            <Icon :icon="filter.icon" class="w-4.5 h-4.5 sm:w-5 sm:h-5 shrink-0" />
+            <span>
+              <span class="hidden sm:inline">{{ filter.label }}</span>
+              <span class="inline sm:hidden">{{ filter.label.replace('Riwayat ', '') }}</span>
+            </span>
           </button>
         </div>
       </div>
@@ -409,62 +414,62 @@ const remainingTimeText = computed(() => {
         <div
           v-for="item in historyData"
           :key="activeFilter === 'penjemputan' ? item.penjemputan_id : (activeFilter === 'setor_manual' ? item.transaksi_id : item.penarikan_id)"
-          class="bg-white rounded-3xl p-6 border border-gray-100 hover:shadow-xl transition-all group relative overflow-hidden"
+          class="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-6 border border-gray-100 hover:shadow-xl transition-all group relative overflow-hidden"
           :class="{'border-l-4 border-l-[#4A7043]': activeFilter === 'penjemputan' && item.status === 'selesai'}"
         >
-          <div class="flex flex-col md:flex-row justify-between gap-6">
-            <div class="space-y-3 flex-1">
-              <div class="flex items-center gap-3">
-                <span class="text-lg font-bold text-gray-800">
+          <div class="flex flex-col md:flex-row justify-between gap-4 md:gap-6">
+            <div class="space-y-2.5 sm:space-y-3 flex-1">
+              <div class="flex flex-wrap items-center gap-2 sm:gap-3">
+                <span class="text-sm sm:text-lg font-bold text-gray-800">
                     {{ (activeFilter === 'penjemputan' ? 'REQ-' : '') + (activeFilter === 'penjemputan' ? item.penjemputan_id : (activeFilter === 'setor_manual' ? item.transaksi_id : item.penarikan_id)) }}
                 </span>
-                <span :class="['px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider', getStatusColor(item.status)]">
+                <span :class="['px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-full text-[9px] sm:text-[10px] font-bold uppercase tracking-wider', getStatusColor(item.status)]">
                   {{ getStatusLabel(item.status) }}
                 </span>
-                <span class="px-3 py-1 rounded-full bg-gray-100 text-gray-500 text-[10px] font-bold uppercase tracking-wider">
+                <span class="px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-full bg-gray-100 text-gray-500 text-[9px] sm:text-[10px] font-bold uppercase tracking-wider">
                   {{ activeFilter === 'penjemputan' ? 'Penjemputan' : (activeFilter === 'setor_manual' ? 'Setor Manual' : 'Penarikan') }}
                 </span>
               </div>
               
               <div>
-                <h3 class="text-xl font-black text-gray-800">
+                <h3 class="text-sm sm:text-xl font-black text-gray-800 leading-tight">
                     {{ item.nasabah?.nama || item.penimbangan?.[0]?.nasabah?.nama || "N/A" }} 
-                    <span class="text-gray-400 font-medium text-sm">(NSB-{{ item.nasabah?.nasabah_id || item.penimbangan?.[0]?.nasabah?.nasabah_id || "-" }})</span>
+                    <span class="text-gray-400 font-medium text-xs">(NSB-{{ item.nasabah?.nasabah_id || item.penimbangan?.[0]?.nasabah?.nasabah_id || "-" }})</span>
                 </h3>
-                <p class="text-gray-400 text-xs font-medium">{{ formatDate(item.created_at) }}</p>
+                <p class="text-gray-400 text-[10px] sm:text-xs font-medium mt-0.5">{{ formatDate(item.created_at) }}</p>
               </div>
 
-              <div v-if="activeFilter !== 'penarikan'" class="grid grid-cols-2 md:grid-cols-3 gap-4 bg-gray-50 p-4 rounded-2xl mt-4">
+              <div v-if="activeFilter !== 'penarikan'" class="grid grid-cols-2 md:grid-cols-3 gap-2.5 sm:gap-4 bg-gray-50 p-3 sm:p-4 rounded-xl sm:rounded-2xl mt-2 sm:mt-4">
                 <div>
-                  <p class="text-[10px] text-gray-400 font-bold uppercase">Berat Actual</p>
-                  <p class="text-sm font-bold text-gray-700">
+                  <p class="text-[9px] sm:text-[10px] text-gray-400 font-bold uppercase">Berat Actual</p>
+                  <p class="text-xs sm:text-sm font-bold text-gray-700">
                     {{ activeFilter === 'penjemputan' ? (calculateTotalWeight(item.penimbangan) || "-") : calculateTotalWeight(item.penimbangan) }} kg
                   </p>
                 </div>
                 <div>
-                  <p class="text-[10px] text-gray-400 font-bold uppercase">Jenis Sampah</p>
-                  <p class="text-sm font-bold text-gray-700 truncate max-w-[150px]">{{ getWasteTypes(item) }}</p>
+                  <p class="text-[9px] sm:text-[10px] text-gray-400 font-bold uppercase">Jenis Sampah</p>
+                  <p class="text-xs sm:text-sm font-bold text-gray-700 truncate max-w-[120px] sm:max-w-[150px]">{{ getWasteTypes(item) }}</p>
                 </div>
                 <div v-if="activeFilter === 'penjemputan'">
-                  <p class="text-[10px] text-gray-400 font-bold uppercase">Tukang</p>
-                  <p class="text-sm font-bold text-gray-700">{{ item.tukang?.nama || "-" }}</p>
+                  <p class="text-[9px] sm:text-[10px] text-gray-400 font-bold uppercase">Tukang</p>
+                  <p class="text-xs sm:text-sm font-bold text-gray-700">{{ item.tukang?.nama || "-" }}</p>
                 </div>
                 <div v-if="activeFilter === 'setor_manual'">
-                  <p class="text-[10px] text-gray-400 font-bold uppercase">Petugas</p>
-                  <p class="text-sm font-bold text-gray-700">{{ item.petugas?.nama || "-" }}</p>
+                  <p class="text-[9px] sm:text-[10px] text-gray-400 font-bold uppercase">Petugas</p>
+                  <p class="text-xs sm:text-sm font-bold text-gray-700">{{ item.petugas?.nama || "-" }}</p>
                 </div>
               </div>
 
-              <div v-if="(item.status === 'tolak' || item.status === 'batal') && item.ket_status" class="bg-red-50 p-4 rounded-2xl mt-4 border border-red-100">
-                <p class="text-[10px] text-red-400 font-bold uppercase">{{ item.status === 'tolak' ? 'Alasan Ditolak' : 'Alasan Dibatalkan' }}</p>
-                <p class="text-sm font-bold text-red-600">{{ item.ket_status }}</p>
+              <div v-if="(item.status === 'tolak' || item.status === 'batal') && item.ket_status" class="bg-red-50 p-3 sm:p-4 rounded-xl sm:rounded-2xl mt-2 sm:mt-4 border border-red-100">
+                <p class="text-[9px] sm:text-[10px] text-red-400 font-bold uppercase">{{ item.status === 'tolak' ? 'Alasan Ditolak' : 'Alasan Dibatalkan' }}</p>
+                <p class="text-xs sm:text-sm font-bold text-red-600">{{ item.ket_status }}</p>
               </div>
             </div>
 
-            <div class="flex flex-col items-end justify-between">
-              <div class="text-right">
-                <p class="text-[10px] text-gray-400 font-bold uppercase">{{ activeFilter === 'penarikan' ? 'Jumlah Penarikan' : 'Total Nilai' }}</p>
-                <p class="text-2xl font-black text-[#4A7043]">
+            <div class="flex flex-col items-start md:items-end justify-between mt-2 md:mt-0">
+              <div class="text-left md:text-right">
+                <p class="text-[9px] sm:text-[10px] text-gray-400 font-bold uppercase">{{ activeFilter === 'penarikan' ? 'Jumlah Penarikan' : 'Total Nilai' }}</p>
+                <p class="text-lg sm:text-2xl font-black text-[#4A7043]">
                     {{ activeFilter === 'penarikan' ? formatRupiah(item.jumlah) : (item.penimbangan?.length > 0 ? formatRupiah(calculateTotalValue(item.penimbangan)) : "-") }}
                 </p>
               </div>
@@ -473,9 +478,9 @@ const remainingTimeText = computed(() => {
 
           <button
             @click="openDetail(item)"
-            class="w-full mt-6 py-3 bg-[#4A7043] text-white rounded-2xl font-bold flex items-center justify-center gap-2 hover:bg-[#3d5c37] transition-all"
+            class="w-full mt-4 sm:mt-6 py-2.5 sm:py-3 bg-[#4A7043] text-white rounded-xl sm:rounded-2xl font-bold flex items-center justify-center gap-2 hover:bg-[#3d5c37] transition-all cursor-pointer text-xs sm:text-sm"
           >
-            <Icon icon="material-symbols:visibility-outline" class="w-5 h-5" />
+            <Icon icon="material-symbols:visibility-outline" class="w-4 h-4 sm:w-5 sm:h-5" />
             Lihat Detail
           </button>
         </div>

@@ -17,6 +17,7 @@ const isSidebarCollapsed = ref(sessionStorage.getItem('sidebarCollapsed') === 't
 provide('isSidebarCollapsed', isSidebarCollapsed);
 
 const isProfileDropdownOpen = ref(false);
+const isMobileProfileDropdownOpen = ref(false);
 const isMobileMenuOpen = ref(false);
 
 const toggleSidebar = () => {
@@ -444,7 +445,7 @@ onMounted(() => {
     <aside
       :class="
         cn(
-          'fixed inset-y-0 left-0 w-[80vw] max-w-[320px] bg-[#4A7043] text-white flex flex-col z-55 transition-transform duration-300 ease-in-out lg:hidden shadow-2xl',
+          'fixed inset-y-0 left-0 w-[80vw] max-w-[320px] bg-[#4A7043] text-white flex flex-col z-55 transition-transform duration-300 ease-in-out lg:hidden shadow-2xl overflow-y-auto custom-scrollbar overflow-x-hidden',
           isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
         )
       "
@@ -469,8 +470,11 @@ onMounted(() => {
       </div>
 
       <!-- User Profile (Mobile) -->
-      <div class="px-4 mb-6">
-        <div class="bg-[#5C8555] rounded-[1.5rem] p-4 flex items-center gap-4 border border-white/5 shadow-md">
+      <div class="px-4 mb-6 flex flex-col gap-2">
+        <button
+          @click="['admin', 'petugas', 'manager'].includes(role) ? (isMobileProfileDropdownOpen = !isMobileProfileDropdownOpen) : goToProfile()"
+          class="w-full text-left bg-[#5C8555] rounded-[1.5rem] p-4 flex items-center gap-4 border border-white/5 shadow-md cursor-pointer hover:bg-[#5C8555]/90 transition-all"
+        >
           <!-- User Avatar Icon with Name Initial -->
           <div class="w-12 h-12 rounded-full bg-[#A86444] flex items-center justify-center font-black text-white text-lg shrink-0 shadow-md">
             {{ user.nama?.charAt(0).toUpperCase() || user.username?.charAt(0).toUpperCase() || 'B' }}
@@ -483,6 +487,43 @@ onMounted(() => {
             <p class="text-[10px] font-semibold text-white/70 mt-0.5 truncate">
               @{{ user.username || 'username' }}
             </p>
+          </div>
+          <!-- Dropdown Icon -->
+          <div v-if="['admin', 'petugas', 'manager'].includes(role)" :class="cn('shrink-0 transition-transform duration-300', isMobileProfileDropdownOpen ? 'rotate-180' : '')">
+            <Icon icon="material-symbols:keyboard-arrow-down-rounded" class="w-5 h-5 text-white/70" />
+          </div>
+        </button>
+
+        <!-- Dropdown Info (Mobile) -->
+        <div v-if="['admin', 'petugas', 'manager'].includes(role) && isMobileProfileDropdownOpen" class="w-full bg-white/10 backdrop-blur-md rounded-[1.5rem] p-4 flex flex-col gap-3 border border-white/5 text-white shadow-inner animate-in fade-in slide-in-from-top-1 duration-200">
+          <div class="flex items-center gap-3">
+            <Icon icon="material-symbols:tag" class="w-4 h-4 text-white/40 shrink-0" />
+            <div class="min-w-0 flex-1">
+              <p class="text-[8px] font-black uppercase text-white/40 tracking-widest mb-0.5">ID {{ role === 'admin' ? 'Admin' : (role === 'petugas' ? 'Petugas' : 'Manager') }}</p>
+              <p class="text-xs font-bold truncate">{{ user.admin_id || user.petugas_id || user.manager_id || user.id || '-' }}</p>
+            </div>
+          </div>
+          <div class="flex items-center gap-3">
+            <Icon icon="material-symbols:account-circle-outline" class="w-4 h-4 text-white/40 shrink-0" />
+            <div class="min-w-0 flex-1">
+              <p class="text-[8px] font-black uppercase text-white/40 tracking-widest mb-0.5">Username</p>
+              <p class="text-xs font-bold truncate">{{ user.username || '-' }}</p>
+            </div>
+          </div>
+          <div class="flex items-center gap-3">
+            <Icon icon="material-symbols:mail-outline" class="w-4 h-4 text-white/40 shrink-0" />
+            <div class="min-w-0 flex-1">
+              <p class="text-[8px] font-black uppercase text-white/40 tracking-widest mb-0.5">Email</p>
+              <p class="text-xs font-bold truncate">{{ user.email || '-' }}</p>
+            </div>
+          </div>
+          <!-- Warehouse Badge (For Petugas) -->
+          <div v-if="role === 'petugas'" class="flex items-center gap-3 pt-2 border-t border-white/10">
+            <Icon icon="material-symbols:home-work-outline" class="w-4 h-4 text-white/40 shrink-0" />
+            <div class="min-w-0 flex-1">
+              <p class="text-[8px] font-black uppercase text-white/40 tracking-widest mb-0.5">Gudang</p>
+              <p class="text-xs font-bold truncate">{{ user.gudang?.alamat || 'Gudang' }}</p>
+            </div>
           </div>
         </div>
       </div>

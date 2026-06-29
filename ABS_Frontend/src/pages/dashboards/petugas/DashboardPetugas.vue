@@ -35,6 +35,7 @@ const reportSummary = ref({
 });
 
 const activities = ref([]);
+const slicedActivities = computed(() => activities.value.slice(0, 5));
 const attentionItems = ref([]);
 
 const today = computed(() => {
@@ -273,37 +274,37 @@ onMounted(() => {
             <h3 class="text-lg sm:text-xl font-black text-stone-800 uppercase tracking-tighter">Aktivitas Terkini</h3>
           </div>
 
-          <div class="flex-1 space-y-6 sm:space-y-8 relative px-1">
-            <div v-if="activities.length > 0 && !loading" class="absolute left-[20px] sm:left-[24px] top-4 bottom-4 w-[1px] sm:w-[1.5px] bg-stone-50"></div>
+          <div class="flex-1 space-y-4 sm:space-y-8 relative px-1">
+            <div v-if="slicedActivities.length > 0 && !loading" class="absolute left-[16px] sm:left-[24px] top-4 bottom-4 w-[1px] sm:w-[1.5px] bg-stone-50"></div>
 
-            <div v-if="loading" v-for="i in 6" :key="i" class="flex gap-4 sm:gap-6">
-              <div class="w-10 h-10 sm:w-12 sm:h-12 bg-stone-50 animate-pulse rounded-full shrink-0"></div>
-              <div class="flex-1 space-y-2 sm:space-y-3">
-                <div class="h-4 sm:h-5 w-3/4 bg-stone-50 animate-pulse rounded-lg"></div>
-                <div class="h-2.5 sm:h-3 w-1/2 bg-stone-50 animate-pulse rounded-lg"></div>
+            <div v-if="loading" v-for="i in 5" :key="i" class="flex gap-3 sm:gap-6">
+              <div class="w-8 h-8 sm:w-12 sm:h-12 bg-stone-50 animate-pulse rounded-full shrink-0"></div>
+              <div class="flex-1 space-y-1.5 sm:space-y-3">
+                <div class="h-3.5 sm:h-5 w-3/4 bg-stone-50 animate-pulse rounded-lg"></div>
+                <div class="h-2 sm:h-3 w-1/2 bg-stone-50 animate-pulse rounded-lg"></div>
               </div>
             </div>
 
             <template v-else>
-              <div v-for="activity in activities" :key="activity.id" class="relative flex gap-4 sm:gap-8 group">
-                <div :class="['w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center shrink-0 z-10 transition-all group-hover:scale-110 shadow-md border-[3px] sm:border-[4px] border-white',
+              <div v-for="activity in slicedActivities" :key="activity.id" class="relative flex gap-3 sm:gap-8 group">
+                <div :class="['w-8 h-8 sm:w-12 sm:h-12 rounded-full flex items-center justify-center shrink-0 z-10 transition-all group-hover:scale-110 shadow-md border-2 sm:border-[4px] border-white',
                   activity.iconBg.replace('rounded-2xl', 'rounded-full')]">
-                  <Icon :icon="activity.icon" class="w-5 h-5 sm:w-6 sm:h-6" />
+                  <Icon :icon="activity.icon" class="w-4 h-4 sm:w-6 sm:h-6" />
                 </div>
                 <div class="flex-1 min-w-0">
                   <div class="flex justify-between items-start gap-3">
                     <div class="pt-0.5 min-w-0">
-                      <h4 class="font-black text-stone-800 text-base sm:text-lg leading-tight group-hover:text-[#4A7043] transition-colors truncate">{{ activity.title }}</h4>
+                      <h4 class="font-black text-stone-800 text-sm sm:text-lg leading-tight group-hover:text-[#4A7043] transition-colors truncate">{{ activity.title }}</h4>
                       <p class="text-[9px] sm:text-[10px] font-bold text-stone-400 mt-1 uppercase tracking-[0.1em] truncate">
                         {{ activity.user }} <span class="mx-1.5 text-stone-100">•</span> {{ activity.ref }}
                       </p>
                     </div>
-                    <span class="text-[10px] sm:text-xs font-black text-stone-500 pt-1 sm:pt-1.5 shrink-0">{{ activity.time }}</span>
+                    <span class="text-[9px] sm:text-xs font-black text-stone-500 pt-1 sm:pt-1.5 shrink-0">{{ activity.time }}</span>
                   </div>
                 </div>
               </div>
 
-              <div v-if="activities.length === 0" class="py-16 flex flex-col items-center justify-center text-center opacity-30">
+              <div v-if="slicedActivities.length === 0" class="py-16 flex flex-col items-center justify-center text-center opacity-30">
                 <Icon icon="material-symbols:history" class="w-14 h-14 text-stone-100 mb-5" />
                 <p class="text-stone-400 text-base font-bold">Belum ada aktivitas hari ini.</p>
               </div>

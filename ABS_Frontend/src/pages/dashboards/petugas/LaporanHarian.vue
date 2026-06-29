@@ -164,92 +164,99 @@ onMounted(async () => {
 <template>
   <DashboardLayout title="Laporan Harian">
 
-    <div class="flex items-center justify-between mb-5">
-      <div class="flex items-center gap-3">
-        <div class="flex items-center gap-2 text-sm text-stone-500 font-medium">
-          <Icon icon="material-symbols:calendar-today-outline" class="w-4 h-4" />
+    <div class="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between mb-5">
+      <div class="flex flex-col sm:flex-row sm:items-center gap-3 w-full lg:w-auto">
+        <div class="flex items-center gap-2 text-xs sm:text-sm text-stone-500 font-medium">
+          <Icon icon="material-symbols:calendar-today-outline" class="w-4.5 h-4.5 shrink-0" />
           <span>{{ dateRangeLabel }}</span>
         </div>
-        <button 
-          @click="showDateModal = true"
-          class="flex items-center gap-2 bg-white rounded-xl px-4 py-2 border border-stone-200 shadow-sm text-sm font-bold text-stone-700 hover:bg-stone-50 transition-all"
-        >
-          <Icon icon="material-symbols:edit-calendar-outline" class="w-4 h-4 text-[#2d4a3e]" />
-          Pilih Rentang Tanggal
-        </button>
+        <div class="flex gap-2 w-full sm:w-auto">
+          <button 
+            @click="showDateModal = true"
+            class="flex-1 sm:flex-none flex items-center justify-center gap-1.5 bg-white rounded-xl px-3 py-2 border border-stone-200 shadow-sm text-xs font-bold text-stone-700 hover:bg-stone-50 transition-all cursor-pointer"
+          >
+            <Icon icon="material-symbols:edit-calendar-outline" class="w-4 h-4 text-[#2d4a3e] shrink-0" />
+            Pilih Rentang Tanggal
+          </button>
+          <button
+            @click="navigateToPreview"
+            class="flex-1 sm:flex-none lg:hidden flex items-center justify-center gap-1.5 bg-[#2d4a3e] text-white text-xs font-bold px-3 py-2.5 rounded-xl hover:bg-[#1f3529] transition-all cursor-pointer"
+          >
+            <Icon icon="material-symbols:description-outline" class="w-4 h-4 shrink-0" />
+            Preview Laporan
+          </button>
+        </div>
       </div>
 
       <button
         @click="navigateToPreview"
-        class="flex items-center gap-2 bg-[#2d4a3e] text-white text-sm font-medium px-4 py-2.5 rounded-xl hover:bg-[#1f3529] transition-all"
+        class="hidden lg:flex items-center gap-2 bg-[#2d4a3e] text-white text-sm font-medium px-4 py-2.5 rounded-xl hover:bg-[#1f3529] transition-all cursor-pointer"
       >
         <Icon icon="material-symbols:description-outline" class="w-4 h-4" />
         Preview Laporan
       </button>
     </div>
 
-    <div class="grid grid-cols-4 gap-4 mb-5">
-      <div class="relative rounded-2xl p-5 bg-[#2d6a4f] text-white">
-        <div class="flex items-start justify-between mb-6">
-          <div class="w-9 h-9 rounded-xl bg-white/15 flex items-center justify-center">
-            <Icon icon="material-symbols:package-2-outline" class="w-5 h-5" />
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-5">
+      <div class="relative rounded-2xl p-3.5 sm:p-5 bg-[#2d6a4f] text-white shadow-md">
+        <div class="flex items-start justify-between mb-4 sm:mb-6">
+          <div class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-white/15 flex items-center justify-center">
+            <Icon icon="material-symbols:package-2-outline" class="w-4.5 h-4.5 sm:w-5 sm:h-5" />
           </div>
-          <Icon icon="material-symbols:trending-up" class="w-5 h-5 opacity-70" />
+          <Icon icon="material-symbols:trending-up" class="w-4 h-4 sm:w-5 sm:h-5 opacity-70" />
         </div>
-        <p class="text-3xl font-bold leading-none mb-1">{{ summaryLaporan.penjemputan_count || 0 }}</p>
-        <p class="text-xs text-white/70 mb-4">Penjemputan Selesai</p>
-        <div class="border-t border-white/20 pt-3">
-          <p class="text-xs text-white/60 mb-1">Total Nilai</p>
-          <p class="text-base font-semibold">{{ formatRupiah(summaryLaporan.penjemputan_harga || 0) }}</p>
+        <p class="text-xl sm:text-3xl font-bold leading-none mb-1">{{ summaryLaporan.penjemputan_count || 0 }}</p>
+        <p class="text-[10px] sm:text-xs text-white/70 mb-3 sm:mb-4 uppercase sm:normal-case font-semibold tracking-wider sm:tracking-normal">Penjemputan Selesai</p>
+        <div class="border-t border-white/20 pt-2 sm:pt-3">
+          <p class="text-[10px] sm:text-xs text-white/60 mb-0.5 sm:mb-1">Total Nilai</p>
+          <p class="text-sm sm:text-base font-semibold">{{ formatRupiah(summaryLaporan.penjemputan_harga || 0) }}</p>
         </div>
       </div>
 
-      <div class="relative rounded-2xl p-5 bg-[#7a4419] text-white">
-        <div class="flex items-start justify-between mb-6">
-          <div class="w-9 h-9 rounded-xl bg-white/15 flex items-center justify-center">
-            <Icon icon="material-symbols:store-outline" class="w-5 h-5" />
+      <div class="relative rounded-2xl p-3.5 sm:p-5 bg-[#7a4419] text-white shadow-md">
+        <div class="flex items-start justify-between mb-4 sm:mb-6">
+          <div class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-white/15 flex items-center justify-center">
+            <Icon icon="material-symbols:store-outline" class="w-4.5 h-4.5 sm:w-5 sm:h-5" />
           </div>
-          <Icon icon="material-symbols:trending-up" class="w-5 h-5 opacity-70" />
+          <Icon icon="material-symbols:trending-up" class="w-4 h-4 sm:w-5 sm:h-5 opacity-70" />
         </div>
-        <p class="text-3xl font-bold leading-none mb-1">{{ summaryLaporan.setor_count || 0 }}</p>
-        <p class="text-xs text-white/70 mb-4">Setor Manual</p>
-        <div class="border-t border-white/20 pt-3">
-          <p class="text-xs text-white/60 mb-1">Total Nilai</p>
-          <p class="text-base font-semibold">{{ formatRupiah(summaryLaporan.setor_harga || 0) }}</p>
+        <p class="text-xl sm:text-3xl font-bold leading-none mb-1">{{ summaryLaporan.setor_count || 0 }}</p>
+        <p class="text-[10px] sm:text-xs text-white/70 mb-3 sm:mb-4 uppercase sm:normal-case font-semibold tracking-wider sm:tracking-normal">Setor Manual</p>
+        <div class="border-t border-white/20 pt-2 sm:pt-3">
+          <p class="text-[10px] sm:text-xs text-white/60 mb-0.5 sm:mb-1">Total Nilai</p>
+          <p class="text-sm sm:text-base font-semibold">{{ formatRupiah(summaryLaporan.setor_harga || 0) }}</p>
         </div>
       </div>
 
-      <div class="relative rounded-2xl p-5 bg-[#1a7a6e] text-white">
-        <div class="flex items-start justify-between mb-6">
-          <div class="w-9 h-9 rounded-xl bg-white/15 flex items-center justify-center">
-            <Icon icon="material-symbols:credit-card-outline" class="w-5 h-5" />
+      <div class="relative rounded-2xl p-3.5 sm:p-5 bg-[#1a7a6e] text-white shadow-md">
+        <div class="flex items-start justify-between mb-4 sm:mb-6">
+          <div class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-white/15 flex items-center justify-center">
+            <Icon icon="material-symbols:credit-card-outline" class="w-4.5 h-4.5 sm:w-5 sm:h-5" />
           </div>
-          <Icon icon="material-symbols:trending-up" class="w-5 h-5 opacity-70" />
+          <Icon icon="material-symbols:trending-up" class="w-4 h-4 sm:w-5 sm:h-5 opacity-70" />
         </div>
-        
-        <p class="text-3xl font-bold leading-none mb-1">{{ detailsLaporan.penarikan.length || 0 }}</p>
-        <p class="text-xs text-white/70 mb-4">Penarikan Disetujui</p>
-        
-        <div class="border-t border-white/20 pt-3">
-          <p class="text-xs text-white/60 mb-1">Total Nominal</p>
-          <p class="text-base font-semibold">
+        <p class="text-xl sm:text-3xl font-bold leading-none mb-1">{{ detailsLaporan.penarikan.length || 0 }}</p>
+        <p class="text-[10px] sm:text-xs text-white/70 mb-3 sm:mb-4 uppercase sm:normal-case font-semibold tracking-wider sm:tracking-normal">Penarikan Disetujui</p>
+        <div class="border-t border-white/20 pt-2 sm:pt-3">
+          <p class="text-[10px] sm:text-xs text-white/60 mb-0.5 sm:mb-1">Total Nominal</p>
+          <p class="text-sm sm:text-base font-semibold">
             {{ formatRupiah(detailsLaporan.penarikan.reduce((sum, item) => sum + Number(item.jumlah || 0), 0)) }}
           </p>
         </div>
       </div>
 
-      <div class="relative rounded-2xl p-5 bg-[#4a4a4a] text-white">
-        <div class="flex items-start justify-between mb-6">
-          <div class="w-9 h-9 rounded-xl bg-white/15 flex items-center justify-center">
-            <Icon icon="material-symbols:receipt-outline" class="w-5 h-5" />
+      <div class="relative rounded-2xl p-3.5 sm:p-5 bg-[#4a4a4a] text-white shadow-md">
+        <div class="flex items-start justify-between mb-4 sm:mb-6">
+          <div class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-white/15 flex items-center justify-center">
+            <Icon icon="material-symbols:receipt-outline" class="w-4.5 h-4.5 sm:w-5 sm:h-5" />
           </div>
-          <Icon icon="material-symbols:trending-up" class="w-5 h-5 opacity-70" />
+          <Icon icon="material-symbols:trending-up" class="w-4 h-4 sm:w-5 sm:h-5 opacity-70" />
         </div>
-        <p class="text-3xl font-bold leading-none mb-1">{{ summaryLaporan.pengepul_count || 0 }}</p>
-        <p class="text-xs text-white/70 mb-4">Pesanan Pengepul</p>
-        <div class="border-t border-white/20 pt-3">
-          <p class="text-xs text-white/60 mb-1">Total Nilai</p>
-          <p class="text-base font-semibold">{{ formatRupiah(summaryLaporan.pengepul_harga || 0) }}</p>
+        <p class="text-xl sm:text-3xl font-bold leading-none mb-1">{{ summaryLaporan.pengepul_count || 0 }}</p>
+        <p class="text-[10px] sm:text-xs text-white/70 mb-3 sm:mb-4 uppercase sm:normal-case font-semibold tracking-wider sm:tracking-normal">Pesanan Pengepul</p>
+        <div class="border-t border-white/20 pt-2 sm:pt-3">
+          <p class="text-[10px] sm:text-xs text-white/60 mb-0.5 sm:mb-1">Total Nilai</p>
+          <p class="text-sm sm:text-base font-semibold">{{ formatRupiah(summaryLaporan.pengepul_harga || 0) }}</p>
         </div>
       </div>
     </div>
@@ -257,38 +264,39 @@ onMounted(async () => {
     <div class="bg-white rounded-3xl p-6 shadow-sm border border-stone-200/80 mb-5">
       <h3 class="text-lg font-bold text-stone-800 mb-4">Detail Transaksi</h3>
       
-      <div class="flex flex-wrap bg-[#F5F8F5] p-1 rounded-2xl mb-6">
+      <div class="grid grid-cols-2 lg:flex lg:flex-row gap-1.5 lg:gap-0 bg-[#F5F8F5] p-1.5 rounded-2xl mb-6">
         <button 
           @click="activeTab = 'penjemputan'"
-          :class="['flex-1 min-w-[150px] flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-semibold transition-all', activeTab === 'penjemputan' ? 'bg-[#4A7043] text-white shadow-md' : 'text-stone-500 hover:text-stone-700 hover:bg-stone-100/50']"
+          :class="['w-full flex items-center justify-center gap-1.5 py-2.5 lg:py-3 rounded-xl text-xs lg:text-sm font-semibold transition-all cursor-pointer', activeTab === 'penjemputan' ? 'bg-[#4A7043] text-white shadow-md' : 'text-stone-500 hover:text-stone-700 hover:bg-stone-100/50']"
         >
-          <Icon icon="material-symbols:package-2-outline" class="w-5 h-5" />
-          Penjemputan ({{ detailsLaporan.penjemputan?.length || 0 }})
+          <Icon icon="material-symbols:package-2-outline" class="w-4.5 h-4.5 lg:w-5 lg:h-5 shrink-0" />
+          <span>Penjemputan ({{ detailsLaporan.penjemputan?.length || 0 }})</span>
         </button>
         <button 
           @click="activeTab = 'setor_manual'"
-          :class="['flex-1 min-w-[150px] flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-semibold transition-all', activeTab === 'setor_manual' ? 'bg-[#4A7043] text-white shadow-md' : 'text-stone-500 hover:text-stone-700 hover:bg-stone-100/50']"
+          :class="['w-full flex items-center justify-center gap-1.5 py-2.5 lg:py-3 rounded-xl text-xs lg:text-sm font-semibold transition-all cursor-pointer', activeTab === 'setor_manual' ? 'bg-[#4A7043] text-white shadow-md' : 'text-stone-500 hover:text-stone-700 hover:bg-stone-100/50']"
         >
-          <Icon icon="material-symbols:store-outline" class="w-5 h-5" />
-          Setor Manual ({{ detailsLaporan.setor_manual?.length || 0 }})
+          <Icon icon="material-symbols:store-outline" class="w-4.5 h-4.5 lg:w-5 lg:h-5 shrink-0" />
+          <span>Setor Manual ({{ detailsLaporan.setor_manual?.length || 0 }})</span>
         </button>
         <button 
           @click="activeTab = 'penarikan'"
-          :class="['flex-1 min-w-[150px] flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-semibold transition-all', activeTab === 'penarikan' ? 'bg-[#4A7043] text-white shadow-md' : 'text-stone-500 hover:text-stone-700 hover:bg-stone-100/50']"
+          :class="['w-full flex items-center justify-center gap-1.5 py-2.5 lg:py-3 rounded-xl text-xs lg:text-sm font-semibold transition-all cursor-pointer', activeTab === 'penarikan' ? 'bg-[#4A7043] text-white shadow-md' : 'text-stone-500 hover:text-stone-700 hover:bg-stone-100/50']"
         >
-          <Icon icon="material-symbols:credit-card-outline" class="w-5 h-5" />
-          Penarikan ({{ detailsLaporan.penarikan?.length || 0 }})
+          <Icon icon="material-symbols:credit-card-outline" class="w-4.5 h-4.5 lg:w-5 lg:h-5 shrink-0" />
+          <span>Penarikan ({{ detailsLaporan.penarikan?.length || 0 }})</span>
         </button>
         <button 
           @click="activeTab = 'pesanan_pengepul'"
-          :class="['flex-1 min-w-[150px] flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-semibold transition-all', activeTab === 'pesanan_pengepul' ? 'bg-[#4A7043] text-white shadow-md' : 'text-stone-500 hover:text-stone-700 hover:bg-stone-100/50']"
+          :class="['w-full flex items-center justify-center gap-1.5 py-2.5 lg:py-3 rounded-xl text-xs lg:text-sm font-semibold transition-all cursor-pointer', activeTab === 'pesanan_pengepul' ? 'bg-[#4A7043] text-white shadow-md' : 'text-stone-500 hover:text-stone-700 hover:bg-stone-100/50']"
         >
-          <Icon icon="material-symbols:receipt-outline" class="w-5 h-5" />
-          Pesanan Pengepul ({{ detailsLaporan.pesanan_pengepul?.length || 0 }})
+          <Icon icon="material-symbols:receipt-outline" class="w-4.5 h-4.5 lg:w-5 lg:h-5 shrink-0" />
+          <span><span class="lg:inline hidden">Pesanan </span>Pengepul ({{ detailsLaporan.pesanan_pengepul?.length || 0 }})</span>
         </button>
       </div>
 
-      <div v-if="activeTab === 'penjemputan'" class="overflow-x-auto">
+      <!-- Desktop Table View (Penjemputan) -->
+      <div v-if="activeTab === 'penjemputan'" class="hidden lg:block overflow-x-auto">
         <table class="w-full text-left text-sm whitespace-nowrap">
           <thead class="text-xs text-stone-400 font-bold border-b border-stone-100">
             <tr>
@@ -316,7 +324,7 @@ onMounted(async () => {
               <td class="py-4 px-4 text-center font-bold text-stone-700">{{ item.penimbangan?.reduce((acc, p) => acc + Number(p.berat_timbang || 0), 0) }}</td>
               <td class="py-4 px-4 text-right font-bold text-[#4A7043]">{{ formatRupiah(item.total_harga) }}</td>
               <td class="py-4 px-4 text-center">
-                <button v-if="item.penimbangan?.[0]?.foto" @click="viewImage(item.penimbangan[0].foto)" class="inline-flex items-center gap-1 px-3 py-1.5 bg-[#4A7043] text-white text-xs font-semibold rounded-lg hover:bg-[#3D5C37] transition-colors">
+                <button v-if="item.penimbangan?.[0]?.foto" @click="viewImage(item.penimbangan[0].foto)" class="inline-flex items-center gap-1 px-3 py-1.5 bg-[#4A7043] text-white text-xs font-semibold rounded-lg hover:bg-[#3D5C37] transition-colors cursor-pointer">
                   <Icon icon="material-symbols:search" class="w-3.5 h-3.5" />
                   Lihat
                 </button>
@@ -335,7 +343,47 @@ onMounted(async () => {
         </table>
       </div>
 
-      <div v-if="activeTab === 'setor_manual'" class="overflow-x-auto">
+      <!-- Mobile List View (Penjemputan) -->
+      <div v-if="activeTab === 'penjemputan'" class="block lg:hidden space-y-3">
+        <div v-if="!detailsLaporan.penjemputan?.length" class="py-8 text-center text-stone-400 font-medium text-xs">
+          Tidak ada data penjemputan
+        </div>
+        <div v-for="item in detailsLaporan.penjemputan" :key="item.transaksi_id" class="bg-stone-50 border border-stone-100 rounded-2xl p-4 space-y-3 shadow-sm">
+          <div class="flex justify-between items-center text-xs">
+            <span class="font-black text-[#4A7043]">REQ-{{ String(item.transaksi_id).padStart(3, '0') }}</span>
+            <span class="text-stone-400 font-medium">{{ formatTimeDisplay(item.created_at) }}</span>
+          </div>
+          <div class="space-y-1">
+            <div class="font-black text-stone-800 text-sm">{{ item.penimbangan?.[0]?.nasabah?.nama || '-' }}</div>
+            <div class="text-[10px] font-bold text-stone-400">NSB-{{ String(item.penimbangan?.[0]?.nasabah_id).padStart(3, '0') }}</div>
+            <div class="text-xs text-stone-500 font-medium truncate">Sampah: {{ item.penimbangan?.map(p => p.sampah?.item_sampah?.nama).join(', ') || '-' }}</div>
+          </div>
+          <div class="flex justify-between items-center pt-3 border-t border-stone-200/50 text-xs">
+            <div class="flex items-center gap-1.5">
+              <span class="text-stone-400 font-bold">Berat:</span>
+              <span class="font-black text-stone-700">{{ item.penimbangan?.reduce((acc, p) => acc + Number(p.berat_timbang || 0), 0) }} kg</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="font-black text-[#4A7043]">{{ formatRupiah(item.total_harga) }}</span>
+              <button v-if="item.penimbangan?.[0]?.foto" @click="viewImage(item.penimbangan[0].foto)" class="inline-flex items-center gap-1 px-2.5 py-1.5 bg-[#4A7043] text-white text-[10px] font-bold rounded-lg hover:bg-[#3D5C37] transition-colors cursor-pointer">
+                <Icon icon="material-symbols:search" class="w-3.5 h-3.5" />
+                Foto
+              </button>
+            </div>
+          </div>
+        </div>
+        <!-- Mobile Total -->
+        <div v-if="detailsLaporan.penjemputan?.length" class="bg-[#F5F8F5] rounded-xl p-3.5 flex justify-between items-center text-xs font-black">
+          <span class="text-stone-500">TOTAL:</span>
+          <div class="flex items-center gap-3">
+            <span class="text-stone-700">{{ detailsLaporan.penjemputan.reduce((sum, item) => sum + item.penimbangan.reduce((acc, p) => acc + Number(p.berat_timbang || 0), 0), 0) }} kg</span>
+            <span class="text-[#4A7043]">{{ formatRupiah(detailsLaporan.penjemputan.reduce((sum, item) => sum + Number(item.total_harga || 0), 0)) }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Desktop Table View (Setor Manual) -->
+      <div v-if="activeTab === 'setor_manual'" class="hidden lg:block overflow-x-auto">
         <table class="w-full text-left text-sm whitespace-nowrap">
           <thead class="text-xs text-stone-400 font-bold border-b border-stone-100">
             <tr>
@@ -363,7 +411,7 @@ onMounted(async () => {
               <td class="py-4 px-4 text-center font-bold text-stone-700">{{ item.penimbangan?.reduce((acc, p) => acc + Number(p.berat_timbang || 0), 0) }}</td>
               <td class="py-4 px-4 text-right font-bold text-[#4A7043]">{{ formatRupiah(item.total_harga) }}</td>
               <td class="py-4 px-4 text-center">
-                <button v-if="item.penimbangan?.[0]?.foto" @click="viewImage(item.penimbangan[0].foto)" class="inline-flex items-center gap-1 px-3 py-1.5 bg-[#4A7043] text-white text-xs font-semibold rounded-lg hover:bg-[#3D5C37] transition-colors">
+                <button v-if="item.penimbangan?.[0]?.foto" @click="viewImage(item.penimbangan[0].foto)" class="inline-flex items-center gap-1 px-3 py-1.5 bg-[#4A7043] text-white text-xs font-semibold rounded-lg hover:bg-[#3D5C37] transition-colors cursor-pointer">
                   <Icon icon="material-symbols:search" class="w-3.5 h-3.5" />
                   Lihat
                 </button>
@@ -382,7 +430,47 @@ onMounted(async () => {
         </table>
       </div>
 
-      <div v-if="activeTab === 'penarikan'" class="overflow-x-auto">
+      <!-- Mobile List View (Setor Manual) -->
+      <div v-if="activeTab === 'setor_manual'" class="block lg:hidden space-y-3">
+        <div v-if="!detailsLaporan.setor_manual?.length" class="py-8 text-center text-stone-400 font-medium text-xs">
+          Tidak ada data setor manual
+        </div>
+        <div v-for="item in detailsLaporan.setor_manual" :key="item.transaksi_id" class="bg-stone-50 border border-stone-100 rounded-2xl p-4 space-y-3 shadow-sm">
+          <div class="flex justify-between items-center text-xs">
+            <span class="font-black text-[#4A7043]">TR-{{ String(item.transaksi_id).padStart(3, '0') }}</span>
+            <span class="text-stone-400 font-medium">{{ formatTimeDisplay(item.created_at) }}</span>
+          </div>
+          <div class="space-y-1">
+            <div class="font-black text-stone-800 text-sm">{{ item.penimbangan?.[0]?.nasabah?.nama || '-' }}</div>
+            <div class="text-[10px] font-bold text-stone-400">NSB-{{ String(item.penimbangan?.[0]?.nasabah_id).padStart(3, '0') }}</div>
+            <div class="text-xs text-stone-500 font-medium truncate">Sampah: {{ item.penimbangan?.map(p => p.sampah?.item_sampah?.nama).join(', ') || '-' }}</div>
+          </div>
+          <div class="flex justify-between items-center pt-3 border-t border-stone-200/50 text-xs">
+            <div class="flex items-center gap-1.5">
+              <span class="text-stone-400 font-bold">Berat:</span>
+              <span class="font-black text-stone-700">{{ item.penimbangan?.reduce((acc, p) => acc + Number(p.berat_timbang || 0), 0) }} kg</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="font-black text-[#4A7043]">{{ formatRupiah(item.total_harga) }}</span>
+              <button v-if="item.penimbangan?.[0]?.foto" @click="viewImage(item.penimbangan[0].foto)" class="inline-flex items-center gap-1 px-2.5 py-1.5 bg-[#4A7043] text-white text-[10px] font-bold rounded-lg hover:bg-[#3D5C37] transition-colors cursor-pointer">
+                <Icon icon="material-symbols:search" class="w-3.5 h-3.5" />
+                Foto
+              </button>
+            </div>
+          </div>
+        </div>
+        <!-- Mobile Total -->
+        <div v-if="detailsLaporan.setor_manual?.length" class="bg-[#F5F8F5] rounded-xl p-3.5 flex justify-between items-center text-xs font-black">
+          <span class="text-stone-500">TOTAL:</span>
+          <div class="flex items-center gap-3">
+            <span class="text-stone-700">{{ detailsLaporan.setor_manual.reduce((sum, item) => sum + item.penimbangan.reduce((acc, p) => acc + Number(p.berat_timbang || 0), 0), 0) }} kg</span>
+            <span class="text-[#4A7043]">{{ formatRupiah(detailsLaporan.setor_manual.reduce((sum, item) => sum + Number(item.total_harga || 0), 0)) }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Desktop Table View (Penarikan) -->
+      <div v-if="activeTab === 'penarikan'" class="hidden lg:block overflow-x-auto">
         <table class="w-full text-left text-sm whitespace-nowrap">
           <thead class="text-xs text-stone-400 font-bold border-b border-stone-100">
             <tr>
@@ -414,7 +502,7 @@ onMounted(async () => {
               </td>
               <td class="py-4 px-4 text-right font-bold text-[#4A7043]">{{ formatRupiah(item.jumlah) }}</td>
               <td class="py-4 px-4 text-center">
-                <button v-if="item.bukti_tf" @click="viewImage(item.bukti_tf)" class="inline-flex items-center gap-1 px-3 py-1.5 bg-[#4A7043] text-white text-xs font-semibold rounded-lg hover:bg-[#3D5C37] transition-colors">
+                <button v-if="item.bukti_tf" @click="viewImage(item.bukti_tf)" class="inline-flex items-center gap-1 px-3 py-1.5 bg-[#4A7043] text-white text-xs font-semibold rounded-lg hover:bg-[#3D5C37] transition-colors cursor-pointer">
                   <Icon icon="material-symbols:search" class="w-3.5 h-3.5" />
                   Lihat
                 </button>
@@ -432,7 +520,41 @@ onMounted(async () => {
         </table>
       </div>
 
-      <div v-if="activeTab === 'pesanan_pengepul'" class="overflow-x-auto">
+      <!-- Mobile List View (Penarikan) -->
+      <div v-if="activeTab === 'penarikan'" class="block lg:hidden space-y-3">
+        <div v-if="!detailsLaporan.penarikan?.length" class="py-8 text-center text-stone-400 font-medium text-xs">
+          Tidak ada data penarikan disetujui
+        </div>
+        <div v-for="item in detailsLaporan.penarikan" :key="item.penarikan_id" class="bg-stone-50 border border-stone-100 rounded-2xl p-4 space-y-3 shadow-sm">
+          <div class="flex justify-between items-center text-xs">
+            <span class="font-black text-[#4A7043]">WD-{{ String(item.penarikan_id).padStart(3, '0') }}</span>
+            <span class="text-stone-400 font-medium">{{ formatTimeDisplay(item.created_at) }}</span>
+          </div>
+          <div class="space-y-1">
+            <div class="font-black text-stone-800 text-sm">{{ item.nasabah?.nama || '-' }}</div>
+            <div class="text-[10px] font-bold text-stone-400">NSB-{{ String(item.nasabah_id).padStart(3, '0') }}</div>
+            <div class="text-xs text-stone-500 font-medium">Rekening: {{ item.nama_bank }} - {{ item.no_rekening }}</div>
+          </div>
+          <div class="flex justify-between items-center pt-3 border-t border-stone-200/50 text-xs">
+            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-bold bg-green-100 text-green-700 uppercase tracking-wider">Selesai</span>
+            <div class="flex items-center gap-2">
+              <span class="font-black text-[#4A7043]">{{ formatRupiah(item.jumlah) }}</span>
+              <button v-if="item.bukti_tf" @click="viewImage(item.bukti_tf)" class="inline-flex items-center gap-1 px-2.5 py-1.5 bg-[#4A7043] text-white text-[10px] font-bold rounded-lg hover:bg-[#3D5C37] transition-colors cursor-pointer">
+                <Icon icon="material-symbols:search" class="w-3.5 h-3.5" />
+                Bukti
+              </button>
+            </div>
+          </div>
+        </div>
+        <!-- Mobile Total -->
+        <div v-if="detailsLaporan.penarikan?.length" class="bg-[#F5F8F5] rounded-xl p-3.5 flex justify-between items-center text-xs font-black">
+          <span class="text-stone-500">TOTAL:</span>
+          <span class="text-[#4A7043]">{{ formatRupiah(detailsLaporan.penarikan.reduce((sum, item) => sum + Number(item.jumlah || 0), 0)) }}</span>
+        </div>
+      </div>
+
+      <!-- Desktop Table View (Pesanan Pengepul) -->
+      <div v-if="activeTab === 'pesanan_pengepul'" class="hidden lg:block overflow-x-auto">
         <table class="w-full text-left text-sm whitespace-nowrap">
           <thead class="text-xs text-stone-400 font-bold border-b border-stone-100">
             <tr>
@@ -467,7 +589,7 @@ onMounted(async () => {
                 </span>
               </td>
               <td class="py-4 px-4 text-center">
-                <button v-if="item.bukti_transfer" @click="viewImage(item.bukti_transfer)" class="inline-flex items-center gap-1 px-3 py-1.5 bg-[#4A7043] text-white text-xs font-semibold rounded-lg hover:bg-[#3D5C37] transition-colors">
+                <button v-if="item.bukti_transfer" @click="viewImage(item.bukti_transfer)" class="inline-flex items-center gap-1 px-3 py-1.5 bg-[#4A7043] text-white text-xs font-semibold rounded-lg hover:bg-[#3D5C37] transition-colors cursor-pointer">
                   <Icon icon="material-symbols:search" class="w-3.5 h-3.5" />
                   Lihat
                 </button>
@@ -484,6 +606,45 @@ onMounted(async () => {
             </tr>
           </tfoot>
         </table>
+      </div>
+
+      <!-- Mobile List View (Pesanan Pengepul) -->
+      <div v-if="activeTab === 'pesanan_pengepul'" class="block lg:hidden space-y-3">
+        <div v-if="!detailsLaporan.pesanan_pengepul?.length" class="py-8 text-center text-stone-400 font-medium text-xs">
+          Tidak ada data pesanan pengepul
+        </div>
+        <div v-for="item in detailsLaporan.pesanan_pengepul" :key="item.transaksi_id" class="bg-stone-50 border border-stone-100 rounded-2xl p-4 space-y-3 shadow-sm">
+          <div class="flex justify-between items-center text-xs">
+            <span class="font-black text-[#4A7043]">PO-{{ String(item.transaksi_id).padStart(3, '0') }}</span>
+            <span class="text-stone-400 font-medium">{{ formatTimeDisplay(item.created_at) }}</span>
+          </div>
+          <div class="space-y-1">
+            <div class="font-black text-stone-800 text-sm">{{ item.pengepul?.nama || item.pengepul?.nama_lembaga || '-' }}</div>
+            <div class="text-[10px] font-bold text-stone-400">{{ item.pengepul?.no_telp || '-' }}</div>
+            <div class="text-[10px] text-stone-400 mt-0.5">Deadline: {{ formatDateTime(item.deadline) }}</div>
+          </div>
+          <div class="flex justify-between items-center pt-3 border-t border-stone-200/50 text-xs">
+            <div class="flex items-center gap-1.5">
+              <span class="text-stone-400 font-bold">Berat:</span>
+              <span class="font-black text-stone-700">{{ item.detail_transaksi?.reduce((acc, d) => acc + Number(d.berat || 0), 0) }} kg</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="font-black text-[#4A7043]">{{ formatRupiah(item.detail_transaksi?.reduce((acc, d) => acc + (Number(d.berat) * Number(d.harga) || 0), 0) || Number(item.total_harga)) }}</span>
+              <button v-if="item.bukti_transfer" @click="viewImage(item.bukti_transfer)" class="inline-flex items-center gap-1 px-2.5 py-1.5 bg-[#4A7043] text-white text-[10px] font-bold rounded-lg hover:bg-[#3D5C37] transition-colors cursor-pointer">
+                <Icon icon="material-symbols:search" class="w-3.5 h-3.5" />
+                Bukti
+              </button>
+            </div>
+          </div>
+        </div>
+        <!-- Mobile Total -->
+        <div v-if="detailsLaporan.pesanan_pengepul?.length" class="bg-[#F5F8F5] rounded-xl p-3.5 flex justify-between items-center text-xs font-black">
+          <span class="text-stone-500">TOTAL:</span>
+          <div class="flex items-center gap-3">
+            <span class="text-stone-700">{{ detailsLaporan.pesanan_pengepul.reduce((sum, item) => sum + item.detail_transaksi.reduce((acc, d) => acc + Number(d.berat || 0), 0), 0) }} kg</span>
+            <span class="text-[#4A7043]">{{ formatRupiah(detailsLaporan.pesanan_pengepul.reduce((sum, item) => sum + (item.detail_transaksi?.reduce((acc, d) => acc + (Number(d.berat) * Number(d.harga) || 0), 0) || Number(item.total_harga) || 0), 0)) }}</span>
+          </div>
+        </div>
       </div>
     </div>
 
