@@ -103,37 +103,11 @@ const openEditModal = (kategori) => {
   isModalOpen.value = true;
 };
 
-// --- VALIDASI UNIQUE DI FRONT-END ---
 const nextStep = () => {
-  const inputNama = currentCategory.value.nama.trim();
-
-  // 1. Validasi Kosong
-  if (inputNama === '') {
+  if (currentCategory.value.nama.trim() === '') {
     Swal.fire('Error', 'Nama kategori harus diisi', 'error');
     return;
   }
-
-  // 2. Validasi Unique (Mencegah Duplikat)
-  const isDuplicate = kategoriList.value.some(kategori => {
-    // Jika sedang mode 'edit', abaikan nama miliknya sendiri
-    if (modalMode.value === 'edit' && Number(kategori.kategori_id) === Number(currentCategory.value.id)) {
-      return false;
-    }
-    // Pengecekan case-insensitive (huruf besar/kecil tidak ngaruh)
-    return kategori.nama.toLowerCase() === inputNama.toLowerCase();
-  });
-
-  if (isDuplicate) {
-    Swal.fire({
-      title: 'Nama Sudah Ada!',
-      text: `Kategori dengan nama "${inputNama}" sudah terdaftar. Silakan gunakan nama yang berbeda.`,
-      icon: 'warning',
-      confirmButtonColor: '#4A7043'
-    });
-    return;
-  }
-
-  // Jika lulus validasi, lanjut ke Step 2
   currentStep.value = 2;
 };
 
@@ -156,55 +130,6 @@ const handleFileUpload = (event, index) => {
 };
 
 const saveKategori = async () => {
-  // --- VALIDASI FRONTEND ITEM SAMPAH ---
-  let duplicateName = null;
-  let hasEmptyName = false;
-
-  // 1. Cek internal duplikat di dalam form yang sedang diisi (jika admin input nama kembar di multiple form)
-  const itemNamesInForm = currentCategory.value.items.map(i => i.nama.trim().toLowerCase()).filter(n => n !== '');
-  const uniqueNamesInForm = new Set(itemNamesInForm);
-  if (itemNamesInForm.length !== uniqueNamesInForm.size) {
-    Swal.fire('Error', 'Terdapat nama item yang kembar di dalam form yang Anda isi!', 'error');
-    return;
-  }
-
-  // 2. Cek eksternal dan nama kosong
-  for (const formItem of currentCategory.value.items) {
-    const inputNama = formItem.nama.trim();
-    if (inputNama === '') {
-      hasEmptyName = true;
-      break;
-    }
-
-    const isDuplicate = kategoriList.value.some(kategori => {
-      return kategori.item_sampah?.some(dbItem => {
-        // Abaikan jika item_id nya sama (sedang diedit)
-        if (formItem.item_id && Number(dbItem.item_id) === Number(formItem.item_id)) return false;
-        return dbItem.nama.toLowerCase() === inputNama.toLowerCase();
-      });
-    });
-
-    if (isDuplicate) {
-      duplicateName = inputNama;
-      break;
-    }
-  }
-
-  if (hasEmptyName) {
-    Swal.fire('Error', 'Semua kolom nama item harus diisi', 'error');
-    return;
-  }
-
-  if (duplicateName) {
-    Swal.fire({
-      title: 'Nama Item Sudah Ada!',
-      text: `Item sampah dengan nama "${duplicateName}" sudah terdaftar di database. Silakan gunakan nama yang berbeda.`,
-      icon: 'warning',
-      confirmButtonColor: '#4A7043'
-    });
-    return;
-  }
-
   loading.value = true;
   try {
     const formData = new FormData();
@@ -238,23 +163,14 @@ const saveKategori = async () => {
     isModalOpen.value = false;
     fetchKategori();
   } catch (err) {
-    // Menangkap pesan error dari validasi backend jika masih tembus (fallback)
-    let errorMsg = 'Gagal menyimpan data';
-    if (err.response?.data?.errors) {
-      const errors = err.response.data.errors;
-      // Mengambil pesan error pertama secara dinamis (misal: "items.0.nama")
-      errorMsg = Object.values(errors)[0][0];
-    } else if (err.response?.data?.message) {
-      errorMsg = err.response.data.message;
-    }
-    Swal.fire('Error', errorMsg, 'error');
+    Swal.fire('Error', err.response?.data?.message || 'Gagal menyimpan data', 'error');
   } finally {
     loading.value = false;
   }
 };
 
 const toggleStatus = async (kategori) => {
-  const newStatus = Number(kategori.active) === 1 ? 0 : 1;
+  const newStatus = kategori.active === 1 ? 0 : 1;
   const action = newStatus === 1 ? 'mengaktifkan' : 'menonaktifkan';
   
   const result = await Swal.fire({
@@ -291,7 +207,7 @@ const openEditItemModal = (item) => {
     harga_beli: item.harga_beli,
     harga_jual: item.harga_jual,
     diskon: item.diskon * 100,
-    active: item.active !== undefined ? Number(item.active) : 1,
+    active: item.active !== undefined ? item.active : 1,
     foto: null,
     fotoPreview: item.foto ? (item.foto.startsWith('http') ? item.foto : `${axios.defaults.baseURL}/storage/${item.foto}`) : null,
   };
@@ -307,31 +223,6 @@ const handleSingleItemPhoto = (event) => {
 };
 
 const saveSingleItem = async () => {
-  const inputNama = currentItem.value.nama.trim();
-  
-  if (inputNama === '') {
-    Swal.fire('Error', 'Nama item harus diisi', 'error');
-    return;
-  }
-
-  // Cek duplikat eksternal (mengabaikan miliknya sendiri)
-  const isDuplicate = kategoriList.value.some(kategori => {
-    return kategori.item_sampah?.some(item => {
-      if (Number(item.item_id) === Number(currentItem.value.item_id)) return false;
-      return item.nama.toLowerCase() === inputNama.toLowerCase();
-    });
-  });
-
-  if (isDuplicate) {
-    Swal.fire({
-      title: 'Nama Item Sudah Ada!',
-      text: `Item sampah dengan nama "${inputNama}" sudah terdaftar. Silakan gunakan nama yang berbeda.`,
-      icon: 'warning',
-      confirmButtonColor: '#4A7043'
-    });
-    return;
-  }
-
   loading.value = true;
   try {
     const formData = new FormData();
@@ -340,7 +231,7 @@ const saveSingleItem = async () => {
     formData.append('harga_beli', currentItem.value.harga_beli);
     formData.append('harga_jual', currentItem.value.harga_jual);
     formData.append('diskon', currentItem.value.diskon);
-    formData.append('active', Number(currentItem.value.active) === 1 ? 1 : 0);
+    formData.append('active', currentItem.value.active ? 1 : 0);
     if (currentItem.value.foto) {
       formData.append('foto', currentItem.value.foto);
     }
@@ -398,7 +289,7 @@ onMounted(() => {
           <div 
             :class="[
               'rounded-2xl p-6 flex items-center justify-between transition-all duration-300 border-2',
-              Number(kategori.active) === 1 
+              kategori.active === 1 
                 ? 'bg-[#4A7043] text-white border-[#4A7043]' 
                 : 'bg-gray-400 text-white border-gray-400'
             ]"
@@ -415,7 +306,7 @@ onMounted(() => {
             </div>
 
             <div class="flex items-center gap-3">
-              <span v-if="Number(kategori.active) === 0" class="bg-red-500 text-white px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest mr-4">Nonaktif</span>
+              <span v-if="kategori.active === 0" class="bg-red-500 text-white px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest mr-4">Nonaktif</span>
               
               <button 
                 @click="openEditModal(kategori)"
@@ -429,13 +320,13 @@ onMounted(() => {
                 @click="toggleStatus(kategori)"
                 :class="[
                   'px-5 py-2.5 rounded-xl flex items-center gap-2 font-bold text-sm shadow-md transition-all active:scale-95',
-                  Number(kategori.active) === 1 
+                  kategori.active === 1 
                     ? 'bg-red-500 hover:bg-red-600 text-white' 
                     : 'bg-[#4A7043] hover:bg-[#3D5C37] text-white'
                 ]"
               >
-                <Icon :icon="Number(kategori.active) === 1 ? 'material-symbols:power-settings-new' : 'material-symbols:check-circle-outline'" class="w-5 h-5" />
-                {{ Number(kategori.active) === 1 ? 'Nonaktifkan' : 'Aktifkan' }}
+                <Icon :icon="kategori.active === 1 ? 'material-symbols:power-settings-new' : 'material-symbols:check-circle-outline'" class="w-5 h-5" />
+                {{ kategori.active === 1 ? 'Nonaktifkan' : 'Aktifkan' }}
               </button>
             </div>
           </div>
@@ -459,7 +350,7 @@ onMounted(() => {
                   @click="openEditItemModal(item)"
                   class="bg-white rounded-2xl border-2 border-gray-100 p-4 shadow-sm hover:shadow-lg hover:border-[#4A7043] transition-all duration-300 group cursor-pointer relative"
                 >
-                  <div v-if="Number(item.active) === 0" class="absolute top-2 right-2 bg-red-500 text-white text-[10px] font-bold px-2 py-1 rounded-md z-10">
+                  <div v-if="item.active === 0" class="absolute top-2 right-2 bg-red-500 text-white text-[10px] font-bold px-2 py-1 rounded-md z-10">
                     NONAKTIF
                   </div>
 

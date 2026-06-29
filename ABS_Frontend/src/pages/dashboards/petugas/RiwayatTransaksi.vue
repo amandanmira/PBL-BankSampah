@@ -10,6 +10,9 @@ checkRole("petugas");
 const axios = inject("axios");
 const user = ref(JSON.parse(sessionStorage.getItem("user") || "{}"));
 
+// URL Server Production untuk Gambar
+const STORAGE_URL = "https://api.tabungansampah.online/storage";
+
 // State
 const activeFilter = ref("penjemputan"); // penjemputan, setor_manual, penarikan
 const searchQuery = ref("");
@@ -57,7 +60,6 @@ const fetchHistory = async (page = 1) => {
 
     if (activeFilter.value === "penarikan") {
         const rawPenarikan = response.data.penarikan.data || [];
-        // Filter Penarikan berdasarkan status selesai/tolak
         historyData.value = rawPenarikan.filter(item => 
             allowedStatuses.includes(item.status?.toLowerCase())
         );
@@ -68,30 +70,14 @@ const fetchHistory = async (page = 1) => {
             total: response.data.penarikan.total,
         };
     } else {
-        // --- FILTER DINAMIS: STATUS & ANTAR SENDIRI VS PENJEMPUTAN ---
+        // --- FILTER DIPERBAIKI ---
+        // Kita buang filter ketat petugas_id/gudang_id di frontend karena 
+        // backend sudah memfilter datanya. Kita hanya memastikan statusnya valid.
         const rawData = response.data.data || [];
-        
         historyData.value = rawData.filter(item => {
-            // 1. Pengecekan Status: Hanya Selesai atau Ditolak/Batal
-            const isStatusValid = allowedStatuses.includes(item.status?.toLowerCase());
-            if (!isStatusValid) return false;
-
-            // 2. Deteksi jenis transaksi
-            const isAntarSendiri = activeFilter.value === 'setor_manual' || 
-                                   item.tipe_transaksi === 'antar_sendiri' || 
-                                   (item.penimbangan && item.penimbangan[0]?.transaksi?.tipe_transaksi === 'antar_sendiri');
-
-            if (isAntarSendiri) {
-                // Untuk antar sendiri, filter dengan ID Petugas
-                const pId = item.petugas_id || (item.penimbangan && item.penimbangan[0]?.transaksi?.petugas_id);
-                return pId === user.value.petugas_id;
-            } else {
-                // Untuk penjemputan biasa, filter dengan ID Gudang
-                return Number(item.gudang_id) === Number(user.value.gudang_id);
-            }
+            return allowedStatuses.includes(item.status?.toLowerCase());
         });
-        // --------------------------------------------------
-
+        
         pagination.value = {
             current_page: response.data.current_page,
             last_page: response.data.last_page,
@@ -593,7 +579,7 @@ const remainingTimeText = computed(() => {
                         <span class="font-bold text-gray-700">Bukti Transfer</span>
                     </div>
                     <div class="aspect-video w-full rounded-3xl overflow-hidden border border-gray-200">
-                        <img :src="`${axios.defaults.baseURL}/storage/${selectedItem.bukti_tf}`" class="w-full h-full object-cover" />
+                        <img :src="`${STORAGE_URL}/${selectedItem.bukti_tf}`" class="w-full h-full object-cover" />
                     </div>
                 </div>
 
@@ -667,7 +653,7 @@ const remainingTimeText = computed(() => {
                     <p class="text-sm font-bold text-gray-700">Foto Sampah dari Nasabah</p>
                     <div class="grid grid-cols-3 gap-2">
                         <div v-for="(img, idx) in selectedItem.foto" :key="idx" class="aspect-square rounded-2xl overflow-hidden border border-gray-100">
-                            <img :src="`${axios.defaults.baseURL}/storage/${img}`" class="w-full h-full object-cover" />
+                            <img :src="`${STORAGE_URL}/${img}`" class="w-full h-full object-cover" />
                         </div>
                     </div>
                 </div>
@@ -698,7 +684,7 @@ const remainingTimeText = computed(() => {
                     <div class="flex flex-col md:flex-row gap-6">
                         <div class="flex items-center gap-4 bg-white p-4 rounded-2xl flex-1">
                             <div class="w-12 h-12 rounded-full bg-gray-200 overflow-hidden shrink-0">
-                                <img v-if="selectedItem.tukang.foto" :src="`${axios.defaults.baseURL}/storage/${selectedItem.tukang.foto}`" class="w-full h-full object-cover" />
+                                <img v-if="selectedItem.tukang.foto" :src="`${STORAGE_URL}/${selectedItem.tukang.foto}`" class="w-full h-full object-cover" />
                                 <Icon v-else icon="material-symbols:person" class="w-full h-full p-2 text-gray-400" />
                             </div>
                             <div class="text-xs">
@@ -767,7 +753,7 @@ const remainingTimeText = computed(() => {
                     </div>
                     <div class="grid grid-cols-2 gap-2">
                          <div v-for="(p, idx) in selectedItem.penimbangan" :key="idx" class="aspect-square rounded-2xl overflow-hidden border border-gray-100">
-                             <img :src="`${axios.defaults.baseURL}/storage/${p.foto}`" class="w-full h-full object-cover" />
+                             <img :src="`${STORAGE_URL}/${p.foto}`" class="w-full h-full object-cover" />
                          </div>
                     </div>
                 </div>

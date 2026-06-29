@@ -22,7 +22,7 @@ public function penimbangan(Request $request)
             'items'                 => 'required|array|min:1',
             'items.*.sampah_id'     => 'required',
             'items.*.berat_timbang' => 'required|numeric|min:0.1',
-            'items.*.foto'          => 'nullable|image|mimes:jpeg,png,jpg|max:5120',
+            'items.*.foto'          => 'image|mimes:jpeg,png,jpg|max:5120',
         ]);
 
         DB::beginTransaction();

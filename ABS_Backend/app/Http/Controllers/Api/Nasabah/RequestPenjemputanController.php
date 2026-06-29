@@ -23,6 +23,15 @@ class RequestPenjemputanController extends Controller
             'gudang_id' => 'required',
         ]);
 
+        $gudang = \App\Models\Gudang::with('sampah')->findOrFail($validated['gudang_id']);
+        $totalStok = $gudang->sampah->sum('stok');
+
+        if ($totalStok >= $gudang->kapasitas) {
+            return response()->json([
+                'message' => 'Gudang yang dipilih sudah penuh kapasitasnya.'
+            ], 422);
+        }
+
         $fotoPaths = [];
         if ($request->hasFile('foto')) {
             $files = $request->file('foto');

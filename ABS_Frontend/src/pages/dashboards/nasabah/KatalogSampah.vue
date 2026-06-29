@@ -40,15 +40,17 @@ const allSampah = computed(() => {
   gudangList.value.forEach(gudang => {
     if (gudang.sampah && Array.isArray(gudang.sampah)) {
       gudang.sampah.forEach(s => {
-        items.push({
-          ...s,
-          gudang_id: gudang.gudang_id,
-          gudang_alamat: gudang.alamat,
-          // Extract specific properties for easier access
-          nama: s.item_sampah?.nama || 'Tanpa Nama',
-          harga_beli: s.item_sampah?.harga_beli || 0,
-          foto: s.item_sampah?.foto || null
-        });
+        if (parseFloat(s.stok) > 0) {
+          items.push({
+            ...s,
+            gudang_id: gudang.gudang_id,
+            gudang_alamat: gudang.alamat,
+            // Extract specific properties for easier access
+            nama: s.item_sampah?.nama || 'Tanpa Nama',
+            harga_beli: s.item_sampah?.harga_beli || 0,
+            foto: s.item_sampah?.foto || null
+          });
+        }
       });
     }
   });

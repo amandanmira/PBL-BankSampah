@@ -19,6 +19,7 @@ const loading = ref(false);
 const searchQuery = ref("");
 const activeFilter = ref("semua"); // semua, menunggu, selesai, ditolak
 const isSubmitting = ref(false);
+const currentUserId = ref(null);
 
 const todayTotal = ref(0);
 const dailyLimit = ref(5000000);
@@ -82,6 +83,7 @@ const fetchData = async (page = 1) => {
       total: data.total,
       per_page: data.per_page,
     };
+    currentUserId.value = res.data.current_user_id;
     todayTotal.value = res.data.today_total || 0;
     dailyLimit.value = res.data.daily_limit || 5000000;
   } catch (err) {
@@ -129,6 +131,24 @@ const closeAllModals = () => {
   buktiFile.value = null;
 };
 
+const claimTugas = async (item) => {
+  try {
+    isSubmitting.value = true;
+    await axios.put(`/api/petugas/penarikan/${item.penarikan_id}/proses`);
+    Swal.fire("Berhasil", "Tugas berhasil diambil. Silakan transfer ke rekening nasabah, kemudian klik tombol 'Setujui' untuk mengunggah bukti.", "success");
+    fetchData(pagination.value.current_page);
+  } catch (err) {
+    if (err.response?.status === 409) {
+      Swal.fire("Gagal", err.response?.data?.message || "Tugas ini sudah diambil petugas lain.", "error");
+      fetchData(pagination.value.current_page);
+    } else {
+      Swal.fire("Gagal", err.response?.data?.message || "Gagal mengambil tugas.", "error");
+    }
+  } finally {
+    isSubmitting.value = false;
+  }
+};
+
 const confirmApprove = async () => {
   if (!buktiFile.value) {
     Swal.fire("Peringatan", "Bukti transfer wajib diunggah", "warning");
@@ -151,6 +171,11 @@ const confirmApprove = async () => {
   } catch (err) {
     console.error(err);
     Swal.fire("Gagal", err.response?.data?.message || "Terjadi kesalahan", "error");
+    // Jika kena 409 Conflict (Sudah diproses orang lain), auto refresh data
+    if (err.response?.status === 409) {
+      closeAllModals();
+      fetchData(pagination.value.current_page);
+    }
   } finally {
     isSubmitting.value = false;
   }
@@ -173,7 +198,12 @@ const confirmReject = async () => {
     fetchData(pagination.value.current_page);
   } catch (err) {
     console.error(err);
-    Swal.fire("Gagal", "Terjadi kesalahan saat menolak request", "error");
+    Swal.fire("Gagal", err.response?.data?.message || "Terjadi kesalahan saat menolak request", "error");
+    // Jika kena 409 Conflict (Sudah diproses orang lain), auto refresh data
+    if (err.response?.status === 409) {
+      closeAllModals();
+      fetchData(pagination.value.current_page);
+    }
   } finally {
     isSubmitting.value = false;
   }
@@ -293,21 +323,35 @@ onMounted(() => {
                     >
                       <Icon icon="material-symbols:visibility-outline" class="w-5 h-5" />
                     </button>
-                    <template v-if="item.status === 'pending' || item.status === 'proses'">
+                    <template v-if="item.status === 'pending'">
                       <button 
-                        @click="openApprove(item)"
-                        class="w-8 h-8 rounded-lg bg-green-600 text-white flex items-center justify-center hover:bg-green-700 transition-colors shadow-sm"
-                        title="Setujui"
+                        @click="claimTugas(item)"
+                        class="px-3 py-1.5 rounded-lg bg-blue-600 text-white text-[10px] font-black uppercase tracking-wider hover:bg-blue-700 transition-colors shadow-sm whitespace-nowrap"
+                        title="Ambil Tugas"
                       >
-                        <Icon icon="material-symbols:check" class="w-5 h-5" />
+                        Ambil Tugas
                       </button>
-                      <button 
-                        @click="openReject(item)"
-                        class="w-8 h-8 rounded-lg bg-red-600 text-white flex items-center justify-center hover:bg-red-700 transition-colors shadow-sm"
-                        title="Tolak"
-                      >
-                        <Icon icon="material-symbols:close" class="w-5 h-5" />
-                      </button>
+                    </template>
+                    <template v-else-if="item.status === 'proses'">
+                      <template v-if="item.petugas_id === currentUserId">
+                        <button 
+                          @click="openApprove(item)"
+                          class="w-8 h-8 rounded-lg bg-green-600 text-white flex items-center justify-center hover:bg-green-700 transition-colors shadow-sm"
+                          title="Setujui"
+                        >
+                          <Icon icon="material-symbols:check" class="w-5 h-5" />
+                        </button>
+                        <button 
+                          @click="openReject(item)"
+                          class="w-8 h-8 rounded-lg bg-red-600 text-white flex items-center justify-center hover:bg-red-700 transition-colors shadow-sm"
+                          title="Tolak"
+                        >
+                          <Icon icon="material-symbols:close" class="w-5 h-5" />
+                        </button>
+                      </template>
+                      <template v-else>
+                        <span class="text-[10px] text-stone-400 font-bold italic truncate max-w-[80px]">Diproses {{ item.petugas?.nama?.split(' ')[0] }}</span>
+                      </template>
                     </template>
                   </div>
                 </td>
@@ -463,7 +507,12 @@ onMounted(() => {
 
           <div class="p-6 border-t border-stone-50 flex gap-3">
             <button @click="closeAllModals" class="flex-1 py-3.5 rounded-xl bg-stone-50 text-stone-600 font-black text-sm hover:bg-stone-100 transition-colors">Tutup</button>
-            <template v-if="selectedPenarikan.status === 'pending' || selectedPenarikan.status === 'proses'">
+            <template v-if="selectedPenarikan.status === 'pending'">
+               <button @click="claimTugas(selectedPenarikan)" class="flex-1 py-3.5 rounded-xl bg-blue-600 text-white font-black text-sm hover:bg-blue-700 transition-all shadow-sm whitespace-nowrap">
+                 Ambil Tugas
+               </button>
+            </template>
+            <template v-else-if="selectedPenarikan.status === 'proses' && selectedPenarikan.petugas_id === currentUserId">
                <button @click="openApprove(selectedPenarikan)" class="flex-1 py-3.5 rounded-xl bg-[#4A7043] text-white font-black text-sm hover:bg-[#3D5C37] transition-all flex items-center justify-center gap-2">
                  <Icon icon="material-symbols:check" class="w-5 h-5" />
                  Terima
