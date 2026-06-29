@@ -472,19 +472,26 @@ onMounted(() => {
                   v-else
                   v-for="item in getTugasAndaItems(order.detail_transaksi)"
                   :key="item.detail_id"
-                  class="flex justify-between items-center"
+                  class="flex flex-col sm:flex-row justify-between sm:items-center py-2 sm:py-0 border-b border-stone-200/50 last:border-0 sm:border-0 gap-1 sm:gap-4"
                 >
-                  <div class="flex-1 text-sm font-bold text-stone-800 flex items-baseline">
-                    <span>{{ item.sampah?.item_sampah?.nama }}</span>
-                    <span class="text-xs text-stone-400 font-medium ml-1"
-                      >× {{ item.berat * 2 }}</span
-                    >
+                  <div class="flex-1 min-w-0">
+                    <div class="text-sm font-bold text-stone-800 break-words flex flex-wrap items-baseline">
+                      <span>{{ item.sampah?.item_sampah?.nama }}</span>
+                    </div>
+                    <p class="text-[10px] text-stone-400 font-semibold mt-0.5 sm:hidden">
+                      {{ formatRupiah(item.harga) }}/kg
+                    </p>
                   </div>
-                  <div class="w-24 text-right text-sm font-medium text-stone-500">
-                    {{ item.berat }} kg
-                  </div>
-                  <div class="w-32 text-right text-sm font-bold text-stone-800">
-                    {{ formatRupiah(item.berat * item.harga) }}
+                  <div class="flex items-center justify-between sm:justify-end gap-2 sm:gap-4 w-full sm:w-auto mt-1 sm:mt-0">
+                    <span class="hidden sm:inline text-xs text-stone-400 font-medium whitespace-nowrap">
+                      × {{ formatRupiah(item.harga) }}/kg
+                    </span>
+                    <span class="text-xs sm:text-sm font-medium text-stone-500 min-w-[70px] sm:min-w-0 text-left sm:text-right">
+                      {{ item.berat }} kg
+                    </span>
+                    <span class="text-xs sm:text-sm font-bold text-stone-800 min-w-[90px] sm:min-w-[128px] text-right">
+                      {{ formatRupiah(item.berat * item.harga) }}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -499,24 +506,31 @@ onMounted(() => {
                 <div
                   v-for="item in getGudangLainItems(order.detail_transaksi)"
                   :key="item.detail_id"
-                  class="flex justify-between items-center"
+                  class="flex flex-col sm:flex-row justify-between sm:items-center py-2 sm:py-0 border-b border-stone-200/50 last:border-0 sm:border-0 gap-1 sm:gap-4"
                 >
-                  <div class="flex-1 text-sm font-medium text-stone-400 flex items-baseline">
-                    <span>{{ item.sampah?.item_sampah?.nama }}</span>
-                    <span class="text-xs text-stone-300 font-normal ml-1"
-                      >× {{ item.berat * 2 }}</span
-                    >
-                    <span
-                      class="text-xs text-stone-300 font-normal ml-1 max-w-[150px] truncate inline-block align-bottom"
-                      :title="item.sampah?.gudang?.alamat || 'Alamat tidak tersedia'"
-                      >({{ item.sampah?.gudang?.alamat || 'Alamat tidak tersedia' }})</span
-                    >
+                  <div class="flex-1 min-w-0">
+                    <div class="text-sm font-medium text-stone-400 break-words flex flex-wrap items-baseline gap-1">
+                      <span>{{ item.sampah?.item_sampah?.nama }}</span>
+                      <span
+                        class="text-xs text-stone-300 font-normal max-w-[150px] truncate inline-block align-bottom"
+                        :title="item.sampah?.gudang?.alamat || 'Alamat tidak tersedia'"
+                        >({{ item.sampah?.gudang?.alamat || 'Alamat tidak tersedia' }})</span
+                      >
+                    </div>
+                    <p class="text-[10px] text-stone-300 font-semibold mt-0.5 sm:hidden">
+                      {{ formatRupiah(item.harga) }}/kg
+                    </p>
                   </div>
-                  <div class="w-24 text-right text-sm font-medium text-stone-300">
-                    {{ item.berat }} kg
-                  </div>
-                  <div class="w-32 text-right text-sm font-medium text-stone-300">
-                    {{ formatRupiah(item.berat * item.harga) }}
+                  <div class="flex items-center justify-between sm:justify-end gap-2 sm:gap-4 w-full sm:w-auto mt-1 sm:mt-0">
+                    <span class="hidden sm:inline text-xs text-stone-300 font-normal whitespace-nowrap">
+                      × {{ formatRupiah(item.harga) }}/kg
+                    </span>
+                    <span class="text-xs sm:text-sm font-medium text-stone-300 min-w-[70px] sm:min-w-0 text-left sm:text-right">
+                      {{ item.berat }} kg
+                    </span>
+                    <span class="text-xs sm:text-sm font-medium text-stone-300 min-w-[90px] sm:min-w-[128px] text-right">
+                      {{ formatRupiah(item.berat * item.harga) }}
+                    </span>
                   </div>
                 </div>
               </div>

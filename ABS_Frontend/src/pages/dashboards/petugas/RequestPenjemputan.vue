@@ -616,7 +616,7 @@ onMounted(async () => {
           <div class="w-20 h-20 bg-stone-100 rounded-full flex items-center justify-center mb-6">
             <Icon icon="material-symbols:inbox-outline" class="w-10 h-10 text-stone-300" />
           </div>
-          <p class="text-stone-400 font-black text-lg">Belum Ada Request Penjemputan Yang Tersedia</p>
+          <p class="text-stone-400 font-black text-base sm:text-lg text-center px-6">Belum Ada Request Penjemputan Yang Tersedia</p>
         </div>
       </div>
     </div>
