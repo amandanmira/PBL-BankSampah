@@ -317,13 +317,13 @@ onMounted(async () => {
       </div>
 
       <!-- Filter tabs -->
-      <div class="bg-white rounded-[2rem] p-2 shadow-sm border border-stone-100 flex">
+      <div class="bg-white rounded-[1.25rem] sm:rounded-[2rem] p-1.5 sm:p-2 shadow-sm border border-stone-100 grid grid-cols-2 lg:flex gap-1.5 lg:gap-0">
         <button
           v-for="filter in ['Menunggu', 'Diproses', 'Dijemput', 'Perlu Input Data']"
           :key="filter"
           @click="activeFilter = filter"
           :class="[
-            'flex-1 py-3.5 rounded-[1.5rem] text-xs font-black transition-all flex items-center justify-center gap-2',
+            'w-full py-2.5 sm:py-3.5 rounded-xl sm:rounded-[1.5rem] text-[10px] sm:text-xs font-black transition-all flex items-center justify-center gap-1.5 sm:gap-2 cursor-pointer',
             activeFilter === filter ? 'bg-[#4A7043] text-white shadow-md' : 'text-stone-400 hover:bg-stone-50'
           ]"
         >
@@ -331,7 +331,7 @@ onMounted(async () => {
           <span
             v-if="getCount(filter) > 0"
             :class="[
-              'px-2 py-0.5 rounded-full text-[10px]',
+              'px-1.5 py-0.5 rounded-full text-[9px] sm:text-[10px]',
               activeFilter === filter ? 'bg-white/20 text-white' : 'bg-stone-100 text-stone-500'
             ]"
           >

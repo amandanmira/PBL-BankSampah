@@ -29,7 +29,8 @@ class RiwayatPenjemputanController extends Controller
             });
         }
 
-        $riwayat = $query->paginate(10);
+        $perPage = $request->query('per_page', 10);
+        $riwayat = $query->paginate($perPage);
 
         return response()->json($riwayat, 200);
     }

@@ -236,7 +236,8 @@ class KonfirmasiPenjemputanController extends Controller
             });
         }
 
-        $transactions = $query->paginate(10);
+        $perPage = $request->query('per_page', 10);
+        $transactions = $query->paginate($perPage);
 
         return response()->json($transactions, 200);
     }

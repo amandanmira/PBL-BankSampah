@@ -68,11 +68,13 @@ const formatFullDate = (dateStr) => {
 const fetchData = async (page = 1) => {
   loading.value = true;
   try {
+    const perPage = window.innerWidth < 768 ? 5 : 10;
     const res = await axios.get("/api/petugas/penarikan", {
       params: {
         page,
         status: activeFilter.value,
         search: searchQuery.value, // searchQuery yang dilempar dari url akan terbaca otomatis
+        per_page: perPage,
       },
     });
     const data = res.data.penarikan;
@@ -228,7 +230,7 @@ onMounted(() => {
         </div>
       </div>
 
-      <div class="bg-white rounded-2xl p-2 shadow-sm border border-stone-100 flex overflow-x-auto no-scrollbar">
+      <div class="bg-white rounded-2xl p-1.5 md:p-2 shadow-sm border border-stone-100 grid grid-cols-2 md:flex gap-1.5 md:gap-0">
         <button 
           v-for="tab in [
             { id: 'semua', label: 'Semua Request' },
@@ -239,7 +241,7 @@ onMounted(() => {
           :key="tab.id"
           @click="setFilter(tab.id)"
           :class="[
-            'flex-1 min-w-[150px] py-3.5 rounded-xl text-sm font-bold transition-all whitespace-nowrap',
+            'w-full py-2.5 md:py-3.5 rounded-xl text-xs md:text-sm font-bold transition-all whitespace-nowrap cursor-pointer flex items-center justify-center',
             activeFilter === tab.id ? 'bg-[#4A7043] text-white shadow-md' : 'text-stone-400 hover:bg-stone-50'
           ]"
         >

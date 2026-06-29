@@ -54,7 +54,8 @@ class KonfirmasiPenarikanController extends Controller
             });
         }
 
-        $penarikan = $query->paginate(10);
+        $perPage = $request->query('per_page', 10);
+        $penarikan = $query->paginate($perPage);
 
         // Hitung total penarikan selesai hari ini untuk limit harian petugas (5jt)
         $todayTotal = Penarikan::where('status', 'selesai')
@@ -196,10 +197,11 @@ class KonfirmasiPenarikanController extends Controller
         }
     }
 
-    public function riwayatPenarikan()
+    public function riwayatPenarikan(Request $request)
     {
         $petugas = Auth::user();
         $gudangId = $petugas->gudang_id;
+        $perPage = $request->query('per_page', 10);
 
         // Menyaring data riwayat penarikan: hanya menampilkan yang selesai atau ditolak oleh petugas gudang ini
         $riwayat = Penarikan::with(['nasabah', 'petugas.gudang'])
@@ -208,7 +210,7 @@ class KonfirmasiPenarikanController extends Controller
                 $pq->where('gudang_id', $gudangId);
             })
             ->latest()
-            ->paginate(10);
+            ->paginate($perPage);
 
         return response()->json(['penarikan' => $riwayat], 200);
     }
