@@ -727,7 +727,7 @@ const remainingTimeText = computed(() => {
                         </div>
                         <div class="flex justify-between border-b border-gray-100 pb-2">
                              <span class="text-gray-400">Gudang</span>
-                             <span class="font-bold text-gray-700">{{ selectedItem.gudang?.alamat || selectedItem.penimbangan?.[0]?.tukang?.gudang?.alamat || "-" }}</span>
+                             <span class="font-bold text-gray-700">{{ activeFilter === 'setor_manual' ? (selectedItem.petugas?.gudang?.alamat || "-") : (selectedItem.gudang?.alamat || selectedItem.penimbangan?.[0]?.tukang?.gudang?.alamat || "-") }}</span>
                         </div>
                         <div class="flex justify-between border-b border-gray-100 pb-2">
                              <span class="text-gray-400">Tanggal Selesai</span>

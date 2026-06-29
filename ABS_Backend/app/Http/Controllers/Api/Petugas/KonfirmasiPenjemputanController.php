@@ -207,7 +207,7 @@ class KonfirmasiPenjemputanController extends Controller
                 'penimbangan.sampah.itemSampah',
                 'penimbangan.tukang.gudang',
                 'penimbangan.nasabah',
-                'petugas'
+                'petugas.gudang'
             ])
             ->latest('tanggal')
             ->paginate(10);
@@ -229,7 +229,7 @@ class KonfirmasiPenjemputanController extends Controller
                 'penimbangan.sampah.itemSampah',
                 'penimbangan.nasabah',
                 'penimbangan.tukang.gudang',
-                'petugas'
+                'petugas.gudang'
             ])
             ->latest('tanggal');
 
@@ -254,7 +254,7 @@ class KonfirmasiPenjemputanController extends Controller
             'penimbangan.sampah.itemSampah',
             'penimbangan.nasabah',
             'penimbangan.tukang.gudang',
-            'petugas'
+            'petugas.gudang'
         ])->find($id);
 
         if (!$transaksi) {
