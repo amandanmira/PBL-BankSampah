@@ -52,8 +52,8 @@
                 <div class="flex items-center gap-3 mt-1.5">
                   <span class="bg-gray-100 text-gray-500 text-[9px] px-2 py-0.5 rounded-md font-bold uppercase tracking-wider">{{ item.item_sampah.kategori_sampah.nama_kategori }}</span>
                   <div class="flex items-center gap-2">
-                    <div class="w-2.5 h-2.5 rounded-full bg-blue-600 shadow-sm"></div>
-                    <span class="text-[10px] font-bold text-gray-600 uppercase tracking-widest">GUDANG {{ item.gudang_id }}</span>
+                    <div class="w-2.5 h-2.5 rounded-full bg-blue-600 shadow-sm shrink-0"></div>
+                    <span class="text-[10px] font-bold text-gray-600 uppercase tracking-widest truncate max-w-[150px]" :title="item.gudang?.alamat || 'Alamat tidak tersedia'">{{ item.gudang?.alamat || 'Alamat tidak tersedia' }}</span>
                   </div>
                 </div>
 
@@ -82,7 +82,11 @@
                   <input
                     type="number"
                     :value="item.quantity"
-                    @change="(e) => cartStore.updateQuantity(item.sampah_id, Math.max(1, Math.min(item.stok, parseInt(e.target.value))))"
+                    @input="(e) => {
+                      const val = parseInt(e.target.value) || 1;
+                      cartStore.updateQuantity(item.sampah_id, Math.max(1, Math.min(item.stok, val)));
+                      e.target.value = cartStore.items.find(i => i.sampah_id === item.sampah_id).quantity;
+                    }"
                     class="w-10 text-center border-none bg-transparent font-bold text-sm text-gray-700 focus:ring-0 p-0"
                   />
                   <button

@@ -181,15 +181,25 @@ onMounted(() => {
               :key="item.penarikan_id"
               class="bg-white border border-stone-200/60 rounded-2xl p-4 shadow-sm space-y-4"
             >
-              <div class="flex items-center gap-3">
-                <div class="w-10 h-10 bg-stone-50 rounded-xl flex items-center justify-center text-stone-600 shrink-0">
-                  <Icon icon="material-symbols:account-balance-wallet-outline" class="w-5 h-5 text-stone-500" />
+              <div class="flex justify-between items-start">
+                <div class="flex items-center gap-3">
+                  <div class="w-10 h-10 bg-stone-50 rounded-xl flex items-center justify-center text-stone-600 shrink-0">
+                    <Icon icon="material-symbols:account-balance-wallet-outline" class="w-5 h-5 text-stone-500" />
+                  </div>
+                  <div>
+                    <p class="text-[9px] font-bold text-stone-400 uppercase tracking-wider">Tracking ID</p>
+                    <h4 class="text-sm font-bold text-stone-800">
+                      #WD-{{ String(item.penarikan_id).padStart(3, '0') }}
+                    </h4>
+                  </div>
                 </div>
-                <div>
-                  <p class="text-[9px] font-bold text-stone-400 uppercase tracking-wider">Tracking ID</p>
-                  <h4 class="text-sm font-bold text-stone-800">
-                    #WD-{{ String(item.penarikan_id).padStart(3, '0') }}
-                  </h4>
+                <div v-if="activeStatusFilter === 'menunggu'" 
+                     :class="cn(
+                       'px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider flex items-center gap-1',
+                       item.status === 'pending' ? 'bg-orange-50 text-orange-600 border border-orange-200/60' : 'bg-blue-50 text-blue-600 border border-blue-200/60'
+                     )">
+                  <Icon :icon="item.status === 'pending' ? 'material-symbols:schedule' : 'material-symbols:sync'" class="w-3 h-3" />
+                  {{ item.status === 'pending' ? 'Pending' : 'Diproses' }}
                 </div>
               </div>
 
@@ -297,15 +307,25 @@ onMounted(() => {
             :key="item.penarikan_id"
             class="bg-white border border-stone-200/50 rounded-3xl p-6 shadow-sm space-y-5"
           >
-            <div class="flex items-center gap-3">
-              <div class="w-11 h-11 bg-stone-50 rounded-xl flex items-center justify-center text-stone-600 shrink-0">
-                <Icon icon="material-symbols:account-balance-wallet-outline" class="w-6 h-6 text-stone-500" />
+            <div class="flex justify-between items-start">
+              <div class="flex items-center gap-3">
+                <div class="w-11 h-11 bg-stone-50 rounded-xl flex items-center justify-center text-stone-600 shrink-0">
+                  <Icon icon="material-symbols:account-balance-wallet-outline" class="w-6 h-6 text-stone-500" />
+                </div>
+                <div>
+                  <p class="text-[10px] font-bold text-stone-400 uppercase tracking-wider">Tracking ID</p>
+                  <h4 class="text-base font-bold text-stone-800">
+                    #WD-{{ String(item.penarikan_id).padStart(3, '0') }}
+                  </h4>
+                </div>
               </div>
-              <div>
-                <p class="text-[10px] font-bold text-stone-400 uppercase tracking-wider">Tracking ID</p>
-                <h4 class="text-base font-bold text-stone-800">
-                  #WD-{{ String(item.penarikan_id).padStart(3, '0') }}
-                </h4>
+              <div v-if="activeStatusFilter === 'menunggu'" 
+                   :class="cn(
+                     'px-3 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider flex items-center gap-1.5',
+                     item.status === 'pending' ? 'bg-orange-50 text-orange-600 border border-orange-200/60' : 'bg-blue-50 text-blue-600 border border-blue-200/60'
+                   )">
+                <Icon :icon="item.status === 'pending' ? 'material-symbols:schedule' : 'material-symbols:sync'" class="w-4 h-4" />
+                {{ item.status === 'pending' ? 'Pending' : 'Diproses' }}
               </div>
             </div>
 
@@ -427,17 +447,17 @@ onMounted(() => {
                 <div 
                   :class="cn(
                     'w-7 h-7 rounded-full text-white flex items-center justify-center shrink-0',
-                    selectedItem.status === 'selesai' ? 'bg-[#4A7043]' : 'bg-red-500'
+                    selectedItem.status === 'selesai' ? 'bg-[#4A7043]' : selectedItem.status === 'proses' ? 'bg-blue-500' : 'bg-red-500'
                   )"
                 >
                   <Icon 
-                    :icon="selectedItem.status === 'selesai' ? 'material-symbols:check-circle' : 'material-symbols:cancel'" 
+                    :icon="selectedItem.status === 'selesai' ? 'material-symbols:check-circle' : selectedItem.status === 'proses' ? 'material-symbols:sync' : 'material-symbols:cancel'" 
                     class="w-4 h-4" 
                   />
                 </div>
                 <div class="text-xs pt-0.5">
                   <p class="font-bold text-stone-800">
-                    {{ selectedItem.status === 'selesai' ? 'Transfer Selesai' : selectedItem.status === 'tolak' ? 'Ditolak' : 'Dibatalkan' }}
+                    {{ selectedItem.status === 'selesai' ? 'Transfer Selesai' : selectedItem.status === 'proses' ? 'Sedang Diproses' : selectedItem.status === 'tolak' ? 'Ditolak' : 'Dibatalkan' }}
                   </p>
                   <p class="text-[10px] text-stone-400">{{ formatDate(selectedItem.updated_at, true) }}</p>
                 </div>

@@ -217,8 +217,14 @@ class KonfirmasiPenjemputanController extends Controller
     public function riwayatSetorManual(Request $request)
     {
         $search = $request->query('search');
+        $gudangId = $request->query('gudang_id');
 
         $query = \App\Models\TransaksiNasabah::where('tipe_transaksi', 'antar_sendiri')
+            ->when($gudangId, function ($q) use ($gudangId) {
+                $q->whereHas('petugas', function ($pq) use ($gudangId) {
+                    $pq->where('gudang_id', $gudangId);
+                });
+            })
             ->with([
                 'penimbangan.sampah.itemSampah',
                 'penimbangan.nasabah',
