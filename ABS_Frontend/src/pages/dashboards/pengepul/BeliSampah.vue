@@ -525,7 +525,7 @@ const visiblePages = computed(() => {
 
 const getGudangAddress = (id) => {
   const gudang = warehouses.value.find(g => Number(g.gudang_id) === Number(id))
-  return gudang ? gudang.alamat : `Gudang ${id}`
+  return gudang ? gudang.alamat : 'Alamat tidak tersedia'
 }
 
 const getGudangColor = (id) => {

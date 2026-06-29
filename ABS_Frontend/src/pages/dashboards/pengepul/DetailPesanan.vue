@@ -132,8 +132,7 @@
               <div v-for="(gudang, id) in groupedItemsByGudang" :key="id" class="flex gap-3">
                 <div class="w-1.5 h-1.5 rounded-full bg-blue-600 mt-1.5 shrink-0"></div>
                 <div>
-                  <p class="text-sm font-bold text-gray-700">Gudang {{ id }}</p>
-                  <p class="text-xs text-gray-500">{{ gudang.alamat }}</p>
+                  <p class="text-sm font-bold text-gray-700 max-w-[250px] truncate" :title="gudang.alamat || 'Alamat tidak tersedia'">{{ gudang.alamat || 'Alamat tidak tersedia' }}</p>
                   <p class="text-xs text-gray-400 mt-0.5">Barang: {{ gudang.items.join(', ') }}</p>
                 </div>
               </div>
@@ -259,8 +258,8 @@
               <div class="flex items-center gap-2 mt-1">
                 <span class="text-xs font-bold text-gray-400 bg-gray-50 px-1.5 py-0.5 rounded-md uppercase tracking-wider">{{ item.sampah?.item_sampah?.kategori_sampah?.nama_kategori }}</span>
                 <div class="flex items-center gap-1">
-                  <div class="w-1.5 h-1.5 rounded-full bg-blue-600"></div>
-                  <span class="text-xs font-bold text-gray-400 uppercase tracking-widest">GUDANG {{ item.sampah?.gudang_id }}</span>
+                  <div class="w-1.5 h-1.5 rounded-full bg-blue-600 shrink-0"></div>
+                  <span class="text-xs font-bold text-gray-400 uppercase tracking-widest truncate max-w-[200px]" :title="item.sampah?.gudang?.alamat || 'Alamat tidak tersedia'">{{ item.sampah?.gudang?.alamat || 'Alamat tidak tersedia' }}</span>
                 </div>
               </div>
               <p class="text-xs text-gray-400 mt-2">{{ item.berat }} kg × {{ formatCurrency(item.harga) }}</p>
