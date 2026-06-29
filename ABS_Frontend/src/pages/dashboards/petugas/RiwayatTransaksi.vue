@@ -48,11 +48,17 @@ const fetchHistory = async (page = 1) => {
       endpoint = "/api/petugas/riwayat-penarikan";
     }
 
+    const params = {
+      page: page,
+      search: searchQuery.value,
+    };
+
+    if (activeFilter.value === "setor_manual") {
+      params.gudang_id = user.value.gudang_id;
+    }
+
     const response = await axios.get(endpoint, {
-      params: {
-        page: page,
-        search: searchQuery.value,
-      },
+      params: params,
     });
 
     // Array status yang diperbolehkan tampil di Riwayat
@@ -70,13 +76,11 @@ const fetchHistory = async (page = 1) => {
             total: response.data.penarikan.total,
         };
     } else {
-        // --- FILTER DIPERBAIKI ---
-        // Kita buang filter ketat petugas_id/gudang_id di frontend karena 
-        // backend sudah memfilter datanya. Kita hanya memastikan statusnya valid.
         const rawData = response.data.data || [];
         historyData.value = rawData.filter(item => {
             return allowedStatuses.includes(item.status?.toLowerCase());
         });
+        console.log(historyData.value)
         
         pagination.value = {
             current_page: response.data.current_page,
