@@ -150,13 +150,14 @@
                 </button>
                 <input
                   v-model.number="itemQuantities[item.sampah_id]"
+                  @input="enforceMaxQuantity(item.sampah_id, getAvailableStock(item))"
                   type="number"
                   class="w-full text-center border-none focus:ring-0 font-bold text-base text-gray-800 bg-transparent p-0"
                   min="0"
-                  :max="item.stok"
+                  :max="getAvailableStock(item)"
                 />
                 <button
-                  @click="updateQty(item.sampah_id, 1, item.stok)"
+                  @click="updateQty(item.sampah_id, 1, getAvailableStock(item))"
                   class="w-11 h-full flex items-center justify-center bg-white text-[#4A7043] hover:bg-green-50 transition-colors cursor-pointer border-l border-gray-100"
                 >
                   <Icon icon="material-symbols:add" class="w-5 h-5" />
@@ -537,6 +538,20 @@ const getGudangColor = (id) => {
   return colors[Number(id) % colors.length]
 }
 
+const getAvailableStock = (item) => {
+  const cartItem = cartStore.items.find(i => Number(i.sampah_id) === Number(item.sampah_id))
+  const inCartQty = cartItem ? cartItem.quantity : 0
+  return Math.max(0, item.stok - inCartQty)
+}
+
+const enforceMaxQuantity = (id, max) => {
+  if (itemQuantities.value[id] > max) {
+    itemQuantities.value[id] = max
+  } else if (itemQuantities.value[id] < 0) {
+    itemQuantities.value[id] = 0
+  }
+}
+
 const updateQty = (id, delta, max = 9999) => {
   const current = itemQuantities.value[id] || 0
   const newVal = Math.max(0, Math.min(max, current + delta))
@@ -544,6 +559,7 @@ const updateQty = (id, delta, max = 9999) => {
 }
 
 const addToCart = (item) => {
+  enforceMaxQuantity(item.sampah_id, getAvailableStock(item))
   const qty = itemQuantities.value[item.sampah_id]
   if (qty > 0) {
     cartStore.addItem(item, qty)
