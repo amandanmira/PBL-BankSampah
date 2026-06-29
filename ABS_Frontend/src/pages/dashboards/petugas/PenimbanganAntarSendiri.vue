@@ -2,10 +2,10 @@
   <DashboardLayout :title="step === 1 ? 'Dashboard Penimbangan' : step === 2 ? 'Form Detail Penimbangan' : step === 3 ? 'Pratinjau Penimbangan' : 'Setor Manual (Walk-in)'">
     
     <!-- STEP 1: PILIH NASABAH -->
-    <div v-if="step === 1" class="max-w-3xl mx-auto pb-20 animate-in fade-in duration-500">
+    <div v-if="step === 1" class="max-w-3xl mx-auto pb-20 animate-in fade-in duration-500 px-4 sm:px-0">
       <div class="mb-6">
-        <h1 class="text-3xl font-black text-stone-800">Dashboard Penimbangan</h1>
-        <p class="text-stone-500 font-medium mt-1">Pilih Nasabah Untuk Mengisi Form Penimbangan</p>
+        <h1 class="text-2xl sm:text-3xl font-black text-stone-800">Dashboard Penimbangan</h1>
+        <p class="text-xs sm:text-sm font-semibold text-stone-500 mt-1">Pilih Nasabah Untuk Mengisi Form Penimbangan</p>
       </div>
 
       <div class="bg-white rounded-[2rem] p-6 sm:p-8 shadow-sm border border-stone-100">
