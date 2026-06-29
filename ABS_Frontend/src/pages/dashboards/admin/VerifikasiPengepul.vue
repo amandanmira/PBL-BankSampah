@@ -158,7 +158,8 @@ const isImage = (filename) => {
 const getFileUrl = (path) => {
   if (!path) return '#';
   // Assuming storage is linked and accessible via /storage
-  return `http://localhost:8000/storage/${path}`;
+  const baseUrl = axios.defaults.baseURL || 'http://localhost:8000';
+  return `${baseUrl}/storage/${path}`;
 };
 </script>
 
