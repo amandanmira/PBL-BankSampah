@@ -189,9 +189,9 @@ const onSearchInput = () => {
                 : 'bg-stone-100 text-stone-500 border-stone-200 hover:bg-stone-200'
             ]"
           >
-            Gudang {{ gudang.gudang_id }}
-            <span :class="['font-medium text-[10px] opacity-70 max-w-[150px] truncate', selectedGudangFilter === gudang.gudang_id ? 'text-white' : 'text-stone-400']">
-              ({{ gudang.alamat }})
+            <Icon icon="material-symbols:location-on" class="w-4 h-4 shrink-0" />
+            <span class="max-w-[200px] truncate" :title="gudang.alamat">
+              {{ gudang.alamat }}
             </span>
           </button>
         </div>
@@ -223,9 +223,9 @@ const onSearchInput = () => {
                 </div>
                 
                 <!-- Tag Gudang -->
-                <div class="absolute top-4 right-4 bg-white/90 backdrop-blur-sm px-3 py-1.5 rounded-full shadow-sm flex items-center gap-1.5 border border-white/50">
-                  <Icon icon="material-symbols:location-on" class="w-3.5 h-3.5 text-[#4A7043]" />
-                  <span class="text-[10px] font-black text-[#4A7043]">Gudang {{ item.gudang_id }}</span>
+                <div class="absolute top-4 right-4 bg-white/90 backdrop-blur-sm px-3 py-1.5 rounded-full shadow-sm flex items-center gap-1.5 border border-white/50 max-w-[150px]">
+                  <Icon icon="material-symbols:location-on" class="w-3.5 h-3.5 text-[#4A7043] shrink-0" />
+                  <span class="text-[10px] font-black text-[#4A7043] truncate" :title="item.gudang_alamat">{{ item.gudang_alamat || 'Alamat tidak tersedia' }}</span>
                 </div>
               </div>
 

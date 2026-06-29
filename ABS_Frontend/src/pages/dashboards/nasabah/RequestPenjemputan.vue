@@ -799,16 +799,16 @@ onMounted(() => {
             <div class="p-5 space-y-4">
               <!-- Grid Stats -->
               <div class="grid grid-cols-[1fr_1fr_1.2fr] gap-2">
-                <div class="bg-[#F5F5F0] p-3.5 rounded-2xl text-center">
-                  <p class="text-base font-black text-[#4A7043] leading-none">{{ gudang.petugas?.length || 0 }}</p>
+                <div class="bg-[#F5F5F0] p-2 sm:p-2.5 rounded-2xl text-center">
+                  <p class="text-sm lg:text-base font-black text-[#4A7043] leading-none">{{ gudang.petugas?.length || 0 }}</p>
                   <p class="text-[9px] font-bold text-stone-400 uppercase tracking-wider mt-1.5">Petugas</p>
                 </div>
-                <div class="bg-[#F5F5F0] p-3.5 rounded-2xl text-center">
-                  <p class="text-base font-black text-[#0D9488] leading-none">{{ gudang.tukang?.length || 0 }}</p>
+                <div class="bg-[#F5F5F0] p-2 sm:p-2.5 rounded-2xl text-center">
+                  <p class="text-sm lg:text-base font-black text-[#0D9488] leading-none">{{ gudang.tukang?.length || 0 }}</p>
                   <p class="text-[9px] font-bold text-stone-400 uppercase tracking-wider mt-1.5">Tukang</p>
                 </div>
-                <div class="bg-[#F5F5F0] p-3.5 rounded-2xl text-center flex flex-col justify-center">
-                  <p :class="['text-xs sm:text-sm lg:text-base font-black leading-none', getGudangStats(gudang).isFull ? 'text-[#E86B6B]' : 'text-[#4A7043]']">
+                <div class="bg-[#F5F5F0] p-2 sm:p-2.5 rounded-2xl text-center flex flex-col justify-center">
+                  <p :class="['text-[11px] sm:text-xs lg:text-sm font-black leading-none break-all', getGudangStats(gudang).isFull ? 'text-[#E86B6B]' : 'text-[#4A7043]']">
                     {{ Math.round(getGudangStats(gudang).totalStok) }}/{{ gudang.kapasitas }}
                   </p>
                   <p class="text-[9px] font-bold text-stone-400 uppercase tracking-wider mt-1.5">kg</p>

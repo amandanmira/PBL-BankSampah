@@ -72,7 +72,7 @@
               >
                 <option value="" disabled>Pilih Gudang Penugasan</option>
                 <option v-for="gudang in gudangList" :key="gudang.gudang_id" :value="gudang.gudang_id">
-                  Gudang {{ gudang.alamat.split(',')[0] }} (GDG-{{ String(gudang.gudang_id).padStart(3, '0') }})
+                  {{ gudang.alamat }} (GDG-{{ String(gudang.gudang_id).padStart(3, '0') }})
                 </option>
               </select>
               <Icon icon="material-symbols:keyboard-arrow-down" class="absolute right-5 top-1/2 -translate-y-1/2 w-5 h-5 text-stone-400 pointer-events-none" />
