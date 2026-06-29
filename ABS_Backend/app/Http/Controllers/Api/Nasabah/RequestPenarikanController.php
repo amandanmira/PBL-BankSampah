@@ -18,7 +18,7 @@ class RequestPenarikanController extends Controller
 
         if ($status && $status !== 'semua') {
             if ($status === 'menunggu') {
-                $query->where('status', 'pending');
+                $query->whereIn('status', ['pending', 'proses']);
             } elseif ($status === 'ditolak') {
                 $query->where('status', 'tolak');
             } elseif ($status === 'dibatalkan') {
@@ -36,7 +36,7 @@ class RequestPenarikanController extends Controller
 
         // Count for each status
         $counts = [
-            'menunggu' => Penarikan::where('nasabah_id', $nasabah->nasabah_id)->where('status', 'pending')->count(),
+            'menunggu' => Penarikan::where('nasabah_id', $nasabah->nasabah_id)->whereIn('status', ['pending', 'proses'])->count(),
             'selesai' => Penarikan::where('nasabah_id', $nasabah->nasabah_id)->where('status', 'selesai')->count(),
             'ditolak' => Penarikan::where('nasabah_id', $nasabah->nasabah_id)->where('status', 'tolak')->count(),
             'dibatalkan' => Penarikan::where('nasabah_id', $nasabah->nasabah_id)->where('status', 'batal')->count(),
