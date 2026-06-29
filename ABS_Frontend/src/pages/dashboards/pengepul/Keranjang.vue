@@ -82,7 +82,11 @@
                   <input
                     type="number"
                     :value="item.quantity"
-                    @change="(e) => cartStore.updateQuantity(item.sampah_id, Math.max(1, Math.min(item.stok, parseInt(e.target.value))))"
+                    @input="(e) => {
+                      const val = parseInt(e.target.value) || 1;
+                      cartStore.updateQuantity(item.sampah_id, Math.max(1, Math.min(item.stok, val)));
+                      e.target.value = cartStore.items.find(i => i.sampah_id === item.sampah_id).quantity;
+                    }"
                     class="w-10 text-center border-none bg-transparent font-bold text-sm text-gray-700 focus:ring-0 p-0"
                   />
                   <button
