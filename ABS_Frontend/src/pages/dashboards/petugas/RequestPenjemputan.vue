@@ -174,19 +174,13 @@ const confirmSchedule = async (request) => {
     return;
   }
 
-  // --- VALIDASI TANGGAL DIPERBAIKI ---
-  // Kita ubah input tanggal menjadi format Date, lalu nol-kan jamnya (00:00:00)
-  const selectedDate = new Date(request.scheduleDate);
-  selectedDate.setHours(0, 0, 0, 0);
+  // --- VALIDASI TANGGAL & WAKTU ---
+  const now = new Date();
+  const selectedDateTime = new Date(request.scheduleDate);
+  selectedDateTime.setHours(parseInt(request.scheduleHour), parseInt(request.scheduleMinute), 0, 0);
 
-  // Ambil tanggal hari ini, lalu nol-kan juga jamnya (00:00:00)
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-
-  // Bandingkan murni hanya TANGGAL-nya saja. 
-  // Jika hari ini, hasilnya sama (=) sehingga tidak akan diblokir.
-  if (selectedDate < today) {
-    alert("Tanggal tidak valid! Jadwal penjemputan tidak boleh diatur ke hari yang sudah lewat.");
+  if (selectedDateTime < now) {
+    alert("Waktu tidak valid! Jadwal penjemputan tidak boleh diatur ke waktu yang sudah lewat.");
     return;
   }
   // ------------------------------------

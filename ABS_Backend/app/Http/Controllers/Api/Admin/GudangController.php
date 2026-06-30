@@ -79,7 +79,7 @@ class GudangController extends Controller
         $gudang = Gudang::findOrFail($id);
 
         $validated = $request->validate([
-            'alamat' => 'sometimes|required|string|unique:gudangs,alamat,' . $gudang->gudang_id,
+            'alamat' => 'sometimes|required|string|unique:gudangs,alamat,' . $gudang->gudang_id . ',gudang_id',
             'kapasitas' => 'sometimes|required|integer',
         ]);
 
