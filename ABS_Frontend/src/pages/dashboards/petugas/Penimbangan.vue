@@ -612,8 +612,10 @@ const submitPenimbangan = async () => {
     const formData = new FormData();
     formData.append("nasabah_id", penjemputan.value.nasabah_id);
     formData.append("penjemputan_id", penjemputan.value.penjemputan_id);
-    // Menggunakan tukang dari penjemputan data
-    formData.append("tukang_id", penjemputan.value.tukang_id || penjemputan.value.tukang?.tukang_id);
+    const tukangId = penjemputan.value.tukang_id || penjemputan.value.tukang?.tukang_id;
+    if (tukangId) {
+      formData.append("tukang_id", tukangId);
+    }
     
     validItems.forEach((item, index) => {
       formData.append(`items[${index}][sampah_id]`, item.sampah_id);

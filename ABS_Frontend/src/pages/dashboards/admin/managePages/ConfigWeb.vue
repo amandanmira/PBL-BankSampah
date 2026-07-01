@@ -272,7 +272,7 @@
             <button 
               type="submit"
               :disabled="loading || resizing"
-              class="w-full bg-gray-100 text-gray-400 hover:bg-[#4A7043] hover:text-white font-bold py-5 rounded-3xl flex items-center justify-center gap-3 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed group active:scale-[0.98]"
+              class="w-full bg-[#4A7043] text-white hover:bg-[#3D5C37] font-bold py-5 rounded-3xl flex items-center justify-center gap-3 transition-all duration-300 shadow-lg shadow-green-900/20 disabled:bg-gray-100 disabled:text-gray-400 disabled:shadow-none disabled:cursor-not-allowed group active:scale-[0.98]"
             >
               <Icon :icon="loading ? 'line-md:loading-twotone-loop' : 'material-symbols:save-outline'" class="w-6 h-6 transition-transform group-hover:scale-110" />
               <span class="tracking-wide">{{ loading ? 'Menyimpan...' : 'Simpan Perubahan' }}</span>
