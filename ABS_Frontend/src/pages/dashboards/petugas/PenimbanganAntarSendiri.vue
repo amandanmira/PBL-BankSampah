@@ -109,7 +109,7 @@
 
       <!-- Tukang Picker -->
       <div class="bg-white rounded-xl sm:rounded-[1.5rem] p-4 sm:p-6 shadow-sm border border-stone-100 space-y-3 sm:space-y-4 mx-1 sm:mx-0">
-        <p class="text-xs sm:text-sm font-black text-[#4A7043]">Tukang: <span class="text-red-500">*</span></p>
+        <p class="text-xs sm:text-sm font-black text-[#4A7043]">Tukang: <span class="text-stone-400 text-[10px] font-bold">(Opsional)</span></p>
         
         <button 
           v-if="!selectedTukang"
@@ -123,8 +123,8 @@
           <div class="text-center relative z-10">
             <h4 class="text-sm sm:text-lg font-black text-stone-800 group-hover:text-[#4A7043] transition-colors">Pilih Tukang Penimbang</h4>
             <div class="flex items-center justify-center gap-1.5 mt-1 sm:mt-2">
-              <span class="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse"></span>
-              <p class="text-[9px] sm:text-[10px] font-black text-stone-400 uppercase tracking-[0.2em]">Wajib diisi untuk melanjutkan</p>
+              <span class="w-1.5 h-1.5 rounded-full bg-stone-400"></span>
+              <p class="text-[9px] sm:text-[10px] font-black text-stone-400 uppercase tracking-[0.2em]">Opsional</p>
             </div>
           </div>
 
@@ -747,7 +747,7 @@ const isFormValid = computed(() => {
     row.berat_timbang > 0 &&
     row.foto !== null
   );
-  return validItems.length === formRows.value.length && validItems.length > 0 && selectedTukang.value !== "";
+  return validItems.length === formRows.value.length && validItems.length > 0;
 });
 
 const openWorkerModal = () => {
@@ -800,7 +800,9 @@ const submitPenimbangan = async () => {
   try {
     const formData = new FormData();
     formData.append("nasabah_id", selectedNasabah.value);
-    formData.append("tukang_id", selectedTukang.value);
+    if (selectedTukang.value) {
+      formData.append("tukang_id", selectedTukang.value);
+    }
 
     formRows.value.forEach((item, index) => {
       formData.append(`items[${index}][sampah_id]`, item.sampah_id);
