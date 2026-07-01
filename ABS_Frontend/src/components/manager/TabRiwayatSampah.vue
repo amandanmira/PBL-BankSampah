@@ -403,6 +403,7 @@ const handlePrintPdf = async () => {
             <tr class="bg-[#F5F5F0] border-b border-stone-200">
               <th class="py-4 px-6 text-xs font-bold text-stone-600 uppercase tracking-wider">Tanggal</th>
               <th class="py-4 px-6 text-xs font-bold text-stone-600 uppercase tracking-wider">Role</th>
+              <th class="py-4 px-6 text-xs font-bold text-stone-600 uppercase tracking-wider">Nama</th>
               <th class="py-4 px-6 text-xs font-bold text-stone-600 uppercase tracking-wider">Jenis Sampah</th>
               <th class="py-4 px-6 text-xs font-bold text-stone-600 uppercase tracking-wider">Berat</th>
               <th class="py-4 px-6 text-xs font-bold text-stone-600 uppercase tracking-wider text-center">Sumber</th>
@@ -414,12 +415,12 @@ const handlePrintPdf = async () => {
           <tbody v-if="isGroupedByGudang" class="divide-y divide-stone-100">
             <template v-if="filteredGroupedData.length === 0">
               <tr>
-                <td colspan="8" class="py-8 text-center text-sm font-bold text-stone-400">Tidak ada data yang sesuai filter</td>
+                <td colspan="9" class="py-8 text-center text-sm font-bold text-stone-400">Tidak ada data yang sesuai filter</td>
               </tr>
             </template>
             <template v-else v-for="(group, idx) in filteredGroupedData" :key="idx">
               <tr class="bg-[#E9F5E9] border-b border-stone-100">
-                <td :colspan="isGroupedByGudang ? 7 : 6" class="py-3 px-6">
+                <td :colspan="isGroupedByGudang ? 8 : 7" class="py-3 px-6">
                   <div class="flex justify-between items-center w-full">
                     <span class="text-sm font-black text-[#3D5A35]">{{ group.gudangName }}</span>
                     <span class="text-xs font-bold text-[#3D5A35]">{{ group.summary }}</span>
@@ -429,6 +430,7 @@ const handlePrintPdf = async () => {
               <tr v-for="(row, rowIdx) in group.rows" :key="`${idx}-${rowIdx}`" class="hover:bg-stone-50 transition-colors group">
                 <td class="py-4 px-6 text-sm text-stone-600 font-medium whitespace-nowrap">{{ row.tanggal }}</td>
                 <td class="py-4 px-6 text-sm text-stone-800 font-medium whitespace-nowrap">{{ row.role }}</td>
+                <td class="py-4 px-6 text-sm text-stone-800 font-bold whitespace-nowrap">{{ row.nasabah }}</td>
                 <td class="py-4 px-6 text-sm text-stone-600 font-medium whitespace-nowrap">{{ row.jenis }}</td>
                 <td class="py-4 px-6 text-sm text-stone-800 font-bold whitespace-nowrap">{{ row.berat }} kg</td>
                 <td class="py-4 px-6 whitespace-nowrap text-center">
@@ -460,13 +462,14 @@ const handlePrintPdf = async () => {
           <tbody v-else class="divide-y divide-stone-100">
             <template v-if="filteredFlatData.length === 0">
               <tr>
-                <td colspan="8" class="py-8 text-center text-sm font-bold text-stone-400">Tidak ada data yang sesuai filter</td>
+                <td colspan="9" class="py-8 text-center text-sm font-bold text-stone-400">Tidak ada data yang sesuai filter</td>
               </tr>
             </template>
             <template v-else>
               <tr v-for="(row, index) in filteredFlatData" :key="index" class="hover:bg-stone-50 transition-colors group">
                 <td class="py-4 px-6 text-sm text-stone-600 font-medium whitespace-nowrap">{{ row.tanggal }}</td>
                 <td class="py-4 px-6 text-sm text-stone-800 font-medium whitespace-nowrap">{{ row.role }}</td>
+                <td class="py-4 px-6 text-sm text-stone-800 font-bold whitespace-nowrap">{{ row.nasabah }}</td>
                 <td class="py-4 px-6 text-sm text-stone-600 font-medium whitespace-nowrap">{{ row.jenis }}</td>
                 <td class="py-4 px-6 text-sm text-stone-800 font-bold whitespace-nowrap">{{ row.berat }} kg</td>
                 <td class="py-4 px-6 whitespace-nowrap text-center">
