@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, inject } from "vue";
+import { ref, onMounted, inject, computed, watch } from "vue";
 import { Icon } from "@iconify/vue";
 import DashboardLayout from "@/layouts/DashboardLayout.vue";
 import { checkRole } from '@/utils';
@@ -11,6 +11,8 @@ const axios = inject('axios');
 const kategoriList = ref([]);
 const loading = ref(false);
 const expandedCategoryId = ref(null);
+const viewMode = ref('accordion'); // 'accordion' or 'table'
+const searchQuery = ref('');
 
 // ==========================================
 // MODAL STATE KATEGORI (Multi-Step)
@@ -254,6 +256,56 @@ const saveSingleItem = async () => {
   }
 };
 
+// ==========================================
+// COMPUTED FLAT ITEMS & SEARCH (Table View)
+// ==========================================
+const allItems = computed(() => {
+  const items = [];
+  kategoriList.value.forEach(kategori => {
+    if (kategori.item_sampah) {
+      kategori.item_sampah.forEach(item => {
+        items.push({
+          ...item,
+          kategori_nama: kategori.nama,
+          kategori_id: kategori.kategori_id,
+          kategori_active: kategori.active
+        });
+      });
+    }
+  });
+  return items;
+});
+
+const filteredItems = computed(() => {
+  if (!searchQuery.value.trim()) {
+    return allItems.value;
+  }
+  const query = searchQuery.value.toLowerCase().trim();
+  return allItems.value.filter(item => {
+    return (
+      item.nama.toLowerCase().includes(query) ||
+      item.kategori_nama.toLowerCase().includes(query)
+    );
+  });
+});
+
+const currentPage = ref(1);
+const itemsPerPage = 10;
+
+const paginatedItems = computed(() => {
+  const start = (currentPage.value - 1) * itemsPerPage;
+  const end = start + itemsPerPage;
+  return filteredItems.value.slice(start, end);
+});
+
+const totalPages = computed(() => {
+  return Math.ceil(filteredItems.value.length / itemsPerPage);
+});
+
+watch(searchQuery, () => {
+  currentPage.value = 1;
+});
+
 onMounted(() => {
   fetchKategori();
 });
@@ -280,131 +332,316 @@ onMounted(() => {
         <Icon icon="line-md:loading-twotone-loop" class="w-12 h-12 text-[#4A7043]" />
       </div>
 
-      <div v-else class="space-y-4">
-        <div 
-          v-for="kategori in kategoriList" 
-          :key="kategori.kategori_id"
-          class="overflow-hidden"
-        >
+      <div v-else class="space-y-6">
+        <!-- Controls: Toggle View & Search Bar -->
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-4 rounded-2xl border border-gray-100 shadow-sm">
+          <!-- View Toggle Buttons -->
+          <div class="flex items-center bg-gray-100 p-1 rounded-xl w-fit">
+            <button 
+              type="button"
+              @click="viewMode = 'accordion'"
+              :class="[
+                'px-4 py-2 rounded-lg font-bold text-sm transition-all flex items-center gap-2 cursor-pointer',
+                viewMode === 'accordion' 
+                  ? 'bg-[#4A7043] text-white shadow-sm' 
+                  : 'text-gray-500 hover:text-[#4A7043]'
+              ]"
+            >
+              <Icon icon="material-symbols:format-list-bulleted" class="w-5 h-5" />
+              Grup Kategori
+            </button>
+            <button 
+              type="button"
+              @click="viewMode = 'table'"
+              :class="[
+                'px-4 py-2 rounded-lg font-bold text-sm transition-all flex items-center gap-2 cursor-pointer',
+                viewMode === 'table' 
+                  ? 'bg-[#4A7043] text-white shadow-sm' 
+                  : 'text-gray-500 hover:text-[#4A7043]'
+              ]"
+            >
+              <Icon icon="material-symbols:table-chart-outline-rounded" class="w-5 h-5" />
+              Semua Item (Tabel)
+            </button>
+          </div>
+
+          <!-- Search Bar -->
+          <div v-if="viewMode === 'table'" class="relative flex-1 max-w-md">
+            <span class="absolute inset-y-0 left-4 flex items-center text-gray-400">
+              <Icon icon="material-symbols:search" class="w-5 h-5" />
+            </span>
+            <input 
+              v-model="searchQuery"
+              type="text" 
+              placeholder="Cari item sampah atau kategori..."
+              class="w-full bg-gray-50 border border-gray-100 rounded-xl pl-12 pr-4 py-2.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#4A7043]/20 focus:border-[#4A7043] transition-all placeholder:text-gray-400"
+            />
+            <button 
+              v-if="searchQuery" 
+              type="button"
+              @click="searchQuery = ''"
+              class="absolute inset-y-0 right-4 flex items-center text-gray-400 hover:text-gray-600"
+            >
+              <Icon icon="material-symbols:close" class="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+
+        <!-- Accordion View -->
+        <div v-if="viewMode === 'accordion'" class="space-y-4">
           <div 
-            :class="[
-              'rounded-2xl p-6 flex items-center justify-between transition-all duration-300 border-2',
-              kategori.active === 1 
-                ? 'bg-[#4A7043] text-white border-[#4A7043]' 
-                : 'bg-gray-400 text-white border-gray-400'
-            ]"
+            v-for="kategori in kategoriList" 
+            :key="kategori.kategori_id"
+            class="overflow-hidden"
           >
-            <div class="flex items-center gap-6 flex-1 cursor-pointer" @click="toggleAccordion(kategori.kategori_id)">
-              <Icon 
-                :icon="expandedCategoryId === kategori.kategori_id ? 'material-symbols:keyboard-arrow-up' : 'material-symbols:keyboard-arrow-down'" 
-                class="w-8 h-8 transition-transform duration-300"
-              />
-              <div>
-                <h3 class="text-xl font-bold tracking-wide">{{ kategori.nama }}</h3>
-                <p class="text-sm opacity-80">{{ kategori.item_sampah.length }} item sampah</p>
+            <div 
+              :class="[
+                'rounded-2xl p-6 flex items-center justify-between transition-all duration-300 border-2',
+                kategori.active === 1 
+                  ? 'bg-[#4A7043] text-white border-[#4A7043]' 
+                  : 'bg-gray-400 text-white border-gray-400'
+              ]"
+            >
+              <div class="flex items-center gap-6 flex-1 cursor-pointer" @click="toggleAccordion(kategori.kategori_id)">
+                <Icon 
+                  :icon="expandedCategoryId === kategori.kategori_id ? 'material-symbols:keyboard-arrow-up' : 'material-symbols:keyboard-arrow-down'" 
+                  class="w-8 h-8 transition-transform duration-300"
+                />
+                <div>
+                  <h3 class="text-xl font-bold tracking-wide">{{ kategori.nama }}</h3>
+                  <p class="text-sm opacity-80">{{ kategori.item_sampah.length }} item sampah</p>
+                </div>
+              </div>
+
+              <div class="flex items-center gap-3">
+                <span v-if="kategori.active === 0" class="bg-red-500 text-white px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest mr-4">Nonaktif</span>
+                
+                <button 
+                  @click="openEditModal(kategori)"
+                  class="bg-white text-gray-700 hover:bg-gray-100 px-5 py-2.5 rounded-xl flex items-center gap-2 font-bold text-sm shadow-md transition-all active:scale-95"
+                >
+                  <Icon icon="material-symbols:edit-outline" class="w-5 h-5" />
+                  Edit Semua
+                </button>
+
+                <button 
+                  @click="toggleStatus(kategori)"
+                  :class="[
+                    'px-5 py-2.5 rounded-xl flex items-center gap-2 font-bold text-sm shadow-md transition-all active:scale-95',
+                    kategori.active === 1 
+                      ? 'bg-red-500 hover:bg-red-600 text-white' 
+                      : 'bg-[#4A7043] hover:bg-[#3D5C37] text-white'
+                  ]"
+                >
+                  <Icon :icon="kategori.active === 1 ? 'material-symbols:power-settings-new' : 'material-symbols:check-circle-outline'" class="w-5 h-5" />
+                  {{ kategori.active === 1 ? 'Nonaktifkan' : 'Aktifkan' }}
+                </button>
               </div>
             </div>
 
-            <div class="flex items-center gap-3">
-              <span v-if="kategori.active === 0" class="bg-red-500 text-white px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest mr-4">Nonaktif</span>
-              
-              <button 
-                @click="openEditModal(kategori)"
-                class="bg-white text-gray-700 hover:bg-gray-100 px-5 py-2.5 rounded-xl flex items-center gap-2 font-bold text-sm shadow-md transition-all active:scale-95"
-              >
-                <Icon icon="material-symbols:edit-outline" class="w-5 h-5" />
-                Edit Semua
-              </button>
+            <transition
+              enter-active-class="transition-all duration-500 ease-out"
+              leave-active-class="transition-all duration-300 ease-in"
+              enter-from-class="max-h-0 opacity-0 transform -translate-y-4"
+              enter-to-class="max-h-[2000px] opacity-100 transform translate-y-0"
+              leave-from-class="max-h-[2000px] opacity-100 transform translate-y-0"
+              leave-to-class="max-h-0 opacity-0 transform -translate-y-4"
+            >
+              <div v-if="expandedCategoryId === kategori.kategori_id" class="mt-2 p-6 bg-white rounded-2xl shadow-inner border border-gray-100">
+                <div v-if="kategori.item_sampah.length === 0" class="text-center py-10 text-gray-400 italic">
+                  Belum ada item di kategori ini.
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  <div 
+                    v-for="item in kategori.item_sampah" 
+                    :key="item.item_id"
+                    @click="openEditItemModal(item)"
+                    class="bg-white rounded-2xl border-2 border-gray-100 p-4 shadow-sm hover:shadow-lg hover:border-[#4A7043] transition-all duration-300 group cursor-pointer relative"
+                  >
+                    <div v-if="item.active === 0" class="absolute top-2 right-2 bg-red-500 text-white text-[10px] font-bold px-2 py-1 rounded-md z-10">
+                      NONAKTIF
+                    </div>
 
+                    <div class="relative aspect-video rounded-xl overflow-hidden mb-4 bg-gray-100">
+                      <img 
+                        v-if="item.foto" 
+                        :src="item.foto.startsWith('http') ? item.foto : `${axios.defaults.baseURL}/storage/${item.foto}`" 
+                        class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                        alt="Item Foto"
+                      />
+                      <div v-else class="w-full h-full flex flex-col items-center justify-center text-gray-300">
+                        <Icon icon="material-symbols:image-outline" class="w-12 h-12" />
+                        <span class="text-xs font-bold uppercase tracking-widest mt-2">No Photo</span>
+                      </div>
+                      
+                      <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+                        <div class="bg-white text-gray-800 px-4 py-2 rounded-full font-bold text-sm flex items-center gap-2">
+                          <Icon icon="material-symbols:edit" class="w-4 h-4" /> Edit
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <h4 class="text-lg font-bold text-gray-800 mb-4 truncate">{{ item.nama }}</h4>
+                    
+                    <div class="space-y-2 text-sm">
+    
+                      <div class="flex justify-between items-center">
+                        <span class="text-gray-500">Harga Beli:</span>
+                        <span class="font-bold text-[#4A7043]">{{ formatRupiah(item.harga_beli) }}/kg</span>
+                      </div>
+
+                      <div class="flex justify-between items-center">
+                        <span class="text-gray-500">Harga Jual:</span>
+                        <div class="text-right">
+                          <span v-if="item.diskon > 0" class="text-xs text-gray-400 line-through mr-1 font-normal">
+                            {{ formatRupiah(item.harga_jual) }}
+                          </span>
+                          <span class="font-bold text-blue-600">
+                            {{ formatRupiah(item.harga_jual - (item.harga_jual * item.diskon)) }}/kg
+                          </span>
+                        </div>
+                      </div>
+
+                      <div class="flex justify-between">
+                        <span class="text-gray-500">Diskon:</span>
+                        <span class="font-bold text-orange-500">{{ item.diskon * 100 }}%</span>
+                      </div>
+
+                    </div>
+
+                  </div>
+                </div>
+              </div>
+            </transition>
+          </div>
+        </div>
+
+        <!-- Table View -->
+        <div v-else-if="viewMode === 'table'" class="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+              <thead>
+                <tr class="bg-gray-50 border-b border-gray-100 text-gray-500 text-xs font-bold uppercase tracking-wider">
+                  <th class="py-5 px-6">No</th>
+                  <th class="py-5 px-6">Foto</th>
+                  <th class="py-5 px-6">Nama Item</th>
+                  <th class="py-5 px-6">Kategori</th>
+                  <th class="py-5 px-6">Harga Beli</th>
+                  <th class="py-5 px-6">Harga Jual Bersih</th>
+                  <th class="py-5 px-6">Diskon</th>
+                  <th class="py-5 px-6">Status</th>
+                  <th class="py-5 px-6 text-center">Aksi</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-gray-50 text-sm text-gray-700">
+                <tr v-if="paginatedItems.length === 0">
+                  <td colspan="9" class="py-12 text-center text-gray-400 italic">
+                    Tidak ditemukan item sampah yang cocok.
+                  </td>
+                </tr>
+                <tr 
+                  v-for="(item, index) in paginatedItems" 
+                  :key="item.item_id"
+                  class="hover:bg-gray-50/50 transition-colors"
+                >
+                  <td class="py-4 px-6 font-medium text-gray-400">{{ (currentPage - 1) * itemsPerPage + index + 1 }}</td>
+                  <td class="py-4 px-6">
+                    <div class="w-12 h-12 rounded-xl overflow-hidden bg-gray-100 border border-gray-100 flex items-center justify-center shrink-0">
+                      <img 
+                        v-if="item.foto" 
+                        :src="item.foto.startsWith('http') ? item.foto : `${axios.defaults.baseURL}/storage/${item.foto}`" 
+                        class="w-full h-full object-cover"
+                        alt="Foto Item"
+                      />
+                      <Icon v-else icon="material-symbols:image-outline" class="w-6 h-6 text-gray-300" />
+                    </div>
+                  </td>
+                  <td class="py-4 px-6 font-bold text-gray-800">{{ item.nama }}</td>
+                  <td class="py-4 px-6">
+                    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-[#4A7043]/10 text-[#4A7043]">
+                      {{ item.kategori_nama }}
+                    </span>
+                  </td>
+                  <td class="py-4 px-6 font-bold text-[#4A7043]">{{ formatRupiah(item.harga_beli) }}/kg</td>
+                  <td class="py-4 px-6">
+                    <div class="flex flex-col">
+                      <span class="font-bold text-blue-600">
+                        {{ formatRupiah(item.harga_jual - (item.harga_jual * item.diskon)) }}/kg
+                      </span>
+                      <span v-if="item.diskon > 0" class="text-xs text-gray-400 line-through">
+                        {{ formatRupiah(item.harga_jual) }}
+                      </span>
+                    </div>
+                  </td>
+                  <td class="py-4 px-6 font-bold text-orange-500">
+                    {{ item.diskon * 100 }}%
+                  </td>
+                  <td class="py-4 px-6">
+                    <span 
+                      :class="[
+                        'inline-flex items-center px-3 py-1 rounded-full text-xs font-bold',
+                        item.active === 1 
+                          ? 'bg-green-100 text-green-700' 
+                          : 'bg-red-100 text-red-700'
+                      ]"
+                    >
+                      {{ item.active === 1 ? 'Aktif' : 'Nonaktif' }}
+                    </span>
+                  </td>
+                  <td class="py-4 px-6 text-center">
+                    <button 
+                      @click="openEditItemModal(item)"
+                      class="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-gray-50 text-gray-600 hover:bg-[#4A7043] hover:text-white transition-all active:scale-95 shadow-sm hover:shadow-md cursor-pointer"
+                      title="Edit Item"
+                    >
+                      <Icon icon="material-symbols:edit-outline" class="w-5 h-5" />
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Pagination Controls -->
+          <div v-if="totalPages > 1" class="flex flex-col sm:flex-row items-center justify-between border-t border-gray-100 px-6 py-4 bg-gray-50/50 gap-4">
+            <div class="text-xs text-gray-500 font-bold uppercase tracking-wider">
+              Menampilkan {{ (currentPage - 1) * itemsPerPage + 1 }} - {{ Math.min(currentPage * itemsPerPage, filteredItems.length) }} dari {{ filteredItems.length }} item
+            </div>
+            <div class="flex items-center gap-2">
               <button 
-                @click="toggleStatus(kategori)"
+                type="button"
+                @click="currentPage > 1 && (currentPage--)"
+                :disabled="currentPage === 1"
+                class="px-4 py-2.5 rounded-xl border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all font-bold text-xs flex items-center gap-1 cursor-pointer"
+              >
+                <Icon icon="material-symbols:arrow-back-ios-new-rounded" class="w-3 h-3" />
+                Sebelumnya
+              </button>
+              <button 
+                v-for="page in totalPages" 
+                :key="page"
+                type="button"
+                @click="currentPage = page"
                 :class="[
-                  'px-5 py-2.5 rounded-xl flex items-center gap-2 font-bold text-sm shadow-md transition-all active:scale-95',
-                  kategori.active === 1 
-                    ? 'bg-red-500 hover:bg-red-600 text-white' 
-                    : 'bg-[#4A7043] hover:bg-[#3D5C37] text-white'
+                  'w-9 h-9 rounded-xl font-bold text-xs flex items-center justify-center transition-all cursor-pointer border',
+                  currentPage === page 
+                    ? 'bg-[#4A7043] text-white border-[#4A7043] shadow-md shadow-green-900/10' 
+                    : 'border-gray-200 bg-white text-gray-600 hover:bg-gray-50'
                 ]"
               >
-                <Icon :icon="kategori.active === 1 ? 'material-symbols:power-settings-new' : 'material-symbols:check-circle-outline'" class="w-5 h-5" />
-                {{ kategori.active === 1 ? 'Nonaktifkan' : 'Aktifkan' }}
+                {{ page }}
+              </button>
+              <button 
+                type="button"
+                @click="currentPage < totalPages && (currentPage++)"
+                :disabled="currentPage === totalPages"
+                class="px-4 py-2.5 rounded-xl border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all font-bold text-xs flex items-center gap-1 cursor-pointer"
+              >
+                Berikutnya
+                <Icon icon="material-symbols:arrow-forward-ios-rounded" class="w-3 h-3" />
               </button>
             </div>
           </div>
-
-          <transition
-            enter-active-class="transition-all duration-500 ease-out"
-            leave-active-class="transition-all duration-300 ease-in"
-            enter-from-class="max-h-0 opacity-0 transform -translate-y-4"
-            enter-to-class="max-h-[2000px] opacity-100 transform translate-y-0"
-            leave-from-class="max-h-[2000px] opacity-100 transform translate-y-0"
-            leave-to-class="max-h-0 opacity-0 transform -translate-y-4"
-          >
-            <div v-if="expandedCategoryId === kategori.kategori_id" class="mt-2 p-6 bg-white rounded-2xl shadow-inner border border-gray-100">
-              <div v-if="kategori.item_sampah.length === 0" class="text-center py-10 text-gray-400 italic">
-                Belum ada item di kategori ini.
-              </div>
-              <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <div 
-                  v-for="item in kategori.item_sampah" 
-                  :key="item.item_id"
-                  @click="openEditItemModal(item)"
-                  class="bg-white rounded-2xl border-2 border-gray-100 p-4 shadow-sm hover:shadow-lg hover:border-[#4A7043] transition-all duration-300 group cursor-pointer relative"
-                >
-                  <div v-if="item.active === 0" class="absolute top-2 right-2 bg-red-500 text-white text-[10px] font-bold px-2 py-1 rounded-md z-10">
-                    NONAKTIF
-                  </div>
-
-                  <div class="relative aspect-video rounded-xl overflow-hidden mb-4 bg-gray-100">
-                    <img 
-                      v-if="item.foto" 
-                      :src="item.foto.startsWith('http') ? item.foto : `${axios.defaults.baseURL}/storage/${item.foto}`" 
-                      class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                      alt="Item Foto"
-                    />
-                    <div v-else class="w-full h-full flex flex-col items-center justify-center text-gray-300">
-                      <Icon icon="material-symbols:image-outline" class="w-12 h-12" />
-                      <span class="text-xs font-bold uppercase tracking-widest mt-2">No Photo</span>
-                    </div>
-                    
-                    <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
-                      <div class="bg-white text-gray-800 px-4 py-2 rounded-full font-bold text-sm flex items-center gap-2">
-                        <Icon icon="material-symbols:edit" class="w-4 h-4" /> Edit
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <h4 class="text-lg font-bold text-gray-800 mb-4 truncate">{{ item.nama }}</h4>
-                  
-                  <div class="space-y-2 text-sm">
-  
-                    <div class="flex justify-between items-center">
-                      <span class="text-gray-500">Harga Beli:</span>
-                      <span class="font-bold text-[#4A7043]">{{ formatRupiah(item.harga_beli) }}/kg</span>
-                    </div>
-
-                    <div class="flex justify-between items-center">
-                      <span class="text-gray-500">Harga Jual:</span>
-                      <div class="text-right">
-                        <span v-if="item.diskon > 0" class="text-xs text-gray-400 line-through mr-1 font-normal">
-                          {{ formatRupiah(item.harga_jual) }}
-                        </span>
-                        <span class="font-bold text-blue-600">
-                          {{ formatRupiah(item.harga_jual - (item.harga_jual * item.diskon)) }}/kg
-                        </span>
-                      </div>
-                    </div>
-
-                    <div class="flex justify-between">
-                      <span class="text-gray-500">Diskon:</span>
-                      <span class="font-bold text-orange-500">{{ item.diskon * 100 }}%</span>
-                    </div>
-
-                  </div>
-
-                </div>
-              </div>
-            </div>
-          </transition>
         </div>
       </div>
     </div>
