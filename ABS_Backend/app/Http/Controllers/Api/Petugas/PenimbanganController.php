@@ -18,7 +18,7 @@ public function penimbangan(Request $request)
         // 1. Validasi Input (tipe_transaksi dihapus dari validasi)
         $request->validate([
             'penjemputan_id'        => 'required',
-            'tukang_id'             => 'required',
+            'tukang_id'             => 'nullable',
             'items'                 => 'required|array|min:1',
             'items.*.sampah_id'     => 'required',
             'items.*.berat_timbang' => 'required|numeric|min:0.1',
@@ -208,7 +208,7 @@ public function listTukang(Request $request)
         // Validasi: penjemputan_id tidak ada, tapi nasabah_id wajib
         $request->validate([
             'nasabah_id'            => 'required',
-            'tukang_id'             => 'required',
+            'tukang_id'             => 'nullable',
             'items'                 => 'required|array|min:1',
             'items.*.sampah_id'     => 'required',
             'items.*.berat_timbang' => 'required|numeric|min:0.1',

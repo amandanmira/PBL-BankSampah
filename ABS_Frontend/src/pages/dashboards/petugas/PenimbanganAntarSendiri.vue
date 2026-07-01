@@ -139,7 +139,7 @@
           </button>
           
           <div class="w-16 h-16 sm:w-24 sm:h-24 bg-[#F5F7F5] rounded-xl sm:rounded-2xl flex items-center justify-center shrink-0 border border-stone-100 overflow-hidden shadow-sm">
-            <img v-if="selectedTukangData?.foto" :src="`http://localhost:8000/storage/${selectedTukangData.foto}`" class="w-full h-full object-cover" />
+            <img v-if="selectedTukangData?.foto" :src="`${axios.defaults.baseURL ? axios.defaults.baseURL.replace('/api', '') : ''}/storage/${selectedTukangData.foto}`" class="w-full h-full object-cover" />
             <Icon v-else icon="material-symbols:image-outline" class="w-6 h-6 sm:w-8 sm:h-8 text-stone-300" />
           </div>
           <div class="flex-1 bg-[#F9F9F7] rounded-xl sm:rounded-2xl p-3 sm:p-5 flex flex-col justify-center space-y-1.5 sm:space-y-3 border border-stone-100 shadow-sm min-w-0">
@@ -317,7 +317,7 @@
           <p class="text-[9px] sm:text-[10px] font-black text-[#4A7043] uppercase tracking-widest">Tukang</p>
           <div class="flex items-center gap-4 sm:gap-6 bg-[#F9F9F7] rounded-xl sm:rounded-[1.5rem] p-4 sm:p-5 border border-stone-100 shadow-sm">
             <div class="w-14 h-14 sm:w-20 sm:h-20 bg-white rounded-xl sm:rounded-2xl flex items-center justify-center shrink-0 border border-stone-100 overflow-hidden shadow-sm">
-              <img v-if="selectedTukangData?.foto" :src="`http://localhost:8000/storage/${selectedTukangData.foto}`" class="w-full h-full object-cover" />
+              <img v-if="selectedTukangData?.foto" :src="`${axios.defaults.baseURL ? axios.defaults.baseURL.replace('/api', '') : ''}/storage/${selectedTukangData.foto}`" class="w-full h-full object-cover" />
               <Icon v-else icon="material-symbols:image-outline" class="w-6 h-6 sm:w-8 sm:h-8 text-stone-300" />
             </div>
             <div class="flex-1 space-y-1 sm:space-y-2 min-w-0">
@@ -514,7 +514,7 @@
             class="bg-white border-2 border-stone-100 rounded-3xl p-5 flex items-center gap-6 cursor-pointer hover:border-[#4A7043] hover:shadow-xl transition-all group active:scale-[0.98]"
           >
             <div class="w-24 h-24 bg-[#F9F9F7] rounded-[1.5rem] flex items-center justify-center overflow-hidden border border-stone-100 shrink-0 group-hover:border-[#4A7043]/20">
-              <img v-if="worker.foto" :src="`http://localhost:8000/storage/${worker.foto}`" alt="Foto Tukang" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+              <img v-if="worker.foto" :src="`${axios.defaults.baseURL ? axios.defaults.baseURL.replace('/api', '') : ''}/storage/${worker.foto}`" alt="Foto Tukang" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
               <Icon v-else icon="material-symbols:image-outline" class="w-10 h-10 text-stone-200" />
             </div>
             <div class="flex-1 space-y-3">
