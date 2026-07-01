@@ -51,7 +51,7 @@
             <p class="text-sm font-black text-[#4A7043]">Tukang:</p>
             <div class="flex flex-col md:flex-row gap-6">
               <div class="w-24 h-24 bg-[#F5F7F5] rounded-2xl flex items-center justify-center shrink-0 border border-stone-100 overflow-hidden">
-                <img v-if="penjemputan?.tukang?.foto" :src="`${axios.defaults.baseURL ? axios.defaults.baseURL.replace(/\/api\/?$/, '') : ''}/storage/${penjemputan.tukang.foto}`" class="w-full h-full object-cover" />
+                <img v-if="penjemputan?.tukang?.foto" :src="`${axios.defaults.baseURL ? axios.defaults.baseURL.replace('/api', '') : ''}/storage/${penjemputan.tukang.foto}`" class="w-full h-full object-cover" />
                 <Icon v-else icon="material-symbols:image-outline" class="w-8 h-8 text-stone-300" />
               </div>
               <div class="flex-1 bg-[#F5F7F5] rounded-2xl p-4 flex flex-col justify-center space-y-2 border border-stone-100">
@@ -198,7 +198,7 @@
               <p class="text-[10px] font-black text-[#4A7043] uppercase tracking-widest">Tukang:</p>
               <div class="flex items-center gap-4 bg-[#F9F9F7] rounded-[1.5rem] p-4">
                 <div class="w-16 h-16 bg-white rounded-xl flex items-center justify-center shrink-0 border border-stone-100 overflow-hidden">
-                  <img v-if="penjemputan?.tukang?.foto" :src="`${axios.defaults.baseURL ? axios.defaults.baseURL.replace(/\/api\/?$/, '') : ''}/storage/${penjemputan.tukang.foto}`" class="w-full h-full object-cover" />
+                  <img v-if="penjemputan?.tukang?.foto" :src="`${axios.defaults.baseURL ? axios.defaults.baseURL.replace('/api', '') : ''}/storage/${penjemputan.tukang.foto}`" class="w-full h-full object-cover" />
                   <Icon v-else icon="material-symbols:image-outline" class="w-6 h-6 text-stone-300" />
                 </div>
                 <div class="flex-1 space-y-1">
