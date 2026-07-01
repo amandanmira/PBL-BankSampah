@@ -109,7 +109,7 @@
 
       <!-- Tukang Picker -->
       <div class="bg-white rounded-xl sm:rounded-[1.5rem] p-4 sm:p-6 shadow-sm border border-stone-100 space-y-3 sm:space-y-4 mx-1 sm:mx-0">
-        <p class="text-xs sm:text-sm font-black text-[#4A7043]">Tukang: <span class="text-red-500">*</span></p>
+        <p class="text-xs sm:text-sm font-black text-[#4A7043]">Tukang: <span class="text-stone-400 text-[10px] font-bold">(Opsional)</span></p>
         
         <button 
           v-if="!selectedTukang"
@@ -123,8 +123,8 @@
           <div class="text-center relative z-10">
             <h4 class="text-sm sm:text-lg font-black text-stone-800 group-hover:text-[#4A7043] transition-colors">Pilih Tukang Penimbang</h4>
             <div class="flex items-center justify-center gap-1.5 mt-1 sm:mt-2">
-              <span class="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse"></span>
-              <p class="text-[9px] sm:text-[10px] font-black text-stone-400 uppercase tracking-[0.2em]">Wajib diisi untuk melanjutkan</p>
+              <span class="w-1.5 h-1.5 rounded-full bg-stone-400"></span>
+              <p class="text-[9px] sm:text-[10px] font-black text-stone-400 uppercase tracking-[0.2em]">Opsional</p>
             </div>
           </div>
 
@@ -139,7 +139,7 @@
           </button>
           
           <div class="w-16 h-16 sm:w-24 sm:h-24 bg-[#F5F7F5] rounded-xl sm:rounded-2xl flex items-center justify-center shrink-0 border border-stone-100 overflow-hidden shadow-sm">
-            <img v-if="selectedTukangData?.foto" :src="`http://localhost:8000/storage/${selectedTukangData.foto}`" class="w-full h-full object-cover" />
+            <img v-if="selectedTukangData?.foto" :src="`${axios.defaults.baseURL ? axios.defaults.baseURL : ''}/storage/${selectedTukangData.foto}`" class="w-full h-full object-cover" />
             <Icon v-else icon="material-symbols:image-outline" class="w-6 h-6 sm:w-8 sm:h-8 text-stone-300" />
           </div>
           <div class="flex-1 bg-[#F9F9F7] rounded-xl sm:rounded-2xl p-3 sm:p-5 flex flex-col justify-center space-y-1.5 sm:space-y-3 border border-stone-100 shadow-sm min-w-0">
@@ -317,7 +317,7 @@
           <p class="text-[9px] sm:text-[10px] font-black text-[#4A7043] uppercase tracking-widest">Tukang</p>
           <div class="flex items-center gap-4 sm:gap-6 bg-[#F9F9F7] rounded-xl sm:rounded-[1.5rem] p-4 sm:p-5 border border-stone-100 shadow-sm">
             <div class="w-14 h-14 sm:w-20 sm:h-20 bg-white rounded-xl sm:rounded-2xl flex items-center justify-center shrink-0 border border-stone-100 overflow-hidden shadow-sm">
-              <img v-if="selectedTukangData?.foto" :src="`http://localhost:8000/storage/${selectedTukangData.foto}`" class="w-full h-full object-cover" />
+              <img v-if="selectedTukangData?.foto" :src="`${axios.defaults.baseURL ? axios.defaults.baseURL : ''}/storage/${selectedTukangData.foto}`" class="w-full h-full object-cover" />
               <Icon v-else icon="material-symbols:image-outline" class="w-6 h-6 sm:w-8 sm:h-8 text-stone-300" />
             </div>
             <div class="flex-1 space-y-1 sm:space-y-2 min-w-0">
@@ -514,7 +514,7 @@
             class="bg-white border-2 border-stone-100 rounded-3xl p-5 flex items-center gap-6 cursor-pointer hover:border-[#4A7043] hover:shadow-xl transition-all group active:scale-[0.98]"
           >
             <div class="w-24 h-24 bg-[#F9F9F7] rounded-[1.5rem] flex items-center justify-center overflow-hidden border border-stone-100 shrink-0 group-hover:border-[#4A7043]/20">
-              <img v-if="worker.foto" :src="`http://localhost:8000/storage/${worker.foto}`" alt="Foto Tukang" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+              <img v-if="worker.foto" :src="`${axios.defaults.baseURL ? axios.defaults.baseURL : ''}/storage/${worker.foto}`" alt="Foto Tukang" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
               <Icon v-else icon="material-symbols:image-outline" class="w-10 h-10 text-stone-200" />
             </div>
             <div class="flex-1 space-y-3">
@@ -747,7 +747,7 @@ const isFormValid = computed(() => {
     row.berat_timbang > 0 &&
     row.foto !== null
   );
-  return validItems.length === formRows.value.length && validItems.length > 0 && selectedTukang.value !== "";
+  return validItems.length === formRows.value.length && validItems.length > 0;
 });
 
 const openWorkerModal = () => {
@@ -800,7 +800,9 @@ const submitPenimbangan = async () => {
   try {
     const formData = new FormData();
     formData.append("nasabah_id", selectedNasabah.value);
-    formData.append("tukang_id", selectedTukang.value);
+    if (selectedTukang.value) {
+      formData.append("tukang_id", selectedTukang.value);
+    }
 
     formRows.value.forEach((item, index) => {
       formData.append(`items[${index}][sampah_id]`, item.sampah_id);
