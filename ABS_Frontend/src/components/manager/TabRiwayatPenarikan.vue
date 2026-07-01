@@ -370,7 +370,7 @@ onMounted(async () => {
               <th class="py-4 px-6 text-xs font-bold text-stone-600 tracking-wider">ID Penarikan</th>
               <th class="py-4 px-6 text-xs font-bold text-stone-600 tracking-wider">Tanggal</th>
               <th class="py-4 px-6 text-xs font-bold text-stone-600 tracking-wider">Nasabah</th>
-              <th class="py-4 px-6 text-xs font-bold text-stone-600 tracking-wider">Nominal</th>
+              <th class="py-4 px-6 text-xs font-bold text-stone-600 tracking-wider">Nominal(Rp)</th>
               <th class="py-4 px-6 text-xs font-bold text-stone-600 tracking-wider text-center">Status</th>
             </tr>
           </thead>
@@ -379,7 +379,7 @@ onMounted(async () => {
               <td class="py-4 px-6 text-sm text-[#4A7043] font-bold whitespace-nowrap">{{ row.id }}</td>
               <td class="py-4 px-6 text-sm text-stone-600 font-medium whitespace-nowrap">{{ row.tanggal }}</td>
               <td class="py-4 px-6 text-sm text-stone-600 font-medium whitespace-nowrap">{{ row.nasabah }}</td>
-              <td class="py-4 px-6 text-sm text-stone-800 font-bold whitespace-nowrap">{{ row.nominal }}</td>
+              <td class="py-4 px-6 text-sm text-stone-800 font-bold whitespace-nowrap">{{ row.nominal.replace('Rp ', '') }}</td>
               <td class="py-4 px-6 whitespace-nowrap text-center">
                 <div v-if="row.status === 'Selesai'" class="inline-flex items-center justify-center px-4 py-1.5 rounded-full bg-[#3D5A35] text-white text-[10px] font-bold tracking-wider shadow-sm min-w-[70px]">
                   Selesai
