@@ -517,7 +517,7 @@ const remainingTimeText = computed(() => {
           </button>
         </div>
 
-        <div v-if="activeFilter !== 'penarikan'" class="p-4 flex gap-2 border-b border-gray-100">
+        <div v-if="activeFilter !== 'penarikan' && activeFilter !== 'setor_manual'" class="p-4 flex gap-2 border-b border-gray-100">
           <button
             @click="modalActiveTab = 'penjemputan'"
             :class="[
